@@ -1,0 +1,74 @@
+{
+  "name": "project-starter",
+  "homepage": "https://your-project.dev",
+  "items": [
+    {
+      "name": "app-layout",
+      "type": "registry:ui",
+      "title": "App Layout",
+      "description": "A comprehensive layout system with sidebar navigation, resizable panels, and organized content areas.",
+      "registryDependencies": ["button", "resizable", "separator", "sidebar"],
+      "files": [
+        {
+          "path": "../ui/src/components/brand/app-layout.tsx",
+          "type": "registry:ui"
+        }
+      ],
+      "meta": {
+        "examples": [
+          {
+            "name": "app-layout-basic",
+            "title": "Basic Layout",
+            "description": "Simple layout with header and content using AppSidebar"
+          },
+          {
+            "name": "app-layout-no-header",
+            "title": "Layout Without Header",
+            "description": "Minimal layout without header for cleaner interfaces"
+          }
+        ]
+      }
+    },
+    {
+      "name": "app-01",
+      "type": "registry:block",
+      "title": "App 01",
+      "description": "An example app layout with a sidebar and a main content area.",
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "./src/components/blocks/app-01/page.tsx",
+          "type": "registry:block"
+        },
+        {
+          "path": "./src/components/blocks/app-01/components/app-sidebar.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "app-layout-basic",
+      "type": "registry:example",
+      "title": "Basic Layout",
+      "description": "Simple layout with header and content using AppSidebar",
+      "files": [
+        {
+          "path": "./src/components/examples/app-layout-basic.tsx",
+          "type": "registry:example"
+        }
+      ]
+    },
+    {
+      "name": "app-layout-no-header",
+      "type": "registry:example",
+      "title": "Layout Without Header",
+      "description": "Minimal layout without header for cleaner interfaces",
+      "files": [
+        {
+          "path": "./src/components/examples/app-layout-no-header.tsx",
+          "type": "registry:example"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "app-layout-no-header",
+  "title": "Layout Without Header",
+  "description": "Minimal layout without header for cleaner interfaces",
+  "files": [
+    {
+      "path": "./src/components/examples/app-layout-no-header.tsx",
+      "content": "\"use client\";\n\nimport {\n  AppLayout,\n  AppLayoutContent,\n  AppLayoutPage,\n} from \"@workspace/ui/components/brand/app-layout\";\nimport { AppSidebar } from \"@workspace/ui-ds/components/blocks/app-01/components/app-sidebar\";\n\nexport function AppLayoutNoHeader() {\n  return (\n    <AppLayout sidebar={<AppSidebar />}>\n      <AppLayoutPage>\n        <AppLayoutContent>\n          <div className=\"p-6\">\n            <h3 className=\"font-medium text-lg\">Content Area</h3>\n            <p>This layout has no header, providing a minimal interface.</p>\n          </div>\n        </AppLayoutContent>\n      </AppLayoutPage>\n    </AppLayout>\n  );\n}\n",
+      "type": "registry:example"
+    }
+  ],
+  "type": "registry:example"
+}

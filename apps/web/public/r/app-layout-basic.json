@@ -1,0 +1,14 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "app-layout-basic",
+  "title": "Basic Layout",
+  "description": "Simple layout with header and content using AppSidebar",
+  "files": [
+    {
+      "path": "./src/components/examples/app-layout-basic.tsx",
+      "content": "\"use client\";\n\nimport {\n  AppLayout,\n  AppLayoutContent,\n  AppLayoutHeader,\n  AppLayoutHeaderTitle,\n  AppLayoutPage,\n} from \"@workspace/ui/components/brand/app-layout\";\nimport { AppSidebar } from \"@workspace/ui-ds/components/blocks/app-01/components/app-sidebar\";\n\nexport function AppLayoutBasic() {\n  return (\n    <AppLayout sidebar={<AppSidebar />}>\n      <AppLayoutPage>\n        <AppLayoutHeader>\n          <AppLayoutHeaderTitle>Dashboard</AppLayoutHeaderTitle>\n        </AppLayoutHeader>\n        <AppLayoutContent>\n          <div className=\"p-6\">\n            <h3 className=\"font-medium text-lg\">Content Area</h3>\n            <p>This is the main content area of the application.</p>\n          </div>\n        </AppLayoutContent>\n      </AppLayoutPage>\n    </AppLayout>\n  );\n}\n",
+      "type": "registry:example"
+    }
+  ],
+  "type": "registry:example"
+}

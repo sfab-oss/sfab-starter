@@ -1,0 +1,26 @@
+{
+  "name": "@workspace/auth",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./env": "./src/env.ts"
+  },
+  "dependencies": {
+    "@t3-oss/env-core": "^0.11.0",
+    "@workspace/config": "workspace:*",
+    "@workspace/db": "workspace:*",
+    "better-auth": "^1.3.7",
+    "drizzle-orm": "^0.44.5",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5.9.3",
+    "@types/node": "^20.19.9"
+  }
+}

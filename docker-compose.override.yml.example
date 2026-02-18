@@ -1,0 +1,14 @@
+# Copy this file to docker-compose.override.yml for local customizations
+# docker-compose.override.yml is gitignored
+
+services:
+  postgres:
+    # Uncomment to change the port mapping
+    # ports:
+    #   - '5432:5432'
+
+    # Uncomment to add custom postgres configuration
+    # command: postgres -c log_statement=all
+
+    # Uncomment to use a different postgres version
+    # image: postgres:16

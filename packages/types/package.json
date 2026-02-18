@@ -1,0 +1,24 @@
+{
+  "name": "@workspace/types",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./ai": "./src/ai.ts",
+    "./products": "./src/products.ts",
+    "./search": "./src/search.ts",
+    "./utils": "./src/utils.ts",
+    "./warehouses": "./src/warehouses.ts",
+    "./hono": "./src/hono.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ai": "^6.0.39",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}
