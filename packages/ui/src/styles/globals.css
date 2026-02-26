@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@source "../../../../apps/**/*.{ts,tsx}";
+@source "../../../../apps/web/app/**/*.{ts,tsx}";
+@source "../../../../apps/web/components/**/*.{ts,tsx}";
+@source "../../../../apps/web-tanstack/src/**/*.{ts,tsx}";
 @source "../../../../packages/ui-ds/src/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
