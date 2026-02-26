@@ -3,7 +3,7 @@ import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { Toaster } from "@workspace/ui/components/shadcn/sonner";
 
-import Header from "../components/header";
+import { ThemeProvider } from "../components/providers/theme-provider";
 
 import appCss from "../styles.css?url";
 
@@ -39,8 +39,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <Header />
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
         <Toaster />
         <TanStackDevtools
           config={{
