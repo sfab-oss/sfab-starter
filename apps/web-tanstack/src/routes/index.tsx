@@ -56,7 +56,6 @@ function App() {
         <div className="absolute inset-0 bg-linear-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
         <div className="relative mx-auto max-w-5xl">
           <div className="mb-6 flex items-center justify-center gap-6">
-            {/* biome-ignore lint/performance/noImgElement: TanStack Start has no Image component */}
             <img
               alt="TanStack Logo"
               className="h-24 w-24 md:h-32 md:w-32"

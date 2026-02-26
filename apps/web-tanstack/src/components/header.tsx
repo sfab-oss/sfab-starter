@@ -18,7 +18,6 @@ export default function Header() {
         </button>
         <h1 className="ml-4 font-semibold text-xl">
           <Link to="/">
-            {/* biome-ignore lint/performance/noImgElement: TanStack Start has no Image component */}
             <img
               alt="TanStack Logo"
               className="h-10"
