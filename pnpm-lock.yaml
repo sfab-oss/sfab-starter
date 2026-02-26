@@ -141,6 +141,9 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.7.6
         version: 0.7.6(hono@4.12.2)(zod@4.3.6)
+      '@hookform/resolvers':
+        specifier: ^5.2.2
+        version: 5.2.2(react-hook-form@7.71.2(react@19.2.4))
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.2.1(vite@7.3.1(@types/node@22.19.12)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
@@ -186,6 +189,9 @@ importers:
       react-dom:
         specifier: ^19.2.0
         version: 19.2.4(react@19.2.4)
+      react-hook-form:
+        specifier: ^7.71.1
+        version: 7.71.2(react@19.2.4)
       tailwindcss:
         specifier: ^4.1.18
         version: 4.2.1

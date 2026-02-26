@@ -25,6 +25,7 @@
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.13.8",
     "@hono/zod-validator": "^0.7.6",
+    "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "^0.7.0",
     "@tanstack/react-router": "^1.132.0",
@@ -40,6 +41,7 @@
     "radix-ui": "^1.4.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hook-form": "^7.71.1",
     "tailwindcss": "^4.1.18",
     "zod": "^4.3.5"
   },

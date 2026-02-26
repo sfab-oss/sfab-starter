@@ -1,9 +1,18 @@
-import { Link } from "@tanstack/react-router";
-import { Home, Menu, X } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { authClient } from "@workspace/auth/client";
+import { Button } from "@workspace/ui/components/shadcn/button";
+import { Home, LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const { data: session } = authClient.useSession();
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    await navigate({ to: "/login" });
+  };
 
   return (
     <>
@@ -27,6 +36,15 @@ export default function Header() {
             />
           </Link>
         </h1>
+        {session?.user && (
+          <div className="ml-auto flex items-center gap-3">
+            <span className="text-gray-300 text-sm">{session.user.email}</span>
+            <Button onClick={handleSignOut} size="sm" variant="ghost">
+              <LogOut size={16} />
+              Sign out
+            </Button>
+          </div>
+        )}
       </header>
 
       <aside

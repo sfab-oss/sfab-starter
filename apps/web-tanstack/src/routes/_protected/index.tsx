@@ -8,7 +8,7 @@ import {
   Zap,
 } from "lucide-react";
 
-export const Route = createFileRoute("/")({ component: App });
+export const Route = createFileRoute("/_protected/")({ component: App });
 
 function App() {
   const features = [
