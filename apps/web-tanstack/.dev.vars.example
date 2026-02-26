@@ -1,0 +1,6 @@
+# Copy this file to .dev.vars and fill in real values.
+# .dev.vars is git-ignored and loaded automatically by Wrangler during local dev.
+# In production, set these as Worker secrets: wrangler secret put <NAME>
+
+BETTER_AUTH_SECRET=your-secret-key-at-least-32-characters-long
+BETTER_AUTH_URL=http://localhost:3001

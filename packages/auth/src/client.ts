@@ -1,8 +1,7 @@
-import { BASE_URL } from "@workspace/config";
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL: BASE_URL,
+  baseURL: typeof window !== "undefined" ? window.location.origin : "",
 });
 
 export type Session = typeof authClient.$Infer.Session;

@@ -4,11 +4,7 @@
   "private": true,
   "exports": {
     "./ai": "./src/ai.ts",
-    "./products": "./src/products.ts",
-    "./search": "./src/search.ts",
-    "./utils": "./src/utils.ts",
-    "./warehouses": "./src/warehouses.ts",
-    "./hono": "./src/hono.ts"
+    "./utils": "./src/utils.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

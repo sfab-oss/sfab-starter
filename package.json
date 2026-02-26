@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "build:registry:ui-ds": "pnpm --filter @workspace/ui-ds build:registry",
     "dev": "turbo dev",
     "lint:check": "ultracite check",
     "lint:fix": "ultracite fix",

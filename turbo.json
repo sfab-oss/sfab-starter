@@ -1,13 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalEnv": ["NODE_ENV", "POSTGRES_URL", "BETTER_AUTH_SECRET"],
-  "globalPassThroughEnv": ["NEXT_PUBLIC_*"],
+  "globalEnv": ["NODE_ENV", "BETTER_AUTH_SECRET"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", ".output/**", "dist/**"]
+      "outputs": [".output/**", "dist/**"]
     },
     "typecheck": {
       "dependsOn": ["^typecheck"]
