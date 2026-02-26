@@ -1,17 +1,22 @@
-import { db } from "@workspace/db/client";
+import type { Db } from "@workspace/db-d1";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { authEnv } from "./env";
 
-export const auth = betterAuth({
-  database: drizzleAdapter(db, {
-    provider: "pg",
-  }),
-  secret: authEnv.BETTER_AUTH_SECRET,
-  emailAndPassword: {
-    enabled: true,
-  },
-  // Add other providers or plugins here as needed
-});
+export function createAuth(db: Db, options: { baseURL: string }) {
+  return betterAuth({
+    baseURL: options.baseURL,
+    basePath: "/api/auth",
+    database: drizzleAdapter(db, {
+      provider: "sqlite",
+    }),
+    secret: authEnv.BETTER_AUTH_SECRET,
+    emailAndPassword: {
+      enabled: true,
+    },
+    plugins: [tanstackStartCookies()],
+  });
+}
 
-export type Auth = typeof auth;
+export type Auth = ReturnType<typeof createAuth>;

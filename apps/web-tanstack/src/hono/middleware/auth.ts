@@ -1,32 +1,28 @@
 import type { Context, Next } from "hono";
-import { getCookie } from "hono/cookie";
+import { auth } from "@/server/auth";
+import type { HonoContext, HonoContextWithAuth } from "../types";
 
-export interface AuthVars {
-  userId: string | null;
-  userRole: string | null;
-}
+export const extractAuth = async (c: Context<HonoContext>, next: Next) => {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
-export const extractAuth = async (
-  c: Context<{ Variables: AuthVars }>,
-  next: Next
-) => {
-  const token =
-    getCookie(c, "auth_token") ??
-    c.req.header("Authorization")?.replace("Bearer ", "");
-  if (token) {
-    // TODO: Integrate with @workspace/auth
-    c.set("userId", "user-from-token");
-    c.set("userRole", "member");
+  if (!session) {
+    c.set("user", null);
+    c.set("session", null);
+    await next();
+    return;
   }
+
+  c.set("user", session.user);
+  c.set("session", session.session);
   await next();
 };
 
 export const requireAuth = async (
-  c: Context<{ Variables: AuthVars }>,
+  c: Context<HonoContextWithAuth>,
   next: Next
 ) => {
-  const userId = c.get("userId");
-  if (!userId) {
+  const user = c.get("user");
+  if (!user) {
     return c.json({ error: "Unauthorized" }, 401);
   }
   await next();

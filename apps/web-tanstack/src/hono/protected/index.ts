@@ -1,15 +1,14 @@
 import { Hono } from "hono";
-import type { AuthVars } from "../middleware/auth";
 import { extractAuth, requireAuth } from "../middleware/auth";
+import type { HonoContext, HonoContextWithAuth } from "../types";
 
-export const protectedRoutes = new Hono<{ Variables: AuthVars }>()
+const meRoute = new Hono<HonoContextWithAuth>().get("/me", (c) => {
+  const user = c.get("user");
+  const session = c.get("session");
+  return c.json({ user, session });
+});
+
+export const protectedRoutes = new Hono<HonoContext>()
   .use("*", extractAuth)
   .use("*", requireAuth)
-  .get("/me", (c) => {
-    const userId = c.get("userId");
-    const userRole = c.get("userRole");
-    return c.json({
-      userId,
-      userRole,
-    });
-  });
+  .route("/", meRoute);

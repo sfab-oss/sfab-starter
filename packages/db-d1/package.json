@@ -20,7 +20,7 @@
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.13.4",
     "@workspace/typescript-config": "workspace:*",
-    "better-sqlite3": "^11.7.0",
+    "better-sqlite3": "^11.10.0",
     "drizzle-kit": "^0.31.4",
     "typescript": "^5.9.3"
   }
