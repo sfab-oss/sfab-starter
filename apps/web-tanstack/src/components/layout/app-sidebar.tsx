@@ -14,7 +14,14 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@workspace/ui/components/shadcn/sidebar";
-import { Home, type LucideIcon, Search, Settings } from "lucide-react";
+import {
+  Home,
+  type LucideIcon,
+  Package,
+  Search,
+  Settings,
+  Warehouse,
+} from "lucide-react";
 import { useState } from "react";
 import { AppUserNav } from "@/components/layout/app-user-nav";
 import { SearchCommand } from "@/components/search/search-command";
@@ -30,6 +37,16 @@ const mainNavigationItems: NavigationItem[] = [
     title: "Home",
     url: "/",
     icon: Home,
+  },
+  {
+    title: "Inventory",
+    url: "/inventory",
+    icon: Package,
+  },
+  {
+    title: "Warehouses",
+    url: "/inventory/warehouses",
+    icon: Warehouse,
   },
   {
     title: "Settings",

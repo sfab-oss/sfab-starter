@@ -44,6 +44,9 @@ importers:
       '@tanstack/react-devtools':
         specifier: ^0.7.0
         version: 0.7.11(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(csstype@3.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(solid-js@1.9.11)
+      '@tanstack/react-query':
+        specifier: ^5.90.21
+        version: 5.90.21(react@19.2.4)
       '@tanstack/react-router':
         specifier: ^1.132.0
         version: 1.163.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -74,6 +77,9 @@ importers:
       lucide-react:
         specifier: ^0.545.0
         version: 0.545.0(react@19.2.4)
+      nanoid:
+        specifier: ^5.1.0
+        version: 5.1.6
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -153,6 +159,31 @@ importers:
       drizzle-orm:
         specifier: ^0.44.5
         version: 0.44.7(@cloudflare/workers-types@4.20260305.0)(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/pg@8.16.0)(better-sqlite3@11.10.0)(kysely@0.28.11)(pg@8.19.0)(postgres@3.4.8)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.9
+        version: 20.19.34
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/core:
+    dependencies:
+      '@workspace/auth':
+        specifier: workspace:*
+        version: link:../auth
+      '@workspace/db-d1':
+        specifier: workspace:*
+        version: link:../db-d1
+      '@workspace/types':
+        specifier: workspace:*
+        version: link:../types
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.6
     devDependencies:
       '@types/node':
         specifier: ^20.19.9
@@ -8565,7 +8596,7 @@ snapshots:
   '@types/glob@7.2.0':
     dependencies:
       '@types/minimatch': 6.0.0
-      '@types/node': 20.19.34
+      '@types/node': 22.19.12
 
   '@types/hast@3.0.4':
     dependencies:
@@ -8620,7 +8651,7 @@ snapshots:
 
   '@types/through@0.0.33':
     dependencies:
-      '@types/node': 20.19.34
+      '@types/node': 22.19.12
 
   '@types/unist@2.0.11': {}
 
