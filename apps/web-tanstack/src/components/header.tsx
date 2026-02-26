@@ -12,15 +12,19 @@ export default function Header() {
           aria-label="Open menu"
           className="rounded-lg p-2 transition-colors hover:bg-gray-700"
           onClick={() => setIsOpen(true)}
+          type="button"
         >
           <Menu size={24} />
         </button>
         <h1 className="ml-4 font-semibold text-xl">
           <Link to="/">
+            {/* biome-ignore lint/performance/noImgElement: TanStack Start has no Image component */}
             <img
               alt="TanStack Logo"
               className="h-10"
+              height="40"
               src="/tanstack-word-logo-white.svg"
+              width="160"
             />
           </Link>
         </h1>
@@ -37,6 +41,7 @@ export default function Header() {
             aria-label="Close menu"
             className="rounded-lg p-2 transition-colors hover:bg-gray-800"
             onClick={() => setIsOpen(false)}
+            type="button"
           >
             <X size={24} />
           </button>

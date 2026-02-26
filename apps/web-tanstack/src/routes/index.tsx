@@ -51,19 +51,22 @@ function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-linear-to-b from-slate-900 via-slate-800 to-slate-900">
       <section className="relative overflow-hidden px-6 py-20 text-center">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
+        <div className="absolute inset-0 bg-linear-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10" />
         <div className="relative mx-auto max-w-5xl">
           <div className="mb-6 flex items-center justify-center gap-6">
+            {/* biome-ignore lint/performance/noImgElement: TanStack Start has no Image component */}
             <img
               alt="TanStack Logo"
               className="h-24 w-24 md:h-32 md:w-32"
+              height="128"
               src="/tanstack-circle-logo.png"
+              width="128"
             />
-            <h1 className="font-black text-6xl text-white [letter-spacing:-0.08em] md:text-7xl">
+            <h1 className="font-black text-6xl text-white tracking-[-0.08em] md:text-7xl">
               <span className="text-gray-300">TANSTACK</span>{" "}
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                 START
               </span>
             </h1>
@@ -97,10 +100,10 @@ function App() {
 
       <section className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature, index) => (
+          {features.map((feature) => (
             <div
               className="rounded-xl border border-slate-700 bg-slate-800/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-cyan-500/50 hover:shadow-cyan-500/10 hover:shadow-lg"
-              key={index}
+              key={feature.title}
             >
               <div className="mb-4">{feature.icon}</div>
               <h3 className="mb-3 font-semibold text-white text-xl">

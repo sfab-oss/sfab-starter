@@ -12,7 +12,15 @@
     "test": "vitest run",
     "deploy": "pnpm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "pnpm --filter @workspace/db-d1 db:generate",
+    "db:migrate": "wrangler d1 migrations apply web-tanstack-db --local",
+    "db:migrate:prod": "wrangler d1 migrations apply web-tanstack-db --remote",
+    "db:seed": "wrangler d1 execute web-tanstack-db --file=../../packages/db-d1/seed.sql --local",
+    "db:seed:prod": "wrangler d1 execute web-tanstack-db --file=../../packages/db-d1/seed.sql --remote",
+    "db:reset": "rm -rf .wrangler/state/v3/d1 && pnpm db:migrate && pnpm db:seed",
+    "db:list": "wrangler d1 migrations list web-tanstack-db --local",
+    "db:studio": "pnpm --filter @workspace/db-d1 db:studio"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.13.8",
@@ -24,6 +32,7 @@
     "@tanstack/react-router-ssr-query": "^1.131.7",
     "@tanstack/react-start": "^1.132.0",
     "@tanstack/router-plugin": "^1.132.0",
+    "@workspace/db-d1": "workspace:*",
     "hono": "^4.11.9",
     "lucide-react": "^0.545.0",
     "react": "^19.2.0",
@@ -32,13 +41,13 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@workspace/typescript-config": "workspace:*",
     "@tanstack/devtools-vite": "^0.3.11",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@types/node": "^22.19.7",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
+    "@workspace/typescript-config": "workspace:*",
     "@vitejs/plugin-react": "^5.0.4",
     "jsdom": "^27.0.0",
     "typescript": "^5.7.2",

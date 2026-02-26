@@ -10,7 +10,15 @@
   "main": "src/server.ts",
   "observability": {
     "enabled": true
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "web-tanstack-db",
+      "database_id": "placeholder-remote-db-id",
+      "migrations_dir": "../../packages/db-d1/drizzle"
+    }
+  ]
   /**
    * Smart Placement
    * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
