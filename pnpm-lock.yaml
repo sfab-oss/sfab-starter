@@ -193,6 +193,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^5.0.4
         version: 5.1.4(vite@7.3.1(@types/node@22.19.7)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
       jsdom:
         specifier: ^27.0.0
         version: 27.4.0(@noble/hashes@2.0.1)
