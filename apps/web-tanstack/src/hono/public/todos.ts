@@ -1,6 +1,5 @@
-import { todos } from "@workspace/db-d1";
+import { db, todos } from "@workspace/db-d1";
 import { Hono } from "hono";
-import { db } from "@/server/db";
 
 const app = new Hono();
 

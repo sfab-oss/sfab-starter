@@ -1,5 +1,5 @@
+import { auth } from "@workspace/auth";
 import type { Context, Next } from "hono";
-import { auth } from "@/server/auth";
 import type { HonoContext, HonoContextWithAuth } from "../types";
 
 export const extractAuth = async (c: Context<HonoContext>, next: Next) => {

@@ -1,5 +1,5 @@
+import { auth } from "@workspace/auth";
 import { Hono } from "hono";
-import { auth } from "@/server/auth";
 import { protectedRoutes } from "./protected";
 import { inventoryRoutes } from "./protected/inventory";
 import { publicRoutes } from "./public";

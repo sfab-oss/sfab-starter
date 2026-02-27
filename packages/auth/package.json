@@ -15,6 +15,8 @@
     "drizzle-orm": "^0.44.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "@workspace/cloudflare-env": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "typescript": "^5.9.3",
     "@types/node": "^20.19.9"

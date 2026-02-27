@@ -1,11 +1,11 @@
-export type ExampleServiceInput = {
+export interface ExampleServiceInput {
   id: string;
-};
+}
 
-export type ExampleServiceOutput = {
+export interface ExampleServiceOutput {
   id: string;
   result: string;
-};
+}
 
 export async function exampleService(
   input: ExampleServiceInput

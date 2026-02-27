@@ -1,13 +1,11 @@
-import type { D1Database } from "@cloudflare/workers-types";
+import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
 // biome-ignore lint/performance/noNamespaceImport: This is a schema export
 import * as schema from "./schema";
 
-export type Db = ReturnType<typeof createDb>;
+export const db = drizzle(env.DB, { schema });
 
-export function createDb(d1: D1Database, logger = false) {
-  return drizzle(d1, { schema, logger });
-}
+export type Db = typeof db;
 
 // biome-ignore lint/performance/noBarrelFile: This is a schema export
 export * from "./schema";

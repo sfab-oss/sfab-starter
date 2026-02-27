@@ -76,19 +76,20 @@ Key constraints:
 - Two config files to maintain
 - Slightly more complex package structure
 
-### Option 4: Direct cloudflare:workers Import in Package (Rejected)
+### Option 4: Direct cloudflare:workers Import in Package (Adopted — Feb 2026)
 
-**Description:** Import `env` from `cloudflare:workers` directly in `@workspace/db-d1/client.ts`
+**Description:** Import `env` from `cloudflare:workers` directly in `@workspace/db-d1` and `@workspace/auth`.
 
 **Pros:**
-- Simplest import pattern
-- No factory function needed
+- Simplest import pattern — `import { db } from "@workspace/db-d1"` everywhere
+- No factory function or wiring files needed
+- Shared packages (`core`, AI tools, etc.) get direct db/auth access without DI
 
 **Cons:**
-- Package becomes tightly coupled to Cloudflare Workers runtime
-- Can't use in Node.js contexts (tests, seeds, scripts)
-- Breaks Drizzle Studio (runs in Node.js)
-- Not future-proof for multiple D1 databases
+- Packages are tightly coupled to Cloudflare Workers runtime
+- Drizzle Studio uses a separate config (`drizzle.config.local.ts`) that doesn't depend on the package singleton
+
+**Why we changed our mind:** As the service layer (`packages/core`) grows with inventory management, AI tools, etc., the DI pattern required a wiring file for every new consumer. Since this project is fully committed to Cloudflare Workers, the coupling trade-off is acceptable. A shared `@workspace/cloudflare-env` package provides typed env declarations auto-generated from `wrangler.jsonc` via `wrangler types --include-runtime=false`.
 
 ## Consequences
 
@@ -104,7 +105,7 @@ Key constraints:
 ### Negative
 
 - **Two config files** - `drizzle.config.ts` and `drizzle.config.local.ts`
-- **Factory pattern** - Slightly more boilerplate than direct import
+- **Workers-only packages** - `db-d1` and `auth` packages are coupled to Cloudflare Workers runtime
 - **better-sqlite3 dependency** - Native module required for Drizzle Studio
 
 ### Neutral
@@ -133,11 +134,9 @@ packages/db-d1/
 
 ```
 apps/web-tanstack/
-├── wrangler.jsonc             # migrations_dir points to package
+├── wrangler.jsonc             # migrations_dir points to package, source of truth for bindings
 ├── .wrangler/state/v3/d1/     # Local SQLite (gitignored)
-├── src/
-│   └── server/db.ts           # Singleton db instance
-└── package.json
+└── package.json               # cf-typegen generates env types into cloudflare-env package
 ```
 
 ### Key Files
@@ -177,12 +176,14 @@ export default defineConfig({
 });
 ```
 
-**src/server/db.ts** (singleton in app):
+**packages/db-d1/src/index.ts** (singleton in package):
 ```typescript
 import { env } from "cloudflare:workers";
-import { createDb, type Db } from "@workspace/db-d1";
+import { drizzle } from "drizzle-orm/d1";
+import * as schema from "./schema";
 
-export const db: Db = createDb(env.DB, true);
+export const db = drizzle(env.DB, { schema });
+export type Db = typeof db;
 ```
 
 **wrangler.jsonc** (migrations in package):

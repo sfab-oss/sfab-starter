@@ -5,6 +5,9 @@
     "ultracite/biome/react",
     "ultracite/biome/next"
   ],
+  "files": {
+    "includes": ["!!packages/cloudflare-env/src/env.d.ts"]
+  },
   "linter": {
     "rules": {
       "performance": {

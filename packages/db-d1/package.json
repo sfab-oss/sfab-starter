@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250214.0",
+    "@workspace/cloudflare-env": "workspace:*",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.13.4",
     "@workspace/typescript-config": "workspace:*",

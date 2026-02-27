@@ -3,8 +3,11 @@
   "ui": "tui",
   "globalEnv": ["NODE_ENV", "BETTER_AUTH_SECRET"],
   "tasks": {
+    "cf-typegen": {
+      "cache": false
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["cf-typegen", "^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".output/**", "dist/**"]
     },

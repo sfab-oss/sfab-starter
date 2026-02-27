@@ -3,11 +3,11 @@
   "compilerOptions": {
     "baseUrl": ".",
     "lib": ["es2022", "DOM", "DOM.Iterable"],
-    "types": ["node"],
+    "types": ["node", "@cloudflare/workers-types"],
     "paths": {
       "@workspace/auth/*": ["./src/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "../cloudflare-env/src/env.d.ts"],
   "exclude": ["node_modules"]
 }

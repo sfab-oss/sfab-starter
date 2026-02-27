@@ -1,0 +1,152 @@
+# ADR-004: Shared Cloudflare Environment Types and Direct Singleton Pattern
+
+**Status:** Accepted
+**Date:** 2026-02-26
+**Authors:** Team
+
+## Context
+
+As the codebase grew, `packages/core` was becoming the service layer where business logic lives (inventory management, AI tools, etc.). Both Hono API routes and future AI tool integrations import from `@workspace/core`.
+
+The previous factory pattern (`createDb(d1)`, `createAuth(db, opts)`) required a wiring file in the app for every package that needed environment bindings. Each new consumer of `db` or `auth` needed either:
+- A new wiring file in `apps/web-tanstack/src/server/`
+- Or dependency injection through function arguments
+
+This was manageable with 2 consumers but would not scale as the service layer grew. Since this project is fully committed to Cloudflare Workers as its only runtime, the portability benefits of the factory pattern were not being used.
+
+Additionally, the Cloudflare environment types (`Cloudflare.Env` with D1 bindings, secrets, etc.) were only available in the app via `worker-configuration.d.ts`. Shared packages had no typed access to `import { env } from "cloudflare:workers"`.
+
+## Decision
+
+> We will create a shared `@workspace/cloudflare-env` package with auto-generated environment type declarations, and have packages export singletons that directly import `env` from `cloudflare:workers`.
+
+This supersedes ADR-003's Option 4 rejection. The factory pattern is removed in favor of direct singleton exports.
+
+## Options Considered
+
+### Option 1: Keep Factory Pattern (Previous Approach — Rejected)
+
+**Description:** Packages export factory functions (`createDb(d1)`, `createAuth(db, opts)`). The app creates instances and passes dependencies.
+
+**Pros:**
+- Packages are runtime-agnostic (work in Node.js, tests, Drizzle Studio)
+- Easy to unit test with mocks
+- Supports multiple workers with different env shapes
+
+**Cons:**
+- Every new consumer needs a wiring file in the app
+- Does not scale as the service layer grows (AI tools, background jobs, etc.)
+- Runtime portability was not being used — this project only runs on Cloudflare Workers
+
+### Option 2: Shared Types + Direct Singletons (Chosen)
+
+**Description:** A `@workspace/cloudflare-env` package provides auto-generated `Cloudflare.Env` types. Packages import `env` from `cloudflare:workers` directly and export singleton instances.
+
+**Pros:**
+- Zero DI boilerplate — `import { db } from "@workspace/db-d1"` anywhere
+- Types auto-generated from `wrangler.jsonc` via `wrangler types --include-runtime=false` — no drift
+- New consumers (AI tools, services in `core`) just import and use
+- Fewer files in the app
+
+**Cons:**
+- Packages are coupled to Cloudflare Workers runtime
+- Cannot unit test packages with simple mock injection (need module mocking)
+- Drizzle Studio uses a separate config that bypasses the singleton
+
+### Option 3: Merge Env Types into Existing `packages/types` (Rejected)
+
+**Description:** Instead of a new `cloudflare-env` package, add the generated env types to the existing `@workspace/types` package.
+
+**Pros:**
+- One fewer package in the monorepo
+
+**Cons:**
+- `@workspace/types` is for general-purpose domain types, not infrastructure config
+- Would add `@cloudflare/workers-types` dependency to a general-purpose package
+- Every consumer of `@workspace/types` (including UI package) would get Cloudflare types
+- Mixes auto-generated infrastructure types with hand-written domain types
+
+## Consequences
+
+### Positive
+
+- **Simplified imports** — any package can `import { db } from "@workspace/db-d1"` directly
+- **Zero drift** — env types are always regenerated from `wrangler.jsonc`
+- **Scales naturally** — adding a new service in `packages/core` that needs db is one import, not a wiring file
+- **Fewer files** — removed `src/server/db.ts` and `src/server/auth.ts` from the app
+
+### Negative
+
+- **Workers-only packages** — `db-d1` and `auth` can only run in Cloudflare Workers
+- **GlobalProps stripping** — `wrangler types` always generates a `GlobalProps` interface containing `typeof import("...server")` with a relative path to the app entry point. When other packages include the generated file, TypeScript follows this import and type-checks the app's server code under the wrong module resolution. No wrangler flag exists to exclude `GlobalProps`, so the `cf-typegen` script strips it with a `node -e` post-processing step.
+- **Cross-platform script** — the stripping must use `node -e` (not `sed`) to work on macOS, Linux, and Windows
+
+### Neutral
+
+- Drizzle Studio still works via its own separate config (`drizzle.config.local.ts`) that doesn't depend on the singleton
+- The `cf-typegen` script generates two files: full runtime types for the app and env-only types for the shared package
+
+## Implementation Notes
+
+### Package Structure
+
+```
+packages/cloudflare-env/
+├── src/
+│   ├── env.d.ts     # Auto-generated by wrangler types (GlobalProps stripped)
+│   └── index.ts     # Comment-only, types come from env.d.ts ambient declarations
+├── package.json     # Depends on @cloudflare/workers-types
+└── tsconfig.json
+```
+
+### Type Generation
+
+The `cf-typegen` script in `apps/web-tanstack/package.json`:
+
+```
+wrangler types && wrangler types ../../packages/cloudflare-env/src/env.d.ts --include-runtime=false && node -e "<strip GlobalProps>"
+```
+
+1. `wrangler types` — generates full `worker-configuration.d.ts` (with runtime types) for the app
+2. `wrangler types <path> --include-runtime=false` — generates env-only types (~17 lines) into the shared package
+3. `node -e` — strips the `GlobalProps` interface to prevent cross-package import resolution errors
+
+### Why GlobalProps Must Be Stripped
+
+The generated `env.d.ts` contains:
+
+```typescript
+declare namespace Cloudflare {
+  interface GlobalProps {
+    mainModule: typeof import("../../../apps/web-tanstack/src/server");
+  }
+}
+```
+
+When a package (e.g., `db-d1`) includes this file via tsconfig `include`, TypeScript resolves the `typeof import(...)` path and type-checks `server.ts`. Since `server.ts` uses bundler-style imports (no file extensions), it fails under `db-d1`'s NodeNext module resolution with error TS2834.
+
+We tested every alternative to avoid stripping:
+- **tsconfig `include`** — TypeScript follows the import, error
+- **`/// <reference path>`** — TypeScript follows the import, error
+- **tsconfig `types` array** — cannot resolve pnpm workspace packages
+- **`typeRoots`** — same resolution issue
+
+No `wrangler types` flag exists to exclude `GlobalProps`. Stripping it post-generation is the only viable approach.
+
+### Consumer Package Setup
+
+Packages that use `cloudflare:workers` need:
+
+1. `@workspace/cloudflare-env` as a devDependency
+2. `@cloudflare/workers-types` as a devDependency (for `D1Database` and other runtime types)
+3. tsconfig: `"types": ["@cloudflare/workers-types"]` and `"include": [..., "../cloudflare-env/src/env.d.ts"]`
+
+## Related Decisions
+
+- [ADR-003](./003-d1-migrations-monorepo.md) — Previously rejected direct `cloudflare:workers` import (Option 4). This ADR supersedes that rejection.
+
+## References
+
+- [Cloudflare: wrangler types](https://developers.cloudflare.com/workers/languages/typescript/#generate-types)
+- [Cloudflare: Import env for bindings](https://developers.cloudflare.com/changelog/2025-03-17-importable-env/)
+- [wrangler types --include-runtime flag](https://developers.cloudflare.com/workers/wrangler/commands/#types)

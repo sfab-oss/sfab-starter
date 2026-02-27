@@ -11,7 +11,7 @@
     "preview": "pnpm run build && vite preview",
     "test": "vitest run",
     "deploy": "pnpm run build && wrangler deploy",
-    "cf-typegen": "wrangler types",
+    "cf-typegen": "wrangler types && wrangler types ../../packages/cloudflare-env/src/env.d.ts --include-runtime=false && node -e \"const f='../../packages/cloudflare-env/src/env.d.ts';const s=require('fs').readFileSync(f,'utf8');require('fs').writeFileSync(f,s.replace(/\\tinterface GlobalProps \\{[\\s\\S]*?\\n\\t\\}\\n/,''))\"",
     "typecheck": "tsc --noEmit",
     "db:generate": "pnpm --filter @workspace/db-d1 db:generate",
     "db:migrate": "wrangler d1 migrations apply web-tanstack-db --local",
