@@ -4,7 +4,8 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./schema": "./src/schema/index.ts"
+    "./schema": "./src/schema/index.ts",
+    "./services/*": "./src/services/*.ts"
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
@@ -12,6 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@workspace/types": "workspace:*",
     "drizzle-orm": "^0.44.5",
     "nanoid": "^5.1.0"
   },

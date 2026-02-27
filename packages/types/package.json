@@ -4,7 +4,10 @@
   "private": true,
   "exports": {
     "./ai": "./src/ai.ts",
-    "./utils": "./src/utils.ts"
+    "./products": "./src/products.ts",
+    "./search": "./src/search.ts",
+    "./utils": "./src/utils.ts",
+    "./warehouses": "./src/warehouses.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

@@ -1,5 +1,5 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { id, timestamps, updatedAt } from "../utils";
+import { createdAt, id, timestamps, updatedAt } from "../utils";
 
 export const products = sqliteTable("products", {
   id: id(),
@@ -19,7 +19,10 @@ export const warehouses = sqliteTable("warehouses", {
   userId: text("user_id").notNull(),
   name: text("name").notNull(),
   location: text("location"),
-  ...timestamps,
+  isDefault: integer("is_default", { mode: "boolean" })
+    .default(false)
+    .notNull(),
+  createdAt,
 });
 
 export const stockLevels = sqliteTable("stock_levels", {
@@ -30,9 +33,25 @@ export const stockLevels = sqliteTable("stock_levels", {
   updatedAt,
 });
 
+export const movements = sqliteTable("movements", {
+  id: id(),
+  userId: text("user_id").notNull(),
+  productId: text("product_id").notNull(),
+  fromWarehouseId: text("from_warehouse_id"),
+  toWarehouseId: text("to_warehouse_id"),
+  type: text("type", {
+    enum: ["IN", "OUT", "TRANSFER", "ADJUSTMENT"],
+  }).notNull(),
+  quantity: integer("quantity").notNull(),
+  notes: text("notes"),
+  createdAt,
+});
+
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
 export type Warehouse = typeof warehouses.$inferSelect;
 export type NewWarehouse = typeof warehouses.$inferInsert;
 export type StockLevel = typeof stockLevels.$inferSelect;
 export type NewStockLevel = typeof stockLevels.$inferInsert;
+export type Movement = typeof movements.$inferSelect;
+export type NewMovement = typeof movements.$inferInsert;
