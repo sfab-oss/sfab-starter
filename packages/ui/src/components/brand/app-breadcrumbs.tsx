@@ -54,7 +54,7 @@ export function AppBreadcrumbs({
           const isLast = index === items.length - 1;
 
           return (
-            <Fragment key={`${item.title}-${index}`}>
+            <Fragment key={item.href || item.title}>
               {(showHome || index > 0) && <BreadcrumbSeparator />}
               <BreadcrumbItem>
                 {item.href && !isLast ? (

@@ -1,62 +1,96 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type {
+  createWarehouseSchema,
+  updateWarehouseSchema,
+} from "@workspace/types/warehouses";
+import type { z } from "zod";
 import { client } from "@/lib/client";
 
-export const getWarehousesKey = () => ["warehouses"] as const;
-export const getWarehouseKey = (id: string) => ["warehouses", id] as const;
+export const getWarehousesKey = () => ["warehouses"];
+export const getWarehouseKey = (id: string) => ["warehouses", id];
 
-export async function getWarehouses() {
-  const response = await client.protected.inventory.warehouses.$get();
-  if (!response.ok) {
-    throw new Error("Failed to fetch warehouses");
-  }
-  return response.json();
-}
-
-export async function getWarehouse(id: string) {
-  const response = await client.protected.inventory.warehouses[":id"].$get({
-    param: { id },
+export const useWarehouses = () => {
+  return useQuery({
+    queryKey: getWarehousesKey(),
+    queryFn: async () => {
+      const res = await client.protected.inventory.warehouses.$get();
+      return res.json();
+    },
   });
-  if (!response.ok) {
-    throw new Error("Failed to fetch warehouse");
-  }
-  return response.json();
-}
+};
 
-export async function createWarehouse(data: {
-  name: string;
-  location?: string;
-}) {
-  const response = await client.protected.inventory.warehouses.$post({
-    json: data,
+export const useWarehouse = (id: string) => {
+  return useQuery({
+    queryKey: getWarehouseKey(id),
+    queryFn: async () => {
+      const res = await client.protected.inventory.warehouses[":id"].$get({
+        param: { id },
+      });
+      if (!res.ok) {
+        throw new Error("Warehouse not found");
+      }
+      return res.json();
+    },
+    enabled: !!id,
   });
-  if (!response.ok) {
-    throw new Error("Failed to create warehouse");
-  }
-  return response.json();
-}
+};
 
-export async function updateWarehouse(
-  id: string,
-  data: Partial<{
-    name: string;
-    location: string;
-  }>
-) {
-  const response = await client.protected.inventory.warehouses[":id"].$put({
-    param: { id },
-    json: data,
+export const useCreateWarehouse = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: z.infer<typeof createWarehouseSchema>) => {
+      const res = await client.protected.inventory.warehouses.$post({
+        json: data,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getWarehousesKey() });
+    },
   });
-  if (!response.ok) {
-    throw new Error("Failed to update warehouse");
-  }
-  return response.json();
-}
+};
 
-export async function deleteWarehouse(id: string) {
-  const response = await client.protected.inventory.warehouses[":id"].$delete({
-    param: { id },
+export const useUpdateWarehouse = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      id: string;
+      data: z.infer<typeof updateWarehouseSchema>;
+    }) => {
+      const res = await client.protected.inventory.warehouses[":id"].$put({
+        param: { id: params.id },
+        json: params.data,
+      });
+      if (!res.ok) {
+        throw new Error("Failed to update warehouse");
+      }
+      return res.json();
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: getWarehousesKey() });
+      queryClient.invalidateQueries({
+        queryKey: getWarehouseKey(variables.id),
+      });
+    },
   });
-  if (!response.ok) {
-    throw new Error("Failed to delete warehouse");
-  }
-  return response.json();
-}
+};
+
+export const useDeleteWarehouse = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await client.protected.inventory.warehouses[":id"].$delete({
+        param: { id },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to delete warehouse");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getWarehousesKey() });
+    },
+  });
+};

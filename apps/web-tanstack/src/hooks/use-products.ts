@@ -1,72 +1,154 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type {
+  createMovementSchema,
+  createProductSchema,
+  updateProductSchema,
+} from "@workspace/types/products";
+import type { z } from "zod";
 import { client } from "@/lib/client";
 
-export const getProductsKey = () => ["products"] as const;
-export const getProductKey = (id: string) => ["products", id] as const;
+export const getProductsKey = () => ["products"];
+export const getProductKey = (id: string) => ["products", id];
+export const getProductMovementsKey = (productId: string) => [
+  "products",
+  productId,
+  "movements",
+];
+export const getInventoryMetricsKey = () => ["inventory", "metrics"];
 
-export async function getProducts() {
-  const response = await client.protected.inventory.products.$get();
-  if (!response.ok) {
-    throw new Error("Failed to fetch products");
-  }
-  return response.json();
-}
-
-export async function getProduct(id: string) {
-  const response = await client.protected.inventory.products[":id"].$get({
-    param: { id },
+export const useProducts = () => {
+  return useQuery({
+    queryKey: getProductsKey(),
+    queryFn: async () => {
+      const res = await client.protected.inventory.products.$get();
+      return res.json();
+    },
   });
-  if (!response.ok) {
-    throw new Error("Failed to fetch product");
-  }
-  return response.json();
-}
+};
 
-export async function createProduct(data: {
-  sku: string;
-  name: string;
-  description?: string;
-  price?: string;
-  cost?: string;
-  minStockLevel?: number;
-  imageUrl?: string;
-}) {
-  const response = await client.protected.inventory.products.$post({
-    json: data,
+export const useProduct = (id: string) => {
+  return useQuery({
+    queryKey: getProductKey(id),
+    queryFn: async () => {
+      const res = await client.protected.inventory.products[":id"].$get({
+        param: { id },
+      });
+      if (!res.ok) {
+        throw new Error("Product not found");
+      }
+      return res.json();
+    },
+    enabled: !!id,
   });
-  if (!response.ok) {
-    throw new Error("Failed to create product");
-  }
-  return response.json();
-}
+};
 
-export async function updateProduct(
-  id: string,
-  data: Partial<{
-    sku: string;
-    name: string;
-    description: string;
-    price: string;
-    cost: string;
-    minStockLevel: number;
-    imageUrl: string;
-  }>
-) {
-  const response = await client.protected.inventory.products[":id"].$put({
-    param: { id },
-    json: data,
+export const useInventoryMetrics = () => {
+  return useQuery({
+    queryKey: getInventoryMetricsKey(),
+    queryFn: async () => {
+      const res = await client.protected.inventory.metrics.$get();
+      return res.json();
+    },
   });
-  if (!response.ok) {
-    throw new Error("Failed to update product");
-  }
-  return response.json();
-}
+};
 
-export async function deleteProduct(id: string) {
-  const response = await client.protected.inventory.products[":id"].$delete({
-    param: { id },
+export const useProductMovements = (productId: string | null) => {
+  return useQuery({
+    queryKey: getProductMovementsKey(productId ?? ""),
+    queryFn: async () => {
+      if (!productId) {
+        throw new Error("Product ID is required");
+      }
+      const res = await client.protected.inventory.products[
+        ":id"
+      ].movements.$get({
+        param: { id: productId },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch movements");
+      }
+      return res.json();
+    },
+    enabled: !!productId,
   });
-  if (!response.ok) {
-    throw new Error("Failed to delete product");
-  }
-  return response.json();
-}
+};
+
+export const useCreateProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: z.infer<typeof createProductSchema>) => {
+      const res = await client.protected.inventory.products.$post({
+        json: data,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getProductsKey() });
+      queryClient.invalidateQueries({ queryKey: getInventoryMetricsKey() });
+    },
+  });
+};
+
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      id: string;
+      data: z.infer<typeof updateProductSchema>;
+    }) => {
+      const res = await client.protected.inventory.products[":id"].$put({
+        param: { id: params.id },
+        json: params.data,
+      });
+      if (!res.ok) {
+        throw new Error("Failed to update product");
+      }
+      return res.json();
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: getProductsKey() });
+      queryClient.invalidateQueries({ queryKey: getProductKey(variables.id) });
+      queryClient.invalidateQueries({ queryKey: getInventoryMetricsKey() });
+    },
+  });
+};
+
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await client.protected.inventory.products[":id"].$delete({
+        param: { id },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to delete product");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getProductsKey() });
+      queryClient.invalidateQueries({ queryKey: getInventoryMetricsKey() });
+    },
+  });
+};
+
+export const useCreateMovement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: z.infer<typeof createMovementSchema>) => {
+      const res = await client.protected.inventory.movements.$post({
+        json: data,
+      });
+      return res.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: getProductsKey() });
+      queryClient.invalidateQueries({ queryKey: getInventoryMetricsKey() });
+      queryClient.invalidateQueries({
+        queryKey: getProductMovementsKey(variables.productId),
+      });
+    },
+  });
+};
