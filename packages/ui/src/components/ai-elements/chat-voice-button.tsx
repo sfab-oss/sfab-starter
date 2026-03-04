@@ -323,14 +323,16 @@ function useTranscription(options: { endpoint?: string } = {}) {
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
+          const errorData = (await response.json().catch(() => ({}))) as {
+            error?: string;
+          };
           const errorMessage =
             errorData.error || `Transcription failed: ${response.status}`;
           console.error("Transcription failed:", response.status, errorData);
           throw new Error(errorMessage);
         }
 
-        const result = await response.json();
+        const result = (await response.json()) as { text?: string };
 
         if (!result.text || typeof result.text !== "string") {
           throw new Error("No transcription text received");

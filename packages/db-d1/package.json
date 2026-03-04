@@ -5,6 +5,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema/index.ts",
+    "./schema/chat": "./src/schema/chat.ts",
     "./services/*": "./src/services/*.ts"
   },
   "scripts": {

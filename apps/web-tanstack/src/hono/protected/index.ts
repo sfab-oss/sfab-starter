@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import { extractAuth, requireAuth } from "../middleware/auth";
 import type { HonoContext, HonoContextWithAuth } from "../types";
+import chatRoutes from "./chat";
+import { inventoryRoutes } from "./inventory";
+import transcribeRoutes from "./transcribe";
 
 const meRoute = new Hono<HonoContextWithAuth>().get("/me", (c) => {
   const user = c.get("user");
@@ -11,4 +14,7 @@ const meRoute = new Hono<HonoContextWithAuth>().get("/me", (c) => {
 export const protectedRoutes = new Hono<HonoContext>()
   .use("*", extractAuth)
   .use("*", requireAuth)
-  .route("/", meRoute);
+  .route("/", meRoute)
+  .route("/chat", chatRoutes)
+  .route("/inventory", inventoryRoutes)
+  .route("/transcribe", transcribeRoutes);

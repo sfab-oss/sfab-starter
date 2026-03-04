@@ -21,6 +21,9 @@
     "db:studio": "pnpm --filter @workspace/db-d1 db:studio"
   },
   "dependencies": {
+    "@ai-sdk/google": "3.0.10",
+    "@ai-sdk/openai": "3.0.12",
+    "@ai-sdk/react": "3.0.41",
     "@cloudflare/vite-plugin": "^1.13.8",
     "@hono/zod-validator": "^0.7.6",
     "@hookform/resolvers": "^5.2.2",
@@ -37,6 +40,7 @@
     "@workspace/db-d1": "workspace:*",
     "@workspace/types": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "ai": "^6.0.39",
     "date-fns": "^4.1.0",
     "hono": "^4.11.9",
     "lucide-react": "^0.545.0",
@@ -46,6 +50,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.1",
+    "recharts": "^2.15.0",
+    "streamdown": "^2.0.1",
     "tailwindcss": "^4.1.18",
     "use-debounce": "^10.1.0",
     "zod": "^4.3.5"
