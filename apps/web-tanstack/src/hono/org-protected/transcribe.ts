@@ -6,9 +6,9 @@ import {
 } from "ai";
 import { Hono } from "hono";
 import { z } from "zod";
-import type { HonoContextWithAuth } from "../types";
+import type { HonoContextWithAuthAndOrg } from "../types";
 
-const transcribeRoutes = new Hono<HonoContextWithAuth>().post(
+const transcribeRoutes = new Hono<HonoContextWithAuthAndOrg>().post(
   "/",
   zValidator(
     "form",

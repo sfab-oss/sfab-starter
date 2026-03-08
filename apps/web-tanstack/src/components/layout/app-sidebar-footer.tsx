@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { authClient } from "@workspace/auth/client";
 import {
@@ -10,9 +11,11 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
 import {
@@ -22,10 +25,11 @@ import {
   useSidebar,
 } from "@workspace/ui/components/shadcn/sidebar";
 import { Skeleton } from "@workspace/ui/components/shadcn/skeleton";
-import { AlertCircle, ChevronsUpDown, LogOut } from "lucide-react";
+import { toast } from "@workspace/ui/components/shadcn/sonner";
+import { AlertCircle, ChevronsUpDown, LogOut, Plus } from "lucide-react";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 
-function UserNavSkeleton() {
+function SidebarFooterSkeleton() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -42,7 +46,7 @@ function UserNavSkeleton() {
   );
 }
 
-function UserNavError() {
+function SidebarFooterError() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -64,42 +68,77 @@ function UserNavError() {
   );
 }
 
-export function AppUserNav() {
+export function AppSidebarFooter() {
   const { isMobile } = useSidebar();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const { data: session, isPending, error } = authClient.useSession();
+  const {
+    data: session,
+    isPending: isSessionPending,
+    error,
+  } = authClient.useSession();
+  const { data: organizations } = authClient.useListOrganizations();
+  const {
+    data: activeOrganization,
+    refetch: refetchActiveOrganization,
+    isPending: isOrgPending,
+  } = authClient.useActiveOrganization();
 
   const user = session?.user;
+  const isPending = isSessionPending || isOrgPending;
 
-  // Loading state
-  if (isPending) {
-    return <UserNavSkeleton />;
-  }
+  const { mutate: setActiveOrganization } = useMutation({
+    mutationFn: async (organizationId: string) => {
+      await authClient.organization.setActive({
+        organizationId,
+      });
+      return { organizationId };
+    },
+    onSuccess: ({ organizationId }) => {
+      toast.success("Organization set as active");
+      navigate({ to: "/" });
+      refetchActiveOrganization();
 
-  // Error state or no user
-  if (error || !user) {
-    return <UserNavError />;
-  }
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          return (
+            Array.isArray(queryKey) &&
+            queryKey.length > 0 &&
+            queryKey[0] === organizationId
+          );
+        },
+      });
 
-  // Normal state with user data
-  return <UserNavContent isMobile={isMobile} user={user} />;
-}
-
-function UserNavContent({
-  user,
-  isMobile,
-}: {
-  user: NonNullable<
-    NonNullable<ReturnType<typeof authClient.useSession>["data"]>["user"]
-  >;
-  isMobile: boolean;
-}) {
-  const navigate = useNavigate();
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          return (
+            Array.isArray(queryKey) &&
+            (queryKey.includes("files") ||
+              queryKey.includes("chats") ||
+              queryKey.includes("projects") ||
+              queryKey.includes("agents") ||
+              queryKey.includes("members"))
+          );
+        },
+      });
+    },
+  });
 
   const handleSignOut = async () => {
     await authClient.signOut();
     navigate({ to: "/login" });
   };
+
+  if (isPending) {
+    return <SidebarFooterSkeleton />;
+  }
+
+  if (error || !user) {
+    return <SidebarFooterError />;
+  }
 
   return (
     <SidebarMenu>
@@ -112,16 +151,17 @@ function UserNavContent({
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
-                  alt={user.name ?? "User"}
-                  src={user.image ?? undefined}
+                  alt={activeOrganization?.name ?? "Organization"}
+                  src={activeOrganization?.logo ?? undefined}
                 />
                 <AvatarFallback className="rounded-lg">
-                  {user.name?.substring(0, 2).toUpperCase() ?? "??"}
+                  {activeOrganization?.name?.substring(0, 2).toUpperCase() ??
+                    "??"}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {user.name ?? "User"}
+                  {activeOrganization?.name ?? "No Organization"}
                 </span>
                 <span className="truncate text-xs">{user.email}</span>
               </div>
@@ -134,6 +174,39 @@ function UserNavContent({
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
+            <DropdownMenuLabel className="text-muted-foreground text-xs">
+              Organizations
+            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              {organizations?.map((organization, index) => (
+                <DropdownMenuItem
+                  className="gap-2 p-2"
+                  key={organization.id}
+                  onClick={() => setActiveOrganization(organization.id)}
+                >
+                  <Avatar className="size-6 rounded-sm">
+                    <AvatarImage src={organization.logo ?? undefined} />
+                    <AvatarFallback className="rounded-sm">
+                      {organization.name?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {organization.name}
+                  <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuItem
+                className="gap-2 p-2"
+                onClick={() => navigate({ to: "/onboarding" })}
+              >
+                <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                  <Plus className="size-4" />
+                </div>
+                <div className="font-medium text-muted-foreground">
+                  Create organization
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">

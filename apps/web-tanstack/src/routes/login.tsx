@@ -40,13 +40,13 @@ function LoginPage() {
   });
 
   const onSubmit = async (values: LoginValues) => {
-    const { error } = await authClient.signIn.email({
+    const result = await authClient.signIn.email({
       email: values.email,
       password: values.password,
     });
 
-    if (error) {
-      toast.error(error.message ?? "An error occurred");
+    if (result.error) {
+      toast.error(result.error.message ?? "An error occurred");
     } else {
       toast.success("Login successful");
       await navigate({ to: "/" });

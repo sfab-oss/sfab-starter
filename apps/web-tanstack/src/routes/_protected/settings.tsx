@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { authClient } from "@workspace/auth/client";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
@@ -8,6 +8,7 @@ import {
   AppLayoutHeaderTitle,
   AppLayoutPage,
 } from "@workspace/ui/components/brand/app-layout";
+import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -46,8 +47,11 @@ function SettingsPage() {
           <AppLayoutHeaderActions />
         </AppLayoutHeader>
         <AppLayoutContent>
-          <div className="flex h-[50vh] items-center justify-center">
+          <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
             <p className="text-muted-foreground">No active organization</p>
+            <Button asChild>
+              <Link to="/onboarding">Create an organization</Link>
+            </Button>
           </div>
         </AppLayoutContent>
       </AppLayoutPage>

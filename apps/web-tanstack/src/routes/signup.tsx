@@ -54,7 +54,7 @@ function SignUpPage() {
       toast.error(error.message ?? "An error occurred");
     } else {
       toast.success("Account created successfully");
-      await navigate({ to: "/login" });
+      await navigate({ to: "/onboarding" });
     }
   };
 

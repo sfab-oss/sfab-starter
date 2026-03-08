@@ -13,9 +13,9 @@ import { z } from "zod";
 import { agentRespond } from "../../lib/ai/agents/agent-respond";
 import { generateChatTitle } from "../../lib/ai/title-generator";
 import type { AIUIMessage } from "../../types/ai";
-import type { HonoContextWithAuth } from "../types";
+import type { HonoContextWithAuthAndOrg } from "../types";
 
-const chatRoutes = new Hono<HonoContextWithAuth>()
+const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
   .get(
     "/",
     zValidator(

@@ -23,7 +23,7 @@ import {
   Warehouse,
 } from "lucide-react";
 import { useState } from "react";
-import { AppUserNav } from "@/components/layout/app-user-nav";
+import { AppSidebarFooter } from "@/components/layout/app-sidebar-footer";
 import { SearchCommand } from "@/components/search/search-command";
 
 interface NavigationItem {
@@ -114,7 +114,7 @@ export function AppSidebar() {
         <AppSidebarMainNavigation />
       </SidebarContent>
       <SidebarFooter>
-        <AppUserNav />
+        <AppSidebarFooter />
       </SidebarFooter>
 
       <SearchCommand open={searchOpen} setOpen={setSearchOpen} />

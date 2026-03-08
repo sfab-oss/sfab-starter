@@ -22,9 +22,19 @@ export const requireAuth = async (
   next: Next
 ) => {
   const user = c.get("user");
-  const session = c.get("session");
-  if (!(user && session?.activeOrganizationId)) {
+  if (!user) {
     return c.json({ error: "Unauthorized" }, 401);
+  }
+  await next();
+};
+
+export const requireActiveOrg = async (
+  c: Context<HonoContextWithAuth>,
+  next: Next
+) => {
+  const session = c.get("session");
+  if (!session?.activeOrganizationId) {
+    return c.json({ error: "No active organization" }, 403);
   }
   await next();
 };

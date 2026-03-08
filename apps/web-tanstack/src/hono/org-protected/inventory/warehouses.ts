@@ -12,13 +12,13 @@ import {
 } from "@workspace/types/warehouses";
 import { Hono } from "hono";
 import { z } from "zod";
-import type { HonoContextWithAuth } from "../../types";
+import type { HonoContextWithAuthAndOrg } from "../../types";
 
 const warehouseIdSchema = z.object({
   id: z.string(),
 });
 
-const warehousesRoute = new Hono<HonoContextWithAuth>()
+const warehousesRoute = new Hono<HonoContextWithAuthAndOrg>()
   .get("/", async (c) => {
     const userId = c.get("user").id;
     const data = await getWarehouses(userId);
