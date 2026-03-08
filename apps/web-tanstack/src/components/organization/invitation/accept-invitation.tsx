@@ -17,7 +17,7 @@ import {
   useInvitation,
   useRejectInvitation,
 } from "@/hooks/use-organization";
-import { InvitationError } from "./invitation-error";
+import { InvitationError } from "./invitation-error-card";
 
 export default function AcceptInvitation({
   invitationId,
@@ -61,8 +61,7 @@ export default function AcceptInvitation({
   }
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center">
-      <div className="mask-[radial-gradient(ellipse_at_center,transparent_20%,black)] pointer-events-none absolute inset-0 flex items-center justify-center bg-white dark:bg-black" />
+    <div className="flex min-h-screen items-center justify-center bg-muted">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Invitation</CardTitle>
@@ -84,8 +83,8 @@ export default function AcceptInvitation({
           )}
           {invitationStatus === "accepted" && (
             <div className="space-y-4">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                <CheckIcon className="h-8 w-8 text-green-600" />
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+                <CheckIcon className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
               <h2 className="text-center font-bold text-2xl">
                 Welcome to {invitation.organization?.name}!
@@ -98,8 +97,8 @@ export default function AcceptInvitation({
           )}
           {invitationStatus === "rejected" && (
             <div className="space-y-4">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-                <XIcon className="h-8 w-8 text-red-600" />
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+                <XIcon className="h-8 w-8 text-red-600 dark:text-red-400" />
               </div>
               <h2 className="text-center font-bold text-2xl">
                 Invitation Declined
@@ -132,7 +131,7 @@ export default function AcceptInvitation({
 
 function InvitationSkeleton() {
   return (
-    <div className="flex min-h-[80vh] items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-muted">
       <Card className="mx-auto w-full max-w-md">
         <CardHeader>
           <div className="flex items-center space-x-2">

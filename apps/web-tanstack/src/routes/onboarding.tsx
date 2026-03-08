@@ -8,7 +8,7 @@ export const Route = createFileRoute("/onboarding")({
 
 function OnboardingPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-8">
+    <div className="flex min-h-screen items-center justify-center bg-muted p-8">
       <div className="w-full max-w-md space-y-8">
         <div className="space-y-4 text-center">
           <div className="flex justify-center">

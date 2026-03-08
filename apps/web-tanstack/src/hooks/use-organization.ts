@@ -6,6 +6,11 @@ import { client } from "@/lib/client";
 
 export const getInvitationKey = (id: string) => ["invitation", id];
 
+export const useActiveOrganizationId = () => {
+  const { data: session } = authClient.useSession();
+  return session?.session?.activeOrganizationId;
+};
+
 export const useInvitation = (id: string) => {
   return useQuery({
     queryKey: getInvitationKey(id),
@@ -55,31 +60,8 @@ export const useRejectInvitation = () => {
   });
 };
 
-export const getOrganizationMembersKey = (organizationId: string) => [
-  organizationId,
-  "members",
-];
-
-export const useOrganizationMembers = () => {
-  const { data: session } = authClient.useSession();
-  const organizationId = session?.session?.activeOrganizationId;
-
-  return useQuery({
-    queryKey: getOrganizationMembersKey(organizationId ?? ""),
-    queryFn: async () => {
-      const res = await client.protected.organization.members.$get();
-      if (!res.ok) {
-        throw new Error("Failed to fetch organization members");
-      }
-      return res.json();
-    },
-    enabled: !!organizationId,
-  });
-};
-
 export const useInviteMember = () => {
   const queryClient = useQueryClient();
-  const { data: session } = authClient.useSession();
 
   return useMutation({
     mutationFn: async ({
@@ -102,20 +84,12 @@ export const useInviteMember = () => {
       queryClient.invalidateQueries({
         queryKey: ["activeOrganization"],
       });
-      if (session?.session?.activeOrganizationId) {
-        queryClient.invalidateQueries({
-          queryKey: getOrganizationMembersKey(
-            session.session.activeOrganizationId
-          ),
-        });
-      }
     },
   });
 };
 
 export const useRemoveMember = () => {
   const queryClient = useQueryClient();
-  const { data: session } = authClient.useSession();
 
   return useMutation({
     mutationFn: async ({ memberIdOrEmail }: { memberIdOrEmail: string }) => {
@@ -131,13 +105,6 @@ export const useRemoveMember = () => {
       queryClient.invalidateQueries({
         queryKey: ["activeOrganization"],
       });
-      if (session?.session?.activeOrganizationId) {
-        queryClient.invalidateQueries({
-          queryKey: getOrganizationMembersKey(
-            session.session.activeOrganizationId
-          ),
-        });
-      }
     },
   });
 };

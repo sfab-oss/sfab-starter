@@ -50,25 +50,9 @@ const getInvitationRoute = new Hono<HonoContextWithAuth>()
     return c.json(invitation);
   });
 
-const getMembersRoute = new Hono<HonoContextWithAuth>().get("/", async (c) => {
-  const organizationId = c.get("session").activeOrganizationId;
-  if (!organizationId) {
-    return c.json({ error: "No active organization" }, 400);
-  }
-
-  const members = await db.query.member.findMany({
-    where: (member, { eq }) => eq(member.organizationId, organizationId),
-    with: {
-      user: true,
-    },
-  });
-  return c.json(members);
-});
-
 export const organizationRoutes = new Hono()
   .use("*", extractAuth)
   .use("*", requireAuth)
   .route("/membership", getUserMembershipRoute)
   .route("/check-slug", checkSlugRoute)
-  .route("/invitation", getInvitationRoute)
-  .route("/members", getMembersRoute);
+  .route("/invitation", getInvitationRoute);
