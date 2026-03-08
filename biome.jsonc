@@ -14,5 +14,17 @@
         "noImgElement": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/*/src/routes/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    }
+  ]
 }

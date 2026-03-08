@@ -22,7 +22,8 @@ export const requireAuth = async (
   next: Next
 ) => {
   const user = c.get("user");
-  if (!user) {
+  const session = c.get("session");
+  if (!(user && session?.activeOrganizationId)) {
     return c.json({ error: "Unauthorized" }, 401);
   }
   await next();

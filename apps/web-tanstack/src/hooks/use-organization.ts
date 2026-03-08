@@ -1,0 +1,175 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { authClient } from "@workspace/auth/client";
+import { client } from "@/lib/client";
+
+export const getInvitationKey = (id: string) => ["invitation", id];
+
+export const useInvitation = (id: string) => {
+  return useQuery({
+    queryKey: getInvitationKey(id),
+    queryFn: async () => {
+      const res = await client.protected.organization.invitation[":id"].$get({
+        param: { id },
+      });
+      if (!res.ok) {
+        throw new Error("Invitation not found");
+      }
+      return res.json();
+    },
+    enabled: !!id,
+  });
+};
+
+export const useAcceptInvitation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (invitationId: string) => {
+      const res = await authClient.organization.acceptInvitation({
+        invitationId,
+      });
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to accept invitation");
+      }
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      queryClient.invalidateQueries({ queryKey: ["activeOrganization"] });
+    },
+  });
+};
+
+export const useRejectInvitation = () => {
+  return useMutation({
+    mutationFn: async (invitationId: string) => {
+      const res = await authClient.organization.rejectInvitation({
+        invitationId,
+      });
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to reject invitation");
+      }
+      return res.data;
+    },
+  });
+};
+
+export const getOrganizationMembersKey = (organizationId: string) => [
+  organizationId,
+  "members",
+];
+
+export const useOrganizationMembers = () => {
+  const { data: session } = authClient.useSession();
+  const organizationId = session?.session?.activeOrganizationId;
+
+  return useQuery({
+    queryKey: getOrganizationMembersKey(organizationId ?? ""),
+    queryFn: async () => {
+      const res = await client.protected.organization.members.$get();
+      if (!res.ok) {
+        throw new Error("Failed to fetch organization members");
+      }
+      return res.json();
+    },
+    enabled: !!organizationId,
+  });
+};
+
+export const useInviteMember = () => {
+  const queryClient = useQueryClient();
+  const { data: session } = authClient.useSession();
+
+  return useMutation({
+    mutationFn: async ({
+      email,
+      role,
+    }: {
+      email: string;
+      role: "member" | "admin" | "owner";
+    }) => {
+      const res = await authClient.organization.inviteMember({
+        email,
+        role,
+      });
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to invite member");
+      }
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["activeOrganization"],
+      });
+      if (session?.session?.activeOrganizationId) {
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationMembersKey(
+            session.session.activeOrganizationId
+          ),
+        });
+      }
+    },
+  });
+};
+
+export const useRemoveMember = () => {
+  const queryClient = useQueryClient();
+  const { data: session } = authClient.useSession();
+
+  return useMutation({
+    mutationFn: async ({ memberIdOrEmail }: { memberIdOrEmail: string }) => {
+      const res = await authClient.organization.removeMember({
+        memberIdOrEmail,
+      });
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to remove member");
+      }
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["activeOrganization"],
+      });
+      if (session?.session?.activeOrganizationId) {
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationMembersKey(
+            session.session.activeOrganizationId
+          ),
+        });
+      }
+    },
+  });
+};
+
+export const useUpdateOrganization = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      name,
+      slug,
+      logo,
+    }: {
+      name?: string;
+      slug?: string;
+      logo?: string;
+    }) => {
+      const res = await authClient.organization.update({
+        data: { name, slug, logo },
+      });
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to update organization");
+      }
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["activeOrganization"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["organizations"],
+      });
+    },
+  });
+};

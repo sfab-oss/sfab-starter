@@ -1,10 +1,11 @@
 import { env } from "cloudflare:workers";
-import { db } from "@workspace/db-d1";
+import { db, member } from "@workspace/db-d1";
 import { sendMail } from "@workspace/email";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+import { eq } from "drizzle-orm";
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -31,6 +32,24 @@ export const auth = betterAuth({
       },
     }),
   ],
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          const membership = await db.query.member.findFirst({
+            where: eq(member.userId, session.userId),
+          });
+
+          return {
+            data: {
+              ...session,
+              activeOrganizationId: membership?.organizationId ?? null,
+            },
+          };
+        },
+      },
+    },
+  },
 });
 
 export type Auth = typeof auth;

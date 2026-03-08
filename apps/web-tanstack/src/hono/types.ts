@@ -10,6 +10,8 @@ export interface HonoContext {
 export type HonoContextWithAuth = HonoContext & {
   Variables: HonoContext["Variables"] & {
     user: NonNullable<HonoContext["Variables"]["user"]>;
-    session: NonNullable<HonoContext["Variables"]["session"]>;
+    session: NonNullable<HonoContext["Variables"]["session"]> & {
+      activeOrganizationId: string;
+    };
   };
 };
