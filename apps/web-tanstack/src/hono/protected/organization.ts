@@ -2,16 +2,14 @@ import { zValidator } from "@hono/zod-validator";
 import { db } from "@workspace/db-d1";
 import { Hono } from "hono";
 import { z } from "zod";
-import { extractAuth, requireAuth } from "../middleware/auth";
 import type { HonoContextWithAuth } from "../types";
 
 const checkSlugSchema = z.object({
   slug: z.string().min(3).max(50),
 });
 
-const getUserMembershipRoute = new Hono<HonoContextWithAuth>().get(
-  "/",
-  async (c) => {
+const organizationRoutes = new Hono<HonoContextWithAuth>()
+  .get("/membership", async (c) => {
     const userId = c.get("user").id;
     const membership = await db.query.member.findFirst({
       where: (member, { eq }) => eq(member.userId, userId),
@@ -20,22 +18,15 @@ const getUserMembershipRoute = new Hono<HonoContextWithAuth>().get(
       },
     });
     return c.json(membership);
-  }
-);
-
-const checkSlugRoute = new Hono<HonoContextWithAuth>()
-  .use(extractAuth)
-  .post("/", zValidator("json", checkSlugSchema), async (c) => {
+  })
+  .post("/check-slug", zValidator("json", checkSlugSchema), async (c) => {
     const { slug } = c.req.valid("json");
     const existingOrg = await db.query.organization.findFirst({
       where: (org, { eq }) => eq(org.slug, slug),
     });
     return c.json({ available: !existingOrg });
-  });
-
-const getInvitationRoute = new Hono<HonoContextWithAuth>()
-  .use(extractAuth)
-  .get("/:id", async (c) => {
+  })
+  .get("/invitation/:id", async (c) => {
     const invitationId = c.req.param("id");
     const invitation = await db.query.invitation.findFirst({
       where: (inv, { eq }) => eq(inv.id, invitationId),
@@ -50,9 +41,4 @@ const getInvitationRoute = new Hono<HonoContextWithAuth>()
     return c.json(invitation);
   });
 
-export const organizationRoutes = new Hono()
-  .use("*", extractAuth)
-  .use("*", requireAuth)
-  .route("/membership", getUserMembershipRoute)
-  .route("/check-slug", checkSlugRoute)
-  .route("/invitation", getInvitationRoute);
+export default organizationRoutes;

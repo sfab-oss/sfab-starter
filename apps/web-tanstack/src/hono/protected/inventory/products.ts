@@ -1,0 +1,68 @@
+import { zValidator } from "@hono/zod-validator";
+import {
+  createProduct,
+  deleteProduct,
+  getProduct,
+  getProductMovements,
+  getProducts,
+  updateProduct,
+} from "@workspace/db-d1/services/products";
+import {
+  createProductSchema,
+  updateProductSchema,
+} from "@workspace/types/products";
+import { Hono } from "hono";
+import { z } from "zod";
+import type { HonoContextWithAuth } from "../../types";
+
+const productIdSchema = z.object({
+  id: z.string(),
+});
+
+const productsRoute = new Hono<HonoContextWithAuth>()
+  .get("/", async (c) => {
+    const userId = c.get("user").id;
+    const data = await getProducts(userId);
+    return c.json(data);
+  })
+  .get("/:id", zValidator("param", productIdSchema), async (c) => {
+    const userId = c.get("user").id;
+    const { id } = c.req.valid("param");
+    const data = await getProduct(id, userId);
+    if (!data) {
+      return c.json({ error: "Product not found" }, 404);
+    }
+    return c.json(data);
+  })
+  .get("/:id/movements", zValidator("param", productIdSchema), async (c) => {
+    const userId = c.get("user").id;
+    const { id } = c.req.valid("param");
+    const data = await getProductMovements(id, userId);
+    return c.json(data);
+  })
+  .post("/", zValidator("json", createProductSchema), async (c) => {
+    const userId = c.get("user").id;
+    const body = c.req.valid("json");
+    const result = await createProduct({ ...body, userId });
+    return c.json(result[0]);
+  })
+  .put(
+    "/:id",
+    zValidator("param", productIdSchema),
+    zValidator("json", updateProductSchema),
+    async (c) => {
+      const userId = c.get("user").id;
+      const { id } = c.req.valid("param");
+      const body = c.req.valid("json");
+      const result = await updateProduct(id, userId, body);
+      return c.json(result);
+    }
+  )
+  .delete("/:id", zValidator("param", productIdSchema), async (c) => {
+    const userId = c.get("user").id;
+    const { id } = c.req.valid("param");
+    const result = await deleteProduct(id, userId);
+    return c.json(result);
+  });
+
+export default productsRoute;

@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import { extractAuth, requireAuth } from "../middleware/auth";
 import type { HonoContext, HonoContextWithAuth } from "../types";
 import chatRoutes from "./chat";
-import { inventoryRoutes } from "./inventory";
-import { organizationRoutes } from "./organization";
+import inventoryRoutes from "./inventory";
+import organizationRoutes from "./organization";
 import transcribeRoutes from "./transcribe";
 
 const meRoute = new Hono<HonoContextWithAuth>().get("/me", (c) => {
