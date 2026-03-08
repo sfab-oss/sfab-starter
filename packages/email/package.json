@@ -1,0 +1,21 @@
+{
+  "name": "@workspace/email",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@react-email/components": "^0.0.33",
+    "react": "^19.0.0",
+    "resend": "^4.1.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "@workspace/cloudflare-env": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "@types/node": "^20.19.9",
+    "@types/react": "^19.0.10",
+    "typescript": "^5.9.3"
+  }
+}

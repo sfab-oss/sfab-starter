@@ -1,0 +1,14 @@
+{
+  "extends": "@workspace/typescript-config/react-library.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "lib": ["es2022", "DOM", "DOM.Iterable"],
+    "types": ["node", "@cloudflare/workers-types"],
+    "jsx": "react-jsx",
+    "paths": {
+      "@workspace/email/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "../cloudflare-env/src/env.d.ts"],
+  "exclude": ["node_modules"]
+}

@@ -8,6 +8,13 @@
       "when": 1772667491716,
       "tag": "0000_bumpy_mauler",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1772935030474,
+      "tag": "0001_serious_firelord",
+      "breakpoints": true
     }
   ]
 }
