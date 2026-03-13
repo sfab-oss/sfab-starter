@@ -1,10 +1,10 @@
+import { db } from "@workspace/db-d1";
+import { warehouses } from "@workspace/db-d1/schema";
 import type {
   CreateWarehouse,
   UpdateWarehouse,
 } from "@workspace/types/warehouses";
 import { and, eq } from "drizzle-orm";
-import { db } from "../index";
-import { warehouses } from "../schema/inventory";
 
 export const getWarehouses = async (userId: string) => {
   return await db

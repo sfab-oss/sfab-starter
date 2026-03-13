@@ -5,7 +5,7 @@ import {
   getProducts,
   performStockMovement,
   updateProduct,
-} from "@workspace/db-d1/services/products";
+} from "@workspace/core/products";
 import {
   createMovementSchema,
   createProductSchema,

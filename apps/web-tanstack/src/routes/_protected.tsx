@@ -2,7 +2,8 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { auth } from "@workspace/auth";
-import { db, getUserOrganization } from "@workspace/db-d1";
+import { getUserOrganization } from "@workspace/core/auth";
+import { db } from "@workspace/db-d1";
 import { AppLayout } from "@workspace/ui/components/brand/app-layout";
 import { AppSidebar } from "../components/layout/app-sidebar";
 

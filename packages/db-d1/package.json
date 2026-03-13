@@ -6,7 +6,7 @@
     ".": "./src/index.ts",
     "./schema": "./src/schema/index.ts",
     "./schema/chat": "./src/schema/chat.ts",
-    "./services/*": "./src/services/*.ts"
+    "./types/*": "./src/types/*.ts"
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
@@ -14,13 +14,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@workspace/types": "workspace:*",
     "drizzle-orm": "^0.44.5",
-    "nanoid": "^5.1.0"
+    "drizzle-zod": "^0.8.3",
+    "nanoid": "^5.1.0",
+    "zod": "4.3.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250214.0",
     "@workspace/cloudflare-env": "workspace:*",
+    "@workspace/types": "workspace:*",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.13.4",
     "@workspace/typescript-config": "workspace:*",

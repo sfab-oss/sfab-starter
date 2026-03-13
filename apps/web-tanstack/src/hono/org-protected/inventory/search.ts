@@ -1,4 +1,4 @@
-import { searchInventory } from "@workspace/db-d1/services/search";
+import { searchInventory } from "@workspace/core/search";
 import { Hono } from "hono";
 import type { HonoContextWithAuthAndOrg } from "../../types";
 

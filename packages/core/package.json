@@ -1,24 +1,21 @@
 {
-  "name": "@workspace/types",
+  "name": "@workspace/core",
   "version": "0.0.1",
   "private": true,
   "exports": {
-    "./ai": "./src/ai.ts",
-    "./hono": "./src/hono.ts",
-    "./products": "./src/products.ts",
-    "./search": "./src/search.ts",
-    "./utils": "./src/utils.ts",
-    "./warehouses": "./src/warehouses.ts"
+    "./*": "./src/*.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@workspace/db-d1": "workspace:*",
-    "ai": "6.0.39",
-    "zod": "4.3.5"
+    "@workspace/types": "workspace:*",
+    "drizzle-orm": "^0.44.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "@workspace/cloudflare-env": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "typescript": "^5.9.3"
   }

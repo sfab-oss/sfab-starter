@@ -1,11 +1,11 @@
+import { db } from "@workspace/db-d1";
+import { movements, products, stockLevels } from "@workspace/db-d1/schema";
 import type {
   CreateMovement,
   CreateProduct,
   UpdateProduct,
 } from "@workspace/types/products";
 import { and, eq, gte, sql } from "drizzle-orm";
-import { db } from "../index";
-import { movements, products, stockLevels } from "../schema/inventory";
 
 export const getProducts = async (userId: string) => {
   return await db

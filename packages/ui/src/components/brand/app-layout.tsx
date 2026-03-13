@@ -368,14 +368,14 @@ export function AppLayoutResizablePanelTrigger({
 
   return (
     <Button
-      aria-label={panels[panelId] !== false ? "Close panel" : "Open panel"}
+      aria-label={panels[panelId] === false ? "Open panel" : "Close panel"}
       className={className}
       onClick={() => togglePanel(panelId)}
       size="icon"
       variant="ghost"
       {...props}
     >
-      {panels[panelId] !== false ? <PanelRightClose /> : <PanelRight />}
+      {panels[panelId] === false ? <PanelRight /> : <PanelRightClose />}
       {children}
     </Button>
   );

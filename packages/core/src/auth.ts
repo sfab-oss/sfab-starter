@@ -1,7 +1,7 @@
+import type * as schema from "@workspace/db-d1/schema";
+import { member } from "@workspace/db-d1/schema";
 import { eq } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import type * as schema from "../schema/auth";
-import { member } from "../schema/auth";
 
 export async function getUserOrganization(
   { userId }: { userId: string },

@@ -1,7 +1,7 @@
+import { db } from "@workspace/db-d1";
+import { chats, messages } from "@workspace/db-d1/schema/chat";
 import type { BaseAIUIMessage } from "@workspace/types/ai";
 import { and, asc, desc, eq, gte } from "drizzle-orm";
-import { db } from "../index";
-import { chats, messages } from "../schema/chat";
 
 export function dbMessageToAIMessage(
   message: typeof messages.$inferSelect

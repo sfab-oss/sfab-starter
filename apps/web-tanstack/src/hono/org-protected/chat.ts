@@ -6,7 +6,7 @@ import {
   getChatMessages,
   getChats,
   upsertMessageToChat,
-} from "@workspace/db-d1/services/chat";
+} from "@workspace/core/chat";
 import type { ChatContext } from "@workspace/types/ai";
 import { Hono } from "hono";
 import { z } from "zod";

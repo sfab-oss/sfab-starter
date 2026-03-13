@@ -5,7 +5,7 @@ import {
   getWarehouse,
   getWarehouses,
   updateWarehouse,
-} from "@workspace/db-d1/services/warehouses";
+} from "@workspace/core/warehouses";
 import {
   createWarehouseSchema,
   updateWarehouseSchema,

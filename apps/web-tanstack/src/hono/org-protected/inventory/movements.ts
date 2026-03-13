@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { performStockMovement } from "@workspace/db-d1/services/products";
+import { performStockMovement } from "@workspace/core/products";
 import { createMovementSchema } from "@workspace/types/products";
 import { Hono } from "hono";
 import type { HonoContextWithAuthAndOrg } from "../../types";

@@ -37,7 +37,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
   );
 };
 
-export { Toaster };
-
 // biome-ignore lint/performance/noBarrelFile: this is a wrapper for the sonner toast
 export { toast } from "sonner";
+export { Toaster };

@@ -23,7 +23,7 @@ export function useGetChat(id: string | null, options?: { enabled?: boolean }) {
       }
       return data;
     },
-    enabled: options?.enabled !== undefined ? options.enabled : !!id,
+    enabled: options?.enabled === undefined ? !!id : options.enabled,
     placeholderData: (previousData) => previousData,
   });
 }
