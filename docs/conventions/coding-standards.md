@@ -1,6 +1,6 @@
 # Coding Standards
 
-This document covers coding standards beyond what Biome/Ultracite enforces automatically.
+This document covers coding standards beyond what Biome enforces automatically.
 
 ## General Principles
 

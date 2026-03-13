@@ -5,8 +5,8 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "lint:check": "ultracite check",
-    "lint:fix": "ultracite fix",
+    "lint:check": "biome check .",
+    "lint:fix": "biome check --write .",
     "typecheck": "turbo typecheck",
     "db:generate": "pnpm --filter @workspace/db-d1 db:generate",
     "db:studio": "pnpm --filter @workspace/db-d1 db:studio",

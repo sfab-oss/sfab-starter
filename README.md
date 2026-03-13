@@ -156,19 +156,19 @@ pnpm db:migrate         # Run migrations
 pnpm db:seed            # Seed database
 
 # Formatting
-pnpm dlx ultracite fix  # Format and fix all issues
-pnpm dlx ultracite check # Check for issues
+pnpm lint:fix   # Format and fix all issues
+pnpm lint:check # Check for issues
 ```
 
 ## Code Quality
 
-This project uses **Ultracite** for zero-config code quality:
+This project uses **Biome** for code quality:
 
 - **Biome** - Fast formatting and linting
 - **Strict TypeScript** - Full type safety
 - **Git hooks** - Pre-commit checks
 
-Run `pnpm dlx ultracite fix` before committing.
+Run `pnpm lint:fix` before committing.
 
 ## License
 

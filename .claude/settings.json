@@ -1,4 +1,67 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "Bash(mkdir:*)",
+      "Bash(grep:*)",
+      "Bash(echo:*)",
+      "Bash(diff:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(touch:*)",
+      "Bash(which:*)",
+      "Bash(pwd:*)",
+      "Bash(env:*)",
+      "Bash(sed:*)",
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(pnpm lint:fix:*)",
+      "Bash(pnpm lint:check:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm exec:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm turbo:*)",
+      "Bash(pnpm db:generate:*)",
+      "Bash(pnpm db:migrate:*)",
+      "Bash(pnpm db:migrate:prod:*)",
+      "Bash(pnpm db:seed:*)",
+      "Bash(pnpm db:seed:prod:*)",
+      "Bash(pnpm db:reset:*)",
+      "Bash(pnpm db:list:*)",
+      "Bash(pnpm db:studio:*)",
+      "Bash(pnpm --filter:*)",
+      "Bash(biome:*)",
+      "Bash(wrangler:*)",
+      "Bash(drizzle-kit:*)",
+      "Bash(vitest:*)",
+      "Bash(git fetch:*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git branch:*)",
+      "Bash(git blame:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh api:*)",
+      "Bash(gh repo:*)",
+      "WebSearch"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {
@@ -6,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pnpm dlx ultracite fix"
+            "command": "pnpm lint:fix"
           }
         ]
       }
