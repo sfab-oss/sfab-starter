@@ -1,176 +1,217 @@
-# Full-Stack Monorepo Starter
+# SFab Monorepo Starter
 
-A modern, full-stack TypeScript monorepo template with end-to-end type safety, client-side data fetching, and AI capabilities.
+A production-ready full-stack TypeScript monorepo template for building applications on Cloudflare Workers. Designed as the foundation for [SFab](https://github.com/alwurts/sfab) projects — optimized for AI-agent-assisted development.
 
-## Features
+## Stack
 
-### 🎯 Core Stack
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | [TanStack Start](https://tanstack.com/start) (full-stack React) |
+| **API** | [Hono](https://hono.dev/) with RPC — type-safe from route to client |
+| **Database** | [Drizzle ORM](https://orm.drizzle.team/) + [Cloudflare D1](https://developers.cloudflare.com/d1/) (SQLite) |
+| **Auth** | [Better Auth](https://www.better-auth.com/) with organization plugin |
+| **UI** | [shadcn/ui](https://ui.shadcn.com/) + Radix UI + Tailwind CSS v4 |
+| **AI** | [Vercel AI SDK](https://sdk.vercel.ai/) with streaming, tool calling, and skill system |
+| **Email** | [Resend](https://resend.com/) + [React Email](https://react.email/) |
+| **Tooling** | Turbo, pnpm, Biome, TypeScript 5.9 |
+| **Deployment** | Cloudflare Workers via Wrangler |
 
-- **Next.js 16** - React framework with App Router
-- **React 19** - Latest React with Server Components
-- **TypeScript 5.9** - Strict type checking throughout
-- **Tailwind CSS v4** - Modern utility-first styling with OKLch colors
-- **Turbo** - High-performance monorepo build system
-- **pnpm** - Fast, efficient package management
-
-### 🔐 Backend & Data
-
-- **Hono RPC** - Type-safe API routes with zero code generation
-- **React Query** - Powerful client-side data fetching and caching
-- **Drizzle ORM** - TypeScript-first database toolkit
-- **PostgreSQL** - Robust relational database
-- **Better Auth** - Modern, type-safe authentication
-- **Zod** - Runtime type validation
-
-### 🎨 UI & Design
-
-- **shadcn/ui** - Beautiful, accessible components built on Radix UI
-- **Design System Registry** - Browse and document components
-- **Dark Mode** - Built-in theme switching
-- **Responsive** - Mobile-first design approach
-
-### 🤖 AI Integration
-
-- **Vercel AI SDK** - Streaming AI responses
-- **Chat Interface** - Built-in AI chat with message persistence
-- **Tool Calling** - Dynamic AI function execution
-
-## Architecture Highlights
-
-### End-to-End Type Safety
-
-Complete type safety from database to UI without code generation:
+## Project structure
 
 ```
-PostgreSQL → Drizzle Schema → Service Layer → Hono Route → RPC Client → React Query → UI
+apps/
+  web-tanstack/             # Main application (TanStack Start + Hono)
+    src/
+      routes/               # File-based routing (TanStack Router)
+      hono/                 # API routes (public, protected, org-protected)
+      lib/ai/               # AI agents, tools, and skills
+      components/           # React components
+      hooks/                # React Query hooks
+packages/
+  auth/                     # Better Auth configuration
+  cloudflare-env/           # Cloudflare bindings type definitions
+  core/                     # Business logic services
+  db-d1/                    # Drizzle schema and migrations
+  email/                    # Email templates and sending
+  types/                    # Shared Zod schemas and TypeScript types
+  ui/                       # Component library (shadcn/ui)
+  typescript-config/        # Shared TSConfig
+docs/
+  decisions/                # Architecture Decision Records
+  plans/                    # Implementation plans
+.agents/
+  skills/                   # AI agent skills (cloudflare, ai-sdk, wrangler, etc.)
 ```
 
-All types are inferred automatically using TypeScript's type system.
+## Architecture
 
-### Client-Side Data Fetching
-
-Unlike traditional Next.js patterns, this starter uses **React Query for all data fetching**:
-
-- ✅ Optimistic updates for instant feedback
-- ✅ Background refetching for fresh data
-- ✅ Granular loading and error states
-- ✅ Perfect for interactive UIs
-- ✅ Works seamlessly with streaming AI
-
-### Service Layer Pattern
-
-All business logic is centralized in reusable service functions:
+End-to-end type safety without code generation:
 
 ```
-packages/db/src/services/
-├── chat.ts          # Chat operations
-├── products.ts      # Product management
-├── warehouses.ts    # Warehouse operations
-└── search.ts        # Global search
+D1 (SQLite) → Drizzle Schema → Service Layer → Hono Route → RPC Client → React Query → UI
 ```
 
-## Getting Started
+- **Services** in `packages/core/` own all business logic and database access
+- **API routes** in `hono/` are thin wrappers that call services and return typed responses
+- **React Query hooks** in `hooks/` call the Hono RPC client for data fetching with optimistic updates
+- **Auth middleware** enforces authentication and organization-scoped access on protected routes
+
+## Getting started
 
 ### Prerequisites
 
-- Node.js 18+
-- pnpm 8+
-- Docker (for PostgreSQL)
+- Node.js 20+
+- pnpm 10+
 
-### Installation
+### Setup
 
 ```bash
-# Clone the repository
+# Clone and install
 git clone <repo-url>
 cd simple-monorepo-starter
-
-# Install dependencies
 pnpm install
 
-# Start PostgreSQL
-pnpm db:up
+# Configure environment
+cp apps/web-tanstack/.dev.vars.example apps/web-tanstack/.dev.vars
+# Edit .dev.vars with your values (see Environment Variables below)
 
-# Run database migrations
-cd packages/db
+# Set up database
 pnpm db:migrate
-pnpm db:seed
 
-# Start development server
-cd ../..
+# Start development
 pnpm dev
 ```
 
-### Environment Variables
+The app runs at `http://localhost:3001`.
 
-Copy `.env.example` to `.env` and fill in your values:
+### Environment variables
 
-```bash
-cp .env.example .env
-```
+Set these in `apps/web-tanstack/.dev.vars` for local development, or as Worker secrets in production (`wrangler secret put <NAME>`):
 
-## Project Structure
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `BETTER_AUTH_SECRET` | Yes | Auth secret key (min 32 characters) |
+| `BETTER_AUTH_URL` | Yes | App URL (`http://localhost:3001` for dev) |
+| `AI_GATEWAY_API_KEY` | For AI features | API key for AI model provider |
+| `RESEND_API_KEY` | For email | Resend API key |
+| `EMAIL_SENDER` | For email | Sender email address |
+| `MOCK_SEND_EMAIL` | Optional | Set to `true` to skip sending real emails |
 
-```
-.
-├── apps/
-│   └── web/              # Next.js application
-│       ├── app/          # App Router pages
-│       ├── server/       # Hono API routes
-│       ├── components/   # React components
-│       └── hooks/        # React Query hooks
-├── packages/
-│   ├── db/              # Database schema & services
-│   ├── types/           # Shared TypeScript types
-│   ├── auth/            # Authentication config
-│   ├── ui/              # UI component library
-│   ├── ui-ds/           # Design system registry
-│   └── config/          # Shared configuration
-└── docs/                # Documentation
-```
-
-## Documentation
-
-Comprehensive documentation is available in the `docs/` directory:
-
-- **[Architecture Overview](docs/architecture/overview.md)** - System design and principles
-- **[Tech Stack](docs/architecture/tech-stack.md)** - Technologies and rationale
-- **[Folder Structure](docs/architecture/folder-structure.md)** - Code organization
-- **[Data Fetching Guide](docs/guides/data-fetching.md)** - How to fetch and mutate data
-- **[Getting Started](docs/guides/getting-started.md)** - Setup and development workflow
-
-## Available Scripts
+### Scripts
 
 ```bash
 # Development
-pnpm dev                 # Start all apps
-pnpm build              # Build all apps
-pnpm lint               # Lint all code
-pnpm typecheck          # Check types
+pnpm dev                  # Start dev server
+pnpm build                # Build all packages
+pnpm typecheck            # Type check everything
+pnpm lint:fix             # Format and lint with Biome
 
 # Database
-pnpm db:up              # Start PostgreSQL
-pnpm db:down            # Stop PostgreSQL
-pnpm db:studio          # Open Drizzle Studio
-pnpm db:generate        # Generate migrations
-pnpm db:migrate         # Run migrations
-pnpm db:seed            # Seed database
-
-# Formatting
-pnpm lint:fix   # Format and fix all issues
-pnpm lint:check # Check for issues
+pnpm db:generate          # Generate Drizzle migrations
+pnpm db:migrate           # Apply migrations locally
+pnpm db:migrate:prod      # Apply migrations to production
+pnpm db:reset             # Reset local database
+pnpm db:studio            # Open Drizzle Studio
 ```
 
-## Code Quality
+## Example features
 
-This project uses **Biome** for code quality:
+This template includes two example features that demonstrate the full-stack patterns. They are meant to show how to build on this template — you can keep, modify, or remove them.
 
-- **Biome** - Fast formatting and linting
-- **Strict TypeScript** - Full type safety
-- **Git hooks** - Pre-commit checks
+### Inventory management
 
-Run `pnpm lint:fix` before committing.
+A complete CRUD feature covering products, warehouses, stock levels, and stock movements. Demonstrates:
+
+- Database schema with relations (`packages/db-d1/src/schema/inventory.ts`)
+- Service layer with business logic (`packages/core/src/products.ts`, `warehouses.ts`, `search.ts`)
+- API routes with validation (`apps/web-tanstack/src/hono/org-protected/inventory/`)
+- React Query hooks (`apps/web-tanstack/src/hooks/use-products.ts`, `use-warehouses.ts`)
+- UI pages and components (`apps/web-tanstack/src/routes/_protected/inventory/`)
+
+### AI chat
+
+A streaming chat interface with tool calling and a skill system. Demonstrates:
+
+- Chat persistence schema (`packages/db-d1/src/schema/chat.ts`)
+- AI agent configuration and tool definitions (`apps/web-tanstack/src/lib/ai/`)
+- Streaming API route (`apps/web-tanstack/src/hono/org-protected/chat.ts`)
+- Chat UI components (`apps/web-tanstack/src/components/chat/`)
+
+The AI tools in this template are wired to the inventory feature — the agent can create products, manage warehouses, etc. This shows how to connect domain features to AI capabilities.
+
+## Removing example features
+
+When starting a new project, you'll likely want to remove the example features and build your own. Here's what to clean up:
+
+### To remove inventory
+
+Delete these files/directories:
+- `packages/db-d1/src/schema/inventory.ts`
+- `packages/core/src/products.ts`, `warehouses.ts`, `search.ts`
+- `packages/types/src/products.ts`, `warehouses.ts`, `search.ts`
+- `apps/web-tanstack/src/hono/org-protected/inventory/`
+- `apps/web-tanstack/src/routes/_protected/inventory/`
+- `apps/web-tanstack/src/routes/_protected/warehouse-setup.tsx`
+- `apps/web-tanstack/src/components/inventory/`
+- `apps/web-tanstack/src/hooks/use-products.ts`, `use-warehouses.ts`, `use-search.ts`
+- `apps/web-tanstack/src/lib/ai/tools/products.ts`, `warehouses.ts`
+- `apps/web-tanstack/src/lib/ai/skills/registry/` (inventory-specific skills)
+
+Then update these files to remove inventory references:
+- `packages/db-d1/src/schema/index.ts` — remove `export * from "./inventory"`
+- `apps/web-tanstack/src/hono/org-protected/index.ts` — remove inventory route import and `.route("/inventory", ...)`
+- `apps/web-tanstack/src/lib/ai/tools/registry.ts` — remove product/warehouse tool imports and spreads
+- `apps/web-tanstack/src/lib/ai/tools/groups.ts` — remove inventory tool groups
+- `apps/web-tanstack/src/lib/ai/agents/general-agent.ts` — remove inventory skills from `availableCalled`
+- `apps/web-tanstack/src/components/layout/app-sidebar.tsx` — remove Inventory and Warehouses nav items
+
+### To remove chat
+
+Delete these files/directories:
+- `packages/db-d1/src/schema/chat.ts`
+- `packages/core/src/chat.ts`
+- `apps/web-tanstack/src/hono/org-protected/chat.ts`
+- `apps/web-tanstack/src/routes/_protected/chat/`
+- `apps/web-tanstack/src/components/chat/`
+- `apps/web-tanstack/src/hooks/use-chat.ts`
+- `apps/web-tanstack/src/lib/ai/` (entire directory, if removing all AI features)
+
+Then update:
+- `packages/db-d1/src/schema/index.ts` — remove `export * from "./chat"`
+- `apps/web-tanstack/src/hono/org-protected/index.ts` — remove chat route import and `.route("/chat", ...)`
+
+After removing features, run `pnpm typecheck` to catch any remaining references.
+
+### To rename the project
+
+Update these values to match your project:
+- `package.json` (root) — `name` field
+- `apps/web-tanstack/wrangler.jsonc` — `name` and `d1_databases[0].database_name`
+- `apps/web-tanstack/package.json` — `name` field
+- Database migration commands reference `web-tanstack-db` — update in both root and app `package.json` scripts
+
+## What stays (core infrastructure)
+
+These are the building blocks you keep and build on:
+
+- **Auth** — login, signup, onboarding, organization management, invitation flow
+- **Database** — Drizzle + D1 with migration tooling
+- **API layer** — Hono with public/protected/org-protected route groups and auth middleware
+- **UI** — shadcn/ui component library, sidebar layout, theme switching
+- **Email** — Resend integration with React Email templates
+- **AI infrastructure** — agent framework, skill system, streaming (if keeping chat)
+- **Config** — TypeScript, Biome, Turbo, pnpm workspace, Cloudflare env types
+
+## AI agent skills
+
+The `.agents/skills/` directory contains skills that AI coding agents (like Claude Code) can load for context when working on this codebase:
+
+- **cloudflare** — Cloudflare Workers platform guidance
+- **wrangler** — Wrangler CLI reference
+- **durable-objects** — Cloudflare Durable Objects patterns
+- **workers-best-practices** — Workers performance and patterns
+- **ai-sdk** — Vercel AI SDK documentation
 
 ## License
 
 MIT
-
