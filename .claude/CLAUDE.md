@@ -13,9 +13,9 @@ Run these commands from the monorepo root rather than in individual packages.
 
 ## Documentation
 
-This project has documentation in the `docs/` folder. Check the relevant docs before making changes to understand architecture, conventions, and existing patterns.
+`docs/decisions/` contains ADRs (Architecture Decision Records) — the "why" behind significant choices. When making significant or architectural changes, create an ADR there (use `template.md`).
 
-When making significant or architectural changes, create an ADR in `docs/decisions/` (use `template.md`).
+`docs/plans/` is for implementation plans that need to survive across multiple sessions. Prefer plan-mode for plans that fit in a single session. When a plan is implemented, delete its file — if the decision is worth preserving, create an ADR instead.
 
 ---
 
