@@ -68,6 +68,7 @@ import {
   useProductMovements,
   useUpdateProduct,
 } from "@/hooks/use-products";
+import { getUploadUrl } from "@/lib/uploads";
 
 export const Route = createFileRoute("/_protected/inventory/$id")({
   component: ProductPage,
@@ -146,6 +147,58 @@ function MovementHistoryContent({
         ))}
       </TableBody>
     </Table>
+  );
+}
+
+interface ProductDetailsReadOnlyProps {
+  product: {
+    name: string;
+    sku: string;
+    minStockLevel: number | null;
+    description: string | null;
+    imageUrl: string | null;
+  };
+}
+
+function ProductDetailsReadOnly({ product }: ProductDetailsReadOnlyProps) {
+  return (
+    <div className="space-y-4">
+      {product.imageUrl && (
+        <>
+          <div className="overflow-hidden rounded-lg border">
+            <img
+              alt={product.name}
+              className="h-48 w-full object-cover"
+              height={192}
+              src={getUploadUrl(product.imageUrl)}
+              width={384}
+            />
+          </div>
+          <Separator />
+        </>
+      )}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <h4 className="font-medium text-muted-foreground text-sm">SKU</h4>
+          <p className="font-mono text-sm">{product.sku}</p>
+        </div>
+        <div>
+          <h4 className="font-medium text-muted-foreground text-sm">
+            Min. Stock Level
+          </h4>
+          <p className="text-sm">{product.minStockLevel}</p>
+        </div>
+      </div>
+      <Separator />
+      <div>
+        <h4 className="mb-1 font-medium text-muted-foreground text-sm">
+          Description
+        </h4>
+        <p className="text-foreground/90 text-sm leading-relaxed">
+          {product.description || "No description provided."}
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -355,37 +408,14 @@ function ProductPage() {
                         : 0,
                       description: product.description || "",
                       minStockLevel: product.minStockLevel || 5,
+                      imageUrl: product.imageUrl || null,
                     }}
                     isLoading={updateProduct.isPending}
                     onSubmit={handleUpdate}
                     submitLabel="Save Changes"
                   />
                 ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-medium text-muted-foreground text-sm">
-                          SKU
-                        </h4>
-                        <p className="font-mono text-sm">{product.sku}</p>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-muted-foreground text-sm">
-                          Min. Stock Level
-                        </h4>
-                        <p className="text-sm">{product.minStockLevel}</p>
-                      </div>
-                    </div>
-                    <Separator />
-                    <div>
-                      <h4 className="mb-1 font-medium text-muted-foreground text-sm">
-                        Description
-                      </h4>
-                      <p className="text-foreground/90 text-sm leading-relaxed">
-                        {product.description || "No description provided."}
-                      </p>
-                    </div>
-                  </div>
+                  <ProductDetailsReadOnly product={product} />
                 )}
               </CardContent>
             </Card>

@@ -4,6 +4,7 @@ import metricsRoute from "./metrics";
 import movementsRoute from "./movements";
 import productsRoute from "./products";
 import searchRoute from "./search";
+import uploadsRoute from "./uploads";
 import warehousesRoute from "./warehouses";
 
 const inventoryRoutes = new Hono<HonoContextWithAuthAndOrg>()
@@ -11,6 +12,7 @@ const inventoryRoutes = new Hono<HonoContextWithAuthAndOrg>()
   .route("/warehouses", warehousesRoute)
   .route("/search", searchRoute)
   .route("/metrics", metricsRoute)
-  .route("/movements", movementsRoute);
+  .route("/movements", movementsRoute)
+  .route("/uploads", uploadsRoute);
 
 export default inventoryRoutes;

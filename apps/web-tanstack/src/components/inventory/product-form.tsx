@@ -14,6 +14,7 @@ import { Input } from "@workspace/ui/components/shadcn/input";
 import { Textarea } from "@workspace/ui/components/shadcn/textarea";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
+import { ImageUpload } from "./image-upload";
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
 
@@ -38,12 +39,24 @@ export function ProductForm({
       price: defaultValues?.price ?? 0,
       minStockLevel: defaultValues?.minStockLevel ?? 5,
       description: defaultValues?.description ?? null,
+      imageUrl: defaultValues?.imageUrl ?? null,
     },
   });
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
+        <Controller
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => (
+            <Field>
+              <FieldLabel>Product Image</FieldLabel>
+              <ImageUpload onChange={field.onChange} value={field.value} />
+            </Field>
+          )}
+        />
+
         <div className="grid grid-cols-2 gap-4">
           <Controller
             control={form.control}

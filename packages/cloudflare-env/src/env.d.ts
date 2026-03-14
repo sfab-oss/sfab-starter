@@ -3,6 +3,7 @@
 declare namespace Cloudflare {
 	interface Env {
 		DB: D1Database;
+		R2_BUCKET: R2Bucket;
 		BETTER_AUTH_SECRET: string;
 		BETTER_AUTH_URL: string;
 		AI_GATEWAY_API_KEY: string;

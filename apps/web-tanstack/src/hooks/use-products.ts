@@ -154,6 +154,38 @@ export const useDeleteProduct = () => {
   });
 };
 
+export const useUploadProductImage = () => {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/protected/inventory/uploads", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error((body as { error?: string }).error || "Upload failed");
+      }
+      return res.json() as Promise<{ key: string }>;
+    },
+  });
+};
+
+export const useDeleteProductImage = () => {
+  return useMutation({
+    mutationFn: async (key: string) => {
+      const res = await client.protected.inventory.uploads[":key"].$delete({
+        param: { key },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to delete image");
+      }
+      return res.json();
+    },
+  });
+};
+
 export const useCreateMovement = () => {
   const queryClient = useQueryClient();
   return useMutation({

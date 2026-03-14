@@ -18,6 +18,13 @@
       "database_id": "placeholder-remote-db-id",
       "migrations_dir": "../../packages/db-d1/drizzle"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2_BUCKET",
+      "bucket_name": "web-tanstack-uploads",
+      "preview_bucket_name": "web-tanstack-uploads-preview"
+    }
   ]
   /**
    * Smart Placement

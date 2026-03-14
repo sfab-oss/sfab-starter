@@ -28,16 +28,15 @@ Full testing story is implemented:
 - E2E tests: Playwright for auth flows, inventory, navigation, warehouses
 - Test helpers: seed functions, auth session creation via Better Auth API
 
-### 2. File uploads with Cloudflare R2 (priority: high)
+### 2. File uploads with Cloudflare R2 (priority: high) — DONE
 
-No file upload pattern exists. R2 is the natural choice on Cloudflare. Very common in SaaS apps.
-
-**Need:**
-- R2 bucket binding in wrangler.jsonc
-- Upload service (presigned URLs or direct upload)
-- File metadata in DB (optional)
-- UI component for file upload with progress
-- Example: profile image or document attachment
+R2 file upload pattern implemented:
+- R2 bucket binding in wrangler.jsonc (`R2_BUCKET`)
+- Upload service in `packages/core/src/uploads.ts` (upload, get, delete with type/size validation)
+- API routes: POST upload, GET serve (with caching headers), DELETE
+- `ImageUpload` UI component with drag-and-drop, preview, remove
+- Wired into product form (create + edit) via `imageUrl` field
+- Product detail page shows image when present
 
 ### 3. Durable Objects (priority: high)
 
@@ -111,7 +110,7 @@ Decision: TBD. The patterns matter more than the domain. Could keep inventory an
 |-------|------|-----------|
 | ~~1~~ | ~~Testing setup + example tests~~ | ~~Done — 59 vitest tests + E2E~~ |
 | ~~2~~ | ~~Pagination + data table~~ | ~~Done — server-side pagination, sorting, filtering with URL-synced state~~ |
-| 3 | File uploads (R2) | Common requirement, shows another Cloudflare binding |
+| ~~3~~ | ~~File uploads (R2)~~ | ~~Done — R2 upload/serve/delete, image upload component~~ |
 | 4 | Error handling + optimistic updates | Polish patterns that make the template production-ready |
 | 5 | Durable Objects example | Advanced Cloudflare pattern |
 | 6 | Background work (Queues/cron) | Nice to have, less common in MVPs |
