@@ -8,6 +8,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  type OnChangeFn,
+  type PaginationState,
   type RowSelectionState,
   type SortingState,
   useReactTable,
@@ -35,13 +37,39 @@ import { useState } from "react";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+
+  // Server-side pagination (optional — absent = client-side)
+  pageCount?: number;
+  pagination?: PaginationState;
+  onPaginationChange?: OnChangeFn<PaginationState>;
+
+  // Server-side sorting (optional)
+  sorting?: SortingState;
+  onSortingChange?: OnChangeFn<SortingState>;
+
+  // Filtering (optional — controls the filter input)
+  filterValue?: string;
+  onFilterChange?: (value: string) => void;
+  filterPlaceholder?: string;
+  filterColumn?: string;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  pageCount,
+  pagination: externalPagination,
+  onPaginationChange,
+  sorting: externalSorting,
+  onSortingChange,
+  filterValue,
+  onFilterChange,
+  filterPlaceholder = "Filter...",
+  filterColumn = "name",
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const isServerSide = externalPagination !== undefined;
+
+  const [internalSorting, setInternalSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -49,33 +77,61 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
+    ...(isServerSide
+      ? {
+          manualPagination: true,
+          manualSorting: true,
+          manualFiltering: true,
+          pageCount,
+          state: {
+            pagination: externalPagination,
+            sorting: externalSorting ?? internalSorting,
+            columnVisibility,
+            rowSelection,
+          },
+          onPaginationChange,
+          onSortingChange: onSortingChange ?? setInternalSorting,
+        }
+      : {
+          getPaginationRowModel: getPaginationRowModel(),
+          getSortedRowModel: getSortedRowModel(),
+          getFilteredRowModel: getFilteredRowModel(),
+          onSortingChange: setInternalSorting,
+          onColumnFiltersChange: setColumnFilters,
+          state: {
+            sorting: internalSorting,
+            columnFilters,
+            columnVisibility,
+            rowSelection,
+          },
+        }),
   });
 
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
-        <Input
-          className="max-w-sm"
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          placeholder="Filter products..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-        />
+        {onFilterChange ? (
+          <Input
+            className="max-w-sm"
+            onChange={(event) => onFilterChange(event.target.value)}
+            placeholder={filterPlaceholder}
+            value={filterValue ?? ""}
+          />
+        ) : (
+          <Input
+            className="max-w-sm"
+            onChange={(event) =>
+              table.getColumn(filterColumn)?.setFilterValue(event.target.value)
+            }
+            placeholder={filterPlaceholder}
+            value={
+              (table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""
+            }
+          />
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button className="ml-auto" variant="outline">

@@ -14,7 +14,7 @@ import {
   ChartTooltipContent,
 } from "@workspace/ui/components/shadcn/chart";
 import { Cell, Pie, PieChart } from "recharts";
-import { useProducts } from "@/hooks/use-products";
+import { useInventoryMetrics } from "@/hooks/use-products";
 
 const chartConfig = {
   inStock: {
@@ -32,7 +32,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function StockStatusChart() {
-  const { data: products, isLoading } = useProducts();
+  const { data: metrics, isLoading } = useInventoryMetrics();
+  const products = metrics?.activeProducts;
 
   const stats = (products || []).reduce(
     (acc, product) => {

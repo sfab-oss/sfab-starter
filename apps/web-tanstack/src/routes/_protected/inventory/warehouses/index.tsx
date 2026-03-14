@@ -1,5 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import type {
+  ColumnDef,
+  PaginationState,
+  SortingState,
+  Updater,
+} from "@tanstack/react-table";
+import { paginationQuerySchema } from "@workspace/types/pagination";
 import type { Warehouse } from "@workspace/types/warehouses";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
@@ -19,15 +25,88 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
 import { ArrowUpDown, MapPin, MoreHorizontal, Star } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { CreateWarehouseDialog } from "@/components/inventory/create-warehouse-dialog";
 import { useWarehouses } from "@/hooks/use-warehouses";
 
 export const Route = createFileRoute("/_protected/inventory/warehouses/")({
   component: WarehousesPage,
+  validateSearch: paginationQuerySchema,
 });
 
 function WarehousesPage() {
-  const { data: warehouses, isLoading } = useWarehouses();
+  const searchParams = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { data: warehousesResponse, isLoading } = useWarehouses(searchParams);
+
+  // --- Pagination state bridge ---
+  const pagination = useMemo<PaginationState>(
+    () => ({
+      pageIndex: searchParams.page - 1,
+      pageSize: searchParams.pageSize,
+    }),
+    [searchParams.page, searchParams.pageSize]
+  );
+
+  const onPaginationChange = useCallback(
+    (updater: Updater<PaginationState>) => {
+      const next =
+        typeof updater === "function" ? updater(pagination) : updater;
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          page: next.pageIndex + 1,
+          pageSize: next.pageSize,
+        }),
+      });
+    },
+    [navigate, pagination]
+  );
+
+  // --- Sorting state bridge ---
+  const sorting = useMemo<SortingState>(
+    () =>
+      searchParams.sortBy
+        ? [
+            {
+              id: searchParams.sortBy,
+              desc: searchParams.sortOrder === "desc",
+            },
+          ]
+        : [],
+    [searchParams.sortBy, searchParams.sortOrder]
+  );
+
+  const onSortingChange = useCallback(
+    (updater: Updater<SortingState>) => {
+      const next = typeof updater === "function" ? updater(sorting) : updater;
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          sortBy: next[0]?.id,
+          sortOrder: next[0]?.desc ? ("desc" as const) : ("asc" as const),
+          page: 1,
+        }),
+      });
+    },
+    [navigate, sorting]
+  );
+
+  // --- Filter state bridge (debounced) ---
+  const onFilterChange = useDebouncedCallback((value: string) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        search: value || undefined,
+        page: 1,
+      }),
+    });
+  }, 300);
+
+  const pageCount = warehousesResponse
+    ? Math.ceil(warehousesResponse.total / searchParams.pageSize)
+    : 0;
 
   const columns: ColumnDef<Warehouse>[] = [
     {
@@ -142,12 +221,23 @@ function WarehousesPage() {
       </AppLayoutHeader>
 
       <div className="space-y-4 p-6">
-        {isLoading ? (
+        {isLoading && !warehousesResponse ? (
           <div className="flex h-40 items-center justify-center text-muted-foreground">
             Loading warehouses...
           </div>
         ) : (
-          <DataTable columns={columns} data={warehouses || []} />
+          <DataTable
+            columns={columns}
+            data={warehousesResponse?.data ?? []}
+            filterPlaceholder="Search warehouses..."
+            filterValue={searchParams.search ?? ""}
+            onFilterChange={onFilterChange}
+            onPaginationChange={onPaginationChange}
+            onSortingChange={onSortingChange}
+            pageCount={pageCount}
+            pagination={pagination}
+            sorting={sorting}
+          />
         )}
       </div>
     </AppLayoutPage>

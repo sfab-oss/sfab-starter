@@ -1,6 +1,12 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import type { PaginationQuery } from "@workspace/types/pagination";
 import type {
   createWarehouseSchema,
   updateWarehouseSchema,
@@ -9,14 +15,41 @@ import type { z } from "zod";
 import { client } from "@/lib/client";
 
 export const getWarehousesKey = () => ["warehouses"];
+export const getWarehousesListKey = (params: PaginationQuery) => [
+  "warehouses",
+  "list",
+  params,
+];
 export const getWarehouseKey = (id: string) => ["warehouses", id];
 
-export const useWarehouses = () => {
+export const useWarehouses = (params: PaginationQuery) => {
   return useQuery({
-    queryKey: getWarehousesKey(),
+    queryKey: getWarehousesListKey(params),
     queryFn: async () => {
-      const res = await client.protected.inventory.warehouses.$get();
+      const res = await client.protected.inventory.warehouses.$get({
+        query: {
+          page: params.page.toString(),
+          pageSize: params.pageSize.toString(),
+          ...(params.sortBy && { sortBy: params.sortBy }),
+          sortOrder: params.sortOrder,
+          ...(params.search && { search: params.search }),
+        },
+      });
       return res.json();
+    },
+    placeholderData: keepPreviousData,
+  });
+};
+
+export const useAllWarehouses = () => {
+  return useQuery({
+    queryKey: [...getWarehousesKey(), "all"],
+    queryFn: async () => {
+      const res = await client.protected.inventory.warehouses.$get({
+        query: { page: "1", pageSize: "100", sortOrder: "asc" },
+      });
+      const result = await res.json();
+      return result.data;
     },
   });
 };

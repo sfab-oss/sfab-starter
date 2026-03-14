@@ -21,7 +21,7 @@ import {
 import { Textarea } from "@workspace/ui/components/shadcn/textarea";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
-import { useWarehouses } from "@/hooks/use-warehouses";
+import { useAllWarehouses } from "@/hooks/use-warehouses";
 
 export type MovementFormValues = z.infer<typeof movementFormSchema>;
 
@@ -38,7 +38,7 @@ export function MovementForm({
   isLoading,
   initialType = "IN",
 }: MovementFormProps) {
-  const { data: warehouses } = useWarehouses();
+  const { data: warehouses } = useAllWarehouses();
 
   const form = useForm<MovementFormValues>({
     resolver: zodResolver(movementFormSchema),

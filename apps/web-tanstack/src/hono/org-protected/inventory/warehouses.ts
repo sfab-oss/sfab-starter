@@ -2,10 +2,11 @@ import { zValidator } from "@hono/zod-validator";
 import {
   createWarehouse,
   deleteWarehouse,
+  getPaginatedWarehouses,
   getWarehouse,
-  getWarehouses,
   updateWarehouse,
 } from "@workspace/core/warehouses";
+import { paginationQuerySchema } from "@workspace/types/pagination";
 import {
   createWarehouseSchema,
   updateWarehouseSchema,
@@ -19,9 +20,10 @@ const warehouseIdSchema = z.object({
 });
 
 const warehousesRoute = new Hono<HonoContextWithAuthAndOrg>()
-  .get("/", async (c) => {
+  .get("/", zValidator("query", paginationQuerySchema), async (c) => {
     const userId = c.get("user").id;
-    const data = await getWarehouses(userId);
+    const params = c.req.valid("query");
+    const data = await getPaginatedWarehouses(userId, params);
     return c.json(data);
   })
   .get("/:id", zValidator("param", warehouseIdSchema), async (c) => {

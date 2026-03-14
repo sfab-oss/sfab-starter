@@ -8,6 +8,7 @@
     "./products": "./src/products.ts",
     "./search": "./src/search.ts",
     "./utils": "./src/utils.ts",
+    "./pagination": "./src/pagination.ts",
     "./warehouses": "./src/warehouses.ts"
   },
   "scripts": {

@@ -12,17 +12,24 @@ beforeEach(async () => {
 const API = "http://localhost/api/protected/inventory/products";
 
 describe("GET /api/protected/inventory/products", () => {
-  it("returns empty product list", async () => {
+  it("returns empty paginated product list", async () => {
     const res = await SELF.fetch(API, {
       headers: { Cookie: cookie },
     });
     expect(res.status).toBe(200);
-    const data = await res.json();
-    expect(data).toEqual([]);
+    const data = (await res.json()) as {
+      data: unknown[];
+      total: number;
+      page: number;
+      pageSize: number;
+    };
+    expect(data.data).toEqual([]);
+    expect(data.total).toBe(0);
+    expect(data.page).toBe(1);
+    expect(data.pageSize).toBe(20);
   });
 
-  it("returns created products", async () => {
-    // Create a product first
+  it("returns created products in paginated response", async () => {
     await SELF.fetch(API, {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
@@ -33,9 +40,64 @@ describe("GET /api/protected/inventory/products", () => {
       headers: { Cookie: cookie },
     });
     expect(res.status).toBe(200);
-    const data = (await res.json()) as { name: string }[];
-    expect(data).toHaveLength(1);
-    expect(data[0].name).toBe("Test Product");
+    const data = (await res.json()) as {
+      data: { name: string }[];
+      total: number;
+    };
+    expect(data.data).toHaveLength(1);
+    expect(data.data[0].name).toBe("Test Product");
+    expect(data.total).toBe(1);
+  });
+
+  it("supports pagination query params", async () => {
+    // Create 3 products
+    for (const i of [1, 2, 3]) {
+      await SELF.fetch(API, {
+        method: "POST",
+        headers: { Cookie: cookie, "Content-Type": "application/json" },
+        body: JSON.stringify({ name: `Product ${i}`, sku: `P-${i}` }),
+      });
+    }
+
+    const res = await SELF.fetch(`${API}?page=1&pageSize=2`, {
+      headers: { Cookie: cookie },
+    });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as {
+      data: unknown[];
+      total: number;
+      page: number;
+      pageSize: number;
+    };
+    expect(data.data).toHaveLength(2);
+    expect(data.total).toBe(3);
+    expect(data.page).toBe(1);
+    expect(data.pageSize).toBe(2);
+  });
+
+  it("supports search filtering", async () => {
+    await SELF.fetch(API, {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Alpha Widget", sku: "AW-001" }),
+    });
+    await SELF.fetch(API, {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Beta Gadget", sku: "BG-001" }),
+    });
+
+    const res = await SELF.fetch(`${API}?search=Alpha`, {
+      headers: { Cookie: cookie },
+    });
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as {
+      data: { name: string }[];
+      total: number;
+    };
+    expect(data.data).toHaveLength(1);
+    expect(data.data[0].name).toBe("Alpha Widget");
+    expect(data.total).toBe(1);
   });
 });
 

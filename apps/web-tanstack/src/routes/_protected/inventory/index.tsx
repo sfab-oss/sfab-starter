@@ -1,5 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import type {
+  ColumnDef,
+  PaginationState,
+  SortingState,
+  Updater,
+} from "@tanstack/react-table";
+import { paginationQuerySchema } from "@workspace/types/pagination";
 import type { Product } from "@workspace/types/products";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
@@ -27,7 +33,8 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { CreateProductDialog } from "@/components/inventory/create-product-dialog";
 import {
   MovementForm,
@@ -37,16 +44,87 @@ import { useCreateMovement, useProducts } from "@/hooks/use-products";
 
 export const Route = createFileRoute("/_protected/inventory/")({
   component: InventoryPage,
+  validateSearch: paginationQuerySchema,
 });
 
 function InventoryPage() {
-  const { data: products, isLoading } = useProducts();
+  const searchParams = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { data: productsResponse, isLoading } = useProducts(searchParams);
   const createMovement = useCreateMovement();
 
   const [activeMovement, setActiveMovement] = useState<{
     product: Product;
     type: "IN" | "OUT";
   } | null>(null);
+
+  // --- Pagination state bridge (1-indexed URL <-> 0-indexed react-table) ---
+  const pagination = useMemo<PaginationState>(
+    () => ({
+      pageIndex: searchParams.page - 1,
+      pageSize: searchParams.pageSize,
+    }),
+    [searchParams.page, searchParams.pageSize]
+  );
+
+  const onPaginationChange = useCallback(
+    (updater: Updater<PaginationState>) => {
+      const next =
+        typeof updater === "function" ? updater(pagination) : updater;
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          page: next.pageIndex + 1,
+          pageSize: next.pageSize,
+        }),
+      });
+    },
+    [navigate, pagination]
+  );
+
+  // --- Sorting state bridge ---
+  const sorting = useMemo<SortingState>(
+    () =>
+      searchParams.sortBy
+        ? [
+            {
+              id: searchParams.sortBy,
+              desc: searchParams.sortOrder === "desc",
+            },
+          ]
+        : [],
+    [searchParams.sortBy, searchParams.sortOrder]
+  );
+
+  const onSortingChange = useCallback(
+    (updater: Updater<SortingState>) => {
+      const next = typeof updater === "function" ? updater(sorting) : updater;
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          sortBy: next[0]?.id,
+          sortOrder: next[0]?.desc ? ("desc" as const) : ("asc" as const),
+          page: 1,
+        }),
+      });
+    },
+    [navigate, sorting]
+  );
+
+  // --- Filter state bridge (debounced) ---
+  const onFilterChange = useDebouncedCallback((value: string) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        search: value || undefined,
+        page: 1,
+      }),
+    });
+  }, 300);
+
+  const pageCount = productsResponse
+    ? Math.ceil(productsResponse.total / searchParams.pageSize)
+    : 0;
 
   const handleMovementSubmit = async (data: MovementFormValues) => {
     if (activeMovement) {
@@ -221,12 +299,23 @@ function InventoryPage() {
       </AppLayoutHeader>
 
       <div className="p-6">
-        {isLoading ? (
+        {isLoading && !productsResponse ? (
           <div className="flex h-40 items-center justify-center text-muted-foreground">
             Loading inventory...
           </div>
         ) : (
-          <DataTable columns={columns} data={products || []} />
+          <DataTable
+            columns={columns}
+            data={productsResponse?.data ?? []}
+            filterPlaceholder="Search products..."
+            filterValue={searchParams.search ?? ""}
+            onFilterChange={onFilterChange}
+            onPaginationChange={onPaginationChange}
+            onSortingChange={onSortingChange}
+            pageCount={pageCount}
+            pagination={pagination}
+            sorting={sorting}
+          />
         )}
       </div>
 

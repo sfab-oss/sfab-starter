@@ -7,15 +7,17 @@ import {
   CardTitle,
 } from "@workspace/ui/components/shadcn/card";
 import { ArrowDownLeft, Package } from "lucide-react";
-import { useProducts } from "@/hooks/use-products";
+import { useInventoryMetrics } from "@/hooks/use-products";
 
 export function DashboardStats() {
-  const { data: products } = useProducts();
+  const { data: metrics } = useInventoryMetrics();
+  const products = metrics?.activeProducts;
 
   const totalSKUs = products?.length || 0;
   const totalValue =
     products?.reduce(
-      (sum, p) => sum + p.totalStock * Number.parseFloat(p.price || "0"),
+      (sum: number, p: { totalStock: number; price: string | null }) =>
+        sum + p.totalStock * Number.parseFloat(p.price || "0"),
       0
     ) || 0;
 

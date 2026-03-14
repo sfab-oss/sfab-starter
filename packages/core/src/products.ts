@@ -1,29 +1,94 @@
 import { db } from "@workspace/db-d1";
 import { movements, products, stockLevels } from "@workspace/db-d1/schema";
+import type { PaginationQuery } from "@workspace/types/pagination";
 import type {
   CreateMovement,
   CreateProduct,
   UpdateProduct,
 } from "@workspace/types/products";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, like, or, sql } from "drizzle-orm";
+import { buildPaginatedResponse, getPaginationOffsetLimit } from "./pagination";
+
+const productSelectFields = {
+  id: products.id,
+  userId: products.userId,
+  sku: products.sku,
+  name: products.name,
+  description: products.description,
+  price: products.price,
+  cost: products.cost,
+  minStockLevel: products.minStockLevel,
+  imageUrl: products.imageUrl,
+  createdAt: products.createdAt,
+  updatedAt: products.updatedAt,
+  totalStock: sql<number>`coalesce(sum(${stockLevels.quantity}), 0)`.mapWith(
+    Number
+  ),
+};
+
+const productSortColumns = {
+  name: products.name,
+  sku: products.sku,
+  price: products.price,
+  createdAt: products.createdAt,
+} as const;
+
+export const getPaginatedProducts = async (
+  userId: string,
+  params: PaginationQuery
+) => {
+  const { offset, limit } = getPaginationOffsetLimit(params);
+
+  const conditions = [eq(products.userId, userId)];
+  if (params.search) {
+    const searchPattern = `%${params.search}%`;
+    const searchCondition = or(
+      like(products.name, searchPattern),
+      like(products.sku, searchPattern)
+    );
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
+  }
+  const whereClause = and(...conditions);
+
+  const countResult = await db
+    .select({
+      total: sql<number>`count(DISTINCT ${products.id})`.mapWith(Number),
+    })
+    .from(products)
+    .leftJoin(stockLevels, eq(products.id, stockLevels.productId))
+    .where(whereClause);
+  const total = countResult[0]?.total ?? 0;
+
+  const sortColumn =
+    params.sortBy && params.sortBy in productSortColumns
+      ? productSortColumns[params.sortBy as keyof typeof productSortColumns]
+      : null;
+  const totalStockExpr = sql<number>`coalesce(sum(${stockLevels.quantity}), 0)`;
+  const dirFn = params.sortOrder === "desc" ? desc : asc;
+  const sortTarget =
+    params.sortBy === "totalStock"
+      ? totalStockExpr
+      : sortColumn || products.name;
+  const orderByClause = dirFn(sortTarget);
+
+  const data = await db
+    .select(productSelectFields)
+    .from(products)
+    .leftJoin(stockLevels, eq(products.id, stockLevels.productId))
+    .where(whereClause)
+    .groupBy(products.id)
+    .orderBy(orderByClause)
+    .limit(limit)
+    .offset(offset);
+
+  return buildPaginatedResponse(data, total, params);
+};
 
 export const getProducts = async (userId: string) => {
   return await db
-    .select({
-      id: products.id,
-      userId: products.userId,
-      sku: products.sku,
-      name: products.name,
-      description: products.description,
-      price: products.price,
-      cost: products.cost,
-      minStockLevel: products.minStockLevel,
-      imageUrl: products.imageUrl,
-      createdAt: products.createdAt,
-      updatedAt: products.updatedAt,
-      totalStock:
-        sql<number>`coalesce(sum(${stockLevels.quantity}), 0)`.mapWith(Number),
-    })
+    .select(productSelectFields)
     .from(products)
     .leftJoin(stockLevels, eq(products.id, stockLevels.productId))
     .where(eq(products.userId, userId))
@@ -32,21 +97,7 @@ export const getProducts = async (userId: string) => {
 
 export const getProduct = async (id: string, userId: string) => {
   const [product] = await db
-    .select({
-      id: products.id,
-      userId: products.userId,
-      sku: products.sku,
-      name: products.name,
-      description: products.description,
-      price: products.price,
-      cost: products.cost,
-      minStockLevel: products.minStockLevel,
-      imageUrl: products.imageUrl,
-      createdAt: products.createdAt,
-      updatedAt: products.updatedAt,
-      totalStock:
-        sql<number>`coalesce(sum(${stockLevels.quantity}), 0)`.mapWith(Number),
-    })
+    .select(productSelectFields)
     .from(products)
     .leftJoin(stockLevels, eq(products.id, stockLevels.productId))
     .where(and(eq(products.id, id), eq(products.userId, userId)))

@@ -1,6 +1,12 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import type { PaginationQuery } from "@workspace/types/pagination";
 import type {
   createMovementSchema,
   createProductSchema,
@@ -10,6 +16,11 @@ import type { z } from "zod";
 import { client } from "@/lib/client";
 
 export const getProductsKey = () => ["products"];
+export const getProductsListKey = (params: PaginationQuery) => [
+  "products",
+  "list",
+  params,
+];
 export const getProductKey = (id: string) => ["products", id];
 export const getProductMovementsKey = (productId: string) => [
   "products",
@@ -18,13 +29,22 @@ export const getProductMovementsKey = (productId: string) => [
 ];
 export const getInventoryMetricsKey = () => ["inventory", "metrics"];
 
-export const useProducts = () => {
+export const useProducts = (params: PaginationQuery) => {
   return useQuery({
-    queryKey: getProductsKey(),
+    queryKey: getProductsListKey(params),
     queryFn: async () => {
-      const res = await client.protected.inventory.products.$get();
+      const res = await client.protected.inventory.products.$get({
+        query: {
+          page: params.page.toString(),
+          pageSize: params.pageSize.toString(),
+          ...(params.sortBy && { sortBy: params.sortBy }),
+          sortOrder: params.sortOrder,
+          ...(params.search && { search: params.search }),
+        },
+      });
       return res.json();
     },
+    placeholderData: keepPreviousData,
   });
 };
 

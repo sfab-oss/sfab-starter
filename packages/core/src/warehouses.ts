@@ -1,10 +1,54 @@
 import { db } from "@workspace/db-d1";
 import { warehouses } from "@workspace/db-d1/schema";
+import type { PaginationQuery } from "@workspace/types/pagination";
 import type {
   CreateWarehouse,
   UpdateWarehouse,
 } from "@workspace/types/warehouses";
-import { and, eq } from "drizzle-orm";
+import { and, asc, desc, eq, like, sql } from "drizzle-orm";
+import { buildPaginatedResponse, getPaginationOffsetLimit } from "./pagination";
+
+const warehouseSortColumns = {
+  name: warehouses.name,
+  location: warehouses.location,
+  createdAt: warehouses.createdAt,
+} as const;
+
+export const getPaginatedWarehouses = async (
+  userId: string,
+  params: PaginationQuery
+) => {
+  const { offset, limit } = getPaginationOffsetLimit(params);
+
+  const conditions = [eq(warehouses.userId, userId)];
+  if (params.search) {
+    conditions.push(like(warehouses.name, `%${params.search}%`));
+  }
+  const whereClause = and(...conditions);
+
+  const countResult = await db
+    .select({ total: sql<number>`count(*)`.mapWith(Number) })
+    .from(warehouses)
+    .where(whereClause);
+  const total = countResult[0]?.total ?? 0;
+
+  const sortColumn =
+    params.sortBy && params.sortBy in warehouseSortColumns
+      ? warehouseSortColumns[params.sortBy as keyof typeof warehouseSortColumns]
+      : null;
+  const dirFn = params.sortOrder === "desc" ? desc : asc;
+  const orderByClause = sortColumn ? dirFn(sortColumn) : asc(warehouses.name);
+
+  const data = await db
+    .select()
+    .from(warehouses)
+    .where(whereClause)
+    .orderBy(orderByClause)
+    .limit(limit)
+    .offset(offset);
+
+  return buildPaginatedResponse(data, total, params);
+};
 
 export const getWarehouses = async (userId: string) => {
   return await db

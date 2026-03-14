@@ -19,7 +19,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useProducts } from "@/hooks/use-products";
+import { useInventoryMetrics } from "@/hooks/use-products";
 
 const chartConfig = {
   value: {
@@ -29,15 +29,18 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function InventoryValueChart() {
-  const { data: products, isLoading } = useProducts();
+  const { data: metrics, isLoading } = useInventoryMetrics();
+  const products = metrics?.activeProducts;
 
   const data =
     products
-      ?.map((p) => ({
-        name: p.name,
-        value: p.totalStock * Number.parseFloat(p.price || "0"),
-      }))
-      .sort((a, b) => b.value - a.value)
+      ?.map(
+        (p: { name: string; totalStock: number; price: string | null }) => ({
+          name: p.name,
+          value: p.totalStock * Number.parseFloat(p.price || "0"),
+        })
+      )
+      .sort((a: { value: number }, b: { value: number }) => b.value - a.value)
       .slice(0, 5) || [];
 
   if (isLoading) {

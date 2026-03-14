@@ -12,13 +12,21 @@ beforeEach(async () => {
 const API = "http://localhost/api/protected/inventory/warehouses";
 
 describe("GET /api/protected/inventory/warehouses", () => {
-  it("returns empty list", async () => {
+  it("returns empty paginated list", async () => {
     const res = await SELF.fetch(API, {
       headers: { Cookie: cookie },
     });
     expect(res.status).toBe(200);
-    const data = await res.json();
-    expect(data).toEqual([]);
+    const data = (await res.json()) as {
+      data: unknown[];
+      total: number;
+      page: number;
+      pageSize: number;
+    };
+    expect(data.data).toEqual([]);
+    expect(data.total).toBe(0);
+    expect(data.page).toBe(1);
+    expect(data.pageSize).toBe(20);
   });
 });
 

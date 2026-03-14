@@ -49,26 +49,21 @@ No Durable Objects example. DOs are a key Cloudflare primitive for stateful coor
 - RPC pattern between Worker and DO
 - Shows when to use DO vs D1
 
-### 4. Data table pattern (priority: high)
+### 4. Data table pattern (priority: high) — DONE
 
-@tanstack/react-table is in deps but not fully demonstrated with server-side sorting, filtering, pagination, and column visibility.
+Server-side data table pattern implemented:
+- DataTable component upgraded with optional server-side mode (manual pagination/sorting/filtering)
+- Backward-compatible: no props = client-side mode
+- URL-synced table state via TanStack Router `validateSearch`
 
-**Need:**
-- Reusable data table component using @tanstack/react-table
-- Server-side pagination (API + service layer)
-- Column sorting and filtering
-- URL-synced table state (query params)
-- Example on the inventory list or whatever replaces it
+### 5. Pagination (priority: high) — DONE
 
-### 5. Pagination (priority: high)
-
-All list endpoints fetch everything. No offset/limit or cursor pattern.
-
-**Need:**
-- Paginated service function (offset/limit or cursor-based)
-- Paginated API endpoint returning items + total/hasMore
-- React Query hook with pagination support
-- Ties into the data table pattern above
+Full server-side pagination implemented:
+- Shared `PaginationQuery` schema + `PaginatedResponse` type (`packages/types/src/pagination.ts`)
+- Paginated service functions with search filtering and sort column allowlists
+- API endpoints return `{ data, total, page, pageSize }` via `zValidator("query", ...)`
+- React Query hooks with `keepPreviousData` and parameterized query keys
+- Applied to both products and warehouses list endpoints
 
 ### 6. Optimistic updates (priority: medium)
 
@@ -115,7 +110,7 @@ Decision: TBD. The patterns matter more than the domain. Could keep inventory an
 | Phase | Work | Why first |
 |-------|------|-----------|
 | ~~1~~ | ~~Testing setup + example tests~~ | ~~Done — 59 vitest tests + E2E~~ |
-| 2 | Pagination + data table | Most universally needed patterns, improves the example feature |
+| ~~2~~ | ~~Pagination + data table~~ | ~~Done — server-side pagination, sorting, filtering with URL-synced state~~ |
 | 3 | File uploads (R2) | Common requirement, shows another Cloudflare binding |
 | 4 | Error handling + optimistic updates | Polish patterns that make the template production-ready |
 | 5 | Durable Objects example | Advanced Cloudflare pattern |

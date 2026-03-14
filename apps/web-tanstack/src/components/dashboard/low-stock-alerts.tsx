@@ -5,14 +5,16 @@ import {
   CardTitle,
 } from "@workspace/ui/components/shadcn/card";
 import { AlertTriangle } from "lucide-react";
-import { useProducts } from "@/hooks/use-products";
+import { useInventoryMetrics } from "@/hooks/use-products";
 
 export function LowStockAlerts() {
-  const { data: products } = useProducts();
+  const { data: metrics } = useInventoryMetrics();
+  const products = metrics?.activeProducts;
 
   const lowStockProducts =
     products?.filter(
-      (p) => p.minStockLevel !== null && p.totalStock < p.minStockLevel
+      (p: { minStockLevel: number | null; totalStock: number }) =>
+        p.minStockLevel !== null && p.totalStock < p.minStockLevel
     ) || [];
 
   if (lowStockProducts.length === 0) {
