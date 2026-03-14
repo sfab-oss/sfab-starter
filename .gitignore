@@ -17,7 +17,7 @@ docker-compose.override.yml
 
 # Testing
 coverage
-test/.auth/
+**/test/.auth/
 test-results/
 playwright-report/
 
