@@ -8,9 +8,9 @@ export function dbMessageToAIMessage(
 ): BaseAIUIMessage {
   return {
     id: message.id,
-    role: message.role,
-    parts: message.parts,
-    metadata: message.metadata,
+    role: message.role as BaseAIUIMessage["role"],
+    parts: message.parts as BaseAIUIMessage["parts"],
+    metadata: message.metadata as BaseAIUIMessage["metadata"],
   };
 }
 

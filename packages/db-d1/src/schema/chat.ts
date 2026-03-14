@@ -1,4 +1,3 @@
-import type { BaseAIUIMessage } from "@workspace/types/ai";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { id, timestamps } from "../utils";
 import { user } from "./auth";
@@ -27,13 +26,9 @@ export const messages = sqliteTable("messages", {
   chatId: text("chat_id")
     .notNull()
     .references(() => chats.id, { onDelete: "cascade" }),
-  role: text("role").$type<BaseAIUIMessage["role"]>().notNull(),
-  parts: text("parts", { mode: "json" })
-    .$type<BaseAIUIMessage["parts"]>()
-    .notNull(),
-  metadata: text("metadata", { mode: "json" })
-    .$type<BaseAIUIMessage["metadata"]>()
-    .notNull(),
+  role: text("role").notNull(),
+  parts: text("parts", { mode: "json" }).notNull(),
+  metadata: text("metadata", { mode: "json" }).notNull(),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),

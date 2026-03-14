@@ -1,6 +1,7 @@
 {
   "extends": "@workspace/typescript-config/tanstack-start.json",
   "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["test/**"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
