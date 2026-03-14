@@ -82,7 +82,7 @@ pnpm db:migrate
 pnpm dev
 ```
 
-The app runs at `http://localhost:3001`.
+The app runs at `http://localhost:4011`.
 
 ### Environment variables
 
@@ -91,7 +91,7 @@ Set these in `apps/web-tanstack/.dev.vars` for local development, or as Worker s
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `BETTER_AUTH_SECRET` | Yes | Auth secret key (min 32 characters) |
-| `BETTER_AUTH_URL` | Yes | App URL (`http://localhost:3001` for dev) |
+| `BETTER_AUTH_URL` | Yes | App URL (`http://localhost:4011` for dev) |
 | `AI_GATEWAY_API_KEY` | For AI features | API key for AI model provider |
 | `RESEND_API_KEY` | For email | Resend API key |
 | `EMAIL_SENDER` | For email | Sender email address |

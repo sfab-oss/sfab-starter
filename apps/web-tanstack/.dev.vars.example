@@ -3,4 +3,4 @@
 # In production, set these as Worker secrets: wrangler secret put <NAME>
 
 BETTER_AUTH_SECRET=your-secret-key-at-least-32-characters-long
-BETTER_AUTH_URL=http://localhost:3001
+BETTER_AUTH_URL=http://localhost:4011

@@ -6,10 +6,11 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vite dev --port 3001",
+    "dev": "vite dev --port 4011",
     "build": "vite build",
     "preview": "pnpm run build && vite preview",
     "test": "vitest run",
+    "test:watch": "vitest",
     "deploy": "pnpm run build && wrangler deploy",
     "cf-typegen": "wrangler types && wrangler types ../../packages/cloudflare-env/src/env.d.ts --include-runtime=false && node -e \"const f='../../packages/cloudflare-env/src/env.d.ts';const s=require('fs').readFileSync(f,'utf8');require('fs').writeFileSync(f,s.replace(/\\tinterface GlobalProps \\{[\\s\\S]*?\\n\\t\\}\\n/,''))\"",
     "typecheck": "tsc --noEmit",
@@ -59,6 +60,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.13.0",
     "@tanstack/devtools-vite": "^0.3.11",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
@@ -66,12 +68,14 @@
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.4",
+    "@vitest/runner": "^4.1.0",
+    "@vitest/snapshot": "^4.1.0",
     "@workspace/typescript-config": "workspace:*",
     "jsdom": "^27.0.0",
     "typescript": "^5.7.2",
     "vite": "^7.1.7",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.0.5",
+    "vitest": "^4.1.0",
     "wrangler": "^4.68.1"
   }
 }

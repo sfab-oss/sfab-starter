@@ -10,7 +10,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig({
   plugins: [
-    devtools(),
+    devtools({ eventBusConfig: { port: 42_085 } }),
     cloudflare({ viteEnvironment: { name: "ssr" } }),
     tsconfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),

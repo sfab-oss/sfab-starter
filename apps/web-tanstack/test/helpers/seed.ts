@@ -1,0 +1,80 @@
+import { db } from "@workspace/db-d1";
+// biome-ignore lint/performance/noNamespaceImport: Schema barrel export
+import * as schema from "@workspace/db-d1/schema";
+
+export async function seedUser(
+  overrides?: Partial<typeof schema.user.$inferInsert>
+) {
+  const id = overrides?.id ?? crypto.randomUUID();
+  const [user] = await db
+    .insert(schema.user)
+    .values({
+      id,
+      name: "Test User",
+      email: `${id}@test.com`,
+      emailVerified: true,
+      ...overrides,
+    })
+    .returning();
+  return user;
+}
+
+export async function seedOrganization(
+  userId: string,
+  overrides?: Partial<typeof schema.organization.$inferInsert>
+) {
+  const orgId = overrides?.id ?? crypto.randomUUID();
+  const [org] = await db
+    .insert(schema.organization)
+    .values({
+      id: orgId,
+      name: "Test Org",
+      slug: `test-org-${orgId.slice(0, 8)}`,
+      ...overrides,
+    })
+    .returning();
+
+  await db.insert(schema.member).values({
+    id: crypto.randomUUID(),
+    organizationId: orgId,
+    userId,
+    role: "owner",
+  });
+
+  return org;
+}
+
+export async function seedProduct(
+  userId: string,
+  overrides?: Partial<typeof schema.products.$inferInsert>
+) {
+  const [product] = await db
+    .insert(schema.products)
+    .values({
+      userId,
+      sku: `SKU-${crypto.randomUUID().slice(0, 8)}`,
+      name: "Test Product",
+      price: "19.99",
+      minStockLevel: 10,
+      ...overrides,
+    })
+    .returning();
+  return product;
+}
+
+export async function seedWarehouse(
+  userId: string,
+  overrides?: Partial<typeof schema.warehouses.$inferInsert>
+) {
+  const [warehouse] = await db
+    .insert(schema.warehouses)
+    .values({
+      userId,
+      name: "Test Warehouse",
+      location: "Test Location",
+      isDefault: false,
+      ...overrides,
+    })
+    .returning();
+  return warehouse;
+}
