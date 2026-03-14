@@ -9,8 +9,6 @@ const loadSkillParamsSchema = z.object({
     .describe("The name of the skill to load (e.g., 'notes-manager')."),
 });
 
-export type LoadSkillParams = z.infer<typeof loadSkillParamsSchema>;
-
 const loadSkillResultSchema = z.union([
   z.object({
     success: z.literal(true),

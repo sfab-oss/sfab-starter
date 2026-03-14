@@ -1,7 +1,7 @@
 import { text } from "drizzle-orm/sqlite-core";
 import { nanoid } from "nanoid";
 
-export const createId = (prefix?: string) => {
+const createId = (prefix?: string) => {
   const id = nanoid();
   if (!prefix) {
     return id;
