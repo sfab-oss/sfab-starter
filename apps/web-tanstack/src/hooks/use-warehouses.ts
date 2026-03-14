@@ -11,6 +11,7 @@ import type {
   createWarehouseSchema,
   updateWarehouseSchema,
 } from "@workspace/types/warehouses";
+import { toast } from "@workspace/ui/components/shadcn/sonner";
 import type { z } from "zod";
 import { client } from "@/lib/client";
 
@@ -81,6 +82,10 @@ export const useCreateWarehouse = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getWarehousesKey() });
+      toast.success("Warehouse created");
+    },
+    onError: () => {
+      toast.error("Failed to create warehouse");
     },
   });
 };
@@ -106,6 +111,10 @@ export const useUpdateWarehouse = () => {
       queryClient.invalidateQueries({
         queryKey: getWarehouseKey(variables.id),
       });
+      toast.success("Warehouse updated");
+    },
+    onError: () => {
+      toast.error("Failed to update warehouse");
     },
   });
 };
@@ -124,6 +133,10 @@ export const useDeleteWarehouse = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getWarehousesKey() });
+      toast.success("Warehouse deleted");
+    },
+    onError: () => {
+      toast.error("Failed to delete warehouse");
     },
   });
 };

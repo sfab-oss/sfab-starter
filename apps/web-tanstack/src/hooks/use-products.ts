@@ -10,8 +10,10 @@ import type { PaginationQuery } from "@workspace/types/pagination";
 import type {
   createMovementSchema,
   createProductSchema,
+  Product,
   updateProductSchema,
 } from "@workspace/types/products";
+import { toast } from "@workspace/ui/components/shadcn/sonner";
 import type { z } from "zod";
 import { client } from "@/lib/client";
 
@@ -107,6 +109,10 @@ export const useCreateProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getProductsKey() });
       queryClient.invalidateQueries({ queryKey: getInventoryMetricsKey() });
+      toast.success("Product created");
+    },
+    onError: () => {
+      toast.error("Failed to create product");
     },
   });
 };
@@ -131,9 +137,20 @@ export const useUpdateProduct = () => {
       queryClient.invalidateQueries({ queryKey: getProductsKey() });
       queryClient.invalidateQueries({ queryKey: getProductKey(variables.id) });
       queryClient.invalidateQueries({ queryKey: getInventoryMetricsKey() });
+      toast.success("Product updated");
+    },
+    onError: () => {
+      toast.error("Failed to update product");
     },
   });
 };
+
+interface PaginatedProducts {
+  data: Product[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
 
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
@@ -147,7 +164,41 @@ export const useDeleteProduct = () => {
       }
       return res.json();
     },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: getProductsKey() });
+
+      const previousLists = queryClient.getQueriesData<PaginatedProducts>({
+        queryKey: ["products", "list"],
+      });
+
+      queryClient.setQueriesData<PaginatedProducts>(
+        { queryKey: ["products", "list"] },
+        (old) => {
+          if (!old) {
+            return old;
+          }
+          return {
+            ...old,
+            data: old.data.filter((p) => p.id !== id),
+            total: old.total - 1,
+          };
+        }
+      );
+
+      return { previousLists };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previousLists) {
+        for (const [queryKey, data] of context.previousLists) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
+      toast.error("Failed to delete product");
+    },
     onSuccess: () => {
+      toast.success("Product deleted");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: getProductsKey() });
       queryClient.invalidateQueries({ queryKey: getInventoryMetricsKey() });
     },
@@ -201,6 +252,10 @@ export const useCreateMovement = () => {
       queryClient.invalidateQueries({
         queryKey: getProductMovementsKey(variables.productId),
       });
+      toast.success("Stock movement recorded");
+    },
+    onError: () => {
+      toast.error("Failed to record stock movement");
     },
   });
 };

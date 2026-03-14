@@ -64,23 +64,21 @@ Full server-side pagination implemented:
 - React Query hooks with `keepPreviousData` and parameterized query keys
 - Applied to both products and warehouses list endpoints
 
-### 6. Optimistic updates (priority: medium)
+### 6. Optimistic updates (priority: medium) — DONE
 
-React Query hooks use `invalidateQueries` after mutations (refetch everything). No optimistic update examples.
+Optimistic update pattern implemented:
+- `useDeleteProduct` uses `onMutate` → snapshot all paginated list caches → optimistic remove → `onError` rollback
+- Pattern uses `getQueriesData`/`setQueriesData` to handle paginated caches
+- `onSettled` always refetches to sync with server state
 
-**Need:**
-- At least one mutation showing `onMutate` → optimistic cache update → `onError` rollback
-- Good candidate: toggling a status, deleting from a list, or inline edit
+### 7. Error handling patterns (priority: medium) — DONE
 
-### 7. Error handling patterns (priority: medium)
-
-No standard error response format, no error boundaries, no toast notifications for mutation failures.
-
-**Need:**
-- Standard API error response shape (e.g., `{ error: string, code: string }`)
-- Hono error handler middleware
-- React error boundaries in route tree
-- Toast/notification system for mutation feedback (success + failure)
+Full error handling story implemented:
+- Hono `onError` handler on main app catches unhandled exceptions → `{ error: string }` JSON response
+- `HTTPException` support for structured error throwing in routes
+- TanStack Router `errorComponent` on `_protected` layout with "Try Again" / "Go Home"
+- Toast notifications (`sonner`) on all product and warehouse mutation hooks (`onSuccess` + `onError`)
+- Consistent `{ error: string }` response shape matching existing auth middleware pattern
 
 ### 8. Background work (priority: low)
 
@@ -111,6 +109,6 @@ Decision: TBD. The patterns matter more than the domain. Could keep inventory an
 | ~~1~~ | ~~Testing setup + example tests~~ | ~~Done — 59 vitest tests + E2E~~ |
 | ~~2~~ | ~~Pagination + data table~~ | ~~Done — server-side pagination, sorting, filtering with URL-synced state~~ |
 | ~~3~~ | ~~File uploads (R2)~~ | ~~Done — R2 upload/serve/delete, image upload component~~ |
-| 4 | Error handling + optimistic updates | Polish patterns that make the template production-ready |
+| ~~4~~ | ~~Error handling + optimistic updates~~ | ~~Done — Hono onError, route error boundary, toast notifications, optimistic delete~~ |
 | 5 | Durable Objects example | Advanced Cloudflare pattern |
 | 6 | Background work (Queues/cron) | Nice to have, less common in MVPs |
