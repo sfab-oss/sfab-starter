@@ -17,6 +17,9 @@ docker-compose.override.yml
 
 # Testing
 coverage
+test/.auth/
+test-results/
+playwright-report/
 
 # Turbo
 .turbo

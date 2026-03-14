@@ -11,6 +11,8 @@
     "preview": "pnpm run build && vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "deploy": "pnpm run build && wrangler deploy",
     "cf-typegen": "wrangler types && wrangler types ../../packages/cloudflare-env/src/env.d.ts --include-runtime=false && node -e \"const f='../../packages/cloudflare-env/src/env.d.ts';const s=require('fs').readFileSync(f,'utf8');require('fs').writeFileSync(f,s.replace(/\\tinterface GlobalProps \\{[\\s\\S]*?\\n\\t\\}\\n/,''))\"",
     "typecheck": "tsc --noEmit",
@@ -61,6 +63,7 @@
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.13.0",
+    "@playwright/test": "^1.58.2",
     "@tanstack/devtools-vite": "^0.3.11",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",

@@ -8,6 +8,7 @@
     "lint:check": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "pnpm --filter web-tanstack test",
+    "test:e2e": "pnpm --filter web-tanstack test:e2e",
     "typecheck": "turbo typecheck",
     "db:generate": "pnpm --filter @workspace/db-d1 db:generate",
     "db:studio": "pnpm --filter @workspace/db-d1 db:studio",
