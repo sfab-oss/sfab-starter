@@ -19,21 +19,14 @@ Two example features exist:
 
 ## Missing patterns
 
-### 1. Testing (priority: highest)
+### 1. Testing (priority: highest) — DONE
 
-Zero tests exist. Vitest and @testing-library/react are installed but unconfigured. No Playwright, no @cloudflare/vitest-pool-workers.
-
-sfab requires high test coverage. Every project scaffolded from this template starts with no testing story — developers (and AI agents) have to figure out the setup from scratch.
-
-**Need:**
-- Vitest config for Workers environment (@cloudflare/vitest-pool-workers)
-- Service/integration tests hitting real D1 via miniflare
-- API route tests (Hono request/response)
-- Component tests (React Testing Library)
-- E2E tests (Playwright — login flow, CRUD operations)
-- Test scripts in package.json across relevant packages
-
-See `docs/plans/testing-plan.md` for detailed implementation plan.
+Full testing story is implemented:
+- Vitest + @cloudflare/vitest-pool-workers for service and API tests
+- Service tests: products (CRUD + stock movements + metrics), warehouses, chat
+- API route tests: auth enforcement (401/403), products CRUD, warehouses CRUD via SELF
+- E2E tests: Playwright for auth flows, inventory, navigation, warehouses
+- Test helpers: seed functions, auth session creation via Better Auth API
 
 ### 2. File uploads with Cloudflare R2 (priority: high)
 
@@ -121,7 +114,7 @@ Decision: TBD. The patterns matter more than the domain. Could keep inventory an
 
 | Phase | Work | Why first |
 |-------|------|-----------|
-| 1 | Testing setup + example tests | Unblocks everything — can't validate other changes without tests |
+| ~~1~~ | ~~Testing setup + example tests~~ | ~~Done — 59 vitest tests + E2E~~ |
 | 2 | Pagination + data table | Most universally needed patterns, improves the example feature |
 | 3 | File uploads (R2) | Common requirement, shows another Cloudflare binding |
 | 4 | Error handling + optimistic updates | Polish patterns that make the template production-ready |

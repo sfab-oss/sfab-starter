@@ -1,4 +1,9 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 import { createdAt, id, timestamps, updatedAt } from "../utils";
 
 export const products = sqliteTable("products", {
@@ -25,13 +30,22 @@ export const warehouses = sqliteTable("warehouses", {
   createdAt,
 });
 
-export const stockLevels = sqliteTable("stock_levels", {
-  id: id(),
-  productId: text("product_id").notNull(),
-  warehouseId: text("warehouse_id").notNull(),
-  quantity: integer("quantity").default(0).notNull(),
-  updatedAt,
-});
+export const stockLevels = sqliteTable(
+  "stock_levels",
+  {
+    id: id(),
+    productId: text("product_id").notNull(),
+    warehouseId: text("warehouse_id").notNull(),
+    quantity: integer("quantity").default(0).notNull(),
+    updatedAt,
+  },
+  (table) => [
+    uniqueIndex("stock_levels_product_warehouse").on(
+      table.productId,
+      table.warehouseId
+    ),
+  ]
+);
 
 export const movements = sqliteTable("movements", {
   id: id(),

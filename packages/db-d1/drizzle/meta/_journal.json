@@ -15,6 +15,13 @@
       "when": 1772935030474,
       "tag": "0001_serious_firelord",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1773622800000,
+      "tag": "0002_stock_levels_unique",
+      "breakpoints": true
     }
   ]
 }
