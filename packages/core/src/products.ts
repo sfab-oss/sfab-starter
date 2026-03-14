@@ -11,7 +11,7 @@ import { buildPaginatedResponse, getPaginationOffsetLimit } from "./pagination";
 
 const productSelectFields = {
   id: products.id,
-  userId: products.userId,
+  organizationId: products.organizationId,
   sku: products.sku,
   name: products.name,
   description: products.description,
@@ -34,12 +34,12 @@ const productSortColumns = {
 } as const;
 
 export const getPaginatedProducts = async (
-  userId: string,
+  orgId: string,
   params: PaginationQuery
 ) => {
   const { offset, limit } = getPaginationOffsetLimit(params);
 
-  const conditions = [eq(products.userId, userId)];
+  const conditions = [eq(products.organizationId, orgId)];
   if (params.search) {
     const searchPattern = `%${params.search}%`;
     const searchCondition = or(
@@ -86,31 +86,32 @@ export const getPaginatedProducts = async (
   return buildPaginatedResponse(data, total, params);
 };
 
-export const getProducts = async (userId: string) => {
+export const getProducts = async (orgId: string) => {
   return await db
     .select(productSelectFields)
     .from(products)
     .leftJoin(stockLevels, eq(products.id, stockLevels.productId))
-    .where(eq(products.userId, userId))
+    .where(eq(products.organizationId, orgId))
     .groupBy(products.id);
 };
 
-export const getProduct = async (id: string, userId: string) => {
+export const getProduct = async (id: string, orgId: string) => {
   const [product] = await db
     .select(productSelectFields)
     .from(products)
     .leftJoin(stockLevels, eq(products.id, stockLevels.productId))
-    .where(and(eq(products.id, id), eq(products.userId, userId)))
+    .where(and(eq(products.id, id), eq(products.organizationId, orgId)))
     .groupBy(products.id);
 
   return product;
 };
 
 export const createProduct = async (
-  data: CreateProduct & { userId: string }
+  data: CreateProduct & { orgId: string }
 ) => {
   const formattedData = {
     ...data,
+    organizationId: data.orgId,
     price: data.price ? data.price.toString() : undefined,
   };
   return await db.insert(products).values(formattedData).returning();
@@ -118,7 +119,7 @@ export const createProduct = async (
 
 export const updateProduct = async (
   id: string,
-  userId: string,
+  orgId: string,
   data: UpdateProduct
 ) => {
   const formattedData = {
@@ -130,34 +131,34 @@ export const updateProduct = async (
   const [updated] = await db
     .update(products)
     .set(formattedData)
-    .where(and(eq(products.id, id), eq(products.userId, userId)))
+    .where(and(eq(products.id, id), eq(products.organizationId, orgId)))
     .returning();
 
   return updated;
 };
 
-export const deleteProduct = async (id: string, userId: string) => {
+export const deleteProduct = async (id: string, orgId: string) => {
   const [deleted] = await db
     .delete(products)
-    .where(and(eq(products.id, id), eq(products.userId, userId)))
+    .where(and(eq(products.id, id), eq(products.organizationId, orgId)))
     .returning();
   return deleted;
 };
 
-export const getProductMovements = async (
-  productId: string,
-  userId: string
-) => {
+export const getProductMovements = async (productId: string, orgId: string) => {
   return await db
     .select()
     .from(movements)
     .where(
-      and(eq(movements.productId, productId), eq(movements.userId, userId))
+      and(
+        eq(movements.productId, productId),
+        eq(movements.organizationId, orgId)
+      )
     )
     .orderBy(movements.createdAt);
 };
 
-export const getDashboardMetrics = async (userId: string) => {
+export const getDashboardMetrics = async (orgId: string) => {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -170,13 +171,13 @@ export const getDashboardMetrics = async (userId: string) => {
     .from(movements)
     .where(
       and(
-        eq(movements.userId, userId),
+        eq(movements.organizationId, orgId),
         gte(movements.createdAt, thirtyDaysAgo.toISOString()),
         sql`${movements.type} IN ('IN', 'OUT')`
       )
     );
 
-  const activeProducts = await getProducts(userId);
+  const activeProducts = await getProducts(orgId);
 
   return {
     recentMovements,
@@ -185,10 +186,10 @@ export const getDashboardMetrics = async (userId: string) => {
 };
 
 export const performStockMovement = async (
-  data: CreateMovement & { userId: string }
+  data: CreateMovement & { orgId: string }
 ) => {
   await db.insert(movements).values({
-    userId: data.userId,
+    organizationId: data.orgId,
     productId: data.productId,
     type: data.type,
     quantity: data.quantity,

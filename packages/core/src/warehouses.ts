@@ -15,12 +15,12 @@ const warehouseSortColumns = {
 } as const;
 
 export const getPaginatedWarehouses = async (
-  userId: string,
+  orgId: string,
   params: PaginationQuery
 ) => {
   const { offset, limit } = getPaginationOffsetLimit(params);
 
-  const conditions = [eq(warehouses.userId, userId)];
+  const conditions = [eq(warehouses.organizationId, orgId)];
   if (params.search) {
     conditions.push(like(warehouses.name, `%${params.search}%`));
   }
@@ -50,66 +50,71 @@ export const getPaginatedWarehouses = async (
   return buildPaginatedResponse(data, total, params);
 };
 
-export const getWarehouses = async (userId: string) => {
+export const getWarehouses = async (orgId: string) => {
   return await db
     .select()
     .from(warehouses)
-    .where(eq(warehouses.userId, userId))
+    .where(eq(warehouses.organizationId, orgId))
     .orderBy(warehouses.name);
 };
 
-export const getWarehouse = async (id: string, userId: string) => {
+export const getWarehouse = async (id: string, orgId: string) => {
   const [warehouse] = await db
     .select()
     .from(warehouses)
-    .where(and(eq(warehouses.id, id), eq(warehouses.userId, userId)));
+    .where(and(eq(warehouses.id, id), eq(warehouses.organizationId, orgId)));
   return warehouse;
 };
 
-export const getDefaultWarehouse = async (userId: string) => {
+export const getDefaultWarehouse = async (orgId: string) => {
   const [warehouse] = await db
     .select()
     .from(warehouses)
-    .where(and(eq(warehouses.userId, userId), eq(warehouses.isDefault, true)));
+    .where(
+      and(eq(warehouses.organizationId, orgId), eq(warehouses.isDefault, true))
+    );
   return warehouse;
 };
 
 export const createWarehouse = async (
-  data: CreateWarehouse & { userId: string }
+  data: CreateWarehouse & { orgId: string }
 ) => {
   if (data.isDefault) {
     await db
       .update(warehouses)
       .set({ isDefault: false })
-      .where(eq(warehouses.userId, data.userId));
+      .where(eq(warehouses.organizationId, data.orgId));
   }
-  const [result] = await db.insert(warehouses).values(data).returning();
+  const [result] = await db
+    .insert(warehouses)
+    .values({ ...data, organizationId: data.orgId })
+    .returning();
   return result;
 };
 
 export const updateWarehouse = async (
   id: string,
-  userId: string,
+  orgId: string,
   data: UpdateWarehouse
 ) => {
   if (data.isDefault) {
     await db
       .update(warehouses)
       .set({ isDefault: false })
-      .where(eq(warehouses.userId, userId));
+      .where(eq(warehouses.organizationId, orgId));
   }
   const [updated] = await db
     .update(warehouses)
     .set(data)
-    .where(and(eq(warehouses.id, id), eq(warehouses.userId, userId)))
+    .where(and(eq(warehouses.id, id), eq(warehouses.organizationId, orgId)))
     .returning();
   return updated;
 };
 
-export const deleteWarehouse = async (id: string, userId: string) => {
+export const deleteWarehouse = async (id: string, orgId: string) => {
   const [deleted] = await db
     .delete(warehouses)
-    .where(and(eq(warehouses.id, id), eq(warehouses.userId, userId)))
+    .where(and(eq(warehouses.id, id), eq(warehouses.organizationId, orgId)))
     .returning();
   return deleted;
 };

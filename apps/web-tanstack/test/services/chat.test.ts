@@ -200,3 +200,103 @@ describe("deleteChat", () => {
     expect(chat).not.toBeNull();
   });
 });
+
+describe("deleteMessagesFromPoint", () => {
+  it("deletes the target message and all after it", async () => {
+    const {
+      createChat,
+      addMessageToChat,
+      deleteMessagesFromPoint,
+      getChatMessages,
+    } = await import("@workspace/core/chat");
+
+    const chatId = await createChat({
+      id: crypto.randomUUID(),
+      userId,
+      title: "Chat",
+      message: makeMessage("user", "First"),
+    });
+
+    const secondMsg = makeMessage("assistant", "Second");
+    await addMessageToChat({ chatId, userId, message: secondMsg });
+
+    const thirdMsg = makeMessage("user", "Third");
+    await addMessageToChat({ chatId, userId, message: thirdMsg });
+
+    // Delete from the second message onwards
+    await deleteMessagesFromPoint({
+      chatId,
+      messageId: secondMsg.id,
+      userId,
+    });
+
+    const remaining = await getChatMessages(chatId);
+    expect(remaining).toHaveLength(1);
+    expect(remaining?.[0].parts).toEqual([{ type: "text", text: "First" }]);
+  });
+
+  it("does nothing when messageId does not exist", async () => {
+    const {
+      createChat,
+      addMessageToChat,
+      deleteMessagesFromPoint,
+      getChatMessages,
+    } = await import("@workspace/core/chat");
+
+    const chatId = await createChat({
+      id: crypto.randomUUID(),
+      userId,
+      title: "Chat",
+      message: makeMessage("user", "Hello"),
+    });
+
+    await addMessageToChat({
+      chatId,
+      userId,
+      message: makeMessage("assistant", "Response"),
+    });
+
+    await deleteMessagesFromPoint({
+      chatId,
+      messageId: "non-existent-id",
+      userId,
+    });
+
+    const messages = await getChatMessages(chatId);
+    expect(messages).toHaveLength(2);
+  });
+
+  it("does not delete messages from another user's chat", async () => {
+    const otherUser = await seedUser();
+    const {
+      createChat,
+      addMessageToChat,
+      deleteMessagesFromPoint,
+      getChatMessages,
+    } = await import("@workspace/core/chat");
+
+    const msg = makeMessage("user", "Hello");
+    const chatId = await createChat({
+      id: crypto.randomUUID(),
+      userId: otherUser.id,
+      title: "Other Chat",
+      message: msg,
+    });
+
+    await addMessageToChat({
+      chatId,
+      userId: otherUser.id,
+      message: makeMessage("assistant", "Response"),
+    });
+
+    // Try to delete as wrong user
+    await deleteMessagesFromPoint({
+      chatId,
+      messageId: msg.id,
+      userId,
+    });
+
+    const messages = await getChatMessages(chatId);
+    expect(messages).toHaveLength(2);
+  });
+});

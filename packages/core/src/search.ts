@@ -1,10 +1,10 @@
 import { db } from "@workspace/db-d1";
 import { products, warehouses } from "@workspace/db-d1/schema";
 import type { SearchResult } from "@workspace/types/search";
-import { and, eq, ilike, or } from "drizzle-orm";
+import { and, eq, like, or } from "drizzle-orm";
 
 export const searchInventory = async (
-  userId: string,
+  orgId: string,
   query: string
 ): Promise<SearchResult[]> => {
   const searchPattern = `%${query}%`;
@@ -19,10 +19,10 @@ export const searchInventory = async (
     .from(products)
     .where(
       and(
-        eq(products.userId, userId),
+        eq(products.organizationId, orgId),
         or(
-          ilike(products.name, searchPattern),
-          ilike(products.sku, searchPattern)
+          like(products.name, searchPattern),
+          like(products.sku, searchPattern)
         )
       )
     )
@@ -36,7 +36,10 @@ export const searchInventory = async (
     })
     .from(warehouses)
     .where(
-      and(eq(warehouses.userId, userId), ilike(warehouses.name, searchPattern))
+      and(
+        eq(warehouses.organizationId, orgId),
+        like(warehouses.name, searchPattern)
+      )
     )
     .limit(10);
 

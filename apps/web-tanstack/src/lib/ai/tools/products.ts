@@ -17,14 +17,14 @@ import {
 import { tool } from "ai";
 import { z } from "zod";
 
-export const createProductTools = (userId: string) => {
+export const createProductTools = (orgId: string) => {
   return {
     "list-products": tool({
       description: "List all inventory products with their stock levels.",
       inputSchema: z.object({}),
       outputSchema: productsListSchema,
       execute: async () => {
-        return await getProducts(userId);
+        return await getProducts(orgId);
       },
     }),
     "get-product": tool({
@@ -32,7 +32,7 @@ export const createProductTools = (userId: string) => {
       inputSchema: z.object({ id: z.string() }),
       outputSchema: productSchema,
       execute: async ({ id }) => {
-        return await getProduct(id, userId);
+        return await getProduct(id, orgId);
       },
     }),
     "create-product": tool({
@@ -42,7 +42,7 @@ export const createProductTools = (userId: string) => {
       execute: async (input) => {
         const result = await createProduct({
           ...input,
-          userId,
+          orgId,
         });
         return result[0];
       },
@@ -56,7 +56,7 @@ export const createProductTools = (userId: string) => {
       }),
       outputSchema: productSchema,
       execute: async ({ id, data }) => {
-        const result = await updateProduct(id, userId, data);
+        const result = await updateProduct(id, orgId, data);
         return result;
       },
       needsApproval: true,
@@ -69,7 +69,7 @@ export const createProductTools = (userId: string) => {
       execute: async (input) => {
         const result = await performStockMovement({
           ...input,
-          userId,
+          orgId,
         });
         return result;
       },
@@ -80,7 +80,7 @@ export const createProductTools = (userId: string) => {
       inputSchema: z.object({ id: z.string() }),
       outputSchema: z.any(),
       execute: async ({ id }) => {
-        return await deleteProduct(id, userId);
+        return await deleteProduct(id, orgId);
       },
       needsApproval: true,
     }),

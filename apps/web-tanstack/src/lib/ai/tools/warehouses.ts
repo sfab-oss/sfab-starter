@@ -14,14 +14,14 @@ import {
 import { tool } from "ai";
 import { z } from "zod";
 
-export const createWarehouseTools = (userId: string) => {
+export const createWarehouseTools = (orgId: string) => {
   return {
     "list-warehouses": tool({
       description: "List all warehouses.",
       inputSchema: z.object({}),
       outputSchema: warehouseListSchema,
       execute: async () => {
-        return await getWarehouses(userId);
+        return await getWarehouses(orgId);
       },
     }),
     "get-warehouse": tool({
@@ -29,7 +29,7 @@ export const createWarehouseTools = (userId: string) => {
       inputSchema: z.object({ id: z.string() }),
       outputSchema: warehouseSchema,
       execute: async ({ id }) => {
-        return await getWarehouse(id, userId);
+        return await getWarehouse(id, orgId);
       },
     }),
     "create-warehouse": tool({
@@ -39,7 +39,7 @@ export const createWarehouseTools = (userId: string) => {
       execute: async (input) => {
         const result = await createWarehouse({
           ...input,
-          userId,
+          orgId,
         });
         if (!result) {
           throw new Error("Failed to create warehouse");
@@ -56,7 +56,7 @@ export const createWarehouseTools = (userId: string) => {
       }),
       outputSchema: warehouseSchema,
       execute: async ({ id, data }) => {
-        const result = await updateWarehouse(id, userId, data);
+        const result = await updateWarehouse(id, orgId, data);
         return result;
       },
       needsApproval: true,
@@ -66,7 +66,7 @@ export const createWarehouseTools = (userId: string) => {
       inputSchema: z.object({ id: z.string() }),
       outputSchema: z.any(),
       execute: async ({ id }) => {
-        return await deleteWarehouse(id, userId);
+        return await deleteWarehouse(id, orgId);
       },
       needsApproval: true,
     }),

@@ -100,7 +100,7 @@ export const movementSchema = z.object({
   type: z.enum(["IN", "OUT", "TRANSFER", "ADJUSTMENT"]),
   id: z.string(),
   createdAt: z.string(),
-  userId: z.string(),
+  organizationId: z.string(),
   productId: z.string(),
   quantity: z.number(),
   fromWarehouseId: z.string().nullable(),

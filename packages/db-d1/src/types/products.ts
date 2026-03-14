@@ -11,12 +11,12 @@ export const selectProductSchema = createSelectSchema(products);
 export const insertProductSchema = createInsertSchema(products, {
   name: z.string().min(2, "Name must be at least 2 characters"),
   sku: z.string().min(2, "SKU must be at least 2 characters"),
-}).omit({ userId: true, id: true, createdAt: true, updatedAt: true });
+}).omit({ organizationId: true, id: true, createdAt: true, updatedAt: true });
 
 export const updateProductSchema = createUpdateSchema(products, {
   name: z.string().min(2),
   sku: z.string().min(2),
-}).omit({ userId: true, id: true, createdAt: true, updatedAt: true });
+}).omit({ organizationId: true, id: true, createdAt: true, updatedAt: true });
 
 export type SelectProduct = z.infer<typeof selectProductSchema>;
 export type InsertProduct = z.infer<typeof insertProductSchema>;

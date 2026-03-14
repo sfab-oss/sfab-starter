@@ -5,8 +5,8 @@ import type { HonoContextWithAuthAndOrg } from "../../types";
 const metricsRoute = new Hono<HonoContextWithAuthAndOrg>().get(
   "/",
   async (c) => {
-    const userId = c.get("user").id;
-    const data = await getDashboardMetrics(userId);
+    const orgId = c.get("session").activeOrganizationId;
+    const data = await getDashboardMetrics(orgId);
     return c.json(data);
   }
 );

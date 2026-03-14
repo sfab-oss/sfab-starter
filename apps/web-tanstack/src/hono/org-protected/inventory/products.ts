@@ -22,30 +22,30 @@ const productIdSchema = z.object({
 
 const productsRoute = new Hono<HonoContextWithAuthAndOrg>()
   .get("/", zValidator("query", paginationQuerySchema), async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const params = c.req.valid("query");
-    const data = await getPaginatedProducts(userId, params);
+    const data = await getPaginatedProducts(orgId, params);
     return c.json(data);
   })
   .get("/:id", zValidator("param", productIdSchema), async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const { id } = c.req.valid("param");
-    const data = await getProduct(id, userId);
+    const data = await getProduct(id, orgId);
     if (!data) {
       return c.json({ error: "Product not found" }, 404);
     }
     return c.json(data);
   })
   .get("/:id/movements", zValidator("param", productIdSchema), async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const { id } = c.req.valid("param");
-    const data = await getProductMovements(id, userId);
+    const data = await getProductMovements(id, orgId);
     return c.json(data);
   })
   .post("/", zValidator("json", createProductSchema), async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const body = c.req.valid("json");
-    const result = await createProduct({ ...body, userId });
+    const result = await createProduct({ ...body, orgId });
     return c.json(result[0]);
   })
   .put(
@@ -53,17 +53,17 @@ const productsRoute = new Hono<HonoContextWithAuthAndOrg>()
     zValidator("param", productIdSchema),
     zValidator("json", updateProductSchema),
     async (c) => {
-      const userId = c.get("user").id;
+      const orgId = c.get("session").activeOrganizationId;
       const { id } = c.req.valid("param");
       const body = c.req.valid("json");
-      const result = await updateProduct(id, userId, body);
+      const result = await updateProduct(id, orgId, body);
       return c.json(result);
     }
   )
   .delete("/:id", zValidator("param", productIdSchema), async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const { id } = c.req.valid("param");
-    const result = await deleteProduct(id, userId);
+    const result = await deleteProduct(id, orgId);
     return c.json(result);
   });
 

@@ -1,91 +1,99 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { seedProduct, seedUser, seedWarehouse } from "../helpers/seed";
+import {
+  seedOrganization,
+  seedProduct,
+  seedUser,
+  seedWarehouse,
+} from "../helpers/seed";
 
-let userId: string;
+let orgId: string;
 
 beforeEach(async () => {
   const user = await seedUser();
-  userId = user.id;
+  const org = await seedOrganization(user.id);
+  orgId = org.id;
 });
 
 describe("getProducts", () => {
   it("returns empty list when no products exist", async () => {
     const { getProducts } = await import("@workspace/core/products");
-    const products = await getProducts(userId);
+    const products = await getProducts(orgId);
     expect(products).toHaveLength(0);
   });
 
-  it("returns products for the user", async () => {
-    await seedProduct(userId, { name: "Product A", sku: "SKU-A" });
-    await seedProduct(userId, { name: "Product B", sku: "SKU-B" });
+  it("returns products for the org", async () => {
+    await seedProduct(orgId, { name: "Product A", sku: "SKU-A" });
+    await seedProduct(orgId, { name: "Product B", sku: "SKU-B" });
 
     const { getProducts } = await import("@workspace/core/products");
-    const products = await getProducts(userId);
+    const products = await getProducts(orgId);
     expect(products).toHaveLength(2);
     expect(products.map((p) => p.name)).toContain("Product A");
     expect(products.map((p) => p.name)).toContain("Product B");
   });
 
-  it("does not return products from other users", async () => {
+  it("does not return products from other orgs", async () => {
     const otherUser = await seedUser();
-    await seedProduct(userId, { name: "My Product" });
-    await seedProduct(otherUser.id, { name: "Other Product" });
+    const otherOrg = await seedOrganization(otherUser.id);
+    await seedProduct(orgId, { name: "My Product" });
+    await seedProduct(otherOrg.id, { name: "Other Product" });
 
     const { getProducts } = await import("@workspace/core/products");
-    const products = await getProducts(userId);
+    const products = await getProducts(orgId);
     expect(products).toHaveLength(1);
     expect(products[0].name).toBe("My Product");
   });
 
   it("includes aggregated stock total", async () => {
-    const product = await seedProduct(userId);
-    const wh1 = await seedWarehouse(userId, { name: "WH1" });
-    const wh2 = await seedWarehouse(userId, { name: "WH2" });
+    const product = await seedProduct(orgId);
+    const wh1 = await seedWarehouse(orgId, { name: "WH1" });
+    const wh2 = await seedWarehouse(orgId, { name: "WH2" });
 
     const { performStockMovement, getProducts } = await import(
       "@workspace/core/products"
     );
 
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "IN",
       quantity: 10,
       toWarehouseId: wh1.id,
     });
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "IN",
       quantity: 5,
       toWarehouseId: wh2.id,
     });
 
-    const products = await getProducts(userId);
+    const products = await getProducts(orgId);
     expect(products[0].totalStock).toBe(15);
   });
 });
 
 describe("getProduct", () => {
   it("returns a single product by id", async () => {
-    const seeded = await seedProduct(userId, { name: "Specific Product" });
+    const seeded = await seedProduct(orgId, { name: "Specific Product" });
     const { getProduct } = await import("@workspace/core/products");
-    const product = await getProduct(seeded.id, userId);
+    const product = await getProduct(seeded.id, orgId);
     expect(product).toBeDefined();
     expect(product.name).toBe("Specific Product");
   });
 
   it("returns undefined for non-existent product", async () => {
     const { getProduct } = await import("@workspace/core/products");
-    const product = await getProduct("non-existent", userId);
+    const product = await getProduct("non-existent", orgId);
     expect(product).toBeUndefined();
   });
 
-  it("returns undefined if product belongs to another user", async () => {
+  it("returns undefined if product belongs to another org", async () => {
     const otherUser = await seedUser();
-    const seeded = await seedProduct(otherUser.id);
+    const otherOrg = await seedOrganization(otherUser.id);
+    const seeded = await seedProduct(otherOrg.id);
     const { getProduct } = await import("@workspace/core/products");
-    const product = await getProduct(seeded.id, userId);
+    const product = await getProduct(seeded.id, orgId);
     expect(product).toBeUndefined();
   });
 });
@@ -94,20 +102,20 @@ describe("createProduct", () => {
   it("creates a product with required fields", async () => {
     const { createProduct } = await import("@workspace/core/products");
     const result = await createProduct({
-      userId,
+      orgId,
       sku: "NEW-SKU",
       name: "New Product",
     });
     expect(result).toHaveLength(1);
     expect(result[0].sku).toBe("NEW-SKU");
     expect(result[0].name).toBe("New Product");
-    expect(result[0].userId).toBe(userId);
+    expect(result[0].organizationId).toBe(orgId);
   });
 
   it("creates a product with optional fields", async () => {
     const { createProduct } = await import("@workspace/core/products");
     const result = await createProduct({
-      userId,
+      orgId,
       sku: "FULL-SKU",
       name: "Full Product",
       description: "A description",
@@ -122,9 +130,9 @@ describe("createProduct", () => {
 
 describe("updateProduct", () => {
   it("updates product fields", async () => {
-    const seeded = await seedProduct(userId, { name: "Original" });
+    const seeded = await seedProduct(orgId, { name: "Original" });
     const { updateProduct } = await import("@workspace/core/products");
-    const updated = await updateProduct(seeded.id, userId, {
+    const updated = await updateProduct(seeded.id, orgId, {
       name: "Updated",
     });
     expect(updated.name).toBe("Updated");
@@ -132,57 +140,89 @@ describe("updateProduct", () => {
 
   it("returns undefined when updating non-existent product", async () => {
     const { updateProduct } = await import("@workspace/core/products");
-    const result = await updateProduct("non-existent", userId, {
+    const result = await updateProduct("non-existent", orgId, {
       name: "Nope",
     });
     expect(result).toBeUndefined();
+  });
+
+  it("cannot update another org's product", async () => {
+    const otherUser = await seedUser();
+    const otherOrg = await seedOrganization(otherUser.id);
+    const seeded = await seedProduct(otherOrg.id, {
+      name: "Other Org Product",
+    });
+
+    const { updateProduct, getProduct } = await import(
+      "@workspace/core/products"
+    );
+    const result = await updateProduct(seeded.id, orgId, { name: "Hacked" });
+    expect(result).toBeUndefined();
+
+    const unchanged = await getProduct(seeded.id, otherOrg.id);
+    expect(unchanged.name).toBe("Other Org Product");
   });
 });
 
 describe("deleteProduct", () => {
   it("deletes a product and returns it", async () => {
-    const seeded = await seedProduct(userId, { name: "To Delete" });
+    const seeded = await seedProduct(orgId, { name: "To Delete" });
     const { deleteProduct, getProduct } = await import(
       "@workspace/core/products"
     );
-    const deleted = await deleteProduct(seeded.id, userId);
+    const deleted = await deleteProduct(seeded.id, orgId);
     expect(deleted.name).toBe("To Delete");
 
-    const found = await getProduct(seeded.id, userId);
+    const found = await getProduct(seeded.id, orgId);
     expect(found).toBeUndefined();
   });
 
   it("returns undefined when deleting non-existent product", async () => {
     const { deleteProduct } = await import("@workspace/core/products");
-    const result = await deleteProduct("non-existent", userId);
+    const result = await deleteProduct("non-existent", orgId);
     expect(result).toBeUndefined();
+  });
+
+  it("cannot delete another org's product", async () => {
+    const otherUser = await seedUser();
+    const otherOrg = await seedOrganization(otherUser.id);
+    const seeded = await seedProduct(otherOrg.id, { name: "Protected" });
+
+    const { deleteProduct, getProduct } = await import(
+      "@workspace/core/products"
+    );
+    const result = await deleteProduct(seeded.id, orgId);
+    expect(result).toBeUndefined();
+
+    const stillExists = await getProduct(seeded.id, otherOrg.id);
+    expect(stillExists).toBeDefined();
   });
 });
 
 describe("performStockMovement", () => {
   it("adds stock to a warehouse on IN movement", async () => {
-    const product = await seedProduct(userId);
-    const warehouse = await seedWarehouse(userId);
+    const product = await seedProduct(orgId);
+    const warehouse = await seedWarehouse(orgId);
 
     const { performStockMovement, getProduct } = await import(
       "@workspace/core/products"
     );
 
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "IN",
       quantity: 25,
       toWarehouseId: warehouse.id,
     });
 
-    const updated = await getProduct(product.id, userId);
+    const updated = await getProduct(product.id, orgId);
     expect(updated.totalStock).toBe(25);
   });
 
   it("subtracts stock from a warehouse on OUT movement", async () => {
-    const product = await seedProduct(userId);
-    const warehouse = await seedWarehouse(userId);
+    const product = await seedProduct(orgId);
+    const warehouse = await seedWarehouse(orgId);
 
     const { performStockMovement, getProduct } = await import(
       "@workspace/core/products"
@@ -190,7 +230,7 @@ describe("performStockMovement", () => {
 
     // Stock in first
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "IN",
       quantity: 30,
@@ -199,21 +239,21 @@ describe("performStockMovement", () => {
 
     // Stock out
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "OUT",
       quantity: 10,
       fromWarehouseId: warehouse.id,
     });
 
-    const updated = await getProduct(product.id, userId);
+    const updated = await getProduct(product.id, orgId);
     expect(updated.totalStock).toBe(20);
   });
 
   it("transfers stock between warehouses", async () => {
-    const product = await seedProduct(userId);
-    const whFrom = await seedWarehouse(userId, { name: "From WH" });
-    const whTo = await seedWarehouse(userId, { name: "To WH" });
+    const product = await seedProduct(orgId);
+    const whFrom = await seedWarehouse(orgId, { name: "From WH" });
+    const whTo = await seedWarehouse(orgId, { name: "To WH" });
 
     const { performStockMovement, getProduct } = await import(
       "@workspace/core/products"
@@ -221,7 +261,7 @@ describe("performStockMovement", () => {
 
     // Initial stock in source warehouse
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "IN",
       quantity: 50,
@@ -230,7 +270,7 @@ describe("performStockMovement", () => {
 
     // Transfer
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "TRANSFER",
       quantity: 20,
@@ -239,20 +279,20 @@ describe("performStockMovement", () => {
     });
 
     // Total stock should remain the same
-    const updated = await getProduct(product.id, userId);
+    const updated = await getProduct(product.id, orgId);
     expect(updated.totalStock).toBe(50);
   });
 
   it("records movements in history", async () => {
-    const product = await seedProduct(userId);
-    const warehouse = await seedWarehouse(userId);
+    const product = await seedProduct(orgId);
+    const warehouse = await seedWarehouse(orgId);
 
     const { performStockMovement, getProductMovements } = await import(
       "@workspace/core/products"
     );
 
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "IN",
       quantity: 10,
@@ -260,7 +300,7 @@ describe("performStockMovement", () => {
       notes: "Initial stock",
     });
 
-    const movements = await getProductMovements(product.id, userId);
+    const movements = await getProductMovements(product.id, orgId);
     expect(movements).toHaveLength(1);
     expect(movements[0].type).toBe("IN");
     expect(movements[0].quantity).toBe(10);
@@ -268,15 +308,15 @@ describe("performStockMovement", () => {
   });
 
   it("accumulates stock on repeated IN movements to same warehouse", async () => {
-    const product = await seedProduct(userId);
-    const warehouse = await seedWarehouse(userId);
+    const product = await seedProduct(orgId);
+    const warehouse = await seedWarehouse(orgId);
 
     const { performStockMovement, getProduct } = await import(
       "@workspace/core/products"
     );
 
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "IN",
       quantity: 10,
@@ -284,73 +324,74 @@ describe("performStockMovement", () => {
     });
 
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "IN",
       quantity: 15,
       toWarehouseId: warehouse.id,
     });
 
-    const updated = await getProduct(product.id, userId);
+    const updated = await getProduct(product.id, orgId);
     expect(updated.totalStock).toBe(25);
   });
 });
 
 describe("getProductMovements", () => {
   it("returns empty list when no movements exist", async () => {
-    const product = await seedProduct(userId);
+    const product = await seedProduct(orgId);
     const { getProductMovements } = await import("@workspace/core/products");
-    const movements = await getProductMovements(product.id, userId);
+    const movements = await getProductMovements(product.id, orgId);
     expect(movements).toHaveLength(0);
   });
 
-  it("does not return movements from other users", async () => {
+  it("does not return movements from other orgs", async () => {
     const otherUser = await seedUser();
-    const product = await seedProduct(userId);
-    const warehouse = await seedWarehouse(userId);
+    const otherOrg = await seedOrganization(otherUser.id);
+    const product = await seedProduct(orgId);
+    const warehouse = await seedWarehouse(orgId);
 
     const { performStockMovement, getProductMovements } = await import(
       "@workspace/core/products"
     );
 
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "IN",
       quantity: 5,
       toWarehouseId: warehouse.id,
     });
 
-    const movements = await getProductMovements(product.id, otherUser.id);
+    const movements = await getProductMovements(product.id, otherOrg.id);
     expect(movements).toHaveLength(0);
   });
 });
 
 describe("getDashboardMetrics", () => {
-  it("returns empty metrics for new user", async () => {
+  it("returns empty metrics for new org", async () => {
     const { getDashboardMetrics } = await import("@workspace/core/products");
-    const metrics = await getDashboardMetrics(userId);
+    const metrics = await getDashboardMetrics(orgId);
     expect(metrics.activeProducts).toHaveLength(0);
     expect(metrics.recentMovements).toHaveLength(0);
   });
 
   it("returns products and recent movements", async () => {
-    const product = await seedProduct(userId);
-    const warehouse = await seedWarehouse(userId);
+    const product = await seedProduct(orgId);
+    const warehouse = await seedWarehouse(orgId);
 
     const { performStockMovement, getDashboardMetrics } = await import(
       "@workspace/core/products"
     );
 
     await performStockMovement({
-      userId,
+      orgId,
       productId: product.id,
       type: "IN",
       quantity: 10,
       toWarehouseId: warehouse.id,
     });
 
-    const metrics = await getDashboardMetrics(userId);
+    const metrics = await getDashboardMetrics(orgId);
     expect(metrics.activeProducts).toHaveLength(1);
     expect(metrics.recentMovements).toHaveLength(1);
   });

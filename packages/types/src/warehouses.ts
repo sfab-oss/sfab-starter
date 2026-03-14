@@ -25,7 +25,7 @@ export const warehouseFormSchema = z.object({
 export const warehouseListSchema = z.array(
   z.object({
     id: z.string(),
-    userId: z.string(),
+    organizationId: z.string(),
     name: z.string(),
     location: z.string().nullable(),
     isDefault: z.boolean(),

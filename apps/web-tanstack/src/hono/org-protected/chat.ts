@@ -61,6 +61,7 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
     const abortSignal = c.req.raw.signal;
 
     const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
 
     const savedChat = await getChat(chatId);
 
@@ -86,7 +87,7 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
           });
         },
         abortSignal,
-        userId,
+        orgId,
         agentId: "general-agent",
         context,
       });
@@ -128,7 +129,7 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
         });
       },
       abortSignal,
-      userId,
+      orgId,
       agentId: "general-agent",
       context,
     });

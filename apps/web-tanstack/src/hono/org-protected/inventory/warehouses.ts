@@ -21,24 +21,24 @@ const warehouseIdSchema = z.object({
 
 const warehousesRoute = new Hono<HonoContextWithAuthAndOrg>()
   .get("/", zValidator("query", paginationQuerySchema), async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const params = c.req.valid("query");
-    const data = await getPaginatedWarehouses(userId, params);
+    const data = await getPaginatedWarehouses(orgId, params);
     return c.json(data);
   })
   .get("/:id", zValidator("param", warehouseIdSchema), async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const { id } = c.req.valid("param");
-    const data = await getWarehouse(id, userId);
+    const data = await getWarehouse(id, orgId);
     if (!data) {
       return c.json({ error: "Warehouse not found" }, 404);
     }
     return c.json(data);
   })
   .post("/", zValidator("json", createWarehouseSchema), async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const body = c.req.valid("json");
-    const result = await createWarehouse({ ...body, userId });
+    const result = await createWarehouse({ ...body, orgId });
     return c.json(result);
   })
   .put(
@@ -46,17 +46,17 @@ const warehousesRoute = new Hono<HonoContextWithAuthAndOrg>()
     zValidator("param", warehouseIdSchema),
     zValidator("json", updateWarehouseSchema),
     async (c) => {
-      const userId = c.get("user").id;
+      const orgId = c.get("session").activeOrganizationId;
       const { id } = c.req.valid("param");
       const body = c.req.valid("json");
-      const result = await updateWarehouse(id, userId, body);
+      const result = await updateWarehouse(id, orgId, body);
       return c.json(result);
     }
   )
   .delete("/:id", zValidator("param", warehouseIdSchema), async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const { id } = c.req.valid("param");
-    const result = await deleteWarehouse(id, userId);
+    const result = await deleteWarehouse(id, orgId);
     return c.json(result);
   });
 

@@ -5,7 +5,7 @@ import { movements } from "../schema/inventory";
 export const selectMovementSchema = createSelectSchema(movements);
 
 export const insertMovementSchema = createInsertSchema(movements).omit({
-  userId: true,
+  organizationId: true,
   id: true,
   createdAt: true,
 });

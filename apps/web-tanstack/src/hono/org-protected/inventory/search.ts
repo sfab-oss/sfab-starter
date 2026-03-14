@@ -5,7 +5,7 @@ import type { HonoContextWithAuthAndOrg } from "../../types";
 const searchRoute = new Hono<HonoContextWithAuthAndOrg>().get(
   "/",
   async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const query = c.req.query("q") || "";
 
     if (!query) {
@@ -13,7 +13,7 @@ const searchRoute = new Hono<HonoContextWithAuthAndOrg>().get(
     }
 
     try {
-      const results = await searchInventory(userId, query);
+      const results = await searchInventory(orgId, query);
       return c.json({ results });
     } catch (e) {
       console.error("Search error:", e);

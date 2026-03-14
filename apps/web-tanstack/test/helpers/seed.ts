@@ -45,13 +45,13 @@ export async function seedOrganization(
 }
 
 export async function seedProduct(
-  userId: string,
+  orgId: string,
   overrides?: Partial<typeof schema.products.$inferInsert>
 ) {
   const [product] = await db
     .insert(schema.products)
     .values({
-      userId,
+      organizationId: orgId,
       sku: `SKU-${crypto.randomUUID().slice(0, 8)}`,
       name: "Test Product",
       price: "19.99",
@@ -63,13 +63,13 @@ export async function seedProduct(
 }
 
 export async function seedWarehouse(
-  userId: string,
+  orgId: string,
   overrides?: Partial<typeof schema.warehouses.$inferInsert>
 ) {
   const [warehouse] = await db
     .insert(schema.warehouses)
     .values({
-      userId,
+      organizationId: orgId,
       name: "Test Warehouse",
       location: "Test Location",
       isDefault: false,

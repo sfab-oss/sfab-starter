@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX `stock_levels_product_warehouse` ON `stock_levels` (`product_id`,`warehouse_id`);

@@ -4,12 +4,12 @@ import { createProductTools } from "./products";
 import { showMessageTool } from "./show-message";
 import { createWarehouseTools } from "./warehouses";
 
-export const getAiTools = (userId: string) => {
+export const getAiTools = (orgId: string) => {
   return {
     "load-skill": loadSkillTool,
     "show-message": showMessageTool,
-    ...createProductTools(userId),
-    ...createWarehouseTools(userId),
+    ...createProductTools(orgId),
+    ...createWarehouseTools(orgId),
   };
 };
 

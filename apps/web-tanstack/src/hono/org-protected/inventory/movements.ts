@@ -8,9 +8,9 @@ const movementsRoute = new Hono<HonoContextWithAuthAndOrg>().post(
   "/",
   zValidator("json", createMovementSchema),
   async (c) => {
-    const userId = c.get("user").id;
+    const orgId = c.get("session").activeOrganizationId;
     const body = c.req.valid("json");
-    await performStockMovement({ ...body, userId });
+    await performStockMovement({ ...body, orgId });
     return c.json({ success: true });
   }
 );

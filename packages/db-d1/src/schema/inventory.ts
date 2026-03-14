@@ -8,7 +8,7 @@ import { createdAt, id, timestamps, updatedAt } from "../utils";
 
 export const products = sqliteTable("products", {
   id: id(),
-  userId: text("user_id").notNull(),
+  organizationId: text("organization_id").notNull(),
   sku: text("sku").notNull(),
   name: text("name").notNull(),
   description: text("description"),
@@ -21,7 +21,7 @@ export const products = sqliteTable("products", {
 
 export const warehouses = sqliteTable("warehouses", {
   id: id(),
-  userId: text("user_id").notNull(),
+  organizationId: text("organization_id").notNull(),
   name: text("name").notNull(),
   location: text("location"),
   isDefault: integer("is_default", { mode: "boolean" })
@@ -49,7 +49,7 @@ export const stockLevels = sqliteTable(
 
 export const movements = sqliteTable("movements", {
   id: id(),
-  userId: text("user_id").notNull(),
+  organizationId: text("organization_id").notNull(),
   productId: text("product_id").notNull(),
   fromWarehouseId: text("from_warehouse_id"),
   toWarehouseId: text("to_warehouse_id"),
