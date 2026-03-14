@@ -6,7 +6,7 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { useIsMobile } from "@workspace/ui/hooks/use-mobile";
 import { Copy, RefreshCw } from "lucide-react";
 import { memo, useMemo } from "react";
-import { useChatContext } from "../chat-provider";
+import { useChatEngine } from "../providers/chat-engine";
 
 export function PureMessageActions({
   messageId,
@@ -15,7 +15,7 @@ export function PureMessageActions({
   messageId: string;
   isLoading?: boolean;
 }) {
-  const { messages, regenerate } = useChatContext();
+  const { messages, regenerate } = useChatEngine();
   const message = useMemo(
     () => messages.find((message) => message.id === messageId),
     [messages, messageId]

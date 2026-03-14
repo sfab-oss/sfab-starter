@@ -10,7 +10,7 @@ import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import { memo } from "react";
 import type { AITools } from "@/lib/ai/tools/registry";
 import { idToReadableText } from "@/lib/id-to-readable-text";
-import { useChatContext } from "../chat-provider";
+import { useChatEngine } from "../providers/chat-engine";
 
 export interface DefaultToolProps {
   part: ToolUIPart<AITools> | DynamicToolUIPart;
@@ -43,7 +43,7 @@ function ToolApproval({
 }: {
   part: ToolUIPart<AITools> | DynamicToolUIPart;
 }) {
-  const { addToolApprovalResponse } = useChatContext();
+  const { addToolApprovalResponse } = useChatEngine();
   if (part.state !== "approval-requested") {
     return null;
   }

@@ -9,7 +9,7 @@ import {
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { ArrowLeft } from "lucide-react";
 import { useMemo } from "react";
-import { useChatPageConfig } from "@/components/chat/chat-page-config";
+import { useSetPageContext } from "@/components/chat/providers/page-context";
 import {
   WarehouseForm,
   type WarehouseFormValues,
@@ -37,7 +37,7 @@ function WarehouseSetupPage() {
     []
   );
 
-  useChatPageConfig(pageConfig);
+  useSetPageContext(pageConfig);
 
   return (
     <AppLayoutPage>

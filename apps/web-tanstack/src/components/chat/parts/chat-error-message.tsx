@@ -1,9 +1,9 @@
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { RefreshCcwIcon } from "lucide-react";
-import { useChatContext } from "../chat-provider";
+import { useChatEngine } from "../providers/chat-engine";
 
 export function ChatErrorMessage() {
-  const { setMessages } = useChatContext();
+  const { setMessages } = useChatEngine();
 
   return (
     <div className="mx-auto flex w-full flex-col items-center gap-4 rounded-lg px-6 py-8 shadow-xs md:max-w-2xl">

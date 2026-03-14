@@ -18,7 +18,7 @@ function setCookie(name: string, value: string, maxAge: number) {
   document.cookie = `${name}=${value}; path=/; max-age=${maxAge}`;
 }
 
-interface ChatStateContextValue {
+interface ChatSessionContextValue {
   currentChatId: string;
   isNewChat: boolean;
   initialMessages: AIUIMessage[];
@@ -27,29 +27,31 @@ interface ChatStateContextValue {
   markChatPersisted: () => void;
 }
 
-const ChatStateContext = createContext<ChatStateContextValue | null>(null);
+const ChatSessionContext = createContext<ChatSessionContextValue | null>(null);
 
-export function useChatState() {
-  const context = useContext(ChatStateContext);
+export function useChatSession() {
+  const context = useContext(ChatSessionContext);
   if (!context) {
-    throw new Error("useChatState must be used within a <ChatStateProvider />");
+    throw new Error(
+      "useChatSession must be used within a <ChatSessionProvider />"
+    );
   }
   return context;
 }
 
-interface ChatStateProviderProps {
+interface ChatSessionProviderProps {
   children: ReactNode;
   defaultChatId?: string;
   defaultMessages?: AIUIMessage[];
   defaultIsNewChat?: boolean;
 }
 
-export function ChatStateProvider({
+export function ChatSessionProvider({
   children,
   defaultChatId,
   defaultMessages = [],
   defaultIsNewChat = true,
-}: ChatStateProviderProps) {
+}: ChatSessionProviderProps) {
   const navigate = useNavigate();
 
   const currentChatId = useState<string>(
@@ -97,8 +99,8 @@ export function ChatStateProvider({
   );
 
   return (
-    <ChatStateContext.Provider value={value}>
+    <ChatSessionContext.Provider value={value}>
       {children}
-    </ChatStateContext.Provider>
+    </ChatSessionContext.Provider>
   );
 }

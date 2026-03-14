@@ -6,15 +6,18 @@ import {
   AppLayoutHeaderActions,
   AppLayoutPage,
 } from "@workspace/ui/components/brand/app-layout";
+import { Button } from "@workspace/ui/components/shadcn/button";
+import { Plus } from "lucide-react";
 import { ChatOrchestrator } from "@/components/chat/chat-orchestrator";
-import {
-  ChatStateProvider,
-  useChatState,
-} from "@/components/chat/chat-state-provider";
 import { ChatHistory } from "@/components/chat/history/chat-history";
 import { ChatContent } from "@/components/chat/parts/chat-content";
 import { ChatInput } from "@/components/chat/parts/chat-input";
 import { ChatMessages } from "@/components/chat/parts/chat-messages";
+import { ExportChatButton } from "@/components/chat/parts/chat-placeholders";
+import {
+  ChatSessionProvider,
+  useChatSession,
+} from "@/components/chat/providers/chat-session";
 import { useGetChat } from "@/hooks/use-chat";
 import type { AIUIMessage } from "@/types/ai";
 
@@ -47,28 +50,33 @@ function ChatPage() {
     : [];
 
   return (
-    <ChatStateProvider
+    <ChatSessionProvider
       defaultChatId={id}
       defaultIsNewChat={!chat}
       defaultMessages={initialMessages}
     >
       <ChatPageContent />
-    </ChatStateProvider>
+    </ChatSessionProvider>
   );
 }
 
 function ChatPageContent() {
-  const { currentChatId, navigateToChat } = useChatState();
+  const { currentChatId, startNewChat, navigateToChat } = useChatSession();
 
   return (
     <AppLayoutPage>
       <AppLayoutHeader>
         <AppBreadcrumbs items={[{ title: "Chat" }]} />
         <AppLayoutHeaderActions>
+          <ExportChatButton />
           <ChatHistory
             currentChatId={currentChatId}
             onNavigate={navigateToChat}
           />
+          <Button onClick={startNewChat} size="icon" variant="ghost">
+            <Plus className="size-4" />
+            <span className="sr-only">New Chat</span>
+          </Button>
         </AppLayoutHeaderActions>
       </AppLayoutHeader>
       <AppLayoutContent>

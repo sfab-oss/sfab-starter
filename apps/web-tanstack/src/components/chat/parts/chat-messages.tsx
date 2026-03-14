@@ -23,7 +23,7 @@ import { isToolUIPart } from "ai";
 import { memo } from "react";
 import { LoadSkillTool } from "@/components/chat/tools/load-skill-tool";
 import type { AIUIMessage } from "@/types/ai";
-import { useChatContext } from "../chat-provider";
+import { useChatEngine } from "../providers/chat-engine";
 import { DefaultTool } from "../tools/default-tool";
 import { ChatErrorMessage } from "./chat-error-message";
 import { ChatMessageActions } from "./message-actions";
@@ -113,7 +113,7 @@ function ChatMessage({
 }
 
 function ChatMessageListInternal({ className }: { className?: string }) {
-  const { status, messages, error } = useChatContext();
+  const { status, messages, error } = useChatEngine();
   const isLoading = status === "streaming" || status === "submitted";
 
   if (status === "error" || error) {

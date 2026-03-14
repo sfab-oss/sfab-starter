@@ -9,21 +9,23 @@ import { createContext, type ReactNode, useContext, useRef } from "react";
 import type { AiToolId } from "@/lib/ai/tools/registry";
 import { createId } from "@/lib/utils";
 import type { AIUIMessage } from "@/types/ai";
-import { useToolHandlers } from "./tool-handler-registry";
+import { useToolHandlers } from "./tool-handlers";
 
-type ChatContextValue = ReturnType<typeof useChat<AIUIMessage>>;
+type ChatEngineContextValue = ReturnType<typeof useChat<AIUIMessage>>;
 
-const ChatContext = createContext<ChatContextValue | null>(null);
+const ChatEngineContext = createContext<ChatEngineContextValue | null>(null);
 
-export function useChatContext() {
-  const context = useContext(ChatContext);
+export function useChatEngine() {
+  const context = useContext(ChatEngineContext);
   if (!context) {
-    throw new Error("useChatContext must be used within a <Chat />");
+    throw new Error(
+      "useChatEngine must be used within a <ChatEngineProvider />"
+    );
   }
   return context;
 }
 
-export interface ChatProviderProps {
+export interface ChatEngineProviderProps {
   id: string;
   initialMessages?: AIUIMessage[];
   onNewChat?: (chatId: string) => void;
@@ -31,12 +33,12 @@ export interface ChatProviderProps {
   agentId?: string;
 }
 
-export function ChatProvider({
+export function ChatEngineProvider({
   id,
   initialMessages = [],
   onNewChat,
   children,
-}: ChatProviderProps) {
+}: ChatEngineProviderProps) {
   const toolHandlers = useToolHandlers();
   const onNewChatRef = useRef(onNewChat);
   onNewChatRef.current = onNewChat;
@@ -107,5 +109,9 @@ export function ChatProvider({
     },
   });
 
-  return <ChatContext.Provider value={chat}>{children}</ChatContext.Provider>;
+  return (
+    <ChatEngineContext.Provider value={chat}>
+      {children}
+    </ChatEngineContext.Provider>
+  );
 }

@@ -1,14 +1,15 @@
 import { AppLayoutHeader } from "@workspace/ui/components/brand/app-layout";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { Plus } from "lucide-react";
-import { useChatState } from "./chat-state-provider";
 import { ChatHistory } from "./history/chat-history";
 import { ChatContent } from "./parts/chat-content";
 import { ChatInput } from "./parts/chat-input";
 import { ChatMessages } from "./parts/chat-messages";
+import { ExportChatButton } from "./parts/chat-placeholders";
+import { useChatSession } from "./providers/chat-session";
 
 export function ChatPanel() {
-  const { currentChatId, startNewChat, navigateToChat } = useChatState();
+  const { currentChatId, startNewChat, navigateToChat } = useChatSession();
 
   return (
     <>
@@ -17,6 +18,7 @@ export function ChatPanel() {
           Chat
         </span>
         <div className="ml-auto flex items-center gap-1">
+          <ExportChatButton />
           <ChatHistory
             currentChatId={currentChatId}
             onNavigate={navigateToChat}

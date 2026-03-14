@@ -3,7 +3,7 @@ import {
   type RefObject,
   useCallback,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useRef,
 } from "react";
 
@@ -61,11 +61,11 @@ export function useRegisterToolHandler(name: string, handler: ToolHandler) {
   const { register, unregister } = context;
   const handlerRef = useRef(handler);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     handlerRef.current = handler;
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const stableHandler: ToolHandler = (input) => handlerRef.current(input);
     register(name, stableHandler);
     return () => unregister(name);

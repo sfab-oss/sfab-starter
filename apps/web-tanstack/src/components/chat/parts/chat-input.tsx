@@ -20,8 +20,8 @@ import {
 } from "@workspace/ui/components/ai-elements/prompt-input";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { useCallback, useMemo } from "react";
-import { useCurrentPageConfig } from "../chat-page-config";
-import { useChatContext } from "../chat-provider";
+import { useChatEngine } from "../providers/chat-engine";
+import { usePageContext } from "../providers/page-context";
 
 function handleSendError(error: unknown) {
   console.error("Failed to send message:", error);
@@ -53,12 +53,12 @@ function ChatInputInner({
   additionalContext?: Partial<ChatContext>;
   placeholder: string;
 }) {
-  const { sendMessage, status } = useChatContext();
+  const { sendMessage, status } = useChatEngine();
   const controller = usePromptInputController();
 
   const routerState = useRouterState();
   const params = useParams({ strict: false });
-  const pageConfig = useCurrentPageConfig();
+  const pageConfig = usePageContext();
 
   const fullContext = useMemo<ChatContext>(() => {
     const paramsRecord: Record<string, string> = {};
