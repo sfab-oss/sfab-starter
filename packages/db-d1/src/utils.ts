@@ -1,19 +1,24 @@
 import { text } from "drizzle-orm/sqlite-core";
 import { nanoid } from "nanoid";
+import { monotonicFactory } from "ulidx";
 
-const createId = (prefix?: string) => {
-  const id = nanoid();
+const ulid = monotonicFactory();
+
+type IdStrategy = "nanoid" | "ulid";
+
+export const createId = (prefix?: string, strategy: IdStrategy = "nanoid") => {
+  const raw = strategy === "ulid" ? ulid() : nanoid();
   if (!prefix) {
-    return id;
+    return raw;
   }
-  return `${prefix}_${id}`;
+  return `${prefix}_${raw}`;
 };
 
-export const id = (name = "id") =>
+export const id = (name = "id", strategy: IdStrategy = "nanoid") =>
   text(name)
     .notNull()
     .primaryKey()
-    .$defaultFn(() => createId());
+    .$defaultFn(() => createId(undefined, strategy));
 
 export const createdAt = text("created_at")
   .notNull()

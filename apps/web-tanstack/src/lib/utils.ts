@@ -1,9 +1,15 @@
 import { customAlphabet } from "nanoid";
+import { monotonicFactory } from "ulidx";
 
-export const createId = (prefix?: string) => {
-  const nanoid = customAlphabet(
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-    16
-  );
-  return `${prefix ? `${prefix}_` : ""}${nanoid()}`;
+const nanoid = customAlphabet(
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+  16
+);
+const ulid = monotonicFactory();
+
+type IdStrategy = "nanoid" | "ulid";
+
+export const createId = (prefix?: string, strategy: IdStrategy = "nanoid") => {
+  const raw = strategy === "ulid" ? ulid() : nanoid();
+  return `${prefix ? `${prefix}_` : ""}${raw}`;
 };

@@ -111,7 +111,7 @@ describe("streamText orchestration with mock model", () => {
 
     // System prompt is embedded in prompt array as a system message
     const systemText = JSON.stringify(call.prompt);
-    expect(systemText).toContain("helpful assistant");
+    expect(systemText).toContain("Clippy");
     expect(systemText).toContain("product-manager");
 
     // activeTools filters what the model sees — only active tools

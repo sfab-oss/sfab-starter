@@ -58,6 +58,7 @@
     "recharts": "^2.15.0",
     "streamdown": "^2.0.1",
     "tailwindcss": "^4.1.18",
+    "ulidx": "^2.4.1",
     "use-debounce": "^10.1.0",
     "zod": "^4.3.5"
   },

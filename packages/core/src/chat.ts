@@ -66,7 +66,7 @@ export async function getChatMessages(
   }
   const result = await db.query.messages.findMany({
     where: eq(messages.chatId, chatId),
-    orderBy: messages.createdAt,
+    orderBy: messages.id,
   });
   return dbMessagesToAIMessages(result);
 }
@@ -179,13 +179,15 @@ export async function deleteMessagesFromPoint({
     return;
   }
 
+  // ULID IDs are lexicographically sortable by creation time,
+  // so gte on id correctly captures this and all later messages.
   await db
     .delete(messages)
     .where(
       and(
         eq(messages.chatId, chatId),
         eq(messages.userId, userId),
-        gte(messages.createdAt, targetMessage.createdAt)
+        gte(messages.id, targetMessage.id)
       )
     );
 }

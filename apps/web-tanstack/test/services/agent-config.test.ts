@@ -46,7 +46,13 @@ describe("generalAgent.systemPrompt", () => {
   it("includes identity section", () => {
     const prompt = generalAgent.systemPrompt(context, []);
     expect(prompt).toContain("<identity>");
-    expect(prompt).toContain("helpful assistant");
+    expect(prompt).toContain("Clippy");
+  });
+
+  it("injects personality into system prompt", () => {
+    const prompt = generalAgent.systemPrompt(context, []);
+    expect(generalAgent.personality).toBeTruthy();
+    expect(prompt).toContain(generalAgent.personality);
   });
 
   it("includes skill protocol", () => {

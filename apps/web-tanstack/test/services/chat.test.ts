@@ -1,3 +1,4 @@
+import { createId } from "@workspace/db-d1/utils";
 import { beforeEach, describe, expect, it } from "vitest";
 import { seedOrganization, seedUser } from "../helpers/seed";
 
@@ -13,7 +14,7 @@ const makeMessage = (
   parts: { type: "text"; text: string }[];
   metadata: { createdAt: string; status: string };
 } => ({
-  id: crypto.randomUUID(),
+  id: createId(undefined, "ulid"),
   role,
   parts: [{ type: "text", text }],
   metadata: { createdAt: new Date().toISOString(), status: "success" },

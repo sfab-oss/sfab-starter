@@ -7,6 +7,7 @@ export const aiMetadataSchema = z.object({
   modelId: z.string().optional(),
   usage: z.custom<LanguageModelUsage>().optional(),
   responseTime: z.number().optional(),
+  summaryText: z.string().optional(),
 });
 
 export type AIMetadata = z.infer<typeof aiMetadataSchema>;
@@ -52,6 +53,7 @@ export const agentConfigSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
+  personality: z.string(),
   systemPrompt: z.function({
     input: z.tuple([z.custom<ChatContext>(), z.custom<string[]>()]),
     output: z.string(),

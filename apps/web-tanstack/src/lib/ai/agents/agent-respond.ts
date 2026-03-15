@@ -3,6 +3,18 @@ import { convertToModelMessages, gateway, stepCountIs, streamText } from "ai";
 import { createId } from "@/lib/utils";
 import type { AIUIMessage } from "@/types/ai";
 import {
+  buildCompactedMessages,
+  compactMessages,
+  createSummarizer,
+  resolveCompactionBoundary,
+  shouldCompact,
+} from "../context/compaction";
+import {
+  createDoomLoopWarningMessage,
+  detectDoomLoop,
+} from "../context/doom-loop";
+import { formatErrorForUser } from "../context/error-recovery";
+import {
   buildInitialActiveTools,
   handleSkillToolResults,
 } from "../skills/skill-service";
@@ -10,7 +22,7 @@ import { getAiTools } from "../tools/registry";
 import { type AgentId, getAgent } from "./registry";
 
 export async function agentRespond({
-  messages: initialMessages,
+  messages: allMessages,
   onUpsertMessage,
   abortSignal,
   orgId,
@@ -26,6 +38,9 @@ export async function agentRespond({
 }) {
   const startTime = Date.now();
 
+  const { messages: initialMessages, summaryText } =
+    resolveCompactionBoundary(allMessages);
+
   const agent = getAgent(agentId);
 
   const systemPrompt = agent.systemPrompt(
@@ -39,6 +54,9 @@ export async function agentRespond({
 
   const providerOptions = agent.model.providerOptions;
   const modelId = agent.model.modelId;
+  const contextLimit = 1_000_000;
+  const summarize = createSummarizer(gateway(modelId));
+  let compactionSummary: string | null = summaryText;
 
   const streamResult = streamText({
     model: gateway(modelId),
@@ -49,27 +67,64 @@ export async function agentRespond({
     tools,
     stopWhen: stepCountIs(25),
     activeTools: Array.from(activeTools),
-    prepareStep: ({ steps }) => {
+    prepareStep: async ({ steps, messages: currentMessages }) => {
       const lastStep = steps.at(-1);
       if (lastStep && lastStep.toolResults.length > 0) {
         activeTools = handleSkillToolResults(lastStep.toolResults, activeTools);
+      }
+
+      // Doom loop detection
+      if (detectDoomLoop(steps)) {
+        return {
+          activeTools: Array.from(activeTools),
+          messages: [...currentMessages, createDoomLoopWarningMessage()],
+        };
+      }
+
+      // Compaction check
+      if (shouldCompact(steps, contextLimit)) {
+        const result = await compactMessages(
+          currentMessages,
+          compactionSummary,
+          summarize
+        );
+        compactionSummary = result.summary;
+
+        const summaryDisplayText = `The conversation history before this point was compacted into the following summary:\n\n<summary>\n${result.summary}\n</summary>`;
+        const summaryMessage: AIUIMessage = {
+          id: createId("msg", "ulid"),
+          role: "assistant",
+          parts: [{ type: "text", text: summaryDisplayText }],
+          metadata: {
+            createdAt: new Date().toISOString(),
+            status: "success",
+            summaryText: result.summary,
+          },
+        };
+        await onUpsertMessage(summaryMessage);
 
         return {
           activeTools: Array.from(activeTools),
+          messages: buildCompactedMessages(result.summary, result.keptMessages),
         };
       }
-      return {};
+
+      return { activeTools: Array.from(activeTools) };
     },
   });
 
   return streamResult.toUIMessageStreamResponse<AIUIMessage>({
     originalMessages: initialMessages,
-    generateMessageId: () => createId("msg"),
+    generateMessageId: () => createId("msg", "ulid"),
     onFinish: async ({ responseMessage }) => {
       await onUpsertMessage(responseMessage);
     },
     sendReasoning: true,
     sendSources: true,
+    onError: (error) => {
+      console.error("Agent stream error:", error);
+      return formatErrorForUser(error);
+    },
     messageMetadata: ({ part }) => {
       if (part.type === "start") {
         return {

@@ -63,7 +63,7 @@ export function ChatEngineProvider({
         };
       },
     }),
-    generateId: () => createId("msg"),
+    generateId: () => createId("msg", "ulid"),
     sendAutomaticallyWhen: (messages) => {
       return (
         lastAssistantMessageIsCompleteWithToolCalls(messages) ||

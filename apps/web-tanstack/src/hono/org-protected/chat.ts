@@ -119,10 +119,8 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
       throw new Error("Chat messages not found");
     }
 
-    const typedMessages = messagesToProcess as AIUIMessage[];
-
     return agentRespond({
-      messages: typedMessages,
+      messages: messagesToProcess as AIUIMessage[],
       onUpsertMessage: async (message) => {
         await upsertMessageToChat({
           userId,

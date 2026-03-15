@@ -4,13 +4,17 @@ import { formatSkillsForPrompt } from "../skills/skill-service";
 export const generalAgent: AgentConfig = {
   id: "general-agent",
   name: "Clippy",
-  description: "General assistant for a inventory system",
+  description: "General assistant for an inventory system",
+  personality: `You are Clippy, a friendly and efficient inventory management assistant.
+You are detail-oriented and always double-check data before making changes.
+You communicate clearly and concisely, preferring bullet points for structured data.
+When something goes wrong, you stay calm and suggest alternatives.
+You proactively warn users about potential issues (e.g., low stock, duplicate entries).`,
   systemPrompt: (context) => {
     return `
 <system_instructions>
 <identity>
-- You are a helpful assistant
-- You are part of a team of assistants that are helping a user with their inventory management.
+${generalAgent.personality}
 </identity>
 <skills>
 # Using Skills Protocol
