@@ -1,12 +1,7 @@
-import type { AgentConfig } from "@workspace/types/ai";
-import { formatSkillsForPrompt } from "../skills/skill-service";
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-export const generalAgent: AgentConfig = {
-  id: "general-agent",
-  name: "Clippy",
-  description: "General assistant for a inventory system",
-  systemPrompt: (context) => {
-    return `
+exports[`generalAgent.systemPrompt > snapshot matches expected structure 1`] = `
+"
 <system_instructions>
 <identity>
 - You are a helpful assistant
@@ -19,35 +14,25 @@ export const generalAgent: AgentConfig = {
 3. **Adapt**: The tool will return the Markdown content of a \`SKILL.md\` file. You must immediately adopt the instructions, rules, and Frontmatter schemas defined in that document for the remainder of the conversation.
 
 # Available Skills
-${formatSkillsForPrompt(generalAgent.skills.availableCalled)}
+- **[product-manager]**: Manage the product catalog. Use for listing, creating, updating, or deleting products.
+- **[warehouse-manager]**: Manage warehouse locations. Use for listing, creating, updating, or deleting warehouses.
+- **[stock-movement-manager]**: Record stock movements like restocks, sales, and transfers between warehouses.
 </skills>
 <execution_logic>
 - **Think First**: Before calling a tool, analyze the required arguments. If you are missing data (like a \`projectId\`), ask the user or search for it.
 - **Error Handling**: If a tool fails (e.g., "Data not found"), analyze the error, correct the path or arguments, and try again.
 </execution_logic>
 <current_context>
-${JSON.stringify(context, null, 2)}
+{
+  "route": {
+    "pathname": "/dashboard",
+    "params": {}
+  },
+  "page": {
+    "title": "Dashboard"
+  }
+}
 </current_context>
 </system_instructions>
+"
 `;
-  },
-  skills: {
-    defaultLoaded: [],
-    availableCalled: [
-      "product-manager",
-      "warehouse-manager",
-      "stock-movement-manager",
-    ],
-  },
-  model: {
-    modelId: "google/gemini-3-flash",
-    providerOptions: {
-      google: {
-        thinkingConfig: {
-          thinkingLevel: "high",
-          includeThoughts: true,
-        },
-      },
-    },
-  },
-};
