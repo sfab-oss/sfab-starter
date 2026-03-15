@@ -1,7 +1,7 @@
 "use client";
-// biome-ignore lint/performance/noNamespaceImport: Ok
-import * as LabelPrimitive from "@radix-ui/react-label";
+
 import { cn } from "@workspace/ui/lib/utils";
+import { Label as LabelPrimitive } from "radix-ui";
 import type * as React from "react";
 
 function Label({

@@ -1,9 +1,8 @@
 "use client";
 
-import type * as LabelPrimitive from "@radix-ui/react-label";
-import { Slot } from "@radix-ui/react-slot";
 import { Label } from "@workspace/ui/components/shadcn/label";
 import { cn } from "@workspace/ui/lib/utils";
+import { type Label as LabelPrimitive, Slot as SlotPrimitive } from "radix-ui";
 // biome-ignore lint/performance/noNamespaceImport: Ok
 import * as React from "react";
 import {
@@ -104,12 +103,14 @@ function FormLabel({
   );
 }
 
-function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
+function FormControl({
+  ...props
+}: React.ComponentProps<typeof SlotPrimitive.Slot>) {
   const { error, formItemId, formDescriptionId, formMessageId } =
     useFormField();
 
   return (
-    <Slot
+    <SlotPrimitive.Slot
       aria-describedby={
         error ? `${formDescriptionId} ${formMessageId}` : `${formDescriptionId}`
       }

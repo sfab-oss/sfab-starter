@@ -1,6 +1,5 @@
 "use client";
 
-import { CodeBlock } from "@workspace/ui/components/ai-elements/code-block";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
 import {
   Collapsible,
@@ -8,7 +7,7 @@ import {
   CollapsibleTrigger,
 } from "@workspace/ui/components/shadcn/collapsible";
 import { cn } from "@workspace/ui/lib/utils";
-import type { DynamicToolUIPart, ToolUIPart } from "ai";
+import type { ToolUIPart } from "ai";
 import {
   CheckCircleIcon,
   ChevronDownIcon,
@@ -19,6 +18,7 @@ import {
 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { isValidElement } from "react";
+import { CodeBlock } from "./code-block";
 
 export type ToolProps = ComponentProps<typeof Collapsible>;
 
@@ -31,7 +31,7 @@ export const Tool = ({ className, ...props }: ToolProps) => (
 
 export interface ToolHeaderProps {
   title?: string;
-  type: ToolUIPart["type"] | DynamicToolUIPart["type"];
+  type: ToolUIPart["type"];
   state: ToolUIPart["state"];
   className?: string;
 }

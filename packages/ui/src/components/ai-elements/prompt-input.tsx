@@ -59,6 +59,7 @@ import {
   Fragment,
   type HTMLAttributes,
   type KeyboardEventHandler,
+  type MouseEvent,
   type PropsWithChildren,
   type ReactNode,
   type RefObject,
@@ -154,7 +155,7 @@ export function PromptInputProvider({
     (FileUIPart & { id: string })[]
   >([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  // biome-ignore lint/suspicious/noEmptyBlockStatements: Ok
+  // biome-ignore lint/suspicious/noEmptyBlockStatements: ai-elements component
   const openRef = useRef<() => void>(() => {});
 
   const add = useCallback((files: File[] | FileList) => {
@@ -327,7 +328,7 @@ export function PromptInputAttachment({
             <Button
               aria-label="Remove attachment"
               className="absolute inset-0 size-5 cursor-pointer rounded p-0 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 [&>svg]:size-2.5"
-              onClick={(e) => {
+              onClick={(e: MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 attachments.remove(data.id);
               }}
@@ -418,7 +419,7 @@ export const PromptInputActionAddAttachments = ({
   return (
     <DropdownMenuItem
       {...props}
-      onSelect={(e) => {
+      onSelect={(e: Event) => {
         e.preventDefault();
         attachments.openFileDialog();
       }}
@@ -1071,13 +1072,13 @@ interface SpeechRecognition extends EventTarget {
   lang: string;
   start(): void;
   stop(): void;
-  // biome-ignore lint/suspicious/noExplicitAny: Ok
+  // biome-ignore lint/suspicious/noExplicitAny: ai-elements component
   onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  // biome-ignore lint/suspicious/noExplicitAny: Ok
+  // biome-ignore lint/suspicious/noExplicitAny: ai-elements component
   onend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onresult: // biome-ignore lint/suspicious/noExplicitAny: Ok
+  onresult: // biome-ignore lint/suspicious/noExplicitAny: ai-elements component
   ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
-  onerror: // biome-ignore lint/suspicious/noExplicitAny: Ok
+  onerror: // biome-ignore lint/suspicious/noExplicitAny: ai-elements component
   ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
 }
 

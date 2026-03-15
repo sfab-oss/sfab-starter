@@ -1,7 +1,5 @@
 "use client";
 
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
-import { Shimmer } from "@workspace/ui/components/ai-elements/shimmer";
 import {
   Collapsible,
   CollapsibleContent,
@@ -9,9 +7,55 @@ import {
 } from "@workspace/ui/components/shadcn/collapsible";
 import { cn } from "@workspace/ui/lib/utils";
 import { BrainIcon, ChevronDownIcon } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactNode, SetStateAction } from "react";
 import { createContext, memo, useContext, useEffect, useState } from "react";
+
+interface UseControllableStateOptions<T> {
+  prop?: T;
+  defaultProp: T;
+  onChange?: (value: T) => void;
+}
+
+function useControllableState<T>({
+  prop,
+  defaultProp,
+  onChange,
+}: UseControllableStateOptions<T>) {
+  const [uncontrolledState, setUncontrolledState] = useState(defaultProp);
+  const isControlled = prop !== undefined;
+  const value = isControlled ? prop : uncontrolledState;
+
+  const setValue = (nextValue: SetStateAction<T>) => {
+    if (isControlled) {
+      const resolvedValue =
+        typeof nextValue === "function"
+          ? (nextValue as (prev: T) => T)(value)
+          : nextValue;
+
+      if (!Object.is(resolvedValue, value)) {
+        onChange?.(resolvedValue);
+      }
+      return;
+    }
+
+    setUncontrolledState((prev) => {
+      const resolvedValue =
+        typeof nextValue === "function"
+          ? (nextValue as (prev: T) => T)(prev)
+          : nextValue;
+
+      if (!Object.is(resolvedValue, prev)) {
+        onChange?.(resolvedValue);
+      }
+      return resolvedValue;
+    });
+  };
+
+  return [value, setValue] as const;
+}
+
 import { Streamdown } from "streamdown";
+import { Shimmer } from "./shimmer";
 
 interface ReasoningContextValue {
   isStreaming: boolean;

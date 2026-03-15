@@ -27,7 +27,7 @@ export const DefaultTool = memo(({ part }: DefaultToolProps) => {
       <ToolHeader
         state={part.state}
         title={idToReadableText(toolName, { capitalize: true })}
-        type={part.type}
+        type={part.type as ToolUIPart["type"]}
       />
       <ToolContent>
         <ToolInput input={part.input} />
