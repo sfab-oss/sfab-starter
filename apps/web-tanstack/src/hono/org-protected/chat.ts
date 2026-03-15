@@ -10,10 +10,13 @@ import {
 import type { ChatContext } from "@workspace/types/ai";
 import { Hono } from "hono";
 import { z } from "zod";
+import { isAgentId } from "../../lib/ai/agents";
 import { agentRespond } from "../../lib/ai/respond";
 import { generateChatTitle } from "../../lib/ai/title-generator";
 import type { AIUIMessage } from "../../types/ai";
 import type { HonoContextWithAuthAndOrg } from "../types";
+
+const DEFAULT_AGENT_ID = "general-agent";
 
 const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
   .get(
@@ -51,14 +54,17 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
     return c.json({ ...savedChat, messages });
   })
   .post("/messages", async (c) => {
-    const { newMessage, chatId, context, trigger, messageId } =
+    const { newMessage, chatId, context, trigger, messageId, agentId } =
       (await c.req.json()) as {
         newMessage: AIUIMessage;
         chatId: string;
         context: ChatContext;
         trigger?: "submit-message" | "regenerate-message";
         messageId?: string;
+        agentId?: string;
       };
+    const resolvedAgentId =
+      agentId && isAgentId(agentId) ? agentId : DEFAULT_AGENT_ID;
     const abortSignal = c.req.raw.signal;
 
     const userId = c.get("user").id;
@@ -90,7 +96,7 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
         },
         abortSignal,
         orgId,
-        agentId: "general-agent",
+        agentId: resolvedAgentId,
         context,
       });
     }
@@ -130,7 +136,7 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
       },
       abortSignal,
       orgId,
-      agentId: "general-agent",
+      agentId: resolvedAgentId,
       context,
     });
   });

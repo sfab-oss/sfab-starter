@@ -38,6 +38,7 @@ export function ChatEngineProvider({
   initialMessages = [],
   onNewChat,
   children,
+  agentId = "general-agent",
 }: ChatEngineProviderProps) {
   const toolHandlers = useToolHandlers();
   const onNewChatRef = useRef(onNewChat);
@@ -59,6 +60,7 @@ export function ChatEngineProvider({
             newMessage: messages.at(-1),
             trigger,
             messageId,
+            agentId,
           },
         };
       },

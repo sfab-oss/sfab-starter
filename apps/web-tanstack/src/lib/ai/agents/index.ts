@@ -7,6 +7,10 @@ export const agents = {
 
 export type AgentId = keyof typeof agents;
 
+export function isAgentId(value: string): value is AgentId {
+  return value in agents;
+}
+
 export function getAgent(agentId: AgentId): AgentConfig {
   const agent = agents[agentId];
   if (!agent) {
