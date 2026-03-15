@@ -1,4 +1,4 @@
-import type { AiToolId } from "./registry";
+import type { AiToolId } from "./index";
 
 type ToolGroupKey =
   | "system"

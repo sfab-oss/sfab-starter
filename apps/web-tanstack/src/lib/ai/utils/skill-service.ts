@@ -1,9 +1,9 @@
 import type { AgentConfig, SkillDefinition } from "@workspace/types/ai";
 import type { TypedToolResult } from "ai";
+import type { AiToolId } from "@/lib/ai/tools";
 import type { LoadSkillResult } from "@/lib/ai/tools/load-skill";
-import type { AiToolId } from "@/lib/ai/tools/registry";
 import type { AIUIMessage } from "@/types/ai";
-import { skillDefinitions } from "./registry/index";
+import { skillDefinitions } from "../skills";
 
 export function listSkillsMetadata(): Map<string, SkillDefinition> {
   const skills = new Map<string, SkillDefinition>();

@@ -10,6 +10,7 @@ beforeEach(async () => {
 });
 
 const API = "http://localhost/api/protected/inventory/uploads";
+const JPG_EXT_PATTERN = /\.jpg$/;
 
 function createTestFile(name: string, type: string, sizeBytes = 100): File {
   const buffer = new Uint8Array(sizeBytes);
@@ -34,7 +35,7 @@ describe("POST /api/protected/inventory/uploads", () => {
     expect(res.status).toBe(200);
     const data = (await res.json()) as { key: string };
     expect(data.key).toBeDefined();
-    expect(data.key).toMatch(/\.jpg$/);
+    expect(data.key).toMatch(JPG_EXT_PATTERN);
   });
 
   it("stores the file in R2", async () => {

@@ -1,5 +1,5 @@
 import type { AgentConfig } from "@workspace/types/ai";
-import { formatSkillsForPrompt } from "../skills/skill-service";
+import { formatSkillsForPrompt } from "../utils/skill-service";
 
 export const generalAgent: AgentConfig = {
   id: "general-agent",

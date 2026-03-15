@@ -8,7 +8,7 @@ import {
 import { Button } from "@workspace/ui/components/shadcn/button";
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import { memo } from "react";
-import type { AITools } from "@/lib/ai/tools/registry";
+import type { AITools } from "@/lib/ai/tools";
 import { idToReadableText } from "@/lib/id-to-readable-text";
 import { useChatEngine } from "../providers/chat-engine";
 

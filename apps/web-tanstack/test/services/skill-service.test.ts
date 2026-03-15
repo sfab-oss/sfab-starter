@@ -9,8 +9,11 @@ import {
   handleSkillToolResults,
   listSkillsForAgent,
   listSkillsMetadata,
-} from "../../src/lib/ai/skills/skill-service";
+} from "../../src/lib/ai/utils/skill-service";
 import type { AIUIMessage } from "../../src/types/ai";
+
+const PRODUCT_MANAGER_PATTERN = /^- \*\*\[product-manager\]\*\*/;
+const WAREHOUSE_MANAGER_PATTERN = /^- \*\*\[warehouse-manager\]\*\*/;
 
 // ---------- helpers ----------
 
@@ -150,8 +153,8 @@ describe("formatSkillsForPrompt", () => {
     const lines = formatted.split("\n");
 
     expect(lines).toHaveLength(2);
-    expect(lines[0]).toMatch(/^- \*\*\[product-manager\]\*\*/);
-    expect(lines[1]).toMatch(/^- \*\*\[warehouse-manager\]\*\*/);
+    expect(lines[0]).toMatch(PRODUCT_MANAGER_PATTERN);
+    expect(lines[1]).toMatch(WAREHOUSE_MANAGER_PATTERN);
   });
 
   it("returns fallback text when no skills available", () => {
@@ -182,7 +185,7 @@ describe("getToolsFromLoadedSkillsInMessages", () => {
   });
 
   it("extracts tools from a loaded skill part", () => {
-    const skill = getSkillDefinition("product-manager")!;
+    const skill = getSkillDefinition("product-manager") as SkillDefinition;
     const msg = makeMessageWithLoadedSkill(skill);
 
     const tools = getToolsFromLoadedSkillsInMessages([msg]);
@@ -193,8 +196,12 @@ describe("getToolsFromLoadedSkillsInMessages", () => {
   });
 
   it("merges tools from multiple loaded skills across messages", () => {
-    const productSkill = getSkillDefinition("product-manager")!;
-    const warehouseSkill = getSkillDefinition("warehouse-manager")!;
+    const productSkill = getSkillDefinition(
+      "product-manager"
+    ) as SkillDefinition;
+    const warehouseSkill = getSkillDefinition(
+      "warehouse-manager"
+    ) as SkillDefinition;
 
     const tools = getToolsFromLoadedSkillsInMessages([
       makeMessageWithLoadedSkill(productSkill),
@@ -261,7 +268,7 @@ describe("getToolsFromLoadedSkillsInMessages", () => {
   });
 
   it("does not produce duplicates when same skill loaded twice", () => {
-    const skill = getSkillDefinition("product-manager")!;
+    const skill = getSkillDefinition("product-manager") as SkillDefinition;
     const tools = getToolsFromLoadedSkillsInMessages([
       makeMessageWithLoadedSkill(skill),
       makeMessageWithLoadedSkill(skill),
@@ -344,7 +351,9 @@ describe("buildInitialActiveTools", () => {
       skills: { defaultLoaded: [], availableCalled: [] },
     });
 
-    const productSkill = getSkillDefinition("product-manager")!;
+    const productSkill = getSkillDefinition(
+      "product-manager"
+    ) as SkillDefinition;
     const messages = [makeMessageWithLoadedSkill(productSkill)];
 
     const tools = buildInitialActiveTools(agent, messages);
@@ -363,8 +372,12 @@ describe("buildInitialActiveTools", () => {
       },
     });
 
-    const productSkill = getSkillDefinition("product-manager")!;
-    const warehouseSkill = getSkillDefinition("warehouse-manager")!;
+    const productSkill = getSkillDefinition(
+      "product-manager"
+    ) as SkillDefinition;
+    const warehouseSkill = getSkillDefinition(
+      "warehouse-manager"
+    ) as SkillDefinition;
 
     const messages = [
       makeMessageWithLoadedSkill(productSkill), // overlaps with defaultLoaded
@@ -386,7 +399,9 @@ describe("buildInitialActiveTools", () => {
 describe("handleSkillToolResults", () => {
   it("adds new tools from a successful load-skill result", () => {
     const currentTools = new Set(["load-skill", "show-message"] as const);
-    const productSkill = getSkillDefinition("product-manager")!;
+    const productSkill = getSkillDefinition(
+      "product-manager"
+    ) as SkillDefinition;
 
     const newTools = handleSkillToolResults(
       [
@@ -407,7 +422,9 @@ describe("handleSkillToolResults", () => {
   });
 
   it("returns the same set reference when no new tools are added", () => {
-    const productSkill = getSkillDefinition("product-manager")!;
+    const productSkill = getSkillDefinition(
+      "product-manager"
+    ) as SkillDefinition;
     const currentTools = new Set([
       "load-skill",
       "show-message",
@@ -472,8 +489,12 @@ describe("handleSkillToolResults", () => {
 
   it("handles multiple tool results in one call", () => {
     const currentTools = new Set(["load-skill", "show-message"] as const);
-    const productSkill = getSkillDefinition("product-manager")!;
-    const warehouseSkill = getSkillDefinition("warehouse-manager")!;
+    const productSkill = getSkillDefinition(
+      "product-manager"
+    ) as SkillDefinition;
+    const warehouseSkill = getSkillDefinition(
+      "warehouse-manager"
+    ) as SkillDefinition;
 
     const newTools = handleSkillToolResults(
       [

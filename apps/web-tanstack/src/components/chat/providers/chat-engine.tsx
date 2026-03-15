@@ -6,7 +6,7 @@ import {
   lastAssistantMessageIsCompleteWithToolCalls,
 } from "ai";
 import { createContext, type ReactNode, useContext, useRef } from "react";
-import type { AiToolId } from "@/lib/ai/tools/registry";
+import type { AiToolId } from "@/lib/ai/tools";
 import { createId } from "@/lib/utils";
 import type { AIUIMessage } from "@/types/ai";
 import { useToolHandlers } from "./tool-handlers";

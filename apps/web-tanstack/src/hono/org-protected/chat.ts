@@ -10,7 +10,7 @@ import {
 import type { ChatContext } from "@workspace/types/ai";
 import { Hono } from "hono";
 import { z } from "zod";
-import { agentRespond } from "../../lib/ai/agents/agent-respond";
+import { agentRespond } from "../../lib/ai/respond";
 import { generateChatTitle } from "../../lib/ai/title-generator";
 import type { AIUIMessage } from "../../types/ai";
 import type { HonoContextWithAuthAndOrg } from "../types";

@@ -6,14 +6,14 @@ import {
 } from "ai";
 import { MockLanguageModelV3 } from "ai/test";
 import { describe, expect, it, vi } from "vitest";
+import { getAgent } from "../../src/lib/ai/agents";
 import { generalAgent } from "../../src/lib/ai/agents/general-agent";
-import { getAgent } from "../../src/lib/ai/agents/registry";
+import { getAiTools } from "../../src/lib/ai/tools";
 import {
   buildInitialActiveTools,
   getSkillDefinition,
   handleSkillToolResults,
-} from "../../src/lib/ai/skills/skill-service";
-import { getAiTools } from "../../src/lib/ai/tools/registry";
+} from "../../src/lib/ai/utils/skill-service";
 import type { AIUIMessage } from "../../src/types/ai";
 
 // ---------- helpers ----------

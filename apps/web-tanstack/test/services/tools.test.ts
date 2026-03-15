@@ -19,7 +19,7 @@ beforeEach(async () => {
 describe("load-skill tool", () => {
   it("returns definition for a valid skill", async () => {
     const { loadSkillTool } = await import("../../src/lib/ai/tools/load-skill");
-    const result = await loadSkillTool.execute!({ name: "product-manager" }, {
+    const result = await loadSkillTool.execute({ name: "product-manager" }, {
       toolCallId: "call-1",
       messages: [],
     } as never);
@@ -31,7 +31,7 @@ describe("load-skill tool", () => {
 
   it("returns error for an unknown skill", async () => {
     const { loadSkillTool } = await import("../../src/lib/ai/tools/load-skill");
-    const result = await loadSkillTool.execute!({ name: "does-not-exist" }, {
+    const result = await loadSkillTool.execute({ name: "does-not-exist" }, {
       toolCallId: "call-1",
       messages: [],
     } as never);
@@ -49,7 +49,7 @@ describe("product tools", () => {
       "../../src/lib/ai/tools/products"
     );
     const tools = createProductTools(orgId);
-    const result = await tools["list-products"].execute!({}, {
+    const result = await tools["list-products"].execute({}, {
       toolCallId: "call-1",
       messages: [],
     } as never);
@@ -65,7 +65,7 @@ describe("product tools", () => {
       "../../src/lib/ai/tools/products"
     );
     const tools = createProductTools(orgId);
-    const result = await tools["list-products"].execute!({}, {
+    const result = await tools["list-products"].execute({}, {
       toolCallId: "call-1",
       messages: [],
     } as never);
@@ -80,7 +80,7 @@ describe("product tools", () => {
       "../../src/lib/ai/tools/products"
     );
     const tools = createProductTools(orgId);
-    const result = await tools["get-product"].execute!({ id: product.id }, {
+    const result = await tools["get-product"].execute({ id: product.id }, {
       toolCallId: "call-1",
       messages: [],
     } as never);
@@ -93,7 +93,7 @@ describe("product tools", () => {
       "../../src/lib/ai/tools/products"
     );
     const tools = createProductTools(orgId);
-    const result = await tools["create-product"].execute!(
+    const result = await tools["create-product"].execute(
       { name: "New Item", sku: "NI-001", price: "9.99" },
       { toolCallId: "call-1", messages: [] } as never
     );
@@ -110,7 +110,7 @@ describe("product tools", () => {
       "../../src/lib/ai/tools/products"
     );
     const tools = createProductTools(orgId);
-    const result = await tools["update-product"].execute!(
+    const result = await tools["update-product"].execute(
       { id: product.id, data: { name: "New Name" } },
       { toolCallId: "call-1", messages: [] } as never
     );
@@ -125,13 +125,13 @@ describe("product tools", () => {
       "../../src/lib/ai/tools/products"
     );
     const tools = createProductTools(orgId);
-    await tools["delete-product"].execute!({ id: product.id }, {
+    await tools["delete-product"].execute({ id: product.id }, {
       toolCallId: "call-1",
       messages: [],
     } as never);
 
     // Verify deletion
-    const list = await tools["list-products"].execute!({}, {
+    const list = await tools["list-products"].execute({}, {
       toolCallId: "call-2",
       messages: [],
     } as never);
@@ -171,7 +171,7 @@ describe("product tools", () => {
       "../../src/lib/ai/tools/products"
     );
     const tools = createProductTools(orgId);
-    const result = await tools["list-products"].execute!({}, {
+    const result = await tools["list-products"].execute({}, {
       toolCallId: "call-1",
       messages: [],
     } as never);
@@ -191,10 +191,10 @@ describe("product tools", () => {
       "../../src/lib/ai/tools/products"
     );
     const tools = createProductTools(orgId);
-    const result = await tools["get-product"].execute!(
-      { id: otherProduct.id },
-      { toolCallId: "call-1", messages: [] } as never
-    );
+    const result = await tools["get-product"].execute({ id: otherProduct.id }, {
+      toolCallId: "call-1",
+      messages: [],
+    } as never);
 
     expect(result).toBeUndefined();
   });
@@ -208,7 +208,7 @@ describe("warehouse tools", () => {
       "../../src/lib/ai/tools/warehouses"
     );
     const tools = createWarehouseTools(orgId);
-    const result = await tools["list-warehouses"].execute!({}, {
+    const result = await tools["list-warehouses"].execute({}, {
       toolCallId: "call-1",
       messages: [],
     } as never);
@@ -224,7 +224,7 @@ describe("warehouse tools", () => {
       "../../src/lib/ai/tools/warehouses"
     );
     const tools = createWarehouseTools(orgId);
-    const result = await tools["list-warehouses"].execute!({}, {
+    const result = await tools["list-warehouses"].execute({}, {
       toolCallId: "call-1",
       messages: [],
     } as never);
@@ -239,7 +239,7 @@ describe("warehouse tools", () => {
       "../../src/lib/ai/tools/warehouses"
     );
     const tools = createWarehouseTools(orgId);
-    const result = await tools["get-warehouse"].execute!({ id: warehouse.id }, {
+    const result = await tools["get-warehouse"].execute({ id: warehouse.id }, {
       toolCallId: "call-1",
       messages: [],
     } as never);
@@ -252,7 +252,7 @@ describe("warehouse tools", () => {
       "../../src/lib/ai/tools/warehouses"
     );
     const tools = createWarehouseTools(orgId);
-    const result = await tools["create-warehouse"].execute!(
+    const result = await tools["create-warehouse"].execute(
       { name: "New Warehouse", location: "Building C" },
       { toolCallId: "call-1", messages: [] } as never
     );
@@ -269,7 +269,7 @@ describe("warehouse tools", () => {
       "../../src/lib/ai/tools/warehouses"
     );
     const tools = createWarehouseTools(orgId);
-    const result = await tools["update-warehouse"].execute!(
+    const result = await tools["update-warehouse"].execute(
       { id: warehouse.id, data: { name: "New Name" } },
       { toolCallId: "call-1", messages: [] } as never
     );
@@ -284,12 +284,12 @@ describe("warehouse tools", () => {
       "../../src/lib/ai/tools/warehouses"
     );
     const tools = createWarehouseTools(orgId);
-    await tools["delete-warehouse"].execute!({ id: warehouse.id }, {
+    await tools["delete-warehouse"].execute({ id: warehouse.id }, {
       toolCallId: "call-1",
       messages: [],
     } as never);
 
-    const list = await tools["list-warehouses"].execute!({}, {
+    const list = await tools["list-warehouses"].execute({}, {
       toolCallId: "call-2",
       messages: [],
     } as never);
@@ -318,7 +318,7 @@ describe("warehouse tools", () => {
       "../../src/lib/ai/tools/warehouses"
     );
     const tools = createWarehouseTools(orgId);
-    const result = await tools["list-warehouses"].execute!({}, {
+    const result = await tools["list-warehouses"].execute({}, {
       toolCallId: "call-1",
       messages: [],
     } as never);
@@ -338,7 +338,7 @@ describe("warehouse tools", () => {
       "../../src/lib/ai/tools/warehouses"
     );
     const tools = createWarehouseTools(orgId);
-    const result = await tools["get-warehouse"].execute!(
+    const result = await tools["get-warehouse"].execute(
       { id: otherWarehouse.id },
       { toolCallId: "call-1", messages: [] } as never
     );

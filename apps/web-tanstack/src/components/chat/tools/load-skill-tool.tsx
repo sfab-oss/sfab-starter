@@ -8,7 +8,7 @@ import type { ToolUIPart } from "ai";
 import { FileTextIcon, ListIcon } from "lucide-react";
 import { memo } from "react";
 import { Streamdown } from "streamdown";
-import type { AITools } from "@/lib/ai/tools/registry";
+import type { AITools } from "@/lib/ai/tools";
 import { idToReadableText } from "@/lib/id-to-readable-text";
 
 interface LoadSkillToolProps {

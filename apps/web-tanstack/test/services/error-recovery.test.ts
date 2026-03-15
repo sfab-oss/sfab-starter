@@ -4,7 +4,7 @@ import {
   formatErrorForUser,
   isContextOverflowError,
   isRateLimitError,
-} from "../../src/lib/ai/context/error-recovery";
+} from "../../src/lib/ai/utils/context/error-recovery";
 
 // ---------- isContextOverflowError ----------
 

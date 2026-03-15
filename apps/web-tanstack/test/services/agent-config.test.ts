@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generalAgent } from "../../src/lib/ai/agents/general-agent";
-import { getSkillDefinition } from "../../src/lib/ai/skills/skill-service";
+import { getSkillDefinition } from "../../src/lib/ai/utils/skill-service";
 
 describe("generalAgent config", () => {
   it("has required identity fields", () => {

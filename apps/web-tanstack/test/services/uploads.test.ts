@@ -1,6 +1,8 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
+const JPG_EXT_PATTERN = /\.jpg$/;
+
 function createTestFile(name: string, type: string, sizeBytes = 100): File {
   const buffer = new Uint8Array(sizeBytes);
   return new File([buffer], name, { type });
@@ -13,7 +15,7 @@ describe("uploadFile", () => {
     const { key } = await uploadFile(file);
 
     expect(key).toBeDefined();
-    expect(key).toMatch(/\.jpg$/);
+    expect(key).toMatch(JPG_EXT_PATTERN);
 
     // Verify file exists in R2
     const stored = await env.R2_BUCKET.get(key);
@@ -91,7 +93,7 @@ describe("getFile", () => {
     const result = await getFile(key);
     expect(result).not.toBeNull();
 
-    const body = await result!.arrayBuffer();
+    const body = await result?.arrayBuffer();
     expect(body.byteLength).toBe(50);
   });
 

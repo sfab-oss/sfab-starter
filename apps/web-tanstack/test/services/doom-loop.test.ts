@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createDoomLoopWarningMessage,
   detectDoomLoop,
-} from "../../src/lib/ai/context/doom-loop";
+} from "../../src/lib/ai/utils/context/doom-loop";
 
 // ---------- helpers ----------
 

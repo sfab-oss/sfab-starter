@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   truncateToolOutput,
   wrapToolsWithTruncation,
-} from "../../src/lib/ai/tools/truncation";
+} from "../../src/lib/ai/utils/truncation";
 
 // ---------- truncateToolOutput ----------
 

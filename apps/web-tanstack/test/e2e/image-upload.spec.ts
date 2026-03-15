@@ -30,9 +30,11 @@ function createPngChunk(type: string, data: Buffer): Buffer {
 
 function crc32(buf: Buffer): number {
   let c = 0xff_ff_ff_ff;
-  for (let i = 0; i < buf.length; i++) {
-    c = (c >>> 8) ^ crcTable[(c ^ buf[i]) & 0xff];
+  for (const byte of buf) {
+    // biome-ignore lint/suspicious/noBitwiseOperators: CRC32 requires bitwise operations
+    c = (c >>> 8) ^ crcTable[(c ^ byte) & 0xff];
   }
+  // biome-ignore lint/suspicious/noBitwiseOperators: CRC32 requires bitwise operations
   return (c ^ 0xff_ff_ff_ff) >>> 0;
 }
 
@@ -40,6 +42,7 @@ const crcTable: number[] = [];
 for (let n = 0; n < 256; n++) {
   let c = n;
   for (let k = 0; k < 8; k++) {
+    // biome-ignore lint/suspicious/noBitwiseOperators: CRC32 requires bitwise operations
     c = c & 1 ? 0xed_b8_83_20 ^ (c >>> 1) : c >>> 1;
   }
   crcTable[n] = c;

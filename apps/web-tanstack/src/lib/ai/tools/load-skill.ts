@@ -1,7 +1,7 @@
 import { skillDefinitionSchema } from "@workspace/types/ai";
 import { type InferUITool, tool } from "ai";
 import { z } from "zod";
-import { getSkillDefinition } from "@/lib/ai/skills/skill-service";
+import { getSkillDefinition } from "@/lib/ai/utils/skill-service";
 
 const loadSkillParamsSchema = z.object({
   name: z

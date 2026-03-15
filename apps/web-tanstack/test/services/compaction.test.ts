@@ -11,7 +11,7 @@ import {
   pruneToolResultsForSummarization,
   resolveCompactionBoundary,
   shouldCompact,
-} from "../../src/lib/ai/context/compaction";
+} from "../../src/lib/ai/utils/context/compaction";
 
 // ---------- helpers ----------
 

@@ -1,8 +1,8 @@
 import type { InferUITools } from "ai";
+import { wrapToolsWithTruncation } from "../utils/truncation";
 import { loadSkillTool } from "./load-skill";
 import { createProductTools } from "./products";
 import { showMessageTool } from "./show-message";
-import { wrapToolsWithTruncation } from "./truncation";
 import { createWarehouseTools } from "./warehouses";
 
 export const getAiTools = (orgId: string) => {

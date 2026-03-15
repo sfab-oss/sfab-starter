@@ -2,24 +2,24 @@ import type { ChatContext } from "@workspace/types/ai";
 import { convertToModelMessages, gateway, stepCountIs, streamText } from "ai";
 import { createId } from "@/lib/utils";
 import type { AIUIMessage } from "@/types/ai";
+import { type AgentId, getAgent } from "./agents";
+import { getAiTools } from "./tools";
 import {
   buildCompactedMessages,
   compactMessages,
   createSummarizer,
   resolveCompactionBoundary,
   shouldCompact,
-} from "../context/compaction";
+} from "./utils/context/compaction";
 import {
   createDoomLoopWarningMessage,
   detectDoomLoop,
-} from "../context/doom-loop";
-import { formatErrorForUser } from "../context/error-recovery";
+} from "./utils/context/doom-loop";
+import { formatErrorForUser } from "./utils/context/error-recovery";
 import {
   buildInitialActiveTools,
   handleSkillToolResults,
-} from "../skills/skill-service";
-import { getAiTools } from "../tools/registry";
-import { type AgentId, getAgent } from "./registry";
+} from "./utils/skill-service";
 
 export async function agentRespond({
   messages: allMessages,
