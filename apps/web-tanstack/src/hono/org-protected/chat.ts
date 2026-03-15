@@ -25,7 +25,8 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
     async (c) => {
       const { sort } = c.req.valid("query");
       const userId = c.get("user").id;
-      const chats = await getChats(userId, { sort });
+      const orgId = c.get("session").activeOrganizationId;
+      const chats = await getChats(userId, orgId, { sort });
       return c.json(chats);
     }
   )
@@ -74,6 +75,7 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
       const newChatId = await createChat({
         id: chatId,
         userId,
+        organizationId: orgId,
         title,
         message: newMessage,
       });

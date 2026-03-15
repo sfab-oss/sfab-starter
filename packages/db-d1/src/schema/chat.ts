@@ -9,12 +9,14 @@ export const chats = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id").notNull(),
     title: text("title").default("New chat").notNull(),
     agentId: text("agent_id").notNull().default("general-agent"),
     ...timestamps,
   },
   (table) => ({
     userIdIdx: index("chats_user_id_idx").on(table.userId),
+    orgIdIdx: index("chats_organization_id_idx").on(table.organizationId),
   })
 );
 

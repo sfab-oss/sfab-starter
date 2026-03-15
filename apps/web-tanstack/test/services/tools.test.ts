@@ -193,7 +193,7 @@ describe("product tools", () => {
     const tools = createProductTools(orgId);
     const result = await tools["get-product"].execute!(
       { id: otherProduct.id },
-      { toolCallId: "call-1", messages: [] } as never,
+      { toolCallId: "call-1", messages: [] } as never
     );
 
     expect(result).toBeUndefined();
@@ -340,7 +340,7 @@ describe("warehouse tools", () => {
     const tools = createWarehouseTools(orgId);
     const result = await tools["get-warehouse"].execute!(
       { id: otherWarehouse.id },
-      { toolCallId: "call-1", messages: [] } as never,
+      { toolCallId: "call-1", messages: [] } as never
     );
 
     expect(result).toBeUndefined();

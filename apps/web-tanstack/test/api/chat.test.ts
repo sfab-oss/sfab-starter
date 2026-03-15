@@ -6,11 +6,21 @@ const API = "http://localhost/api/protected/chat";
 
 let cookie: string;
 let userId: string;
+let orgId: string;
 
 beforeEach(async () => {
   const session = await createTestSessionWithOrg();
   cookie = session.cookie;
   userId = session.userId;
+
+  // Get the active orgId from the session
+  const meRes = await SELF.fetch("http://localhost/api/protected/me", {
+    headers: { Cookie: cookie },
+  });
+  const me = (await meRes.json()) as {
+    session: { activeOrganizationId: string };
+  };
+  orgId = me.session.activeOrganizationId;
 });
 
 // ---------- helpers ----------
@@ -22,12 +32,17 @@ const makeMessage = (role: "user" | "assistant", text: string) => ({
   metadata: { createdAt: new Date().toISOString(), status: "success" },
 });
 
-async function createChatViaDb(title: string, messageText: string) {
+async function createChatViaDb(
+  title: string,
+  messageText: string,
+  overrides?: { userId?: string; organizationId?: string }
+) {
   const { createChat } = await import("@workspace/core/chat");
   const chatId = crypto.randomUUID();
   await createChat({
     id: chatId,
-    userId,
+    userId: overrides?.userId ?? userId,
+    organizationId: overrides?.organizationId ?? orgId,
     title,
     message: makeMessage("user", messageText),
   });
@@ -83,14 +98,17 @@ describe("GET /chat", () => {
   it("does not return chats from other users", async () => {
     await createChatViaDb("My Chat", "Hello");
 
-    // Create a chat for a different user
+    // Create a chat for a different user in a different org
     const otherSession = await createTestSessionWithOrg();
-    const { createChat } = await import("@workspace/core/chat");
-    await createChat({
-      id: crypto.randomUUID(),
+    const otherMeRes = await SELF.fetch("http://localhost/api/protected/me", {
+      headers: { Cookie: otherSession.cookie },
+    });
+    const otherMe = (await otherMeRes.json()) as {
+      session: { activeOrganizationId: string };
+    };
+    await createChatViaDb("Other Chat", "Hi", {
       userId: otherSession.userId,
-      title: "Other Chat",
-      message: makeMessage("user", "Hi"),
+      organizationId: otherMe.session.activeOrganizationId,
     });
 
     const res = await SELF.fetch(API, {
@@ -99,6 +117,22 @@ describe("GET /chat", () => {
     const data = (await res.json()) as { title: string }[];
     expect(data).toHaveLength(1);
     expect(data[0].title).toBe("My Chat");
+  });
+
+  it("does not return chats from another organization for the same user", async () => {
+    await createChatViaDb("Org A Chat", "Hello");
+
+    // Create a chat in a different org for the same user
+    await createChatViaDb("Org B Chat", "Hi", {
+      organizationId: "other-org-id",
+    });
+
+    const res = await SELF.fetch(API, {
+      headers: { Cookie: cookie },
+    });
+    const data = (await res.json()) as { title: string }[];
+    expect(data).toHaveLength(1);
+    expect(data[0].title).toBe("Org A Chat");
   });
 });
 
@@ -133,13 +167,15 @@ describe("GET /chat/:chatId", () => {
 
   it("returns 401 when accessing another user's chat", async () => {
     const otherSession = await createTestSessionWithOrg();
-    const { createChat } = await import("@workspace/core/chat");
-    const chatId = crypto.randomUUID();
-    await createChat({
-      id: chatId,
+    const otherMeRes = await SELF.fetch("http://localhost/api/protected/me", {
+      headers: { Cookie: otherSession.cookie },
+    });
+    const otherMe = (await otherMeRes.json()) as {
+      session: { activeOrganizationId: string };
+    };
+    const chatId = await createChatViaDb("Private Chat", "Secret", {
       userId: otherSession.userId,
-      title: "Private Chat",
-      message: makeMessage("user", "Secret"),
+      organizationId: otherMe.session.activeOrganizationId,
     });
 
     const res = await SELF.fetch(`${API}/${chatId}`, {

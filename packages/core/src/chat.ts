@@ -23,17 +23,19 @@ export function dbMessagesToAIMessages(
 export async function createChat({
   id,
   userId,
+  organizationId,
   title,
   message,
 }: {
   id: string;
   userId: string;
+  organizationId: string;
   title: string;
   message: BaseAIUIMessage;
 }): Promise<string> {
   const [result] = await db
     .insert(chats)
-    .values({ id, userId, title })
+    .values({ id, userId, organizationId, title })
     .returning();
   if (!result) {
     throw new Error("Failed to create chat");
@@ -83,12 +85,16 @@ export async function getChat(
 
 export async function getChats(
   userId: string,
+  organizationId: string,
   options?: { sort?: "asc" | "desc" }
 ): Promise<(typeof chats.$inferSelect)[]> {
   const { sort = "desc" } = options || {};
   const orderBy = sort === "asc" ? asc(chats.createdAt) : desc(chats.createdAt);
   const result = await db.query.chats.findMany({
-    where: eq(chats.userId, userId),
+    where: and(
+      eq(chats.userId, userId),
+      eq(chats.organizationId, organizationId)
+    ),
     orderBy,
   });
   return result;

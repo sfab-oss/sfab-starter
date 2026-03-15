@@ -31,7 +31,7 @@ describe("generalAgent config", () => {
     for (const name of allSkillNames) {
       expect(
         getSkillDefinition(name),
-        `Skill "${name}" is referenced by general-agent but not registered`,
+        `Skill "${name}" is referenced by general-agent but not registered`
       ).not.toBeNull();
     }
   });

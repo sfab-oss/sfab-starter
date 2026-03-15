@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { seedUser } from "../helpers/seed";
+import { seedOrganization, seedUser } from "../helpers/seed";
 
 let userId: string;
+let orgId: string;
 
 const makeMessage = (
   role: "user" | "assistant",
@@ -21,6 +22,8 @@ const makeMessage = (
 beforeEach(async () => {
   const user = await seedUser();
   userId = user.id;
+  const org = await seedOrganization(user.id);
+  orgId = org.id;
 });
 
 describe("createChat", () => {
@@ -31,6 +34,7 @@ describe("createChat", () => {
     const chatId = await createChat({
       id: crypto.randomUUID(),
       userId,
+      organizationId: orgId,
       title: "Test Chat",
       message: makeMessage("user", "Hello"),
     });
@@ -38,6 +42,7 @@ describe("createChat", () => {
     const chat = await getChat(chatId);
     expect(chat).toBeDefined();
     expect(chat?.title).toBe("Test Chat");
+    expect(chat?.organizationId).toBe(orgId);
 
     const messages = await getChatMessages(chatId);
     expect(messages).toHaveLength(1);
@@ -46,12 +51,13 @@ describe("createChat", () => {
 });
 
 describe("getChats", () => {
-  it("returns chats for a user", async () => {
+  it("returns chats for a user in the org", async () => {
     const { createChat, getChats } = await import("@workspace/core/chat");
 
     await createChat({
       id: crypto.randomUUID(),
       userId,
+      organizationId: orgId,
       title: "First Chat",
       message: makeMessage("user", "First"),
     });
@@ -59,11 +65,12 @@ describe("getChats", () => {
     await createChat({
       id: crypto.randomUUID(),
       userId,
+      organizationId: orgId,
       title: "Second Chat",
       message: makeMessage("user", "Second"),
     });
 
-    const chats = await getChats(userId);
+    const chats = await getChats(userId, orgId);
     expect(chats).toHaveLength(2);
   });
 
@@ -74,6 +81,7 @@ describe("getChats", () => {
     await createChat({
       id: crypto.randomUUID(),
       userId,
+      organizationId: orgId,
       title: "My Chat",
       message: makeMessage("user", "Hello"),
     });
@@ -81,13 +89,39 @@ describe("getChats", () => {
     await createChat({
       id: crypto.randomUUID(),
       userId: otherUser.id,
+      organizationId: orgId,
       title: "Other Chat",
       message: makeMessage("user", "Hello"),
     });
 
-    const chats = await getChats(userId);
+    const chats = await getChats(userId, orgId);
     expect(chats).toHaveLength(1);
     expect(chats[0].title).toBe("My Chat");
+  });
+
+  it("does not return chats from other organizations", async () => {
+    const otherOrg = await seedOrganization(userId);
+    const { createChat, getChats } = await import("@workspace/core/chat");
+
+    await createChat({
+      id: crypto.randomUUID(),
+      userId,
+      organizationId: orgId,
+      title: "Org A Chat",
+      message: makeMessage("user", "Hello"),
+    });
+
+    await createChat({
+      id: crypto.randomUUID(),
+      userId,
+      organizationId: otherOrg.id,
+      title: "Org B Chat",
+      message: makeMessage("user", "Hello"),
+    });
+
+    const chats = await getChats(userId, orgId);
+    expect(chats).toHaveLength(1);
+    expect(chats[0].title).toBe("Org A Chat");
   });
 });
 
@@ -100,6 +134,7 @@ describe("addMessageToChat", () => {
     const chatId = await createChat({
       id: crypto.randomUUID(),
       userId,
+      organizationId: orgId,
       title: "Chat",
       message: makeMessage("user", "Hello"),
     });
@@ -125,6 +160,7 @@ describe("upsertMessageToChat", () => {
     const chatId = await createChat({
       id: crypto.randomUUID(),
       userId,
+      organizationId: orgId,
       title: "Chat",
       message: makeMessage("user", "Hello"),
     });
@@ -148,6 +184,7 @@ describe("upsertMessageToChat", () => {
     const chatId = await createChat({
       id: crypto.randomUUID(),
       userId,
+      organizationId: orgId,
       title: "Chat",
       message: msg,
     });
@@ -173,6 +210,7 @@ describe("deleteChat", () => {
     const chatId = await createChat({
       id: crypto.randomUUID(),
       userId,
+      organizationId: orgId,
       title: "To Delete",
       message: makeMessage("user", "Hello"),
     });
@@ -191,6 +229,7 @@ describe("deleteChat", () => {
     const chatId = await createChat({
       id: crypto.randomUUID(),
       userId: otherUser.id,
+      organizationId: orgId,
       title: "Other Chat",
       message: makeMessage("user", "Hello"),
     });
@@ -213,6 +252,7 @@ describe("deleteMessagesFromPoint", () => {
     const chatId = await createChat({
       id: crypto.randomUUID(),
       userId,
+      organizationId: orgId,
       title: "Chat",
       message: makeMessage("user", "First"),
     });
@@ -246,6 +286,7 @@ describe("deleteMessagesFromPoint", () => {
     const chatId = await createChat({
       id: crypto.randomUUID(),
       userId,
+      organizationId: orgId,
       title: "Chat",
       message: makeMessage("user", "Hello"),
     });
@@ -279,6 +320,7 @@ describe("deleteMessagesFromPoint", () => {
     const chatId = await createChat({
       id: crypto.randomUUID(),
       userId: otherUser.id,
+      organizationId: orgId,
       title: "Other Chat",
       message: msg,
     });
