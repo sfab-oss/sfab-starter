@@ -4,7 +4,9 @@ import {
   deleteMessagesFromPoint,
   getChat,
   getChatMessages,
+  getChatStatus,
   getChats,
+  updateChatStatus,
   upsertMessageToChat,
 } from "@workspace/core/chat";
 import type { ChatContext } from "@workspace/types/ai";
@@ -15,6 +17,7 @@ import { agentRespond } from "../../lib/ai/respond";
 import { generateChatTitle } from "../../lib/ai/title-generator";
 import type { AIUIMessage } from "../../types/ai";
 import type { HonoContextWithAuthAndOrg } from "../types";
+import { safeWaitUntil } from "../utils/wait-until";
 
 const DEFAULT_AGENT_ID = "general-agent";
 
@@ -53,6 +56,24 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
 
     return c.json({ ...savedChat, messages });
   })
+  .post("/:chatId/cancel", async (c) => {
+    const chatId = c.req.param("chatId");
+    const userId = c.get("user").id;
+    const chat = await getChat(chatId);
+
+    if (!chat) {
+      return c.json({ error: "Chat not found" }, 404);
+    }
+    if (chat.userId !== userId) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+    if (chat.status !== "processing") {
+      return c.json({ error: "Chat is not processing" }, 409);
+    }
+
+    await updateChatStatus(chatId, "idle");
+    return c.json({ success: true });
+  })
   .post("/messages", async (c) => {
     const { newMessage, chatId, context, trigger, messageId, agentId } =
       (await c.req.json()) as {
@@ -65,80 +86,102 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
       };
     const resolvedAgentId =
       agentId && isAgentId(agentId) ? agentId : DEFAULT_AGENT_ID;
-    const abortSignal = c.req.raw.signal;
 
     const userId = c.get("user").id;
     const orgId = c.get("session").activeOrganizationId;
 
-    const savedChat = await getChat(chatId);
+    // Guard: reject if chat is already processing
+    const existingChat = await getChat(chatId);
+    if (existingChat?.status === "processing") {
+      return c.json({ error: "Chat is already processing" }, 409);
+    }
 
-    if (!savedChat) {
+    // Resolve the messages to send to the agent
+    let messagesToProcess: AIUIMessage[];
+
+    if (existingChat) {
+      if (existingChat.userId !== userId) {
+        return c.json({ error: "Unauthorized" }, 401);
+      }
+
+      if (trigger === "regenerate-message" && messageId) {
+        await deleteMessagesFromPoint({
+          chatId,
+          messageId,
+          userId,
+        });
+      }
+
+      await upsertMessageToChat({
+        userId,
+        chatId,
+        message: newMessage,
+      });
+
+      const savedMessages = await getChatMessages(chatId);
+      if (!savedMessages) {
+        return c.json({ error: "Chat messages not found" }, 404);
+      }
+      messagesToProcess = savedMessages as AIUIMessage[];
+    } else {
       const messageFirstPartText = newMessage.parts.find(
         (p) => p.type === "text"
       );
 
       const title = await generateChatTitle(messageFirstPartText?.text ?? "");
-      const newChatId = await createChat({
+      await createChat({
         id: chatId,
         userId,
         organizationId: orgId,
         title,
         message: newMessage,
       });
-      return agentRespond({
-        messages: [newMessage],
+
+      messagesToProcess = [newMessage];
+    }
+
+    // Check if cancel was user-initiated to avoid overwriting "idle" with "failed"
+    const checkCanceled = async () => {
+      const current = await getChatStatus(chatId);
+      return current?.status !== "processing";
+    };
+
+    await updateChatStatus(chatId, "processing");
+
+    try {
+      const { response, completionPromise } = await agentRespond({
+        messages: messagesToProcess,
         onUpsertMessage: async (message) => {
-          await upsertMessageToChat({
-            chatId: newChatId,
-            userId,
-            message,
-          });
+          await upsertMessageToChat({ chatId, userId, message });
         },
-        abortSignal,
         orgId,
         agentId: resolvedAgentId,
         context,
+        onComplete: async () => {
+          await updateChatStatus(chatId, "idle");
+        },
+        onError: async (error) => {
+          // Don't overwrite "idle" from a user-initiated cancel with "failed"
+          const current = await getChatStatus(chatId);
+          if (current?.status === "processing") {
+            const message =
+              error instanceof Error ? error.message : "Unknown error";
+            await updateChatStatus(chatId, "failed", message);
+          }
+        },
+        checkCanceled,
       });
-    }
-
-    if (savedChat.userId !== userId) {
-      throw new Error("Unauthorized");
-    }
-
-    if (trigger === "regenerate-message" && messageId) {
-      await deleteMessagesFromPoint({
+      safeWaitUntil(completionPromise);
+      return response;
+    } catch (error) {
+      // agentRespond threw before the stream started — reset status
+      await updateChatStatus(
         chatId,
-        messageId,
-        userId,
-      });
+        "failed",
+        error instanceof Error ? error.message : "Failed to start agent"
+      );
+      throw error;
     }
-
-    await upsertMessageToChat({
-      userId,
-      chatId,
-      message: newMessage,
-    });
-
-    const messagesToProcess = await getChatMessages(chatId);
-
-    if (!messagesToProcess) {
-      throw new Error("Chat messages not found");
-    }
-
-    return agentRespond({
-      messages: messagesToProcess as AIUIMessage[],
-      onUpsertMessage: async (message) => {
-        await upsertMessageToChat({
-          userId,
-          chatId,
-          message,
-        });
-      },
-      abortSignal,
-      orgId,
-      agentId: resolvedAgentId,
-      context,
-    });
   });
 
 export default chatRoutes;

@@ -31,6 +31,10 @@ export const skillDefinitionSchema = z.object({
 
 export type SkillDefinition = z.infer<typeof skillDefinitionSchema>;
 
+// Chat Processing Status
+
+export type ChatProcessingStatus = "idle" | "processing" | "failed";
+
 // Chat Context
 
 export interface ChatContext {

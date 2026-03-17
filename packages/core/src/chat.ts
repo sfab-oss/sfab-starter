@@ -1,6 +1,9 @@
 import { db } from "@workspace/db-d1";
 import { chats, messages } from "@workspace/db-d1/schema/chat";
-import type { BaseAIUIMessage } from "@workspace/types/ai";
+import type {
+  BaseAIUIMessage,
+  ChatProcessingStatus,
+} from "@workspace/types/ai";
 import { and, asc, desc, eq, gte } from "drizzle-orm";
 
 export function dbMessageToAIMessage(
@@ -190,6 +193,29 @@ export async function deleteMessagesFromPoint({
         gte(messages.id, targetMessage.id)
       )
     );
+}
+
+export async function updateChatStatus(
+  chatId: string,
+  status: ChatProcessingStatus,
+  lastError?: string
+): Promise<void> {
+  await db
+    .update(chats)
+    .set({
+      status,
+      lastError: lastError ?? null,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(chats.id, chatId));
+}
+
+export async function getChatStatus(chatId: string) {
+  const result = await db.query.chats.findFirst({
+    where: eq(chats.id, chatId),
+    columns: { status: true, lastError: true },
+  });
+  return result ?? null;
 }
 
 export async function deleteChat({

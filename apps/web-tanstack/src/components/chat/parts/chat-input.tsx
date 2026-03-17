@@ -20,6 +20,7 @@ import {
 } from "@workspace/ui/components/ai-elements/prompt-input";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { useCallback, useMemo } from "react";
+import { useCancelChat } from "@/hooks/use-chat";
 import { useChatEngine } from "../providers/chat-engine";
 import { usePageContext } from "../providers/page-context";
 
@@ -53,8 +54,14 @@ function ChatInputInner({
   additionalContext?: Partial<ChatContext>;
   placeholder: string;
 }) {
-  const { sendMessage, status } = useChatEngine();
+  const { sendMessage, status, stop, id: chatId } = useChatEngine();
   const controller = usePromptInputController();
+  const { mutate: cancelChat } = useCancelChat();
+
+  const handleStop = useCallback(() => {
+    stop();
+    cancelChat(chatId);
+  }, [stop, chatId, cancelChat]);
 
   const routerState = useRouterState();
   const params = useParams({ strict: false });
@@ -142,7 +149,12 @@ function ChatInputInner({
         </PromptInputTools>
         <PromptInputTools className="gap-2">
           <ChatVoiceButton controller={controller} />
-          <PromptInputSubmit status={status} />
+          <PromptInputSubmit
+            status={status}
+            {...(status === "streaming" || status === "submitted"
+              ? { type: "button", onClick: handleStop }
+              : {})}
+          />
         </PromptInputTools>
       </PromptInputFooter>
     </PromptInput>

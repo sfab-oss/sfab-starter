@@ -1,3 +1,4 @@
+import type { ChatProcessingStatus } from "@workspace/types/ai";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { id, timestamps } from "../utils";
 import { user } from "./auth";
@@ -12,6 +13,11 @@ export const chats = sqliteTable(
     organizationId: text("organization_id").notNull(),
     title: text("title").default("New chat").notNull(),
     agentId: text("agent_id").notNull().default("general-agent"),
+    status: text("status")
+      .$type<ChatProcessingStatus>()
+      .default("idle")
+      .notNull(),
+    lastError: text("last_error"),
     ...timestamps,
   },
   (table) => ({

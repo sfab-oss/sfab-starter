@@ -1,5 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { client } from "../lib/client";
+
+export function useCancelChat() {
+  return useMutation({
+    mutationFn: async (chatId: string) => {
+      const response = await client.protected.chat[":chatId"].cancel.$post({
+        param: { chatId },
+      });
+      return response.json();
+    },
+  });
+}
 
 export const getChatKey = (id: string) => ["chats", id];
 
