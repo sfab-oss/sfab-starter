@@ -10,14 +10,6 @@ import {
 import { createId } from "@/lib/utils";
 import type { AIUIMessage } from "@/types/ai";
 
-const COOKIE_NAME = "active_chat_id";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
-
-function setCookie(name: string, value: string, maxAge: number) {
-  // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API not widely supported
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}`;
-}
-
 interface ChatSessionContextValue {
   currentChatId: string;
   isNewChat: boolean;
@@ -61,14 +53,11 @@ export function ChatSessionProvider({
   const [initialMessages] = useState<AIUIMessage[]>(defaultMessages);
 
   const startNewChat = useCallback(() => {
-    const newChatId = createId("chat");
-    setCookie(COOKIE_NAME, newChatId, COOKIE_MAX_AGE);
-    navigate({ to: "/chat/$id", params: { id: newChatId } });
+    navigate({ to: "/chat" });
   }, [navigate]);
 
   const navigateToChat = useCallback(
     (chatId: string) => {
-      setCookie(COOKIE_NAME, chatId, COOKIE_MAX_AGE);
       navigate({ to: "/chat/$id", params: { id: chatId } });
     },
     [navigate]
@@ -76,8 +65,7 @@ export function ChatSessionProvider({
 
   const markChatPersisted = useCallback(() => {
     setIsNewChat(false);
-    setCookie(COOKIE_NAME, currentChatId, COOKIE_MAX_AGE);
-  }, [currentChatId]);
+  }, []);
 
   const value = useMemo(
     () => ({

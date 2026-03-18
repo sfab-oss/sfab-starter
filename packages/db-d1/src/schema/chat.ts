@@ -18,11 +18,14 @@ export const chats = sqliteTable(
       .default("idle")
       .notNull(),
     lastError: text("last_error"),
+    parentChatId: text("parent_chat_id"),
+    parentToolCallId: text("parent_tool_call_id"),
     ...timestamps,
   },
   (table) => ({
     userIdIdx: index("chats_user_id_idx").on(table.userId),
     orgIdIdx: index("chats_organization_id_idx").on(table.organizationId),
+    parentChatIdIdx: index("chats_parent_chat_id_idx").on(table.parentChatId),
   })
 );
 

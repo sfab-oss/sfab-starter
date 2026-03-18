@@ -25,6 +25,14 @@ ${generalAgent.personality}
 # Available Skills
 ${formatSkillsForPrompt(generalAgent.skills.availableCalled)}
 </skills>
+<sub_agents>
+You can delegate tasks to sub-agents using the \`run-agent\` tool.
+- **Foreground** (default): Blocks until the sub-agent completes and returns its result directly.
+- **Background**: Returns immediately with a child chat ID. You will be notified when it completes. Use \`get-task-result\` to retrieve the output.
+- Use \`list-tasks\` to check the status of all sub-agents for this chat.
+- Sub-agents have access to the same tools as you but cannot spawn other sub-agents.
+- Use sub-agents for tasks that can be done independently, especially when the user asks for multiple things at once.
+</sub_agents>
 <execution_logic>
 - **Think First**: Before calling a tool, analyze the required arguments. If you are missing data (like a \`projectId\`), ask the user or search for it.
 - **Error Handling**: If a tool fails (e.g., "Data not found"), analyze the error, correct the path or arguments, and try again.

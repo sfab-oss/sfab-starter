@@ -4,7 +4,7 @@ import type {
   BaseAIUIMessage,
   ChatProcessingStatus,
 } from "@workspace/types/ai";
-import { and, asc, desc, eq, gte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull } from "drizzle-orm";
 
 export function dbMessageToAIMessage(
   message: typeof messages.$inferSelect
@@ -29,16 +29,27 @@ export async function createChat({
   organizationId,
   title,
   message,
+  parentChatId,
+  parentToolCallId,
 }: {
   id: string;
   userId: string;
   organizationId: string;
   title: string;
   message: BaseAIUIMessage;
+  parentChatId?: string;
+  parentToolCallId?: string;
 }): Promise<string> {
   const [result] = await db
     .insert(chats)
-    .values({ id, userId, organizationId, title })
+    .values({
+      id,
+      userId,
+      organizationId,
+      title,
+      parentChatId,
+      parentToolCallId,
+    })
     .returning();
   if (!result) {
     throw new Error("Failed to create chat");
@@ -96,7 +107,8 @@ export async function getChats(
   const result = await db.query.chats.findMany({
     where: and(
       eq(chats.userId, userId),
-      eq(chats.organizationId, organizationId)
+      eq(chats.organizationId, organizationId),
+      isNull(chats.parentChatId)
     ),
     orderBy,
   });
@@ -228,4 +240,39 @@ export async function deleteChat({
   await db
     .delete(chats)
     .where(and(eq(chats.id, chatId), eq(chats.userId, userId)));
+}
+
+export function getChildChats(
+  parentChatId: string
+): Promise<(typeof chats.$inferSelect)[]> {
+  return db.query.chats.findMany({
+    where: eq(chats.parentChatId, parentChatId),
+    orderBy: asc(chats.createdAt),
+  });
+}
+
+export async function getChildChatByToolCallId(
+  parentToolCallId: string
+): Promise<typeof chats.$inferSelect | null> {
+  const result = await db.query.chats.findFirst({
+    where: eq(chats.parentToolCallId, parentToolCallId),
+  });
+  return result ?? null;
+}
+
+export async function getLastAssistantMessage(
+  chatId: string
+): Promise<string | null> {
+  const result = await db.query.messages.findMany({
+    where: eq(messages.chatId, chatId),
+    orderBy: messages.id,
+  });
+  const assistantMessages = result.filter((m) => m.role === "assistant");
+  const lastMessage = assistantMessages.at(-1);
+  if (!lastMessage) {
+    return null;
+  }
+  const parts = lastMessage.parts as BaseAIUIMessage["parts"];
+  const textParts = parts.filter((p) => p.type === "text").map((p) => p.text);
+  return textParts.join("\n") || null;
 }

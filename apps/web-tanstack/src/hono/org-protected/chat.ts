@@ -6,6 +6,7 @@ import {
   getChatMessages,
   getChatStatus,
   getChats,
+  getChildChats,
   updateChatStatus,
   upsertMessageToChat,
 } from "@workspace/core/chat";
@@ -36,6 +37,21 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
       return c.json(chats);
     }
   )
+  .get("/:chatId/children", async (c) => {
+    const chatId = c.req.param("chatId");
+    const userId = c.get("user").id;
+    const chat = await getChat(chatId);
+
+    if (!chat) {
+      return c.json({ error: "Chat not found" }, 404);
+    }
+    if (chat.userId !== userId) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const children = await getChildChats(chatId);
+    return c.json(children);
+  })
   .get("/:chatId", async (c) => {
     const chatId = c.req.param("chatId");
     const userId = c.get("user").id;
@@ -155,6 +171,8 @@ const chatRoutes = new Hono<HonoContextWithAuthAndOrg>()
           await upsertMessageToChat({ chatId, userId, message });
         },
         orgId,
+        chatId,
+        userId,
         agentId: resolvedAgentId,
         context,
         onComplete: async () => {

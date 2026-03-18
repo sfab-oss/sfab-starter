@@ -1,6 +1,7 @@
 import { ChatEngineProvider } from "./providers/chat-engine";
 import { useChatSession } from "./providers/chat-session";
 import { PageContextProvider } from "./providers/page-context";
+import { SubAgentViewProvider } from "./providers/sub-agent-view";
 import { ToolHandlerRegistry } from "./providers/tool-handlers";
 
 export function ChatOrchestrator({ children }: { children: React.ReactNode }) {
@@ -16,7 +17,7 @@ export function ChatOrchestrator({ children }: { children: React.ReactNode }) {
           key={currentChatId}
           onNewChat={markChatPersisted}
         >
-          {children}
+          <SubAgentViewProvider>{children}</SubAgentViewProvider>
         </ChatEngineProvider>
       </ToolHandlerRegistry>
     </PageContextProvider>

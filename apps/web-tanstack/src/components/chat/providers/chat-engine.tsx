@@ -48,7 +48,7 @@ export function ChatEngineProvider({
     id,
     messages: initialMessages,
     transport: new DefaultChatTransport({
-      api: "/api/chat/messages",
+      api: "/api/protected/chat/messages",
       prepareSendMessagesRequest({ messages, body, trigger, messageId }) {
         if (initialMessages.length === 0 && onNewChatRef.current) {
           onNewChatRef.current(id);

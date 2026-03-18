@@ -12,6 +12,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@workspace/ui/components/shadcn/sidebar";
+import { TooltipProvider } from "@workspace/ui/components/shadcn/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 import { PanelRight, PanelRightClose } from "lucide-react";
 import {
@@ -35,14 +36,16 @@ export function AppLayout({
   defaultOpen?: boolean;
 }) {
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
-      {sidebar}
-      <div className="relative flex h-svh w-full flex-1 flex-col md:peer-data-[state=collapsed]:peer-data-[variant=inset]:pl-0 md:peer-data-[variant=inset]:p-2 md:peer-data-[variant=inset]:pl-0">
-        <SidebarInset className="overflow-hidden rounded-xl bg-background shadow">
-          {children}
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+    <TooltipProvider delayDuration={0}>
+      <SidebarProvider defaultOpen={defaultOpen}>
+        {sidebar}
+        <div className="relative flex h-svh w-full flex-1 flex-col md:peer-data-[state=collapsed]:peer-data-[variant=inset]:pl-0 md:peer-data-[variant=inset]:p-2 md:peer-data-[variant=inset]:pl-0">
+          <SidebarInset className="overflow-hidden rounded-xl bg-background shadow">
+            {children}
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }
 

@@ -117,8 +117,8 @@ describe("streamText orchestration with mock model", () => {
     // activeTools filters what the model sees — only active tools
     if (call.tools) {
       const toolNames = Object.keys(call.tools);
-      // Should have exactly the active tools (load-skill + show-message = 2)
-      expect(toolNames.length).toBe(2);
+      // Should have exactly the active tools (load-skill + show-message + sub-agent tools = 5)
+      expect(toolNames.length).toBe(5);
     }
   });
 
@@ -156,10 +156,10 @@ describe("streamText orchestration with mock model", () => {
 
     await result.text;
 
-    // Model should only see the two active tools
+    // Model should only see the active tools (system tools + sub-agent tools)
     if (captured?.tools) {
       const toolNames = Object.keys(captured.tools);
-      expect(toolNames.length).toBe(2);
+      expect(toolNames.length).toBe(5);
     }
   });
 

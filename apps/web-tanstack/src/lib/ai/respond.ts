@@ -36,6 +36,8 @@ export async function agentRespond({
   messages: allMessages,
   onUpsertMessage,
   orgId,
+  chatId,
+  userId,
   agentId,
   context,
   onComplete,
@@ -45,6 +47,8 @@ export async function agentRespond({
   messages: AIUIMessage[];
   onUpsertMessage: (message: AIUIMessage) => Promise<void>;
   orgId: string;
+  chatId: string;
+  userId: string;
   agentId: AgentId;
   context: ChatContext;
   onComplete?: () => Promise<void>;
@@ -76,7 +80,7 @@ export async function agentRespond({
     agent.skills.availableCalled
   );
 
-  const tools = getAiTools(orgId);
+  const tools = getAiTools({ orgId, chatId, userId });
 
   let activeTools = buildInitialActiveTools(agent, initialMessages);
 

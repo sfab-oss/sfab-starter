@@ -4,10 +4,12 @@ type ToolGroupKey =
   | "system"
   | "productManagement"
   | "warehouseManagement"
-  | "stockMovements";
+  | "stockMovements"
+  | "agentManagement";
 
 export const toolIdsGroups: Record<ToolGroupKey, AiToolId[]> = {
   system: ["load-skill"],
+  agentManagement: ["run-agent", "get-task-result", "list-tasks"],
   productManagement: [
     "list-products",
     "get-product",

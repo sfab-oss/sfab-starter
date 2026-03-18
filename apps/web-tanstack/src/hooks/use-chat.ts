@@ -16,7 +16,10 @@ export const getChatKey = (id: string) => ["chats", id];
 
 export const getAllChatsKey = () => ["chats"];
 
-export function useGetChat(id: string | null, options?: { enabled?: boolean }) {
+export function useGetChat(
+  id: string | null,
+  options?: { enabled?: boolean; refetchInterval?: number | false }
+) {
   const effectiveId = id ?? "";
 
   return useQuery({
@@ -36,6 +39,8 @@ export function useGetChat(id: string | null, options?: { enabled?: boolean }) {
     },
     enabled: options?.enabled === undefined ? !!id : options.enabled,
     placeholderData: (previousData) => previousData,
+    retry: false,
+    refetchInterval: options?.refetchInterval,
   });
 }
 

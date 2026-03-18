@@ -22,6 +22,10 @@ import { cn } from "@workspace/ui/lib/utils";
 import { isToolUIPart } from "ai";
 import { memo } from "react";
 import { LoadSkillTool } from "@/components/chat/tools/load-skill-tool";
+import {
+  RunAgentTool,
+  type RunAgentToolProps,
+} from "@/components/chat/tools/run-agent-tool";
 import type { AIUIMessage } from "@/types/ai";
 import { useChatEngine } from "../providers/chat-engine";
 import { DefaultTool } from "../tools/default-tool";
@@ -91,6 +95,19 @@ function ChatMessage({
               <LoadSkillTool
                 key={`${message.id}-tool-load-skill-${partIndex}`}
                 part={part}
+              />
+            );
+          }
+
+          if (
+            isToolUIPart(part) &&
+            "toolName" in part &&
+            part.toolName === "run-agent"
+          ) {
+            return (
+              <RunAgentTool
+                key={`${message.id}-tool-run-agent-${partIndex}`}
+                part={part as unknown as RunAgentToolProps["part"]}
               />
             );
           }

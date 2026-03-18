@@ -95,7 +95,13 @@ export function buildInitialActiveTools(
   agent: AgentConfig,
   messages: AIUIMessage[]
 ): Set<AiToolId> {
-  const activeTools = new Set<AiToolId>(["load-skill", "show-message"]);
+  const activeTools = new Set<AiToolId>([
+    "load-skill",
+    "show-message",
+    "run-agent",
+    "get-task-result",
+    "list-tasks",
+  ]);
 
   const defaultTools = getToolsFromDefaultSkills(agent);
   for (const tool of defaultTools) {
