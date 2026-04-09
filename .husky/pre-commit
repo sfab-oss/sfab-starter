@@ -1,3 +1,17 @@
+# Block hand edits to platform-owned subdirs of .sfab/. Per the dot-prefix
+# rule in .sfab/.docs/architecture/REPO-SYNC-LAYOUT.md, .sfab/.<name>/ paths
+# are managed by the SFab platform and clobbered on next sync. Edit them via
+# the platform UI/CLI/API instead.
+LOCKED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^\.sfab/\.[^/]+/' || true)
+if [ -n "$LOCKED" ]; then
+  echo "✗ Cannot commit changes to platform-owned .sfab/ subdirectories:"
+  echo "$LOCKED" | sed 's/^/    /'
+  echo ""
+  echo "These paths are managed by the SFab platform — edit them via the"
+  echo "platform UI/CLI/API instead. The next sync will clobber local edits."
+  exit 1
+fi
+
 pnpm exec lint-staged
 pnpm typecheck
 pnpm build
