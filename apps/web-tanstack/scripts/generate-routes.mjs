@@ -1,4 +1,4 @@
-import { createRequire } from "node:module";
+import { Generator, getConfig } from "@tanstack/router-generator";
 
 /**
  * Generate the TanStack Router route tree (src/routeTree.gen.ts) before type
@@ -10,17 +10,10 @@ import { createRequire } from "node:module";
  * fail to type check. Generating it here keeps `pnpm typecheck` self-contained
  * and green in CI.
  *
- * The generator ships as a dependency of @tanstack/router-plugin (already a
- * dependency of this app), so we resolve it through the plugin rather than
- * adding a separate dependency.
+ * @tanstack/router-generator is the package the Vite plugin uses internally to
+ * produce this file; it is declared as a direct devDependency so the script
+ * depends on it explicitly instead of reaching through the plugin.
  */
-const requireFromHere = createRequire(import.meta.url);
-const generatorEntry = createRequire(
-  requireFromHere.resolve("@tanstack/router-plugin")
-).resolve("@tanstack/router-generator");
-
-const { Generator, getConfig } = await import(generatorEntry);
-
 const root = process.cwd();
 const config = await getConfig({}, root);
 
