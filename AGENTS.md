@@ -15,6 +15,8 @@ Run these commands from the monorepo root rather than in individual packages.
 
 `docs/decisions/` contains ADRs (Architecture Decision Records) — the "why" behind significant choices. When making significant or architectural changes, create an ADR there (use `template.md`).
 
+`docs/template-best-practices/` contains repeatable **how-to** conventions for extending this template (e.g. generating Cloudflare env types via `cf-typegen`). Add a doc there when a pattern is worth preserving across tasks.
+
 `docs/plans/` is for implementation plans that need to survive across multiple sessions. Prefer plan-mode for plans that fit in a single session. When a plan is implemented, delete its file — if the decision is worth preserving, create an ADR instead.
 
 ---

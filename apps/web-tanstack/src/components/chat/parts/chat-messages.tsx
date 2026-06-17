@@ -11,32 +11,72 @@ import {
   MessageAttachment,
   MessageAttachments,
   MessageContent,
-  MessageResponse,
 } from "@workspace/ui/components/ai-elements/message";
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from "@workspace/ui/components/ai-elements/reasoning";
+import { Button } from "@workspace/ui/components/shadcn/button";
 import { cn } from "@workspace/ui/lib/utils";
-import { isToolUIPart } from "ai";
+import { AlertCircleIcon, HistoryIcon, RefreshCcwIcon } from "lucide-react";
 import { memo } from "react";
-import { LoadSkillTool } from "@/components/chat/tools/load-skill-tool";
-import type { AIUIMessage } from "@/types/ai";
-import { useChatEngine } from "../providers/chat-engine";
-import { DefaultTool } from "../tools/default-tool";
+import { isCompactionMessage } from "@/components/chat/context-usage";
+import type {
+  ChatHelpers,
+  OrgChatMessage,
+  OutgoingMessage,
+} from "@/components/chat/dock/chat-tabs-store";
+import { MessageContextBadge } from "@/components/chat/message-context-badge";
 import { ChatErrorMessage } from "./chat-error-message";
 import { ChatMessageActions } from "./message-actions";
+import { MessagePart } from "./message-part";
+
+const PENDING_MESSAGE_ID = "__pending__";
+
+interface ChatMessagesProps {
+  /** `null` in draft mode (no chat created yet). */
+  helpers: ChatHelpers | null;
+  onRetry: () => void;
+  pending: OutgoingMessage | null;
+  sendError: string | null;
+}
+
+function CompactionMarker({ message }: { message: OrgChatMessage }) {
+  const summary = message.parts
+    .filter((part) => part.type === "text")
+    .map((part) => part.text)
+    .join("\n")
+    .trim();
+
+  return (
+    <div className="relative py-3" key={message.id}>
+      <div className="absolute inset-x-0 top-1/2 border-border border-t" />
+      <div className="relative mx-auto flex max-w-md flex-col items-center gap-2">
+        <div className="flex items-center gap-1.5 rounded-full border bg-background px-3 py-1 text-muted-foreground text-xs">
+          <HistoryIcon aria-hidden="true" className="size-3" />
+          Earlier conversation summarized
+        </div>
+        {summary ? (
+          <p className="line-clamp-3 px-4 text-center text-muted-foreground text-xs">
+            {summary}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 function ChatMessage({
   message,
   isLoading,
 }: {
-  message: AIUIMessage;
+  message: OrgChatMessage;
   isLoading: boolean;
 }) {
+  if (isCompactionMessage(message)) {
+    return <CompactionMarker message={message} />;
+  }
+
   const fileParts = message.parts.filter((part) => part.type === "file");
   const otherParts = message.parts.filter((part) => part.type !== "file");
+  const pageContext =
+    message.role === "user" ? message.metadata?.pageContext : undefined;
 
   return (
     <Message
@@ -47,6 +87,11 @@ function ChatMessage({
       from={message.role}
       key={message.id}
     >
+      {pageContext ? (
+        <div className="flex w-full justify-end pr-1">
+          <MessageContextBadge pageContext={pageContext} />
+        </div>
+      ) : null}
       {fileParts.length > 0 && (
         <MessageAttachments className="mb-2">
           {fileParts.map((part, partIndex) => (
@@ -58,92 +103,177 @@ function ChatMessage({
         </MessageAttachments>
       )}
       <MessageContent className="w-full">
-        {otherParts.map((part, partIndex) => {
-          const isLastPart = partIndex === otherParts.length - 1;
-
-          if (part.type === "text") {
-            return (
-              <MessageResponse
-                className="text-base"
-                key={`${message.id}-text-${partIndex}`}
-              >
-                {part.text}
-              </MessageResponse>
-            );
-          }
-
-          if (part.type === "reasoning") {
-            return (
-              <Reasoning
-                className="my-2"
-                defaultOpen={true}
-                isStreaming={isLoading && isLastPart}
-                key={`${message.id}-reasoning-${partIndex}`}
-              >
-                <ReasoningTrigger />
-                <ReasoningContent>{part.text}</ReasoningContent>
-              </Reasoning>
-            );
-          }
-
-          if (part.type === "tool-load-skill") {
-            return (
-              <LoadSkillTool
-                key={`${message.id}-tool-load-skill-${partIndex}`}
-                part={part}
-              />
-            );
-          }
-
-          if (part.type === "dynamic-tool" || isToolUIPart(part)) {
-            return (
-              <DefaultTool
-                key={`${message.id}-tool-${partIndex}`}
-                part={part}
-              />
-            );
-          }
-          return null;
-        })}
+        {otherParts.map((part, partIndex) => (
+          <MessagePart
+            isLastPart={partIndex === otherParts.length - 1}
+            isLoading={isLoading}
+            key={`${message.id}-part-${partIndex}`}
+            messageId={message.id}
+            part={part}
+            partIndex={partIndex}
+          />
+        ))}
       </MessageContent>
 
-      <ChatMessageActions isLoading={isLoading} messageId={message.id} />
+      {message.id !== PENDING_MESSAGE_ID && (
+        <ChatMessageActions isLoading={isLoading} messageId={message.id} />
+      )}
     </Message>
   );
 }
 
-function ChatMessageListInternal({ className }: { className?: string }) {
-  const { status, messages, error } = useChatEngine();
-  const isLoading = status === "streaming" || status === "submitted";
+/**
+ * Shown while `useAgentChat().isRecovering` is true (ALW-171): a turn was
+ * interrupted (deploy/eviction/stream-stall) and Think is resuming it. Distinct
+ * from the normal streaming indicator because a recovering turn isn't producing
+ * tokens yet — it tells the user the work isn't lost and is being retried.
+ */
+function RecoveringBanner() {
+  return (
+    <output className="mx-auto flex w-full justify-center">
+      <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-1.5 text-muted-foreground text-xs">
+        <RefreshCcwIcon
+          aria-hidden="true"
+          className="size-3.5 shrink-0 animate-spin"
+        />
+        <span>Recovering the previous response…</span>
+      </div>
+    </output>
+  );
+}
+
+function PendingSendErrorPill({
+  error,
+  onRetry,
+}: {
+  error: string;
+  onRetry: () => void;
+}) {
+  return (
+    <output className="mx-auto flex w-full justify-end">
+      <div className="flex max-w-md items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-destructive text-sm">
+        <AlertCircleIcon
+          aria-hidden="true"
+          className="mt-0.5 size-4 shrink-0"
+        />
+        <div className="flex flex-1 flex-col gap-1.5">
+          <span className="font-medium">Couldn't send your message.</span>
+          <span className="text-destructive/80 text-xs">{error}</span>
+          <div>
+            <Button
+              aria-label="Retry sending message"
+              className="h-7 gap-1.5 px-2 text-xs"
+              onClick={onRetry}
+              size="sm"
+              variant="outline"
+            >
+              <RefreshCcwIcon className="size-3" />
+              Retry
+            </Button>
+          </div>
+        </div>
+      </div>
+    </output>
+  );
+}
+
+export function MessagesAreaSkeleton() {
+  return (
+    <div className="h-full flex-1 overflow-y-hidden">
+      <div className="container mx-auto flex h-full w-full flex-col gap-2 px-4 pb-6 sm:max-w-2xl md:max-w-3xl">
+        <div className="mt-6 ml-auto h-10 w-2/3 animate-pulse rounded-2xl bg-muted" />
+        <div className="mt-4 mr-auto h-16 w-3/4 animate-pulse rounded-2xl bg-muted" />
+        <div className="mt-2 ml-auto h-8 w-1/2 animate-pulse rounded-2xl bg-muted" />
+        <div className="mt-4 mr-auto h-24 w-4/5 animate-pulse rounded-2xl bg-muted" />
+      </div>
+    </div>
+  );
+}
+
+function pendingMessageView(pending: OutgoingMessage): OrgChatMessage {
+  return {
+    id: PENDING_MESSAGE_ID,
+    parts: pending.parts,
+    role: pending.role,
+  } as OrgChatMessage;
+}
+
+function ChatMessagesInternal({
+  helpers,
+  onRetry,
+  pending,
+  sendError,
+}: ChatMessagesProps) {
+  if (!helpers) {
+    if (!pending) {
+      return <ConversationEmptyState />;
+    }
+    return (
+      <Conversation className="h-full flex-1 overflow-y-hidden">
+        <ConversationContent className="container mx-auto w-full gap-2 pb-6 sm:max-w-2xl md:max-w-3xl">
+          <ChatMessage
+            isLoading={false}
+            message={pendingMessageView(pending)}
+          />
+          {sendError !== null && (
+            <PendingSendErrorPill error={sendError} onRetry={onRetry} />
+          )}
+        </ConversationContent>
+        <ConversationScrollButton />
+      </Conversation>
+    );
+  }
+
+  const { status, messages, error, isRecovering } = helpers;
+  // `isRecovering` (ALW-171) is driven by the `cf_agent_chat_recovering` frame:
+  // a turn interrupted by a deploy/eviction is being resumed but isn't producing
+  // tokens yet. Fold it into the busy state so the typing indicator stays up,
+  // and surface a distinct "recovering…" banner below.
+  const isLoading =
+    status === "streaming" || status === "submitted" || isRecovering;
 
   if (status === "error" || error) {
     return (
       <div className="flex flex-1 items-center justify-center p-4">
-        <ChatErrorMessage />
+        <ChatErrorMessage error={error} />
       </div>
     );
   }
 
-  if (messages.length === 0) {
+  if (messages.length === 0 && !pending) {
     return <ConversationEmptyState />;
   }
 
+  // Prepend the pending bubble until the server echoes the user turn
+  // back via `cf_agent_chat_messages` (which may also momentarily wipe
+  // it during a broadcast).
+  const hasUserInMessages = messages.some((m) => m.role === "user");
+  const pendingBubble = pending ? pendingMessageView(pending) : null;
+  const rendered: OrgChatMessage[] =
+    !hasUserInMessages && pendingBubble
+      ? [pendingBubble, ...messages]
+      : messages;
+
+  const showErrorPill = sendError !== null && pending !== null;
+
   return (
-    <Conversation className={cn("h-full flex-1 overflow-y-hidden", className)}>
+    <Conversation className="h-full flex-1 overflow-y-hidden">
       <ConversationContent className="container mx-auto w-full gap-2 pb-6 sm:max-w-2xl md:max-w-3xl">
-        {messages.map((message) => {
-          return (
-            <ChatMessage
-              isLoading={isLoading}
-              key={message.id}
-              message={message}
-            />
-          );
-        })}
+        {isRecovering && <RecoveringBanner />}
+        {rendered.map((message) => (
+          <ChatMessage
+            isLoading={isLoading}
+            key={message.id}
+            message={message}
+          />
+        ))}
+        {showErrorPill && (
+          <PendingSendErrorPill error={sendError} onRetry={onRetry} />
+        )}
       </ConversationContent>
       <ConversationScrollButton />
     </Conversation>
   );
 }
 
-export const ChatMessages = memo(ChatMessageListInternal);
+export const ChatMessages = memo(ChatMessagesInternal);

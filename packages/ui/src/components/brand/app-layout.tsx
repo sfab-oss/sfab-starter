@@ -28,19 +28,29 @@ import {
 export function AppLayout({
   children,
   sidebar,
+  footer,
   defaultOpen = true,
 }: {
   children: React.ReactNode;
   sidebar: React.ReactNode;
+  /** Optional content rendered below the rounded card (e.g. org chat dock). */
+  footer?: React.ReactNode;
   defaultOpen?: boolean;
 }) {
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       {sidebar}
-      <div className="relative flex h-svh w-full flex-1 flex-col md:peer-data-[state=collapsed]:peer-data-[variant=inset]:pl-0 md:peer-data-[variant=inset]:p-2 md:peer-data-[variant=inset]:pl-0">
-        <SidebarInset className="overflow-hidden rounded-xl bg-background shadow">
+      <div
+        className={cn(
+          "relative flex h-svh w-full min-w-0 flex-1 flex-col",
+          "md:peer-data-[variant=inset]:pt-2 md:peer-data-[variant=inset]:pr-2",
+          !footer && "md:peer-data-[variant=inset]:pb-2"
+        )}
+      >
+        <SidebarInset className="flex-1 overflow-hidden rounded-xl bg-background shadow">
           {children}
         </SidebarInset>
+        {footer}
       </div>
     </SidebarProvider>
   );

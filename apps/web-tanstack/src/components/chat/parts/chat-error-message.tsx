@@ -1,9 +1,23 @@
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { RefreshCcwIcon } from "lucide-react";
-import { useChatEngine } from "../providers/chat-engine";
+import { useChatConnection } from "@/components/chat/window/chat-window";
 
-export function ChatErrorMessage() {
-  const { setMessages } = useChatEngine();
+function getErrorMessage(error: unknown): string | null {
+  if (!error) {
+    return null;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return null;
+}
+
+export function ChatErrorMessage({ error }: { error?: unknown }) {
+  const { helpers } = useChatConnection();
+  const message = getErrorMessage(error);
 
   return (
     <div className="mx-auto flex w-full flex-col items-center gap-4 rounded-lg px-6 py-8 shadow-xs md:max-w-2xl">
@@ -23,13 +37,22 @@ export function ChatErrorMessage() {
         </svg>
         <p className="font-medium">Something went wrong</p>
       </div>
-      <p className="text-center text-sm">
-        An error occurred while processing your request. Please try again.
-      </p>
+      {message ? (
+        <pre className="w-full overflow-x-auto rounded-md bg-muted p-3 text-left text-xs">
+          {message}
+        </pre>
+      ) : (
+        <p className="text-center text-sm">
+          An error occurred while processing your request. Please try again.
+        </p>
+      )}
       <Button
         onClick={() => {
-          setMessages((messages) => messages.slice(0, -1));
-          window.location.reload();
+          // Pop the failed assistant turn and let `useAgentChat` reconnect
+          // its WebSocket on its own. Reloading the page would drop the WS,
+          // re-run the protected route loader, and refetch project data —
+          // overkill for a single failed turn.
+          helpers.setMessages((messages) => messages.slice(0, -1));
         }}
         variant="outline"
       >

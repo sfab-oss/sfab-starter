@@ -1,6 +1,18 @@
 # Copy this file to .dev.vars and fill in real values.
 # .dev.vars is git-ignored and loaded automatically by Wrangler during local dev.
 # In production, set these as Worker secrets: wrangler secret put <NAME>
+#
+# After adding or changing variables here, regenerate shared env types:
+#   pnpm --filter web-tanstack cf-typegen
 
 BETTER_AUTH_SECRET=your-secret-key-at-least-32-characters-long
 BETTER_AUTH_URL=http://localhost:4011
+
+# Outbound email (Resend). For local dev set MOCK_SEND_EMAIL=true and leave
+# RESEND_API_KEY empty — emails are logged instead of sent.
+RESEND_API_KEY=
+EMAIL_SENDER=noreply@example.com
+MOCK_SEND_EMAIL=true
+
+# Org agent inference (AI Gateway). Required for OrgChat in local dev.
+AI_GATEWAY_API_KEY=

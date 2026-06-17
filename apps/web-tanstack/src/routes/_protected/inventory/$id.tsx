@@ -52,7 +52,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   MovementForm,
   type MovementFormValues,
@@ -61,6 +61,7 @@ import {
   ProductForm,
   type ProductFormValues,
 } from "@/components/inventory/product-form";
+import { useSetPageContext } from "@/components/providers/page-context";
 import {
   useCreateMovement,
   useDeleteProduct,
@@ -220,6 +221,30 @@ function ProductPage() {
   const updateProduct = useUpdateProduct();
   const createMovement = useCreateMovement();
   const deleteProduct = useDeleteProduct();
+
+  useSetPageContext(
+    useMemo(
+      () =>
+        product
+          ? {
+              title: product.name,
+              description: product.sku,
+              entityType: "product",
+              entityId: product.id,
+              data: {
+                sku: product.sku,
+                totalStock: product.totalStock,
+                minStockLevel: product.minStockLevel,
+              },
+            }
+          : {
+              title: "Product",
+              entityType: "product",
+              entityId: productId,
+            },
+      [product, productId]
+    )
+  );
 
   if (!productId) {
     return (

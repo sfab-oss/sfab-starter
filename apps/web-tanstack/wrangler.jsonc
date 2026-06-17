@@ -25,6 +25,17 @@
       "bucket_name": "web-tanstack-uploads",
       "preview_bucket_name": "web-tanstack-uploads-preview"
     }
+  ],
+  "worker_loaders": [{ "binding": "LOADER" }],
+  "durable_objects": {
+    "bindings": [
+      { "class_name": "OrgAgent", "name": "OrgAgent" },
+      { "class_name": "OrgChat", "name": "OrgChat" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["OrgAgent"] },
+    { "tag": "v2", "new_sqlite_classes": ["OrgChat"] }
   ]
   /**
    * Smart Placement

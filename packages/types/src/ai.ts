@@ -8,6 +8,16 @@ export const aiMetadataSchema = z.object({
   usage: z.custom<LanguageModelUsage>().optional(),
   responseTime: z.number().optional(),
   summaryText: z.string().optional(),
+  pageContext: z
+    .object({
+      page: z.string(),
+      params: z.object({
+        entityType: z.string().optional(),
+        entityId: z.string().optional(),
+        title: z.string().optional(),
+      }),
+    })
+    .optional(),
 });
 
 export type AIMetadata = z.infer<typeof aiMetadataSchema>;
@@ -33,7 +43,7 @@ export type SkillDefinition = z.infer<typeof skillDefinitionSchema>;
 
 // Chat Processing Status
 
-export type ChatProcessingStatus = "idle" | "processing" | "failed";
+export type { ChatProcessingStatus } from "@workspace/db-d1/chat-processing";
 
 // Chat Context
 

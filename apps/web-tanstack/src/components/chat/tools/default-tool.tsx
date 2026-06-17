@@ -8,12 +8,11 @@ import {
 import { Button } from "@workspace/ui/components/shadcn/button";
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import { memo } from "react";
-import type { AITools } from "@/lib/ai/tools";
+import { useChatConnection } from "@/components/chat/window/chat-window";
 import { idToReadableText } from "@/lib/id-to-readable-text";
-import { useChatEngine } from "../providers/chat-engine";
 
 export interface DefaultToolProps {
-  part: ToolUIPart<AITools> | DynamicToolUIPart;
+  part: ToolUIPart | DynamicToolUIPart;
 }
 
 export const DefaultTool = memo(({ part }: DefaultToolProps) => {
@@ -27,7 +26,7 @@ export const DefaultTool = memo(({ part }: DefaultToolProps) => {
       <ToolHeader
         state={part.state}
         title={idToReadableText(toolName, { capitalize: true })}
-        type={part.type as ToolUIPart["type"]}
+        type={`tool-${toolName}` as ToolUIPart["type"]}
       />
       <ToolContent>
         <ToolInput input={part.input} />
@@ -38,12 +37,8 @@ export const DefaultTool = memo(({ part }: DefaultToolProps) => {
   );
 });
 
-function ToolApproval({
-  part,
-}: {
-  part: ToolUIPart<AITools> | DynamicToolUIPart;
-}) {
-  const { addToolApprovalResponse } = useChatEngine();
+function ToolApproval({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
+  const { helpers } = useChatConnection();
   if (part.state !== "approval-requested") {
     return null;
   }
@@ -51,7 +46,7 @@ function ToolApproval({
     <div className="flex gap-2 px-4 pb-4">
       <Button
         onClick={() =>
-          addToolApprovalResponse({
+          helpers.addToolApprovalResponse({
             id: part.approval.id,
             approved: true,
           })
@@ -61,7 +56,7 @@ function ToolApproval({
       </Button>
       <Button
         onClick={() =>
-          addToolApprovalResponse({
+          helpers.addToolApprovalResponse({
             id: part.approval.id,
             approved: false,
           })

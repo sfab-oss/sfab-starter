@@ -40,6 +40,7 @@ import {
   MovementForm,
   type MovementFormValues,
 } from "@/components/inventory/movement-form";
+import { useSetPageContext } from "@/components/providers/page-context";
 import { useCreateMovement, useProducts } from "@/hooks/use-products";
 
 export const Route = createFileRoute("/_protected/inventory/")({
@@ -52,6 +53,18 @@ function InventoryPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { data: productsResponse, isLoading } = useProducts(searchParams);
   const createMovement = useCreateMovement();
+
+  useSetPageContext(
+    useMemo(
+      () => ({
+        title: "Products",
+        description: "Inventory product catalog",
+        entityType: "products",
+        entityId: "list",
+      }),
+      []
+    )
+  );
 
   const [activeMovement, setActiveMovement] = useState<{
     product: Product;

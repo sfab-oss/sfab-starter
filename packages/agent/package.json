@@ -1,0 +1,31 @@
+{
+  "name": "@workspace/agent",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./constants": "./src/constants.ts",
+    "./org": "./src/org/index.ts",
+    "./org/chat": "./src/org/chat/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cloudflare/shell": "0.3.9",
+    "@cloudflare/think": "0.8.5",
+    "@workspace/auth": "workspace:*",
+    "@workspace/core": "workspace:*",
+    "@workspace/types": "workspace:*",
+    "agents": "0.15.0",
+    "ai": "^6.0.39",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "@workspace/cloudflare-env": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}
