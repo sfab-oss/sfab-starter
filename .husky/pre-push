@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+#
+# Block direct pushes to main. All changes go through PRs.
+# This hook is a stopgap until the org upgrades to GitHub Team
+# and server-side branch protection on main can be enforced.
+#
+# If you're hitting this and you're certain you need to bypass it,
+# stop and think about why. Then open a PR instead.
+
+protected_branch="main"
+remote="$1"
+
+while read -r local_ref local_oid remote_ref remote_oid; do
+  case "$remote_ref" in
+    "refs/heads/$protected_branch")
+      printf '\n\033[1;31m✘ Direct push to %s is blocked.\033[0m\n' "$protected_branch" >&2
+      printf '  Remote: %s  Ref: %s\n\n' "$remote" "$remote_ref" >&2
+      printf '  All changes go through pull requests. To proceed:\n' >&2
+      printf '    1. Create a branch:   \033[1mgit checkout -b <type>/<name>\033[0m\n' >&2
+      printf '    2. Push the branch:   \033[1mgit push -u origin HEAD\033[0m\n' >&2
+      printf '    3. Open the PR:       \033[1mgh pr create\033[0m\n\n' >&2
+      exit 1
+      ;;
+  esac
+done
+
+exit 0
