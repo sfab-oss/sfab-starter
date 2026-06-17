@@ -8,7 +8,7 @@ overwritten by the next sync.
 - [`ALW-305`](./ALW-305.md) — Port sfab vitest-pool-workers / workerd test harness (ALW-241 pattern)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 - [`ALW-299`](./ALW-299.md) — Generalize inventory vertical into domain-neutral worked example (ADR-0010 base contract)
-- [`ALW-218`](./ALW-218.md) — Bring in the Think-based project agent (ProjectAgent + ChatAgent DO pattern from sfab)
+- [`ALW-218`](./ALW-218.md) — Bring in the Think-based organization ERP agent (OrgAgent + OrgChat DO pattern from sfab)
 
 ## review (1)
 
