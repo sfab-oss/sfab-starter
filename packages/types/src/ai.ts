@@ -32,8 +32,9 @@ export const skillDefinitionSchema = z.object({
 export type SkillDefinition = z.infer<typeof skillDefinitionSchema>;
 
 // Chat Processing Status
+// Source of truth: Drizzle schema in @workspace/db-d1 (chats.status column).
 
-export type ChatProcessingStatus = "idle" | "processing" | "failed";
+export type { ChatProcessingStatus } from "@workspace/db-d1/schema/chat";
 
 // Chat Context
 

@@ -15,7 +15,7 @@
     "test:e2e:ui": "playwright test --ui",
     "deploy": "pnpm run build && wrangler deploy",
     "cf-typegen": "wrangler types && wrangler types ../../packages/cloudflare-env/src/env.d.ts --include-runtime=false && node -e \"const f='../../packages/cloudflare-env/src/env.d.ts';const s=require('fs').readFileSync(f,'utf8');require('fs').writeFileSync(f,s.replace(/\\tinterface GlobalProps \\{[\\s\\S]*?\\n\\t\\}\\n/,''))\"",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node scripts/generate-routes.mjs && tsc --noEmit",
     "db:generate": "pnpm --filter @workspace/db-d1 db:generate",
     "db:migrate": "wrangler d1 migrations apply web-tanstack-db --local",
     "db:migrate:prod": "wrangler d1 migrations apply web-tanstack-db --remote",

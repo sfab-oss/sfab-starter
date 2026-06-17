@@ -1,7 +1,9 @@
-import type { ChatProcessingStatus } from "@workspace/types/ai";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { id, timestamps } from "../utils";
 import { user } from "./auth";
+
+// Source of truth for the chats.status column. Re-exported by @workspace/types/ai.
+export type ChatProcessingStatus = "idle" | "processing" | "failed";
 
 export const chats = sqliteTable(
   "chats",
