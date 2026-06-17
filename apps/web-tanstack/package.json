@@ -18,10 +18,10 @@
     "generate-routes": "tsr generate",
     "typecheck": "tsc --noEmit",
     "db:generate": "pnpm --filter @workspace/db-d1 db:generate",
-    "db:migrate": "wrangler d1 migrations apply web-tanstack-db --local",
-    "db:migrate:prod": "wrangler d1 migrations apply web-tanstack-db --remote",
+    "db:migrate": "wrangler d1 migrations apply sfab-starter-db --local",
+    "db:migrate:prod": "wrangler d1 migrations apply sfab-starter-db --remote",
     "db:reset": "rm -rf .wrangler/state/v3/d1 && pnpm db:migrate",
-    "db:list": "wrangler d1 migrations list web-tanstack-db --local",
+    "db:list": "wrangler d1 migrations list sfab-starter-db --local",
     "db:studio": "pnpm --filter @workspace/db-d1 db:studio"
   },
   "dependencies": {

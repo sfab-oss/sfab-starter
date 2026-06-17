@@ -1,5 +1,5 @@
 {
-  "projectName": "web-tanstack",
+  "projectName": "sfab-starter",
   "mode": "file-router",
   "typescript": true,
   "tailwind": true,

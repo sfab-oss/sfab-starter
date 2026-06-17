@@ -71,7 +71,7 @@ See [`docs/architecture.md`](docs/architecture.md) for the full layer map, the f
 ```bash
 # Clone and install
 git clone <repo-url>
-cd simple-monorepo-starter
+cd sfab-starter
 pnpm install
 
 # Configure environment
@@ -187,11 +187,12 @@ After removing features, run `pnpm typecheck` to catch any remaining references.
 
 ### To rename the project
 
-Update these values to match your project:
+When forking this template for a new project, update these values:
+
 - `package.json` (root) — `name` field
 - `apps/web-tanstack/wrangler.jsonc` — `name` and `d1_databases[0].database_name`
-- `apps/web-tanstack/package.json` — `name` field
-- Database migration commands reference `web-tanstack-db` — update in both root and app `package.json` scripts
+- `apps/web-tanstack/wrangler.test.jsonc` — matching test Worker and D1 names
+- Database migration commands in `apps/web-tanstack/package.json` — must match `database_name`
 
 ## What stays (core infrastructure)
 

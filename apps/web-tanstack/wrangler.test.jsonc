@@ -1,13 +1,13 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "web-tanstack-test",
+  "name": "sfab-starter-test",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "main": "./test/worker.ts",
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "web-tanstack-db-test",
+      "database_name": "sfab-starter-db-test",
       "database_id": "placeholder-test-db-id",
       "migrations_dir": "../../packages/db-d1/drizzle"
     }
@@ -15,7 +15,7 @@
   "r2_buckets": [
     {
       "binding": "R2_BUCKET",
-      "bucket_name": "web-tanstack-uploads-test"
+      "bucket_name": "sfab-starter-uploads-test"
     }
   ]
 }
