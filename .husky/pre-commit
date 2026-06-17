@@ -1,3 +1,6 @@
+# The Vite build can OOM under the default Node heap on memory-constrained machines.
+export NODE_OPTIONS="--max-old-space-size=8192"
+
 # Block hand edits to platform-owned subdirs of .sfab/. Per the dot-prefix
 # rule in .sfab/.docs/architecture/REPO-SYNC-LAYOUT.md, .sfab/.<name>/ paths
 # are managed by the SFab platform and clobbered on next sync. Edit them via
