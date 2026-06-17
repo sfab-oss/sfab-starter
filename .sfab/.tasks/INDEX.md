@@ -10,12 +10,9 @@ overwritten by the next sync.
 - [`ALW-299`](./ALW-299.md) — Generalize inventory vertical into domain-neutral worked example (ADR-0010 base contract)
 - [`ALW-218`](./ALW-218.md) — Bring in the Think-based project agent (ProjectAgent + ChatAgent DO pattern from sfab)
 
-## ready (1)
+## review (2)
 
 - [`ALW-300`](./ALW-300.md) — Add GitHub Actions CI workflow (lint, typecheck, test, build)
-
-## review (1)
-
 - [`ALW-298`](./ALW-298.md) — Rename project identity from simple-monorepo-starter to sfab-starter
 
 ## canceled (1)
