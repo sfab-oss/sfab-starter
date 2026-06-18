@@ -37,8 +37,9 @@ packages/
   ui/                       # Component library (shadcn/ui)
   typescript-config/        # Shared TSConfig
 docs/
-  decisions/                # Architecture Decision Records
-  plans/                    # Implementation plans
+  architecture.md           # The layer map + a worked feature example
+  decisions/                # Architecture Decision Records (ADRs)
+  guides/                   # Code-anchored how-to / "how X works"
 .agents/
   skills/                   # AI agent skills (cloudflare, ai-sdk, wrangler, etc.)
 ```
@@ -55,6 +56,8 @@ D1 (SQLite) → Drizzle Schema → Service Layer → Hono Route → RPC Client �
 - **API routes** in `hono/` are thin wrappers that call services and return typed responses
 - **React Query hooks** in `hooks/` call the Hono RPC client for data fetching with optimistic updates
 - **Auth middleware** enforces authentication and organization-scoped access on protected routes
+
+See [`docs/architecture.md`](docs/architecture.md) for the full layer map, the feature-key model, and a worked example. Working in this repo as an AI agent? Start from [`AGENTS.md`](AGENTS.md).
 
 ## Getting started
 
