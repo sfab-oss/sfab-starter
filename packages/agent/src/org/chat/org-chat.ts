@@ -58,7 +58,6 @@ export class OrgChat extends Think<Cloudflare.Env> {
   private resolvedModelId: string | null = null;
   private chatModelError: string | null = null;
   private lastTurnUsage: LanguageModelUsage | undefined;
-  private readonly connectionUsers = new Map<string, string>();
 
   override onStart(): void {
     this.organizationId = this.requireOrganizationId();
@@ -95,17 +94,10 @@ export class OrgChat extends Think<Cloudflare.Env> {
       connection.close(1008, "unauthenticated");
       return;
     }
-    this.connectionUsers.set(connection.id, userId);
-  }
-
-  override async onClose(
-    connection: Connection,
-    code: number,
-    reason: string,
-    wasClean: boolean
-  ): Promise<void> {
-    this.connectionUsers.delete(connection.id);
-    await super.onClose(connection, code, reason, wasClean);
+    // Persist the resolved user on the connection's WebSocket attachment
+    // (not an in-memory Map) so it survives DO hibernation — onConnect does
+    // not re-run when a hibernated DO wakes on the next message.
+    connection.setState({ userId });
   }
 
   override getModel(): LanguageModel {
@@ -261,11 +253,7 @@ export class OrgChat extends Think<Cloudflare.Env> {
   private requireConnectedUserId(): string {
     const { connection } = getCurrentAgent();
     const orgId = this.parentPath.at(-1)?.name ?? "?";
-    return resolveTurnUserId(
-      connection,
-      this.connectionUsers,
-      `${orgId}/${this.name}`
-    );
+    return resolveTurnUserId(connection, `${orgId}/${this.name}`);
   }
 
   override getTools(): ToolSet {

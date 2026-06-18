@@ -1,6 +1,5 @@
 export function resolveTurnUserId(
-  connection: { id: string } | undefined,
-  connectionUsers: ReadonlyMap<string, string>,
+  connection: { id: string; state: unknown } | undefined,
   agentName: string
 ): string {
   if (!connection) {
@@ -8,7 +7,10 @@ export function resolveTurnUserId(
       `OrgAgent ${agentName}: no active connection for this turn`
     );
   }
-  const userId = connectionUsers.get(connection.id);
+  // The user id is persisted on the connection attachment in onConnect, so it
+  // survives DO hibernation (see OrgChat.onConnect → connection.setState).
+  const userId = (connection.state as { userId?: string } | null | undefined)
+    ?.userId;
   if (!userId) {
     throw new Error(
       `OrgAgent ${agentName}: connection ${connection.id} has no resolved user`
