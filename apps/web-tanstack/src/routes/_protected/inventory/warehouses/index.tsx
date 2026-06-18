@@ -28,6 +28,7 @@ import { ArrowUpDown, MapPin, MoreHorizontal, Star } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { CreateWarehouseDialog } from "@/components/inventory/create-warehouse-dialog";
+import { useSetPageContext } from "@/components/providers/page-context";
 import { useWarehouses } from "@/hooks/use-warehouses";
 
 export const Route = createFileRoute("/_protected/inventory/warehouses/")({
@@ -39,6 +40,18 @@ function WarehousesPage() {
   const searchParams = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const { data: warehousesResponse, isLoading } = useWarehouses(searchParams);
+
+  useSetPageContext(
+    useMemo(
+      () => ({
+        title: "Warehouses",
+        description: "Inventory warehouse locations",
+        entityType: "warehouses",
+        entityId: "list",
+      }),
+      []
+    )
+  );
 
   // --- Pagination state bridge ---
   const pagination = useMemo<PaginationState>(

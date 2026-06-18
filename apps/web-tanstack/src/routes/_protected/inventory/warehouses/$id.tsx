@@ -25,11 +25,12 @@ import {
   CardTitle,
 } from "@workspace/ui/components/shadcn/card";
 import { ArrowLeft, MapPin, Pencil, Star, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   WarehouseForm,
   type WarehouseFormValues,
 } from "@/components/inventory/warehouse-form";
+import { useSetPageContext } from "@/components/providers/page-context";
 import {
   useDeleteWarehouse,
   useUpdateWarehouse,
@@ -51,6 +52,29 @@ function WarehouseDetailPage() {
     useWarehouse(warehouseId);
   const updateWarehouse = useUpdateWarehouse();
   const deleteWarehouse = useDeleteWarehouse();
+
+  useSetPageContext(
+    useMemo(
+      () =>
+        warehouse
+          ? {
+              title: warehouse.name,
+              description: warehouse.location ?? undefined,
+              entityType: "warehouse",
+              entityId: warehouse.id,
+              data: {
+                isDefault: warehouse.isDefault,
+                location: warehouse.location,
+              },
+            }
+          : {
+              title: "Warehouse",
+              entityType: "warehouse",
+              entityId: warehouseId,
+            },
+      [warehouse, warehouseId]
+    )
+  );
 
   const handleUpdate = async (data: WarehouseFormValues) => {
     await updateWarehouse.mutateAsync({

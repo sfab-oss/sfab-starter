@@ -1,4 +1,3 @@
-import { useParams, useRouterState } from "@tanstack/react-router";
 import type { ChatContext } from "@workspace/types/ai";
 import { ChatVoiceButton } from "@workspace/ui/components/ai-elements/chat-voice-button";
 import {
@@ -19,10 +18,11 @@ import {
   usePromptInputController,
 } from "@workspace/ui/components/ai-elements/prompt-input";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
-import { useCallback, useMemo } from "react";
-import { useCancelChat } from "@/hooks/use-chat";
-import { useChatEngine } from "../providers/chat-engine";
-import { usePageContext } from "../providers/page-context";
+import type { ChatStatus } from "ai";
+import { useCallback, useEffect, useState } from "react";
+import type { OutgoingMessage } from "@/components/chat/dock/chat-tabs-store";
+import { PageContextChip } from "@/components/chat/page-context-chip";
+import { usePageContext } from "@/components/providers/page-context";
 
 function handleSendError(error: unknown) {
   console.error("Failed to send message:", error);
@@ -47,49 +47,54 @@ function handleSendError(error: unknown) {
   }
 }
 
-function ChatInputInner({
-  additionalContext,
-  placeholder,
-}: {
-  additionalContext?: Partial<ChatContext>;
+function toOutgoingPageContext(
+  config: NonNullable<ChatContext["page"]>
+): NonNullable<OutgoingMessage["metadata"]>["pageContext"] {
+  return {
+    page: config.entityType ?? config.title ?? "page",
+    params: {
+      entityType: config.entityType,
+      entityId: config.entityId,
+      title: config.title,
+    },
+  };
+}
+
+interface ChatInputInnerProps {
+  disabled: boolean;
+  onSubmit: (message: OutgoingMessage) => Promise<unknown>;
   placeholder: string;
-}) {
-  const { sendMessage, status, stop, id: chatId } = useChatEngine();
+  status: ChatStatus;
+}
+
+function ChatInputInner({
+  disabled,
+  onSubmit,
+  placeholder,
+  status,
+}: ChatInputInnerProps) {
+  const livePageContext = usePageContext();
   const controller = usePromptInputController();
-  const { mutate: cancelChat } = useCancelChat();
+  const [pinned, setPinned] = useState(false);
+  const [pinnedContext, setPinnedContext] = useState(livePageContext);
+  const [dismissed, setDismissed] = useState(false);
 
-  const handleStop = useCallback(() => {
-    stop();
-    cancelChat(chatId);
-  }, [stop, chatId, cancelChat]);
-
-  const routerState = useRouterState();
-  const params = useParams({ strict: false });
-  const pageConfig = usePageContext();
-
-  const fullContext = useMemo<ChatContext>(() => {
-    const paramsRecord: Record<string, string> = {};
-    const paramsObj = params as Record<string, unknown>;
-    for (const [key, value] of Object.entries(paramsObj)) {
-      if (typeof value === "string") {
-        paramsRecord[key] = value;
-      } else if (Array.isArray(value)) {
-        paramsRecord[key] = (value as string[]).join("/");
-      }
+  useEffect(() => {
+    if (!pinned && livePageContext) {
+      setPinnedContext(livePageContext);
     }
+  }, [pinned, livePageContext]);
 
-    return {
-      route: {
-        pathname: routerState.location.pathname,
-        params: Object.keys(paramsRecord).length > 0 ? paramsRecord : undefined,
-      },
-      page: pageConfig,
-      ...additionalContext,
-    };
-  }, [routerState.location.pathname, params, pageConfig, additionalContext]);
+  const displayContext = pinned ? pinnedContext : livePageContext;
+  const effectivePageContext =
+    dismissed || !displayContext ? undefined : displayContext;
 
   const handleSubmit = useCallback(
-    async (message: PromptInputMessage) => {
+    (message: PromptInputMessage) => {
+      if (disabled) {
+        return;
+      }
+
       const { text, files } = message;
       const hasText = Boolean(text);
       const hasAttachments = Boolean(files?.length);
@@ -98,83 +103,109 @@ function ChatInputInner({
         return;
       }
 
-      try {
-        controller.attachments.clear();
-        controller.textInput.clear();
-        const result = await sendMessage(
-          {
-            role: "user",
-            parts: [
-              { type: "text", text: text || "Sent with attachments" },
-              ...(files || []),
-            ],
-          },
-          {
-            body: {
-              context: fullContext,
-            },
-          }
-        );
+      controller.attachments.clear();
+      controller.textInput.clear();
 
-        return result;
-      } catch (error) {
-        handleSendError(error);
-        throw error;
+      const outgoing: OutgoingMessage = {
+        role: "user",
+        parts: [
+          { type: "text", text: text || "Sent with attachments" },
+          ...(files || []),
+        ],
+      };
+      if (effectivePageContext) {
+        outgoing.metadata = {
+          pageContext: toOutgoingPageContext(effectivePageContext),
+        };
       }
+
+      onSubmit(outgoing).catch(handleSendError);
+
+      return undefined;
     },
-    [sendMessage, fullContext, controller.attachments, controller.textInput]
+    [
+      disabled,
+      onSubmit,
+      controller.attachments,
+      controller.textInput,
+      effectivePageContext,
+    ]
   );
 
+  const handlePinToggle = useCallback(() => {
+    if (pinned) {
+      setPinned(false);
+      return;
+    }
+    if (displayContext) {
+      setPinnedContext(displayContext);
+    }
+    setPinned(true);
+  }, [pinned, displayContext]);
+
   return (
-    <PromptInput
-      className="rounded-2xl"
-      globalDrop
-      multiple
-      onSubmit={handleSubmit}
-    >
-      <PromptInputAttachments>
-        {(attachment) => <PromptInputAttachment data={attachment} />}
-      </PromptInputAttachments>
-      <PromptInputBody>
-        <PromptInputTextarea placeholder={placeholder} />
-      </PromptInputBody>
-      <PromptInputFooter>
-        <PromptInputTools>
-          <PromptInputActionMenu>
-            <PromptInputActionMenuTrigger />
-            <PromptInputActionMenuContent>
-              <PromptInputActionAddAttachments />
-            </PromptInputActionMenuContent>
-          </PromptInputActionMenu>
-        </PromptInputTools>
-        <PromptInputTools className="gap-2">
-          <ChatVoiceButton controller={controller} />
-          <PromptInputSubmit
-            status={status}
-            {...(status === "streaming" || status === "submitted"
-              ? { type: "button", onClick: handleStop }
-              : {})}
-          />
-        </PromptInputTools>
-      </PromptInputFooter>
-    </PromptInput>
+    <>
+      {displayContext || dismissed ? (
+        <PageContextChip
+          context={displayContext ?? null}
+          dismissed={dismissed}
+          onDismiss={() => setDismissed(true)}
+          onPinToggle={handlePinToggle}
+          onRestore={() => setDismissed(false)}
+          pinned={pinned}
+        />
+      ) : null}
+      <PromptInput
+        className="rounded-2xl"
+        globalDrop
+        multiple
+        onSubmit={handleSubmit}
+      >
+        <PromptInputAttachments>
+          {(attachment) => <PromptInputAttachment data={attachment} />}
+        </PromptInputAttachments>
+        <PromptInputBody>
+          <PromptInputTextarea placeholder={placeholder} />
+        </PromptInputBody>
+        <PromptInputFooter>
+          <PromptInputTools>
+            <PromptInputActionMenu>
+              <PromptInputActionMenuTrigger />
+              <PromptInputActionMenuContent>
+                <PromptInputActionAddAttachments />
+              </PromptInputActionMenuContent>
+            </PromptInputActionMenu>
+          </PromptInputTools>
+          <PromptInputTools className="gap-2">
+            <ChatVoiceButton controller={controller} />
+            <PromptInputSubmit disabled={disabled} status={status} />
+          </PromptInputTools>
+        </PromptInputFooter>
+      </PromptInput>
+    </>
   );
 }
 
 export function ChatInput({
-  additionalContext,
-  placeholder = "Type a message...",
+  disabled = false,
+  onSubmit,
+  placeholder = "Ask anything about your organization...",
+  status,
 }: {
-  additionalContext?: Partial<ChatContext>;
+  disabled?: boolean;
+  onSubmit: (message: OutgoingMessage) => Promise<unknown>;
   placeholder?: string;
+  status: ChatStatus;
 }) {
   return (
     <div className="relative bottom-0 z-10 w-full bg-background pt-2">
       <div className="mx-auto w-full p-2 @[500px]:px-4 @[500px]:pb-4 md:max-w-3xl @[500px]:md:pb-6">
         <PromptInputProvider>
           <ChatInputInner
-            additionalContext={additionalContext}
+            disabled={disabled}
+            onSubmit={onSubmit}
             placeholder={placeholder}
+            status={status}
           />
         </PromptInputProvider>
       </div>

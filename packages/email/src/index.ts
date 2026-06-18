@@ -6,7 +6,13 @@ import {
   type OrganizationInvitationTemplateProps,
 } from "./templates/organization-invitation";
 
-const resend = new Resend(env.RESEND_API_KEY);
+function getResend(): Resend {
+  const apiKey = env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY is not set");
+  }
+  return new Resend(apiKey);
+}
 
 const emailTemplates = {
   "organization-invitation": {
@@ -55,7 +61,7 @@ export const sendMail = async <T extends TemplateId>(
   );
 
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: emailSender,
       to,
       subject,

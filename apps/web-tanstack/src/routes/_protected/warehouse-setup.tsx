@@ -9,11 +9,11 @@ import {
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { ArrowLeft } from "lucide-react";
 import { useMemo } from "react";
-import { useSetPageContext } from "@/components/chat/providers/page-context";
 import {
   WarehouseForm,
   type WarehouseFormValues,
 } from "@/components/inventory/warehouse-form";
+import { useSetPageContext } from "@/components/providers/page-context";
 import { useCreateWarehouse } from "@/hooks/use-warehouses";
 
 export const Route = createFileRoute("/_protected/warehouse-setup")({

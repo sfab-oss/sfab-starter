@@ -13,7 +13,9 @@ import { db } from "@workspace/db-d1";
 import { AppLayout } from "@workspace/ui/components/brand/app-layout";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { AlertCircle } from "lucide-react";
+import { ChatDockMount } from "../components/chat/dock/chat-dock-mount";
 import { AppSidebar } from "../components/layout/app-sidebar";
+import { PageContextProvider } from "../components/providers/page-context";
 
 const ensureOrg = createServerFn({ method: "GET" }).handler(async () => {
   const headers = getRequestHeaders();
@@ -86,9 +88,11 @@ export const Route = createFileRoute("/_protected")({
     return { user: result.session.user };
   },
   component: () => (
-    <AppLayout sidebar={<AppSidebar />}>
-      <Outlet />
-    </AppLayout>
+    <PageContextProvider>
+      <AppLayout footer={<ChatDockMount />} sidebar={<AppSidebar />}>
+        <Outlet />
+      </AppLayout>
+    </PageContextProvider>
   ),
   errorComponent: ProtectedErrorComponent,
 });

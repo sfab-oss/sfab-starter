@@ -5,7 +5,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "web-tanstack",
-  "compatibility_date": "2025-09-02",
+  "compatibility_date": "2026-06-11",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
   "observability": {
@@ -25,7 +25,16 @@
       "bucket_name": "web-tanstack-uploads",
       "preview_bucket_name": "web-tanstack-uploads-preview"
     }
-  ]
+  ],
+  "worker_loaders": [{ "binding": "LOADER" }],
+  "durable_objects": {
+    // Only OrgAgent is bound top-level. OrgChat is a facet (sub-agent) of
+    // OrgAgent — it is resolved via `ctx.exports.OrgChat` (the server.ts
+    // export) and shares OrgAgent's storage, so it needs neither its own
+    // binding nor a migration. See the agents SDK multi-ai-chat example.
+    "bindings": [{ "class_name": "OrgAgent", "name": "OrgAgent" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["OrgAgent"] }]
   /**
    * Smart Placement
    * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
