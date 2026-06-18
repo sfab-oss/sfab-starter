@@ -11,7 +11,7 @@ overwritten by the next sync.
 - [`ALW-312`](./ALW-312.md) — Transform sfab-starter into the AI-native ERP golden base (manual, comment-driven)
 - [`ALW-305`](./ALW-305.md) — Port sfab vitest-pool-workers / workerd test harness (ALW-241 pattern)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
-- [`ALW-299`](./ALW-299.md) — Generalize inventory vertical into domain-neutral worked example (ADR-0010 base contract)
+- [`ALW-299`](./ALW-299.md) — Generalize the inventory vertical into the neutral base + expose pack seams (ADR-0010 §E)
 
 ## review (2)
 
