@@ -6,7 +6,7 @@ overwritten by the next sync.
 ## draft (9)
 
 - [`ALW-328`](./ALW-328.md) — Transaction Core architecture + the primitives around it (Tier-1)
-- [`ALW-327`](./ALW-327.md) — Foundational architecture: repo/package structure + Transaction Core and the primitives around it (Tier-1)
+- [`ALW-327`](./ALW-327.md) — Directory / package structure (Tier-1 foundation)
 - [`ALW-326`](./ALW-326.md) — Scaffold the knowledge layer + Tier-1 primitive skeleton (ADR-0010 §E/§H)
 - [`ALW-324`](./ALW-324.md) — Build the capability-pack registry — registry.json, code-bearing packs, ephemeral install skills (ADR-0017)
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
