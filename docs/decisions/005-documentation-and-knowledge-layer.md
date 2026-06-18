@@ -54,9 +54,11 @@ session plan-mode — never committed under `docs/`, which is for durable knowle
 
 ### E3 — Agent tiering + no duplication
 
-- **Tier-1 is one canonical file.** `AGENTS.md` is the source (cross-tool
-  standard); `CLAUDE.md` is a **symlink** to it, byte-identical, zero drift.
-  Tool-specific divergence later (e.g. `.cursor/rules`) is its own real file.
+- **Tier-1 is one source, mirrored to two files.** `AGENTS.md` is the canonical
+  source (cross-tool standard); `.claude/CLAUDE.md` is a **byte-identical copy**,
+  kept in sync by hand — deliberately *not* a symlink, because some tools don't
+  follow or auto-read a symlinked instructions file. Edit one, copy it over the
+  other. Tool-specific divergence later (e.g. `.cursor/rules`) is its own real file.
 - **No human/agent split.** A fact lives once. Humans read `docs/` directly;
   agents reach the same files via the `AGENTS.md` index + skill references.
 - **Skills = on-demand Tier-2**, two flavors, one mechanism: vendored (hash-pinned,

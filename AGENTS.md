@@ -4,7 +4,9 @@ Tier-1 entry point for anyone — human or AI agent — working in this repo. It
 carries **commands + conventions + the index into everything else**, and nothing
 deeper: follow the links for detail.
 
-> `CLAUDE.md` is a symlink to this file. Edit `AGENTS.md`; both stay identical.
+> `AGENTS.md` and `.claude/CLAUDE.md` are kept **byte-identical** — mirrored as
+> real copies, not a symlink, since some tools don't auto-read a symlinked
+> instructions file. Change one, copy it over the other.
 
 ## Commands
 
