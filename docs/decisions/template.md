@@ -1,91 +1,77 @@
-# ADR Template
+# ADR Template & Guidelines
 
-Use this template when creating new Architecture Decision Records.
+Architecture Decision Records capture this template's **opinions and their
+reversals** — not every choice. Before writing one, apply the bar.
+
+## The significance bar (write an ADR only if all three hold)
+
+An ADR is warranted **only** when the choice is:
+
+1. **Costly or disruptive to reverse** — it shapes structure, the dependency
+   graph, or a cross-surface contract, not one file.
+2. **Cross-cutting** — it affects many capabilities/layers, not a local detail.
+3. **Chosen among real alternatives** — there was a genuine fork worth recording.
+
+If it fails any of these, it is **not** an ADR. In particular:
+
+- Library / syntax / vendor picks → a `docs/guides/` note or just the code.
+- Anything a typecheck or test already enforces → no record needed.
+- A reversal of a previous ADR → **does** qualify (record it; supersede the old one).
+
+See [ADR-005](./005-documentation-and-knowledge-layer.md) for the convention this
+bar belongs to.
+
+## Lifecycle
+
+- ADRs are **append-mostly**: prefer a new ADR that supersedes an old one over
+  editing an accepted record's decision.
+- **Exception — one-time re-enumeration:** a template reset may *remove* a
+  superseded / no-value ADR and renumber the survivors into a clean contiguous
+  sequence (as was done on 2026-06-18). Outside that reset, don't renumber.
+- When an ADR is superseded, set its **Status** and fill the **Supersedes /
+  Superseded by** field so the reversal is traceable.
 
 ---
 
-# ADR-XXX: [Title]
+# ADR-NNN: [Title]
 
-**Status:** [Proposed | Accepted | Deprecated | Superseded by ADR-XXX]
+**Status:** [Proposed | Accepted | Superseded by ADR-NNN]
 **Date:** YYYY-MM-DD
 **Authors:** [Names]
+**Supersedes / Superseded by:** [ADR-NNN, or —]
 
 ## Context
 
-Describe the situation that requires a decision. Include:
-
-- The problem or opportunity being addressed
-- Relevant constraints (technical, business, time)
-- Any forces at play that influenced this decision
+The situation forcing a decision: the problem, the constraints, and — if this
+reverses an earlier record — what changed our mind.
 
 ## Decision
 
-State the decision clearly and concisely.
+State it in one sentence.
 
 > We will [do X] because [primary reason].
 
+Then the specific rules/principles it establishes.
+
 ## Options Considered
 
-### Option 1: [Name]
+### [Option name] (chosen / rejected)
 
-**Description:** Brief explanation
+- **For:** the case for it.
+- **Against:** the cost.
 
-**Pros:**
-- Pro 1
-- Pro 2
-
-**Cons:**
-- Con 1
-- Con 2
-
-### Option 2: [Name]
-
-**Description:** Brief explanation
-
-**Pros:**
-- Pro 1
-- Pro 2
-
-**Cons:**
-- Con 1
-- Con 2
+(Repeat for each real alternative. Keep it to the forks that actually mattered —
+no filler pros/cons.)
 
 ## Consequences
 
-### Positive
-
-- Benefit 1
-- Benefit 2
-
-### Negative
-
-- Trade-off 1
-- Trade-off 2
-
-### Neutral
-
-- Change that is neither positive nor negative
-
-## Implementation Notes
-
-Any specific implementation details, migration steps, or things to watch out for.
+What becomes true once this lands — the good, the trade-off accepted, and any
+ongoing discipline it requires.
 
 ## Related Decisions
 
-- [ADR-XXX](./XXX-title.md) - Related decision
-- [ADR-XXX](./XXX-title.md) - Supersedes this decision
+- [ADR-NNN](./NNN-title.md) — how it relates.
 
 ## References
 
-- [Link to relevant documentation]
-- [Link to discussion/issue]
-
----
-
-## ADR Guidelines
-
-1. **One decision per ADR** - Keep each record focused
-2. **Immutable history** - Don't modify accepted ADRs; create new ones that supersede
-3. **Record the "why"** - Future readers need to understand the reasoning
-4. **Include alternatives** - Show what else was considered
-5. **Be honest about trade-offs** - Every decision has consequences
+- [Relevant docs / discussion]
