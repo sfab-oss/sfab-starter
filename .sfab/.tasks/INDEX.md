@@ -6,7 +6,7 @@ overwritten by the next sync.
 ## draft (7)
 
 - [`ALW-326`](./ALW-326.md) — Scaffold the knowledge layer + Tier-1 primitive skeleton (ADR-0010 §E/§H)
-- [`ALW-324`](./ALW-324.md) — Publish sfab-starter as a shadcn registry (registry.json + ref-coupled blocks)
+- [`ALW-324`](./ALW-324.md) — Build the capability-pack registry — registry.json, code-bearing packs, ephemeral install skills (ADR-0017)
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-312`](./ALW-312.md) — Transform sfab-starter into the AI-native ERP golden base (manual, comment-driven)
 - [`ALW-305`](./ALW-305.md) — Port sfab vitest-pool-workers / workerd test harness (ALW-241 pattern)
