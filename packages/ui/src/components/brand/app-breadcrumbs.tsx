@@ -24,14 +24,6 @@ interface AppBreadcrumbsProps {
   }>;
 }
 
-/**
- * A standard breadcrumb component for the application.
- * Automatically handles separators and distinguishes between links and current page.
- *
- * @param items - Array of breadcrumb items. Each item has a title and optional href.
- * @param showHome - Whether to show the "Home" root item. Defaults to true.
- * @param linkComponent - Custom link component to use for navigation (e.g., Next.js Link)
- */
 export function AppBreadcrumbs({
   items = [],
   showHome = true,

@@ -12,30 +12,16 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useOrgMemory } from "@/hooks/use-org-memory";
 
-/** Collapsed inline height — shows the first few lines before "Show more". */
 const COLLAPSED_MAX_HEIGHT = "8rem";
 
 type MemoryVariant = "inline" | "dialog";
 
-/**
- * Read-only view of the organization's shared, cross-chat agent memory. Backs both
- * surfaces: the chat-header "Memory" dialog and the `display-memory` inline
- * card the agent renders in the transcript. Fetches its own data via
- * `useOrgMemory`, so each surface just renders `<MemoryCard />`.
- *
- * - `variant="inline"` (default): collapses to a few lines with a "Show more"
- *   toggle that expands to a capped, scrollable height.
- * - `variant="dialog"`: fills its (height-constrained) container and scrolls
- *   internally so the dialog itself never grows past the viewport.
- */
 export function MemoryCard({
   className,
   showHeader = true,
   variant = "inline",
 }: {
   className?: string;
-  /** Show the card's own "Organization memory" header. Hidden in the dialog, where
-   *  the dialog title already labels it. */
   showHeader?: boolean;
   variant?: MemoryVariant;
 }) {
@@ -128,18 +114,11 @@ function MemoryBody({
   );
 }
 
-/**
- * Inline memory body: starts collapsed at `COLLAPSED_MAX_HEIGHT` with a bottom
- * fade, and reveals a "Show more" toggle only when the content actually
- * overflows that height. Expanding caps at `max-h-96` and scrolls.
- */
 function CollapsibleMemoryContent({ content }: { content: string }) {
   const [expanded, setExpanded] = useState(false);
   const [canExpand, setCanExpand] = useState(false);
   const collapsedRef = useRef<HTMLDivElement>(null);
 
-  // Measure overflow against the collapsed height. Re-measures via
-  // ResizeObserver because the markdown renderer lays out asynchronously.
   useEffect(() => {
     if (expanded) {
       return;

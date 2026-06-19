@@ -73,10 +73,8 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
     setDebouncedQuery(value);
   }, 300);
 
-  // Simulate loading state
   const isLoading = false;
 
-  // Filter results based on query
   const filteredResults = availablePages.filter(
     (page) =>
       page.title.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
@@ -153,7 +151,6 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
         )}
       </CommandList>
 
-      {/* Footer */}
       <div className="flex h-10 items-center justify-between border-t bg-muted/20 px-3 text-muted-foreground text-xs">
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1">

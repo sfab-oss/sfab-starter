@@ -30,7 +30,6 @@ import { MessagePart } from "./message-part";
 const PENDING_MESSAGE_ID = "__pending__";
 
 interface ChatMessagesProps {
-  /** `null` in draft mode (no chat created yet). */
   helpers: ChatHelpers | null;
   onRetry: () => void;
   pending: OutgoingMessage | null;
@@ -122,12 +121,6 @@ function ChatMessage({
   );
 }
 
-/**
- * Shown while `useAgentChat().isRecovering` is true (ALW-171): a turn was
- * interrupted (deploy/eviction/stream-stall) and Think is resuming it. Distinct
- * from the normal streaming indicator because a recovering turn isn't producing
- * tokens yet — it tells the user the work isn't lost and is being retried.
- */
 function RecoveringBanner() {
   return (
     <output className="mx-auto flex w-full justify-center">
@@ -225,10 +218,6 @@ function ChatMessagesInternal({
   }
 
   const { status, messages, error, isRecovering } = helpers;
-  // `isRecovering` (ALW-171) is driven by the `cf_agent_chat_recovering` frame:
-  // a turn interrupted by a deploy/eviction is being resumed but isn't producing
-  // tokens yet. Fold it into the busy state so the typing indicator stays up,
-  // and surface a distinct "recovering…" banner below.
   const isLoading =
     status === "streaming" || status === "submitted" || isRecovering;
 
@@ -244,9 +233,6 @@ function ChatMessagesInternal({
     return <ConversationEmptyState />;
   }
 
-  // Prepend the pending bubble until the server echoes the user turn
-  // back via `cf_agent_chat_messages` (which may also momentarily wipe
-  // it during a broadcast).
   const hasUserInMessages = messages.some((m) => m.role === "user");
   const pendingBubble = pending ? pendingMessageView(pending) : null;
   const rendered: OrgChatMessage[] =

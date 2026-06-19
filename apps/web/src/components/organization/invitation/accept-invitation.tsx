@@ -34,22 +34,14 @@ export default function AcceptInvitation({
   const rejectMutation = useRejectInvitation();
 
   const handleAccept = async () => {
-    try {
-      await acceptMutation.mutateAsync(invitationId);
-      setInvitationStatus("accepted");
-      navigate({ to: "/" });
-    } catch {
-      // Error is handled by mutation
-    }
+    await acceptMutation.mutateAsync(invitationId);
+    setInvitationStatus("accepted");
+    navigate({ to: "/" });
   };
 
   const handleReject = async () => {
-    try {
-      await rejectMutation.mutateAsync(invitationId);
-      setInvitationStatus("rejected");
-    } catch {
-      // Error is handled by mutation
-    }
+    await rejectMutation.mutateAsync(invitationId);
+    setInvitationStatus("rejected");
   };
 
   if (isLoading) {

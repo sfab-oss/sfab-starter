@@ -1,12 +1,3 @@
-// Thin docs renderer (ALW-326 AC-7).
-//
-// Renders the repo's canonical `docs/` markdown to a static HTML site under
-// `dist/`. The markdown in root `docs/` is the single source of truth — this
-// app reads it at build time and duplicates nothing. At fabrication the
-// `apps/docs` app is DROPPED while `docs/` is KEPT (see .sfab/template.json
-// `fabrication.drop`). No framework on purpose: a template's docs preview
-// should stay trivial to build, understand, and delete.
-
 import {
   existsSync,
   mkdirSync,
@@ -27,7 +18,6 @@ const OUT_DIR = resolve(__dirname, "dist");
 const MD_EXT = /\.md$/;
 const H1_RE = /^#\s+(.+)$/m;
 
-/** Recursively collect `.md` files, skipping dotfiles/dirs (e.g. `.local`). */
 function collectMarkdown(dir, acc = []) {
   for (const entry of readdirSync(dir)) {
     if (entry.startsWith(".")) {
@@ -129,7 +119,6 @@ function build() {
     );
   }
 
-  // Landing page: link out to the architecture map if present, else first doc.
   const landing =
     sources.find((p) => p.href === "architecture.html") ?? sources[0];
   const index = `<h1>Documentation</h1><p>The canonical docs live in the repo's <code>docs/</code> directory.</p><ul>${sources

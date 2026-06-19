@@ -32,7 +32,6 @@ import { ChatInputPlaceholder } from "@/components/chat/placeholders";
 
 interface ChatWindowValue {
   chatId: string | null;
-  /** Force-summarize older history. Defined only while connected. */
   compact?: () => Promise<{ compacted: boolean }>;
   isConnected: boolean;
   messages: OrgChatMessage[];
@@ -57,8 +56,6 @@ interface ChatConnectionValue {
   helpers: ChatHelpers;
 }
 
-// Nested context so the lifted `ChatWindowContext` doesn't re-render on
-// every helpers identity change. Consumers must live inside `<ChatConnection>`.
 const ChatConnectionContext = createContext<ChatConnectionValue | null>(null);
 
 export function useChatConnection() {
@@ -111,11 +108,6 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
   const { organizationId, createChat } = useChatOrgConnection();
   const { chatId, pending, sendError } = tab;
 
-  // Pinned the first time we observe a chatId AND a pending together (the
-  // in-session draft→real upgrade). Sticky so when `pending` clears after
-  // the first send, the late re-render doesn't switch
-  // `getInitialMessages` back to `undefined` and trigger a second
-  // Suspense flash via `GET /get-messages`.
   const skipInitialFetchRef = useRef(false);
   if (chatId !== null && pending !== null && !skipInitialFetchRef.current) {
     skipInitialFetchRef.current = true;
@@ -125,8 +117,6 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
   const [helperStatus, setHelperStatus] = useState<ChatStatus>("ready");
   const [helperMessages, setHelperMessages] = useState<OrgChatMessage[]>([]);
   const helpersRef = useRef<ChatHelpers | null>(null);
-  // Set by <ChatConnection> (which owns the agent stub) so the composer's
-  // context chip can trigger compaction without reaching into the connection.
   const compactRef = useRef<(() => Promise<{ compacted: boolean }>) | null>(
     null
   );
@@ -185,8 +175,6 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
       }
       const helpers = helpersRef.current;
       if (!helpers) {
-        // chatId flipped but <ChatConnection> hasn't committed yet —
-        // queue via pending and let the drain effect pick it up.
         useChatTabsStore.getState().setPending(organizationId, tabKey, message);
         return;
       }
@@ -206,20 +194,11 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
       });
       return;
     }
-    // Connected case: re-arm the drain effect with a fresh pending
-    // object reference. The drain dedups by identity (lastSentRef ===
-    // pending), so the new reference is what makes it re-fire.
     const store = useChatTabsStore.getState();
     store.setPending(organizationId, tabKey, { ...pending });
     store.clearSendError(organizationId, tabKey);
   }, [chatId, pending, organizationId, tabKey, runDraftCreate]);
 
-  // While `pending` is set, lock the spinner to "submitted" so the
-  // create→connect→send chain reads as one continuous gesture. Once the
-  // SDK status moves past "ready" (sendMessage engaged), defer to it so
-  // streaming surfaces correctly. The naive `isConnected → helperStatus`
-  // branch flickers back to "ready" between <ChatConnection> committing
-  // and the drain effect firing.
   let composerStatus: ChatStatus;
   if (sendError !== null && pending !== null) {
     composerStatus = "error";
@@ -231,10 +210,6 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
     composerStatus = "ready";
   }
 
-  // Gated whenever a pending hasn't drained (a new keystroke would
-  // overwrite it) or we're still suspending on initial history load.
-  // Concurrent submits over an established connection are fine — the SDK
-  // queues them.
   const composerDisabled =
     pending !== null || (chatId !== null && !isConnected);
 
@@ -341,15 +316,11 @@ function ChatConnection({
     sub: [{ agent: "OrgChat", name: chatId }],
   });
 
-  // Expose the facet's `compactNow` @callable to the composer's context chip.
   compactRef.current = () =>
     chatAgent.call("compactNow", []) as Promise<{ compacted: boolean }>;
 
   const helpers = useAgentChat<unknown, OrgChatMessage>({
     agent: chatAgent,
-    // `null` skips the library's `use(GET /get-messages)`-driven
-    // suspense — safe for chats this panel just created, which are
-    // empty on the server by construction.
     getInitialMessages: skipInitialFetch ? null : undefined,
   });
 
@@ -368,10 +339,6 @@ function ChatConnection({
     return () => onIsConnected(false);
   }, [onIsConnected]);
 
-  // `lastSentRef` blocks re-firing for the same pending after streaming
-  // returns status to "ready", and survives strict-mode remount so the
-  // initial send doesn't double-fire. Retry breaks the dedup by handing
-  // us a fresh pending reference, not by resetting this ref.
   const lastSentRef = useRef<OutgoingMessage | null>(null);
   const sendMessage = helpers.sendMessage;
   useEffect(() => {

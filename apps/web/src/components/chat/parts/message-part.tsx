@@ -18,11 +18,6 @@ import { CheckIcon, CircleIcon } from "lucide-react";
 import { DefaultTool } from "@/components/chat/tools/default-tool";
 import { getDisplayToolRenderer } from "@/components/chat/tools/tool-registry";
 
-/**
- * Renders ONE `UIMessage` part for org chat transcripts.
- * File parts are handled by the caller (attachments row), so they are
- * intentionally not switched here.
- */
 export function MessagePart({
   part,
   messageId,
@@ -129,9 +124,6 @@ export function MessagePart({
   }
 
   if (part.type === "data-acp") {
-    // Lossless catch-all for un-mapped ACP kinds: kept in the message object,
-    // surfaced as a muted breadcrumb so the renderer never crashes on a kind it
-    // doesn't model (ADR-0009 AC-4).
     const data = part.data as { sessionUpdate?: string };
     return (
       <p

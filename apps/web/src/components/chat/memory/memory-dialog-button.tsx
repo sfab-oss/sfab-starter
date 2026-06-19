@@ -17,11 +17,6 @@ import { BrainIcon } from "lucide-react";
 import { useState } from "react";
 import { MemoryCard } from "./memory-card";
 
-/**
- * Controlled organization-memory dialog. Read-only. `MemoryCard` is only mounted
- * while open, so it refetches the latest memory each time (the agent may have
- * updated it mid-conversation via `set_context`).
- */
 export function MemoryDialog({
   open,
   onOpenChange,
@@ -45,10 +40,6 @@ export function MemoryDialog({
   );
 }
 
-/**
- * Self-contained brain-icon button + memory dialog, for surfaces that want a
- * standalone affordance rather than driving the dialog from a menu.
- */
 export function MemoryDialogButton() {
   const [open, setOpen] = useState(false);
 
