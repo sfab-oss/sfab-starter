@@ -31,6 +31,7 @@ export const timestamps = {
   updatedAt,
 };
 
+// Float-backed numeric — production currency may want integer cents or a decimal library.
 export const money = customType<{ data: number; driverData: string }>({
   dataType() {
     return "numeric";
