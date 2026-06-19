@@ -23,8 +23,6 @@ import {
   useState,
 } from "react";
 
-// --- 1. Global Shell (Layout Wrapper) ---
-
 export function AppLayout({
   children,
   sidebar,
@@ -33,7 +31,6 @@ export function AppLayout({
 }: {
   children: React.ReactNode;
   sidebar: React.ReactNode;
-  /** Optional content rendered below the rounded card (e.g. org chat dock). */
   footer?: React.ReactNode;
   defaultOpen?: boolean;
 }) {
@@ -56,8 +53,6 @@ export function AppLayout({
   );
 }
 
-// --- 2. Page Container ---
-
 export function AppLayoutPage({
   className,
   children,
@@ -72,8 +67,6 @@ export function AppLayoutPage({
     </div>
   );
 }
-
-// --- 3. Header System ---
 
 export function AppLayoutHeader({
   className,
@@ -143,16 +136,6 @@ export function AppLayoutHeaderActions({
   );
 }
 
-// --- 4. Content Area ---
-
-/**
- *
- * @param className - The class name to apply to the content area.
- * @param children - The children to render inside the content area.
- * @param variant - The variant of the content area, Use "fixed" so child components (Table/Doc) control their own scroll.
- * @param props - The props to apply to the content area.
- * @returns
- */
 export function AppLayoutContent({
   className,
   children,
@@ -170,10 +153,6 @@ export function AppLayoutContent({
     </div>
   );
 }
-
-// --- 5. Resizable Layout System ---
-
-// --- Resizable Context ---
 
 interface ResizableContextValue {
   panels: Record<string, boolean>;
@@ -193,9 +172,7 @@ export function useResizablePanels() {
   return context;
 }
 
-// --- Cookie Storage Utility ---
-
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 function setCookie(name: string, value: string) {
   // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API not widely supported
@@ -213,7 +190,6 @@ function getCookie(name: string): string | null {
   return decodeURIComponent(match[2]);
 }
 
-// Cookie-based storage adapter for react-resizable-panels
 function createCookieStorage(cookieName: string) {
   return {
     getItem(name: string): string | null {
@@ -261,7 +237,6 @@ export function AppLayoutResizable({
 }) {
   const [panels, setPanels] = useState<Record<string, boolean>>(defaultPanels);
 
-  // Persist panels visibility to cookie when it changes
   useEffect(() => {
     if (Object.keys(panels).length > 0) {
       setCookie(PANELS_VISIBILITY_COOKIE, JSON.stringify(panels));
@@ -285,7 +260,6 @@ export function AppLayoutResizable({
     [panels, togglePanel, setPanelOpen]
   );
 
-  // Create cookie storage if autoSaveId is provided
   const storage = useMemo(() => {
     if (!autoSaveId) {
       return undefined;
@@ -337,14 +311,12 @@ export function AppLayoutResizablePanelSecondary({
 }) {
   const { panels, setPanelOpen } = useResizablePanels();
 
-  // Initialize panel state if not set
   useEffect(() => {
     if (id && panels[id] === undefined) {
       setPanelOpen(id, defaultOpen);
     }
   }, [id, defaultOpen, panels, setPanelOpen]);
 
-  // Don't render if panel is closed
   if (id && panels[id] === false) {
     return null;
   }

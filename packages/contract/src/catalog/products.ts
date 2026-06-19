@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { aiOptional } from "../utils";
 
-// ── DB-derived schemas (hand-written zod mirroring the products table) ─
-// These represent the raw DB row shape. Use for internal/service layer.
-
 export const selectProductSchema = z.object({
   id: z.string(),
   organizationId: z.string(),
@@ -40,23 +37,17 @@ export const dbUpdateProductSchema = z.object({
 
 export type SelectProduct = z.infer<typeof selectProductSchema>;
 
-// ── Composed types (DB row + computed join fields) ──────────────────
-
 export const productWithStockSchema = selectProductSchema.extend({
   totalStock: z.number(),
 });
 
 export type ProductWithStock = z.infer<typeof productWithStockSchema>;
 
-// Alias for backward compat — most consumers expect products with stock
 export const productSchema = productWithStockSchema;
 export type Product = ProductWithStock;
 
 export const productsListSchema = z.array(productWithStockSchema);
 export type ProductsList = z.infer<typeof productsListSchema>;
-
-// ── API schemas (price is a number end-to-end; the db `money` customType
-// handles numeric<->number at the driver boundary, no service-side conversion) ─
 
 export const createProductSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -83,8 +74,6 @@ export const updateProductSchema = z.object({
 export type CreateProduct = z.infer<typeof createProductSchema>;
 export type UpdateProduct = z.infer<typeof updateProductSchema>;
 
-// ── Form schemas (stricter, no coercion) ────────────────────────────
-
 export const productFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   sku: z.string().min(2, "SKU must be at least 2 characters"),
@@ -93,8 +82,6 @@ export const productFormSchema = z.object({
   description: z.string().nullable(),
   imageUrl: z.string().nullable(),
 });
-
-// ── Movement schemas (API + AI tool) ────────────────────────────────
 
 export const createMovementSchema = z.object({
   productId: z.string().describe("The ID of the product being moved"),

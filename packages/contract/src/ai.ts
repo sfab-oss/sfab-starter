@@ -30,8 +30,6 @@ export type AIDataPart = z.infer<typeof aiDataPartSchema>;
 
 export type BaseAIUIMessage = UIMessage<AIMetadata, AIDataPart>;
 
-// Skill Definition
-
 export const skillDefinitionSchema = z.object({
   name: z.string(),
   description: z.string(),
@@ -41,11 +39,7 @@ export const skillDefinitionSchema = z.object({
 
 export type SkillDefinition = z.infer<typeof skillDefinitionSchema>;
 
-// Chat Processing Status
-
 export type ChatProcessingStatus = "idle" | "processing" | "failed";
-
-// Chat Context
 
 export interface ChatContext {
   route: {
@@ -61,8 +55,6 @@ export interface ChatContext {
   };
 }
 
-// Agent Configuration
-
 export const agentConfigSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -73,8 +65,8 @@ export const agentConfigSchema = z.object({
     output: z.string(),
   }),
   skills: z.object({
-    defaultLoaded: z.array(z.string()), // Skills loaded by default
-    availableCalled: z.array(z.string()), // Skills that can be called on demand
+    defaultLoaded: z.array(z.string()),
+    availableCalled: z.array(z.string()),
   }),
   model: z.object({
     modelId: z.string(),

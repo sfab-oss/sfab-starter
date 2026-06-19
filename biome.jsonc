@@ -12,8 +12,6 @@
     "rules": {
       "performance": {
         "noImgElement": "off",
-        // The layer-sliced architecture intentionally uses per-capability
-        // index.ts barrels (e.g. core/catalog/index.ts) — see docs/architecture.md.
         "noBarrelFile": "off"
       }
     }

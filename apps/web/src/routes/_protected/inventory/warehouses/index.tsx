@@ -53,7 +53,6 @@ function WarehousesPage() {
     )
   );
 
-  // --- Pagination state bridge ---
   const pagination = useMemo<PaginationState>(
     () => ({
       pageIndex: searchParams.page - 1,
@@ -77,7 +76,6 @@ function WarehousesPage() {
     [navigate, pagination]
   );
 
-  // --- Sorting state bridge ---
   const sorting = useMemo<SortingState>(
     () =>
       searchParams.sortBy
@@ -106,7 +104,6 @@ function WarehousesPage() {
     [navigate, sorting]
   );
 
-  // --- Filter state bridge (debounced) ---
   const onFilterChange = useDebouncedCallback((value: string) => {
     navigate({
       search: (prev) => ({

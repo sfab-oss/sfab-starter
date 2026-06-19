@@ -19,7 +19,7 @@ function getLocalD1DB(): string {
       return path.resolve(basePath, dbFile);
     }
   } catch {
-    // Directory doesn't exist
+    /* local D1 state not present */
   }
   return ":memory:";
 }

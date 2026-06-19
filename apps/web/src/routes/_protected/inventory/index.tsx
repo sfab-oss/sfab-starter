@@ -71,7 +71,6 @@ function InventoryPage() {
     type: "IN" | "OUT";
   } | null>(null);
 
-  // --- Pagination state bridge (1-indexed URL <-> 0-indexed react-table) ---
   const pagination = useMemo<PaginationState>(
     () => ({
       pageIndex: searchParams.page - 1,
@@ -95,7 +94,6 @@ function InventoryPage() {
     [navigate, pagination]
   );
 
-  // --- Sorting state bridge ---
   const sorting = useMemo<SortingState>(
     () =>
       searchParams.sortBy
@@ -124,7 +122,6 @@ function InventoryPage() {
     [navigate, sorting]
   );
 
-  // --- Filter state bridge (debounced) ---
   const onFilterChange = useDebouncedCallback((value: string) => {
     navigate({
       search: (prev) => ({

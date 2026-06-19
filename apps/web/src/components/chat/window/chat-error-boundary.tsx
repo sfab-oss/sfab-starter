@@ -4,10 +4,6 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
-  /** `"strip"` (default): renders a visible "Chat is unavailable" bar with a
-   *  reload button. `"silent"`: renders nothing on error — useful for the
-   *  popup/fullscreen body, where vanishing the body is fine because the
-   *  bar's strip already tells the user. */
   fallback?: "strip" | "silent";
 }
 
@@ -15,13 +11,6 @@ interface State {
   error: Error | null;
 }
 
-/**
- * Scopes chat-dock crashes to the dock itself so a `useAgentChat` /
- * `useAgent` blowup doesn't take down the surrounding project view via
- * TanStack Router's outer CatchBoundary. We mount one of these around
- * the dock body (silent fallback) and another around the dock bar
- * (visible strip with a reload button); both share `DockProvider` state.
- */
 export class ChatErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 

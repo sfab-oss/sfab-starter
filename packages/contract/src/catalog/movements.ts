@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// ── DB-derived schemas (hand-written zod mirroring the movements table) ─
-
 export const selectMovementSchema = z.object({
   id: z.string(),
   organizationId: z.string(),
