@@ -55,7 +55,8 @@ export type Product = ProductWithStock;
 export const productsListSchema = z.array(productWithStockSchema);
 export type ProductsList = z.infer<typeof productsListSchema>;
 
-// ── API schemas (price as number, service converts to string for DB) ─
+// ── API schemas (price is a number end-to-end; the db `money` customType
+// handles numeric<->number at the driver boundary, no service-side conversion) ─
 
 export const createProductSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),

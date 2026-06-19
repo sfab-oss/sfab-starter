@@ -115,7 +115,6 @@ export const createProduct = async (
   const formattedData = {
     ...data,
     organizationId: data.orgId,
-    price: data.price,
   };
   return await db.insert(products).values(formattedData).returning();
 };
@@ -127,7 +126,6 @@ export const updateProduct = async (
 ) => {
   const formattedData = {
     ...data,
-    price: data.price,
     updatedAt: new Date().toISOString(),
   };
 

@@ -34,6 +34,11 @@ export const timestamps = {
   updatedAt,
 };
 
+// Money as a plain number backed by a SQLite `numeric` column. This is a
+// deliberately simple default for the template (it mirrors the prior
+// text-backed price and keeps the example readable). It is float-backed, so a
+// production app handling currency may want integer cents or a decimal library
+// to avoid floating-point rounding on arithmetic like `quantity * price`.
 export const money = customType<{ data: number; driverData: string }>({
   dataType() {
     return "numeric";

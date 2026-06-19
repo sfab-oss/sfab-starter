@@ -41,6 +41,11 @@ jobs:
 
       - run: pnpm typecheck
 
+  # Enforces the package-layer DAG has no import cycles (madge --circular).
+  # The `check:cycles` script excludes generated files (*.gen.*) and the
+  # Durable Object facet (packages/agent/src/org/**), which has 2 known
+  # pre-existing parent/child cycles. Untangling those is tracked separately
+  # (ALW-327 D8); the gate guards the architectural package graph today.
   cycles:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:

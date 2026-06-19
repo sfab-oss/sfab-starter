@@ -250,7 +250,7 @@ function InventoryPage() {
         );
       },
       cell: ({ row }) => {
-        const price = Number.parseFloat(row.getValue("price") || "0");
+        const price = (row.getValue("price") as number | null) ?? 0;
         const formatted = new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "USD",
