@@ -4,7 +4,6 @@
   "private": true,
   "exports": {
     "./ai": "./src/ai.ts",
-    "./hono": "./src/hono.ts",
     "./catalog": "./src/catalog/index.ts",
     "./utils": "./src/utils.ts",
     "./pagination": "./src/pagination.ts"

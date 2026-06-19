@@ -15,6 +15,3 @@ export function ChatDockMount() {
     </ChatOrgConnection>
   );
 }
-
-/** @deprecated Use `ChatDockMount` */
-export const OrgChatDockMount = ChatDockMount;

@@ -1,6 +1,6 @@
 import { gateway, type LanguageModel } from "ai";
 
-export const ORG_CHAT_MODEL_ID = "google/gemini-3-flash";
+const ORG_CHAT_MODEL_ID = "google/gemini-3-flash";
 const MAX_CONTEXT_TOKENS = 1_000_000;
 const COMPACTION_FRACTION = 0.75;
 
