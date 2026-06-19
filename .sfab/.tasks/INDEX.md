@@ -15,13 +15,10 @@ overwritten by the next sync.
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 - [`ALW-299`](./ALW-299.md) — Generalize the inventory vertical into the neutral base + expose pack seams (ADR-0010 §E)
 
-## review (1)
-
-- [`ALW-326`](./ALW-326.md) — Scaffold the knowledge layer + Tier-1 primitive skeleton (ADR-0010 §E/§H)
-
-## merged (4)
+## merged (5)
 
 - [`ALW-330`](./ALW-330.md) — sfab-starter: documentation content + ADR cleanup & re-enumeration (knowledge-layer E1–E4)
+- [`ALW-326`](./ALW-326.md) — Scaffold the knowledge layer + Tier-1 primitive skeleton (ADR-0010 §E/§H)
 - [`ALW-300`](./ALW-300.md) — Add GitHub Actions CI workflow (lint, typecheck, test, build)
 - [`ALW-298`](./ALW-298.md) — Rename project identity from simple-monorepo-starter to sfab-starter
 - [`ALW-218`](./ALW-218.md) — Bring in the Think-based organization ERP agent (OrgAgent + OrgChat DO pattern from sfab)
