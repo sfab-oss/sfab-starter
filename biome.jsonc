@@ -1,76 +1,15 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  // Repo-owned Biome config (ALW-326 AC-6). Replaces the Ultracite preset so
-  // the template owns its own rules. The concrete, opinionated ruleset is a
-  // deliberately deferred follow-up (ALW-327 D8.1) — this wires Biome's own
-  // recommended baseline plus the project's formatter style and ignores. New
-  // boundary rules (e.g. noRestrictedImports) land here when authored.
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/next"
+  ],
   "files": {
-    "ignoreUnknown": true,
-    "includes": [
-      "**",
-      "!**/*.gen.*",
-      "!**/dist",
-      "!**/build",
-      "!**/.output",
-      "!**/.turbo",
-      "!**/.wrangler",
-      "!**/.tanstack",
-      "!**/coverage",
-      "!**/playwright-report",
-      "!**/test-results",
-      "!**/worker-configuration.d.ts",
-      "!packages/env/src/env.d.ts"
-    ]
-  },
-  "formatter": {
-    "enabled": true,
-    "formatWithErrors": true,
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineEnding": "lf",
-    "lineWidth": 80,
-    "bracketSpacing": true
-  },
-  "javascript": {
-    "formatter": {
-      "arrowParentheses": "always",
-      "bracketSameLine": false,
-      "jsxQuoteStyle": "double",
-      "quoteProperties": "asNeeded",
-      "semicolons": "always",
-      "trailingCommas": "es5"
-    }
-  },
-  "css": {
-    "formatter": {
-      "enabled": true,
-      "lineEnding": "lf",
-      "lineWidth": 80,
-      "quoteStyle": "double"
-    },
-    "parser": {
-      "tailwindDirectives": true
-    }
-  },
-  "json": {
-    "formatter": {
-      "trailingCommas": "none"
-    }
-  },
-  "assist": {
-    "actions": {
-      "source": {
-        "organizeImports": "on",
-        "useSortedAttributes": "on",
-        "useSortedKeys": "off"
-      }
-    }
+    "includes": ["!!packages/env/src/env.d.ts"]
   },
   "linter": {
-    "enabled": true,
     "rules": {
-      "recommended": true,
       "performance": {
         "noImgElement": "off",
         // The layer-sliced architecture intentionally uses per-capability

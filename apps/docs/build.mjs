@@ -24,37 +24,51 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DOCS_DIR = resolve(__dirname, "../../docs");
 const OUT_DIR = resolve(__dirname, "dist");
 
+const MD_EXT = /\.md$/;
+const H1_RE = /^#\s+(.+)$/m;
+
 /** Recursively collect `.md` files, skipping dotfiles/dirs (e.g. `.local`). */
 function collectMarkdown(dir, acc = []) {
   for (const entry of readdirSync(dir)) {
-    if (entry.startsWith(".")) continue;
+    if (entry.startsWith(".")) {
+      continue;
+    }
     const full = join(dir, entry);
-    if (statSync(full).isDirectory()) collectMarkdown(full, acc);
-    else if (entry.endsWith(".md")) acc.push(full);
+    if (statSync(full).isDirectory()) {
+      collectMarkdown(full, acc);
+    } else if (entry.endsWith(".md")) {
+      acc.push(full);
+    }
   }
   return acc;
 }
 
 function htmlPathFor(mdAbsPath) {
-  return `${relative(DOCS_DIR, mdAbsPath).replace(/\.md$/, ".html")}`;
+  return `${relative(DOCS_DIR, mdAbsPath).replace(MD_EXT, ".html")}`;
 }
 
 function title(mdAbsPath, source) {
-  const h1 = source.match(/^#\s+(.+)$/m);
-  if (h1) return h1[1].trim();
-  return relative(DOCS_DIR, mdAbsPath).replace(/\.md$/, "");
+  const h1 = source.match(H1_RE);
+  if (h1) {
+    return h1[1].trim();
+  }
+  return relative(DOCS_DIR, mdAbsPath).replace(MD_EXT, "");
 }
 
 function navHtml(pages, currentHref) {
   const groups = new Map();
   for (const p of pages) {
     const top = p.href.includes("/") ? p.href.split("/")[0] : ".";
-    if (!groups.has(top)) groups.set(top, []);
+    if (!groups.has(top)) {
+      groups.set(top, []);
+    }
     groups.get(top).push(p);
   }
   let out = '<nav><a class="brand" href="/index.html">Docs</a>';
   for (const [group, items] of [...groups].sort()) {
-    if (group !== ".") out += `<div class="group">${group}</div>`;
+    if (group !== ".") {
+      out += `<div class="group">${group}</div>`;
+    }
     for (const item of items.sort((a, b) => a.title.localeCompare(b.title))) {
       const active = item.href === currentHref ? ' class="active"' : "";
       out += `<a${active} href="/${item.href}">${item.title}</a>`;
