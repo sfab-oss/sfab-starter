@@ -8,6 +8,7 @@
     "dev": "turbo dev",
     "lint:check": "biome check .",
     "lint:fix": "biome check --write .",
+    "check:cycles": "madge --circular --extensions ts,tsx --exclude '(\\.gen\\.|/org/)' packages",
     "test": "pnpm --filter web test",
     "test:e2e": "pnpm --filter web test:e2e",
     "typecheck": "turbo typecheck",
@@ -26,9 +27,9 @@
     "@workspace/tsconfig": "workspace:*",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
+    "madge": "^8.0.0",
     "turbo": "^2.7.4",
-    "typescript": "5.9.3",
-    "ultracite": "7.0.11"
+    "typescript": "5.9.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

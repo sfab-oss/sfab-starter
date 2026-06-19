@@ -1,4 +1,3 @@
-// biome-ignore lint/performance/noBarrelFile: Capability barrel
 export * from "./movements";
 export * from "./products";
 export * from "./search";

@@ -6,7 +6,6 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { app as honoApp } from "./hono";
 
-// biome-ignore lint/performance/noBarrelFile: required by wrangler DO binding resolution
 export { OrgAgent } from "@workspace/agent/org";
 export { OrgChat } from "@workspace/agent/org/chat";
 

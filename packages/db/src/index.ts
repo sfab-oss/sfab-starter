@@ -7,5 +7,4 @@ export const db = drizzle(env.DB, { schema });
 
 export type Db = typeof db;
 
-// biome-ignore lint/performance/noBarrelFile: This is a schema export
 export * from "./schema";
