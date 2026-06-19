@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1773528159829,
-      "tag": "0000_supreme_moonstone",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1773534832954,
-      "tag": "0001_tough_vin_gonzales",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1773721562145,
-      "tag": "0002_short_warhawk",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1781830437559,
-      "tag": "0003_lowly_lily_hollister",
+      "when": 1781842255412,
+      "tag": "0000_low_winter_soldier",
       "breakpoints": true
     }
   ]
