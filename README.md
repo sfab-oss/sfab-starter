@@ -54,7 +54,6 @@ cp apps/web-tanstack/.dev.vars.example apps/web-tanstack/.dev.vars
 
 # Set up the local database
 pnpm db:migrate
-pnpm db:seed
 
 # Run it
 pnpm dev
