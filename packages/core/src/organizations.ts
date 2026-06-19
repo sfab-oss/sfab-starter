@@ -1,5 +1,5 @@
-import { db } from "@workspace/db-d1";
-import { organization } from "@workspace/db-d1/schema";
+import { db } from "@workspace/db";
+import { organization } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function getOrganizationSummary(organizationId: string) {

@@ -1,10 +1,10 @@
-import { db } from "@workspace/db-d1";
-import { warehouses } from "@workspace/db-d1/schema";
-import type { PaginationQuery } from "@workspace/types/pagination";
+import type { PaginationQuery } from "@workspace/contract/pagination";
 import type {
   CreateWarehouse,
   UpdateWarehouse,
-} from "@workspace/types/warehouses";
+} from "@workspace/contract/warehouses";
+import { db } from "@workspace/db";
+import { warehouses } from "@workspace/db/schema";
 import { and, asc, desc, eq, like, sql } from "drizzle-orm";
 import { buildPaginatedResponse, getPaginationOffsetLimit } from "./pagination";
 

@@ -1,5 +1,5 @@
 {
-  "extends": "@workspace/typescript-config/react-library-bundler.json",
+  "extends": "@workspace/tsconfig/react-library-bundler.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

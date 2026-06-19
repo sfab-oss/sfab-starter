@@ -1,16 +1,16 @@
 import {
+  createWarehouseSchema,
+  updateWarehouseSchema,
+  warehouseListSchema,
+  warehouseSchema,
+} from "@workspace/contract/warehouses";
+import {
   createWarehouse,
   deleteWarehouse,
   getWarehouse,
   getWarehouses,
   updateWarehouse,
 } from "@workspace/core/warehouses";
-import {
-  createWarehouseSchema,
-  updateWarehouseSchema,
-  warehouseListSchema,
-  warehouseSchema,
-} from "@workspace/types/warehouses";
 import { tool } from "ai";
 import { z } from "zod";
 

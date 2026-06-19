@@ -1,0 +1,34 @@
+{
+  "name": "@workspace/db",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./chat-processing": "./src/chat-processing.ts",
+    "./types/*": "./src/types/*.ts",
+    "./utils": "./src/utils.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio --config=drizzle.config.local.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.5",
+    "drizzle-zod": "^0.8.3",
+    "nanoid": "^5.1.0",
+    "ulidx": "^2.4.1",
+    "zod": "4.3.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.13.4",
+    "@workspace/env": "workspace:*",
+    "@workspace/tsconfig": "workspace:*",
+    "better-sqlite3": "^11.10.0",
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.9.3"
+  }
+}

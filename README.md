@@ -48,8 +48,8 @@ click **Use this template** on GitHub (or `git clone` it), then:
 pnpm install
 
 # Configure local env
-cp apps/web-tanstack/.dev.vars.example apps/web-tanstack/.dev.vars
-# Fill in apps/web-tanstack/.dev.vars. The file documents each var.
+cp apps/web/.dev.vars.example apps/web/.dev.vars
+# Fill in apps/web/.dev.vars. The file documents each var.
 # At minimum set BETTER_AUTH_SECRET and AI_GATEWAY_API_KEY.
 
 # Set up the local database
@@ -68,8 +68,8 @@ To deploy, build and ship to Cloudflare Workers with Wrangler (`pnpm build`, the
 
 ## Project layout
 
-A layer-sliced monorepo: one app in `apps/web-tanstack`, with capabilities split
-into packages (`core`, `db-d1`, `auth`, `agent`, `ui`, and more). Find one slice
+A layer-sliced monorepo: one app in `apps/web`, with capabilities split
+into packages (`core`, `db`, `auth`, `agent`, `ui`, and more). Find one slice
 and you know where the rest live. The full map, the feature-key model, and a
 worked example are in [`docs/architecture.md`](docs/architecture.md).
 

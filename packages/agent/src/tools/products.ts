@@ -1,4 +1,12 @@
 import {
+  createMovementSchema,
+  createProductSchema,
+  movementSchema,
+  productSchema,
+  productsListSchema,
+  updateProductSchema,
+} from "@workspace/contract/products";
+import {
   createProduct,
   deleteProduct,
   getProduct,
@@ -6,14 +14,6 @@ import {
   performStockMovement,
   updateProduct,
 } from "@workspace/core/products";
-import {
-  createMovementSchema,
-  createProductSchema,
-  movementSchema,
-  productSchema,
-  productsListSchema,
-  updateProductSchema,
-} from "@workspace/types/products";
 import { tool } from "ai";
 import { z } from "zod";
 

@@ -1,11 +1,11 @@
-import { db } from "@workspace/db-d1";
-import { movements, products, stockLevels } from "@workspace/db-d1/schema";
-import type { PaginationQuery } from "@workspace/types/pagination";
+import type { PaginationQuery } from "@workspace/contract/pagination";
 import type {
   CreateMovement,
   CreateProduct,
   UpdateProduct,
-} from "@workspace/types/products";
+} from "@workspace/contract/products";
+import { db } from "@workspace/db";
+import { movements, products, stockLevels } from "@workspace/db/schema";
 import { and, asc, desc, eq, gte, like, or, sql } from "drizzle-orm";
 import { buildPaginatedResponse, getPaginationOffsetLimit } from "./pagination";
 

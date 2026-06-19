@@ -1,5 +1,5 @@
-import type * as schema from "@workspace/db-d1/schema";
-import { member } from "@workspace/db-d1/schema";
+import type * as schema from "@workspace/db/schema";
+import { member } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 

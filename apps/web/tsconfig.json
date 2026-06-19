@@ -1,0 +1,13 @@
+{
+  "extends": "@workspace/tsconfig/tanstack-start.json",
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["test/**"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@workspace/ui/*": ["../../packages/ui/src/*"]
+    },
+    "types": ["./worker-configuration.d.ts", "node", "vite/client"]
+  }
+}

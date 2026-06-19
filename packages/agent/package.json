@@ -17,15 +17,15 @@
     "@cloudflare/think": "0.8.5",
     "@workspace/auth": "workspace:*",
     "@workspace/core": "workspace:*",
-    "@workspace/types": "workspace:*",
+    "@workspace/contract": "workspace:*",
     "agents": "0.15.0",
     "ai": "^6.0.39",
     "zod": "^4.3.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250214.0",
-    "@workspace/cloudflare-env": "workspace:*",
-    "@workspace/typescript-config": "workspace:*",
+    "@workspace/env": "workspace:*",
+    "@workspace/tsconfig": "workspace:*",
     "typescript": "^5.9.3"
   }
 }

@@ -1,6 +1,6 @@
-import { db } from "@workspace/db-d1";
-import { products, warehouses } from "@workspace/db-d1/schema";
-import type { SearchResult } from "@workspace/types/search";
+import type { SearchResult } from "@workspace/contract/search";
+import { db } from "@workspace/db";
+import { products, warehouses } from "@workspace/db/schema";
 import { and, eq, like, or } from "drizzle-orm";
 
 export const searchInventory = async (

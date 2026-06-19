@@ -1,5 +1,5 @@
 {
-  "extends": "@workspace/typescript-config/react-library.json",
+  "extends": "@workspace/tsconfig/react-library.json",
   "compilerOptions": {
     "baseUrl": ".",
     "lib": ["es2022", "DOM", "DOM.Iterable"],
@@ -9,6 +9,6 @@
       "@workspace/email/*": ["./src/*"]
     }
   },
-  "include": ["src", "../cloudflare-env/src/env.d.ts"],
+  "include": ["src", "../env/src/env.d.ts"],
   "exclude": ["node_modules"]
 }

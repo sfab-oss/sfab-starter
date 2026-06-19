@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { db, member } from "@workspace/db-d1";
+import { db, member } from "@workspace/db";
 import { sendMail } from "@workspace/email";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
