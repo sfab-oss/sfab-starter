@@ -3,7 +3,6 @@ import {
   PromptInputProvider,
   PromptInputTextarea,
 } from "@workspace/ui/components/ai-elements/prompt-input";
-import { Skeleton } from "@workspace/ui/components/shadcn/skeleton";
 import { AlertCircle } from "lucide-react";
 
 export function ChatHistoryError() {
@@ -26,21 +25,6 @@ export function ChatInputPlaceholder() {
             <PromptInputTextarea disabled placeholder="Type a message..." />
           </PromptInputBody>
         </PromptInputProvider>
-      </div>
-    </div>
-  );
-}
-
-export function ChatMessagesSkeleton() {
-  return (
-    <div className="container mx-auto flex w-full flex-col gap-4 p-4 sm:max-w-2xl md:max-w-3xl">
-      <div className="flex flex-col gap-2 self-end">
-        <Skeleton className="h-10 w-48 rounded-lg" />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Skeleton className="h-4 w-64 rounded" />
-        <Skeleton className="h-4 w-80 rounded" />
-        <Skeleton className="h-4 w-56 rounded" />
       </div>
     </div>
   );

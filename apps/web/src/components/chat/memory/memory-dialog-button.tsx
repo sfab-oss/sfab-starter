@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -8,13 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/shadcn/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/shadcn/tooltip";
-import { BrainIcon } from "lucide-react";
-import { useState } from "react";
 import { MemoryCard } from "./memory-card";
 
 export function MemoryDialog({
@@ -37,28 +29,5 @@ export function MemoryDialog({
         {open && <MemoryCard showHeader={false} variant="dialog" />}
       </DialogContent>
     </Dialog>
-  );
-}
-
-export function MemoryDialogButton() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            className="size-7"
-            onClick={() => setOpen(true)}
-            size="icon"
-            variant="ghost"
-          >
-            <BrainIcon className="size-3.5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">Organization memory</TooltipContent>
-      </Tooltip>
-      <MemoryDialog onOpenChange={setOpen} open={open} />
-    </>
   );
 }

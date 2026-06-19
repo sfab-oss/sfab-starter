@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { aiOptional } from "../utils";
 
-export const selectProductSchema = z.object({
+const selectProductSchema = z.object({
   id: z.string(),
   organizationId: z.string(),
   sku: z.string(),
@@ -15,39 +15,13 @@ export const selectProductSchema = z.object({
   updatedAt: z.string(),
 });
 
-export const dbInsertProductSchema = z.object({
-  sku: z.string().min(2, "SKU must be at least 2 characters"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().nullable().optional(),
-  price: z.number().optional(),
-  cost: z.number().optional(),
-  minStockLevel: z.number().optional(),
-  imageUrl: z.string().nullable().optional(),
-});
-
-export const dbUpdateProductSchema = z.object({
-  sku: z.string().min(2).optional(),
-  name: z.string().min(2).optional(),
-  description: z.string().nullable().optional(),
-  price: z.number().optional(),
-  cost: z.number().optional(),
-  minStockLevel: z.number().optional(),
-  imageUrl: z.string().nullable().optional(),
-});
-
-export type SelectProduct = z.infer<typeof selectProductSchema>;
-
-export const productWithStockSchema = selectProductSchema.extend({
+export const productSchema = selectProductSchema.extend({
   totalStock: z.number(),
 });
 
-export type ProductWithStock = z.infer<typeof productWithStockSchema>;
+export type Product = z.infer<typeof productSchema>;
 
-export const productSchema = productWithStockSchema;
-export type Product = ProductWithStock;
-
-export const productsListSchema = z.array(productWithStockSchema);
-export type ProductsList = z.infer<typeof productsListSchema>;
+export const productsListSchema = z.array(productSchema);
 
 export const createProductSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),

@@ -66,16 +66,6 @@ export const useProduct = (id: string) => {
   });
 };
 
-export const useInventoryMetrics = () => {
-  return useQuery({
-    queryKey: getInventoryMetricsKey(),
-    queryFn: async () => {
-      const res = await client.protected.inventory.metrics.$get();
-      return res.json();
-    },
-  });
-};
-
 export const useProductMovements = (productId: string | null) => {
   return useQuery({
     queryKey: getProductMovementsKey(productId ?? ""),

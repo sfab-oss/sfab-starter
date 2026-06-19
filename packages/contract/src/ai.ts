@@ -1,4 +1,4 @@
-import type { LanguageModelUsage, UIMessage } from "ai";
+import type { LanguageModelUsage } from "ai";
 import { z } from "zod";
 
 export const aiMetadataSchema = z.object({
@@ -22,24 +22,9 @@ export const aiMetadataSchema = z.object({
 
 export type AIMetadata = z.infer<typeof aiMetadataSchema>;
 
-export const querySchema = z.object({});
-
 export const aiDataPartSchema = z.object({});
 
 export type AIDataPart = z.infer<typeof aiDataPartSchema>;
-
-export type BaseAIUIMessage = UIMessage<AIMetadata, AIDataPart>;
-
-export const skillDefinitionSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  content: z.string(),
-  availableTools: z.array(z.string()),
-});
-
-export type SkillDefinition = z.infer<typeof skillDefinitionSchema>;
-
-export type ChatProcessingStatus = "idle" | "processing" | "failed";
 
 export interface ChatContext {
   route: {
@@ -54,24 +39,3 @@ export interface ChatContext {
     data?: Record<string, unknown>;
   };
 }
-
-export const agentConfigSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  personality: z.string(),
-  systemPrompt: z.function({
-    input: z.tuple([z.custom<ChatContext>(), z.custom<string[]>()]),
-    output: z.string(),
-  }),
-  skills: z.object({
-    defaultLoaded: z.array(z.string()),
-    availableCalled: z.array(z.string()),
-  }),
-  model: z.object({
-    modelId: z.string(),
-    providerOptions: z.any().optional(),
-  }),
-});
-
-export type AgentConfig = z.infer<typeof agentConfigSchema>;
