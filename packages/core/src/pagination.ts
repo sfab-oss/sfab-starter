@@ -1,7 +1,7 @@
 import type {
   PaginatedResponse,
   PaginationQuery,
-} from "@workspace/types/pagination";
+} from "@workspace/contract/pagination";
 
 export function getPaginationOffsetLimit(
   params: Pick<PaginationQuery, "page" | "pageSize">

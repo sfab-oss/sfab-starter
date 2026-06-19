@@ -1,0 +1,8 @@
+{
+  "ref": null,
+  "packs": {},
+  "fabrication": {
+    "drop": ["apps/docs"],
+    "keep": ["docs"]
+  }
+}

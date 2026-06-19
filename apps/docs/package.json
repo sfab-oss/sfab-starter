@@ -1,0 +1,13 @@
+{
+  "name": "docs",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs"
+  },
+  "dependencies": {
+    "marked": "^15.0.7"
+  }
+}

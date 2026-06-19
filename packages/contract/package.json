@@ -1,0 +1,23 @@
+{
+  "name": "@workspace/contract",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./ai": "./src/ai.ts",
+    "./hono": "./src/hono.ts",
+    "./catalog": "./src/catalog/index.ts",
+    "./utils": "./src/utils.ts",
+    "./pagination": "./src/pagination.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ai": "6.0.39",
+    "zod": "4.3.5"
+  },
+  "devDependencies": {
+    "@workspace/tsconfig": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

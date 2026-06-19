@@ -6,12 +6,15 @@
     "ultracite/biome/next"
   ],
   "files": {
-    "includes": ["!!packages/cloudflare-env/src/env.d.ts"]
+    "includes": ["!!packages/env/src/env.d.ts"]
   },
   "linter": {
     "rules": {
       "performance": {
-        "noImgElement": "off"
+        "noImgElement": "off",
+        // The layer-sliced architecture intentionally uses per-capability
+        // index.ts barrels (e.g. core/catalog/index.ts) — see docs/architecture.md.
+        "noBarrelFile": "off"
       }
     }
   },

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "@workspace/typescript-config/base.json",
+  "extends": "@workspace/tsconfig/base.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
@@ -8,6 +8,6 @@
     "types": ["@cloudflare/workers-types"],
     "skipLibCheck": true
   },
-  "include": ["src", "../cloudflare-env/src/env.d.ts"],
+  "include": ["src", "../env/src/env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
