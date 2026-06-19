@@ -140,9 +140,6 @@ importers:
       lucide-react:
         specifier: ^0.545.0
         version: 0.545.0(react@19.2.4)
-      nanoid:
-        specifier: ^5.1.0
-        version: 5.1.11
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -167,9 +164,6 @@ importers:
       tailwindcss:
         specifier: ^4.1.18
         version: 4.2.1
-      ulidx:
-        specifier: ^2.4.1
-        version: 2.4.1
       use-debounce:
         specifier: ^10.1.0
         version: 10.1.0(react@19.2.4)
@@ -355,9 +349,6 @@ importers:
       drizzle-orm:
         specifier: ^0.44.5
         version: 0.44.7(@cloudflare/workers-types@4.20260301.1)(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(better-sqlite3@11.10.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(kysely@0.28.11)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.4.2(@types/react@19.2.14)(better-sqlite3@11.10.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(sql.js@1.14.1)
-      nanoid:
-        specifier: ^5.1.0
-        version: 5.1.11
       ulidx:
         specifier: ^2.4.1
         version: 2.4.1

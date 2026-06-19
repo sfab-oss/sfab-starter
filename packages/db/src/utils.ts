@@ -1,24 +1,26 @@
 import { customType, text } from "drizzle-orm/sqlite-core";
-import { nanoid } from "nanoid";
 import { monotonicFactory } from "ulidx";
 
+// IDs are ULIDs: 26-char, lexicographically sortable (the timestamp is encoded
+// in the id). The monotonic factory keeps ids created within the same
+// millisecond in creation order. Sortable primary keys give rows natural
+// time-ordering, better index locality on inserts, and let you paginate/sort by
+// id without a separate timestamp column.
 const ulid = monotonicFactory();
 
-type IdStrategy = "nanoid" | "ulid";
-
-export const createId = (prefix?: string, strategy: IdStrategy = "nanoid") => {
-  const raw = strategy === "ulid" ? ulid() : nanoid();
+export const createId = (prefix?: string) => {
+  const raw = ulid();
   if (!prefix) {
     return raw;
   }
   return `${prefix}_${raw}`;
 };
 
-export const id = (name = "id", strategy: IdStrategy = "nanoid") =>
+export const id = (name = "id") =>
   text(name)
     .notNull()
     .primaryKey()
-    .$defaultFn(() => createId(undefined, strategy));
+    .$defaultFn(() => createId());
 
 export const createdAt = text("created_at")
   .notNull()
