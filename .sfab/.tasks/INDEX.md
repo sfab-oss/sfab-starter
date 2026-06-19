@@ -15,7 +15,7 @@ overwritten by the next sync.
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 - [`ALW-299`](./ALW-299.md) — Generalize the inventory vertical into the neutral base + expose pack seams (ADR-0010 §E)
 
-## ready (1)
+## assigned (1)
 
 - [`ALW-326`](./ALW-326.md) — Scaffold the knowledge layer + Tier-1 primitive skeleton (ADR-0010 §E/§H)
 
