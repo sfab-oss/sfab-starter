@@ -339,6 +339,7 @@ function ChatConnection({
     return () => onIsConnected(false);
   }, [onIsConnected]);
 
+  // Dedup pending sends by object identity; survives strict-mode remount.
   const lastSentRef = useRef<OutgoingMessage | null>(null);
   const sendMessage = helpers.sendMessage;
   useEffect(() => {

@@ -1,3 +1,4 @@
+/** Keep in sync with `tools/display.ts` and UI `tool-registry.tsx`. */
 export const DISPLAY_TOOL_NAMES = {
   PRODUCT_LIST: "display-product-list",
   WAREHOUSE_LIST: "display-warehouse-list",
