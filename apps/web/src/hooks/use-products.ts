@@ -6,13 +6,13 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import type { PaginationQuery } from "@workspace/contract/pagination";
 import type {
   createMovementSchema,
   createProductSchema,
   Product,
   updateProductSchema,
-} from "@workspace/contract/products";
+} from "@workspace/contract/catalog";
+import type { PaginationQuery } from "@workspace/contract/pagination";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import type { z } from "zod";
 import { client } from "@/lib/client";

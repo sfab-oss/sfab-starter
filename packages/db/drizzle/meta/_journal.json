@@ -22,6 +22,13 @@
       "when": 1773721562145,
       "tag": "0002_short_warhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1781830437559,
+      "tag": "0003_lowly_lily_hollister",
+      "breakpoints": true
     }
   ]
 }

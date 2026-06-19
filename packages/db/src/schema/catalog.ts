@@ -4,7 +4,7 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
-import { createdAt, id, timestamps, updatedAt } from "../utils";
+import { createdAt, id, money, timestamps, updatedAt } from "../utils";
 
 export const products = sqliteTable("products", {
   id: id(),
@@ -12,8 +12,8 @@ export const products = sqliteTable("products", {
   sku: text("sku").notNull(),
   name: text("name").notNull(),
   description: text("description"),
-  price: text("price").default("0"),
-  cost: text("cost").default("0"),
+  price: money("price").default(0),
+  cost: money("cost").default(0),
   minStockLevel: integer("min_stock_level").default(5),
   imageUrl: text("image_url"),
   ...timestamps,

@@ -17,7 +17,7 @@ beforeEach(async () => {
 describe("searchInventory", () => {
   it("returns empty results for empty query", async () => {
     await seedProduct(orgId, { name: "Widget", sku: "W-001" });
-    const { searchInventory } = await import("@workspace/core/search");
+    const { searchInventory } = await import("@workspace/core/catalog");
     const results = await searchInventory(orgId, "");
     // Empty pattern matches everything with LIKE, but the API guard prevents this
     // At service level, empty string matches all — this tests the raw function behavior
@@ -28,7 +28,7 @@ describe("searchInventory", () => {
     await seedProduct(orgId, { name: "Blue Widget", sku: "BW-001" });
     await seedProduct(orgId, { name: "Red Gadget", sku: "RG-001" });
 
-    const { searchInventory } = await import("@workspace/core/search");
+    const { searchInventory } = await import("@workspace/core/catalog");
     const results = await searchInventory(orgId, "Widget");
     expect(results).toHaveLength(1);
     expect(results[0].metadata.title).toBe("Blue Widget");
@@ -38,7 +38,7 @@ describe("searchInventory", () => {
   it("finds products by SKU", async () => {
     await seedProduct(orgId, { name: "Some Product", sku: "UNIQUE-SKU-99" });
 
-    const { searchInventory } = await import("@workspace/core/search");
+    const { searchInventory } = await import("@workspace/core/catalog");
     const results = await searchInventory(orgId, "UNIQUE-SKU");
     expect(results).toHaveLength(1);
     expect(results[0].metadata.sku).toBe("UNIQUE-SKU-99");
@@ -48,7 +48,7 @@ describe("searchInventory", () => {
     await seedWarehouse(orgId, { name: "Downtown Depot" });
     await seedWarehouse(orgId, { name: "Airport Hub" });
 
-    const { searchInventory } = await import("@workspace/core/search");
+    const { searchInventory } = await import("@workspace/core/catalog");
     const results = await searchInventory(orgId, "Downtown");
     expect(results).toHaveLength(1);
     expect(results[0].metadata.title).toBe("Downtown Depot");
@@ -59,7 +59,7 @@ describe("searchInventory", () => {
     await seedProduct(orgId, { name: "Alpha Item", sku: "AI-001" });
     await seedWarehouse(orgId, { name: "Alpha Storage" });
 
-    const { searchInventory } = await import("@workspace/core/search");
+    const { searchInventory } = await import("@workspace/core/catalog");
     const results = await searchInventory(orgId, "Alpha");
     expect(results).toHaveLength(2);
 
@@ -72,7 +72,7 @@ describe("searchInventory", () => {
     await seedProduct(orgId, { name: "Shared Name", sku: "SN-001" });
     await seedWarehouse(orgId, { name: "Shared Name" });
 
-    const { searchInventory } = await import("@workspace/core/search");
+    const { searchInventory } = await import("@workspace/core/catalog");
     const results = await searchInventory(orgId, "Shared");
     expect(results[0].metadata.type).toBe("product");
     expect(results[0].score).toBeGreaterThan(results[1].score);
@@ -81,7 +81,7 @@ describe("searchInventory", () => {
   it("returns no results for unmatched query", async () => {
     await seedProduct(orgId, { name: "Widget", sku: "W-001" });
 
-    const { searchInventory } = await import("@workspace/core/search");
+    const { searchInventory } = await import("@workspace/core/catalog");
     const results = await searchInventory(orgId, "xyznonexistent");
     expect(results).toHaveLength(0);
   });
@@ -91,7 +91,7 @@ describe("searchInventory", () => {
     const otherOrg = await seedOrganization(otherUser.id);
     await seedProduct(otherOrg.id, { name: "Secret Widget", sku: "SW-001" });
 
-    const { searchInventory } = await import("@workspace/core/search");
+    const { searchInventory } = await import("@workspace/core/catalog");
     const results = await searchInventory(orgId, "Secret");
     expect(results).toHaveLength(0);
   });
@@ -104,7 +104,7 @@ describe("searchInventory", () => {
       });
     }
 
-    const { searchInventory } = await import("@workspace/core/search");
+    const { searchInventory } = await import("@workspace/core/catalog");
     const results = await searchInventory(orgId, "Bulk");
     const productResults = results.filter((r) => r.metadata.type === "product");
     expect(productResults).toHaveLength(10);
@@ -113,7 +113,7 @@ describe("searchInventory", () => {
   it("performs case-insensitive search", async () => {
     await seedProduct(orgId, { name: "UPPERCASE WIDGET", sku: "UW-001" });
 
-    const { searchInventory } = await import("@workspace/core/search");
+    const { searchInventory } = await import("@workspace/core/catalog");
     const results = await searchInventory(orgId, "uppercase");
     expect(results).toHaveLength(1);
   });

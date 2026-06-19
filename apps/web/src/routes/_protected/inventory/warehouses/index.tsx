@@ -5,8 +5,8 @@ import type {
   SortingState,
   Updater,
 } from "@tanstack/react-table";
+import type { Warehouse } from "@workspace/contract/catalog";
 import { paginationQuerySchema } from "@workspace/contract/pagination";
-import type { Warehouse } from "@workspace/contract/warehouses";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   AppLayoutHeader,
@@ -27,7 +27,7 @@ import {
 import { ArrowUpDown, MapPin, MoreHorizontal, Star } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { CreateWarehouseDialog } from "@/components/inventory/create-warehouse-dialog";
+import { CreateWarehouseDialog } from "@/components/catalog/create-warehouse-dialog";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { useWarehouses } from "@/hooks/use-warehouses";
 

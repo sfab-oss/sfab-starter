@@ -12,7 +12,7 @@ import { useMemo } from "react";
 import {
   WarehouseForm,
   type WarehouseFormValues,
-} from "@/components/inventory/warehouse-form";
+} from "@/components/catalog/warehouse-form";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { useCreateWarehouse } from "@/hooks/use-warehouses";
 

@@ -1,12 +1,15 @@
-import type { PaginationQuery } from "@workspace/contract/pagination";
 import type {
   CreateWarehouse,
   UpdateWarehouse,
-} from "@workspace/contract/warehouses";
+} from "@workspace/contract/catalog";
+import type { PaginationQuery } from "@workspace/contract/pagination";
 import { db } from "@workspace/db";
 import { warehouses } from "@workspace/db/schema";
 import { and, asc, desc, eq, like, sql } from "drizzle-orm";
-import { buildPaginatedResponse, getPaginationOffsetLimit } from "./pagination";
+import {
+  buildPaginatedResponse,
+  getPaginationOffsetLimit,
+} from "../pagination";
 
 const warehouseSortColumns = {
   name: warehouses.name,

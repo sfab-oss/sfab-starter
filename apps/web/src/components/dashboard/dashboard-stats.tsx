@@ -16,8 +16,8 @@ export function DashboardStats() {
   const totalSKUs = products?.length || 0;
   const totalValue =
     products?.reduce(
-      (sum: number, p: { totalStock: number; price: string | null }) =>
-        sum + p.totalStock * Number.parseFloat(p.price || "0"),
+      (sum: number, p: { totalStock: number; price: number | null }) =>
+        sum + p.totalStock * (p.price ?? 0),
       0
     ) || 0;
 

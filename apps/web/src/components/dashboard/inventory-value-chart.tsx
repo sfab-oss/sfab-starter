@@ -35,9 +35,9 @@ export function InventoryValueChart() {
   const data =
     products
       ?.map(
-        (p: { name: string; totalStock: number; price: string | null }) => ({
+        (p: { name: string; totalStock: number; price: number | null }) => ({
           name: p.name,
-          value: p.totalStock * Number.parseFloat(p.price || "0"),
+          value: p.totalStock * (p.price ?? 0),
         })
       )
       .sort((a: { value: number }, b: { value: number }) => b.value - a.value)

@@ -1,17 +1,44 @@
-import { selectProductSchema } from "@workspace/db/types/products";
 import { z } from "zod";
-import { aiOptional } from "./utils";
+import { aiOptional } from "../utils";
 
-// ── DB-derived schemas (source of truth: Drizzle → drizzle-zod) ─────
+// ── DB-derived schemas (hand-written zod mirroring the products table) ─
 // These represent the raw DB row shape. Use for internal/service layer.
 
-export type { SelectProduct } from "@workspace/db/types/products";
-// biome-ignore lint/performance/noBarrelFile: Re-exports as public API
-export {
-  insertProductSchema as dbInsertProductSchema,
-  selectProductSchema,
-  updateProductSchema as dbUpdateProductSchema,
-} from "@workspace/db/types/products";
+export const selectProductSchema = z.object({
+  id: z.string(),
+  organizationId: z.string(),
+  sku: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  price: z.number().nullable(),
+  cost: z.number().nullable(),
+  minStockLevel: z.number().nullable(),
+  imageUrl: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const dbInsertProductSchema = z.object({
+  sku: z.string().min(2, "SKU must be at least 2 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  description: z.string().nullable().optional(),
+  price: z.number().optional(),
+  cost: z.number().optional(),
+  minStockLevel: z.number().optional(),
+  imageUrl: z.string().nullable().optional(),
+});
+
+export const dbUpdateProductSchema = z.object({
+  sku: z.string().min(2).optional(),
+  name: z.string().min(2).optional(),
+  description: z.string().nullable().optional(),
+  price: z.number().optional(),
+  cost: z.number().optional(),
+  minStockLevel: z.number().optional(),
+  imageUrl: z.string().nullable().optional(),
+});
+
+export type SelectProduct = z.infer<typeof selectProductSchema>;
 
 // ── Composed types (DB row + computed join fields) ──────────────────
 

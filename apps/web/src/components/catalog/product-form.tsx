@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { productFormSchema } from "@workspace/contract/products";
+import { productFormSchema } from "@workspace/contract/catalog";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Field,

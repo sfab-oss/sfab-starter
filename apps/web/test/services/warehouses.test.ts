@@ -11,7 +11,7 @@ beforeEach(async () => {
 
 describe("getWarehouses", () => {
   it("returns empty list when no warehouses exist", async () => {
-    const { getWarehouses } = await import("@workspace/core/warehouses");
+    const { getWarehouses } = await import("@workspace/core/catalog");
     const warehouses = await getWarehouses(orgId);
     expect(warehouses).toHaveLength(0);
   });
@@ -20,7 +20,7 @@ describe("getWarehouses", () => {
     await seedWarehouse(orgId, { name: "Zeta Warehouse" });
     await seedWarehouse(orgId, { name: "Alpha Warehouse" });
 
-    const { getWarehouses } = await import("@workspace/core/warehouses");
+    const { getWarehouses } = await import("@workspace/core/catalog");
     const warehouses = await getWarehouses(orgId);
     expect(warehouses).toHaveLength(2);
     expect(warehouses[0].name).toBe("Alpha Warehouse");
@@ -33,7 +33,7 @@ describe("getWarehouses", () => {
     await seedWarehouse(orgId, { name: "My Warehouse" });
     await seedWarehouse(otherOrg.id, { name: "Other Warehouse" });
 
-    const { getWarehouses } = await import("@workspace/core/warehouses");
+    const { getWarehouses } = await import("@workspace/core/catalog");
     const warehouses = await getWarehouses(orgId);
     expect(warehouses).toHaveLength(1);
     expect(warehouses[0].name).toBe("My Warehouse");
@@ -43,14 +43,14 @@ describe("getWarehouses", () => {
 describe("getWarehouse", () => {
   it("returns a warehouse by id", async () => {
     const seeded = await seedWarehouse(orgId, { name: "Specific" });
-    const { getWarehouse } = await import("@workspace/core/warehouses");
+    const { getWarehouse } = await import("@workspace/core/catalog");
     const warehouse = await getWarehouse(seeded.id, orgId);
     expect(warehouse).toBeDefined();
     expect(warehouse.name).toBe("Specific");
   });
 
   it("returns undefined for non-existent warehouse", async () => {
-    const { getWarehouse } = await import("@workspace/core/warehouses");
+    const { getWarehouse } = await import("@workspace/core/catalog");
     const warehouse = await getWarehouse("non-existent", orgId);
     expect(warehouse).toBeUndefined();
   });
@@ -61,7 +61,7 @@ describe("getDefaultWarehouse", () => {
     await seedWarehouse(orgId, { name: "Regular", isDefault: false });
     await seedWarehouse(orgId, { name: "Default", isDefault: true });
 
-    const { getDefaultWarehouse } = await import("@workspace/core/warehouses");
+    const { getDefaultWarehouse } = await import("@workspace/core/catalog");
     const warehouse = await getDefaultWarehouse(orgId);
     expect(warehouse).toBeDefined();
     expect(warehouse.name).toBe("Default");
@@ -69,7 +69,7 @@ describe("getDefaultWarehouse", () => {
 
   it("returns undefined when no default exists", async () => {
     await seedWarehouse(orgId, { isDefault: false });
-    const { getDefaultWarehouse } = await import("@workspace/core/warehouses");
+    const { getDefaultWarehouse } = await import("@workspace/core/catalog");
     const warehouse = await getDefaultWarehouse(orgId);
     expect(warehouse).toBeUndefined();
   });
@@ -77,7 +77,7 @@ describe("getDefaultWarehouse", () => {
 
 describe("createWarehouse", () => {
   it("creates a warehouse", async () => {
-    const { createWarehouse } = await import("@workspace/core/warehouses");
+    const { createWarehouse } = await import("@workspace/core/catalog");
     const warehouse = await createWarehouse({
       orgId,
       name: "New Warehouse",
@@ -90,7 +90,7 @@ describe("createWarehouse", () => {
 
   it("unsets other defaults when creating a default warehouse", async () => {
     const { createWarehouse, getWarehouses } = await import(
-      "@workspace/core/warehouses"
+      "@workspace/core/catalog"
     );
 
     await createWarehouse({
@@ -115,7 +115,7 @@ describe("createWarehouse", () => {
 describe("updateWarehouse", () => {
   it("updates warehouse fields", async () => {
     const seeded = await seedWarehouse(orgId, { name: "Original" });
-    const { updateWarehouse } = await import("@workspace/core/warehouses");
+    const { updateWarehouse } = await import("@workspace/core/catalog");
     const updated = await updateWarehouse(seeded.id, orgId, {
       name: "Updated",
     });
@@ -128,7 +128,7 @@ describe("updateWarehouse", () => {
     const seeded = await seedWarehouse(otherOrg.id, { name: "Other WH" });
 
     const { updateWarehouse, getWarehouse } = await import(
-      "@workspace/core/warehouses"
+      "@workspace/core/catalog"
     );
     const result = await updateWarehouse(seeded.id, orgId, { name: "Hacked" });
     expect(result).toBeUndefined();
@@ -148,7 +148,7 @@ describe("updateWarehouse", () => {
     });
 
     const { updateWarehouse, getWarehouse } = await import(
-      "@workspace/core/warehouses"
+      "@workspace/core/catalog"
     );
     await updateWarehouse(other.id, orgId, { isDefault: true });
 
@@ -161,7 +161,7 @@ describe("deleteWarehouse", () => {
   it("deletes a warehouse and returns it", async () => {
     const seeded = await seedWarehouse(orgId, { name: "To Delete" });
     const { deleteWarehouse, getWarehouse } = await import(
-      "@workspace/core/warehouses"
+      "@workspace/core/catalog"
     );
     const deleted = await deleteWarehouse(seeded.id, orgId);
     expect(deleted.name).toBe("To Delete");
@@ -176,7 +176,7 @@ describe("deleteWarehouse", () => {
     const seeded = await seedWarehouse(otherOrg.id, { name: "Protected WH" });
 
     const { deleteWarehouse, getWarehouse } = await import(
-      "@workspace/core/warehouses"
+      "@workspace/core/catalog"
     );
     const result = await deleteWarehouse(seeded.id, orgId);
     expect(result).toBeUndefined();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { SearchResponse } from "@workspace/contract/search";
+import type { SearchResponse } from "@workspace/contract/catalog";
 import { client } from "@/lib/client";
 
 export function useSearch(query: string) {

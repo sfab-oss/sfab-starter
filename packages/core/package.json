@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "exports": {
+    "./catalog": "./src/catalog/index.ts",
     "./*": "./src/*.ts"
   },
   "scripts": {

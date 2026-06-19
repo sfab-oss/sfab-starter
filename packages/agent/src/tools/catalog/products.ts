@@ -5,7 +5,7 @@ import {
   productSchema,
   productsListSchema,
   updateProductSchema,
-} from "@workspace/contract/products";
+} from "@workspace/contract/catalog";
 import {
   createProduct,
   deleteProduct,
@@ -13,7 +13,7 @@ import {
   getProducts,
   performStockMovement,
   updateProduct,
-} from "@workspace/core/products";
+} from "@workspace/core/catalog";
 import { tool } from "ai";
 import { z } from "zod";
 

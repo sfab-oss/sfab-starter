@@ -43,7 +43,7 @@ export type SkillDefinition = z.infer<typeof skillDefinitionSchema>;
 
 // Chat Processing Status
 
-export type { ChatProcessingStatus } from "@workspace/db/chat-processing";
+export type ChatProcessingStatus = "idle" | "processing" | "failed";
 
 // Chat Context
 

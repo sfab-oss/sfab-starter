@@ -5,8 +5,8 @@ import type {
   SortingState,
   Updater,
 } from "@tanstack/react-table";
+import type { Product } from "@workspace/contract/catalog";
 import { paginationQuerySchema } from "@workspace/contract/pagination";
-import type { Product } from "@workspace/contract/products";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   AppLayoutHeader,
@@ -35,11 +35,11 @@ import {
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { CreateProductDialog } from "@/components/inventory/create-product-dialog";
+import { CreateProductDialog } from "@/components/catalog/create-product-dialog";
 import {
   MovementForm,
   type MovementFormValues,
-} from "@/components/inventory/movement-form";
+} from "@/components/catalog/movement-form";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { useCreateMovement, useProducts } from "@/hooks/use-products";
 

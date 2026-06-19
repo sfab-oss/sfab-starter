@@ -19,7 +19,7 @@ describe("getPaginatedProducts", () => {
     await seedProduct(orgId, { name: "Product 1", sku: "P-1" });
     await seedProduct(orgId, { name: "Product 2", sku: "P-2" });
 
-    const { getPaginatedProducts } = await import("@workspace/core/products");
+    const { getPaginatedProducts } = await import("@workspace/core/catalog");
     const result = await getPaginatedProducts(orgId, {
       page: 1,
       pageSize: 10,
@@ -36,7 +36,7 @@ describe("getPaginatedProducts", () => {
       await seedProduct(orgId, { name: `Product ${i}`, sku: `P-${i}` });
     }
 
-    const { getPaginatedProducts } = await import("@workspace/core/products");
+    const { getPaginatedProducts } = await import("@workspace/core/catalog");
     const result = await getPaginatedProducts(orgId, {
       page: 1,
       pageSize: 3,
@@ -51,7 +51,7 @@ describe("getPaginatedProducts", () => {
       await seedProduct(orgId, { name: `Product ${i}`, sku: `P-${i}` });
     }
 
-    const { getPaginatedProducts } = await import("@workspace/core/products");
+    const { getPaginatedProducts } = await import("@workspace/core/catalog");
     const page1 = await getPaginatedProducts(orgId, {
       page: 1,
       pageSize: 3,
@@ -72,7 +72,7 @@ describe("getPaginatedProducts", () => {
     await seedProduct(orgId, { name: "Alpha Widget", sku: "AW-001" });
     await seedProduct(orgId, { name: "Beta Gadget", sku: "BG-001" });
 
-    const { getPaginatedProducts } = await import("@workspace/core/products");
+    const { getPaginatedProducts } = await import("@workspace/core/catalog");
     const result = await getPaginatedProducts(orgId, {
       page: 1,
       pageSize: 10,
@@ -88,7 +88,7 @@ describe("getPaginatedProducts", () => {
     await seedProduct(orgId, { name: "Product A", sku: "SPECIAL-001" });
     await seedProduct(orgId, { name: "Product B", sku: "NORMAL-001" });
 
-    const { getPaginatedProducts } = await import("@workspace/core/products");
+    const { getPaginatedProducts } = await import("@workspace/core/catalog");
     const result = await getPaginatedProducts(orgId, {
       page: 1,
       pageSize: 10,
@@ -103,7 +103,7 @@ describe("getPaginatedProducts", () => {
     await seedProduct(orgId, { name: "Zebra", sku: "Z-001" });
     await seedProduct(orgId, { name: "Apple", sku: "A-001" });
 
-    const { getPaginatedProducts } = await import("@workspace/core/products");
+    const { getPaginatedProducts } = await import("@workspace/core/catalog");
     const result = await getPaginatedProducts(orgId, {
       page: 1,
       pageSize: 10,
@@ -119,7 +119,7 @@ describe("getPaginatedProducts", () => {
     await seedProduct(orgId, { name: "Zebra", sku: "Z-001" });
     await seedProduct(orgId, { name: "Apple", sku: "A-001" });
 
-    const { getPaginatedProducts } = await import("@workspace/core/products");
+    const { getPaginatedProducts } = await import("@workspace/core/catalog");
     const result = await getPaginatedProducts(orgId, {
       page: 1,
       pageSize: 10,
@@ -137,7 +137,7 @@ describe("getPaginatedProducts", () => {
     await seedProduct(orgId, { name: "My Product", sku: "MP-001" });
     await seedProduct(otherOrg.id, { name: "Other Product", sku: "OP-001" });
 
-    const { getPaginatedProducts } = await import("@workspace/core/products");
+    const { getPaginatedProducts } = await import("@workspace/core/catalog");
     const result = await getPaginatedProducts(orgId, {
       page: 1,
       pageSize: 10,
@@ -150,7 +150,7 @@ describe("getPaginatedProducts", () => {
   it("returns empty result for page beyond data", async () => {
     await seedProduct(orgId, { name: "Only Product", sku: "OP-001" });
 
-    const { getPaginatedProducts } = await import("@workspace/core/products");
+    const { getPaginatedProducts } = await import("@workspace/core/catalog");
     const result = await getPaginatedProducts(orgId, {
       page: 5,
       pageSize: 10,
@@ -166,9 +166,7 @@ describe("getPaginatedWarehouses", () => {
     await seedWarehouse(orgId, { name: "Warehouse 1" });
     await seedWarehouse(orgId, { name: "Warehouse 2" });
 
-    const { getPaginatedWarehouses } = await import(
-      "@workspace/core/warehouses"
-    );
+    const { getPaginatedWarehouses } = await import("@workspace/core/catalog");
     const result = await getPaginatedWarehouses(orgId, {
       page: 1,
       pageSize: 10,
@@ -184,9 +182,7 @@ describe("getPaginatedWarehouses", () => {
       await seedWarehouse(orgId, { name: `Warehouse ${i}` });
     }
 
-    const { getPaginatedWarehouses } = await import(
-      "@workspace/core/warehouses"
-    );
+    const { getPaginatedWarehouses } = await import("@workspace/core/catalog");
     const result = await getPaginatedWarehouses(orgId, {
       page: 1,
       pageSize: 3,
@@ -200,9 +196,7 @@ describe("getPaginatedWarehouses", () => {
     await seedWarehouse(orgId, { name: "Main Depot" });
     await seedWarehouse(orgId, { name: "Satellite Hub" });
 
-    const { getPaginatedWarehouses } = await import(
-      "@workspace/core/warehouses"
-    );
+    const { getPaginatedWarehouses } = await import("@workspace/core/catalog");
     const result = await getPaginatedWarehouses(orgId, {
       page: 1,
       pageSize: 10,
@@ -217,9 +211,7 @@ describe("getPaginatedWarehouses", () => {
     await seedWarehouse(orgId, { name: "Zeta" });
     await seedWarehouse(orgId, { name: "Alpha" });
 
-    const { getPaginatedWarehouses } = await import(
-      "@workspace/core/warehouses"
-    );
+    const { getPaginatedWarehouses } = await import("@workspace/core/catalog");
     const result = await getPaginatedWarehouses(orgId, {
       page: 1,
       pageSize: 10,
@@ -235,9 +227,7 @@ describe("getPaginatedWarehouses", () => {
     await seedWarehouse(orgId, { name: "My Warehouse" });
     await seedWarehouse(otherOrg.id, { name: "Other Warehouse" });
 
-    const { getPaginatedWarehouses } = await import(
-      "@workspace/core/warehouses"
-    );
+    const { getPaginatedWarehouses } = await import("@workspace/core/catalog");
     const result = await getPaginatedWarehouses(orgId, {
       page: 1,
       pageSize: 10,

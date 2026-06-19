@@ -1,4 +1,4 @@
-import { text } from "drizzle-orm/sqlite-core";
+import { customType, text } from "drizzle-orm/sqlite-core";
 import { nanoid } from "nanoid";
 import { monotonicFactory } from "ulidx";
 
@@ -33,3 +33,15 @@ export const timestamps = {
   createdAt,
   updatedAt,
 };
+
+export const money = customType<{ data: number; driverData: string }>({
+  dataType() {
+    return "numeric";
+  },
+  fromDriver(value) {
+    return Number(value);
+  },
+  toDriver(value) {
+    return String(value);
+  },
+});

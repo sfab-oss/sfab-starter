@@ -5,17 +5,14 @@
   "exports": {
     "./ai": "./src/ai.ts",
     "./hono": "./src/hono.ts",
-    "./products": "./src/products.ts",
-    "./search": "./src/search.ts",
+    "./catalog": "./src/catalog/index.ts",
     "./utils": "./src/utils.ts",
-    "./pagination": "./src/pagination.ts",
-    "./warehouses": "./src/warehouses.ts"
+    "./pagination": "./src/pagination.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@workspace/db": "workspace:*",
     "ai": "6.0.39",
     "zod": "4.3.5"
   },

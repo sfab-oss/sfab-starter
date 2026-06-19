@@ -1,16 +1,16 @@
 import { zValidator } from "@hono/zod-validator";
-import { paginationQuerySchema } from "@workspace/contract/pagination";
 import {
   createWarehouseSchema,
   updateWarehouseSchema,
-} from "@workspace/contract/warehouses";
+} from "@workspace/contract/catalog";
+import { paginationQuerySchema } from "@workspace/contract/pagination";
 import {
   createWarehouse,
   deleteWarehouse,
   getPaginatedWarehouses,
   getWarehouse,
   updateWarehouse,
-} from "@workspace/core/warehouses";
+} from "@workspace/core/catalog";
 import { Hono } from "hono";
 import { z } from "zod";
 import type { HonoContextWithAuthAndOrg } from "../../types";

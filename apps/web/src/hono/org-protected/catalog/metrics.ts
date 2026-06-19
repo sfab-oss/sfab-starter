@@ -1,4 +1,4 @@
-import { getDashboardMetrics } from "@workspace/core/products";
+import { getDashboardMetrics } from "@workspace/core/catalog";
 import { Hono } from "hono";
 import type { HonoContextWithAuthAndOrg } from "../../types";
 

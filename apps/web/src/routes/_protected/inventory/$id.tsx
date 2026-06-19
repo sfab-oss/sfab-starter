@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import type { Movement } from "@workspace/contract/products";
+import type { Movement } from "@workspace/contract/catalog";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   AppLayoutHeader,
@@ -56,11 +56,11 @@ import { useMemo, useState } from "react";
 import {
   MovementForm,
   type MovementFormValues,
-} from "@/components/inventory/movement-form";
+} from "@/components/catalog/movement-form";
 import {
   ProductForm,
   type ProductFormValues,
-} from "@/components/inventory/product-form";
+} from "@/components/catalog/product-form";
 import { useSetPageContext } from "@/components/providers/page-context";
 import {
   useCreateMovement,
@@ -386,7 +386,7 @@ function ProductPage() {
             </CardHeader>
             <CardContent>
               <div className="font-bold text-2xl">
-                ${Number.parseFloat(product.price || "0").toFixed(2)}
+                ${(product.price ?? 0).toFixed(2)}
               </div>
               <p className="text-muted-foreground text-xs">Per unit</p>
             </CardContent>
@@ -401,12 +401,13 @@ function ProductPage() {
             <CardContent>
               <div className="font-bold text-2xl">
                 $
-                {(
-                  product.totalStock * Number.parseFloat(product.price || "0")
-                ).toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                {(product.totalStock * (product.price ?? 0)).toLocaleString(
+                  undefined,
+                  {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }
+                )}
               </div>
               <p className="text-muted-foreground text-xs">Total asset value</p>
             </CardContent>
@@ -428,9 +429,7 @@ function ProductPage() {
                     defaultValues={{
                       name: product.name,
                       sku: product.sku,
-                      price: product.price
-                        ? Number.parseFloat(product.price)
-                        : 0,
+                      price: product.price ?? 0,
                       description: product.description || "",
                       minStockLevel: product.minStockLevel || 5,
                       imageUrl: product.imageUrl || null,

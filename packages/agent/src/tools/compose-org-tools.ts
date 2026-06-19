@@ -1,8 +1,7 @@
 import type { ToolSet } from "ai";
 import type { AgentToolsContext } from "../types";
+import { createProductTools, createWarehouseTools } from "./catalog";
 import { createDisplayTools } from "./display";
-import { createProductTools } from "./products";
-import { createWarehouseTools } from "./warehouses";
 
 export const getOrgAgentTools = (ctx: AgentToolsContext): ToolSet => ({
   ...createProductTools(ctx.organizationId),

@@ -1,4 +1,4 @@
-import type { SearchResult } from "@workspace/contract/search";
+import type { SearchResult } from "@workspace/contract/catalog";
 import { db } from "@workspace/db";
 import { products, warehouses } from "@workspace/db/schema";
 import { and, eq, like, or } from "drizzle-orm";

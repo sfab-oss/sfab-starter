@@ -1,13 +1,16 @@
-import type { PaginationQuery } from "@workspace/contract/pagination";
 import type {
   CreateMovement,
   CreateProduct,
   UpdateProduct,
-} from "@workspace/contract/products";
+} from "@workspace/contract/catalog";
+import type { PaginationQuery } from "@workspace/contract/pagination";
 import { db } from "@workspace/db";
 import { movements, products, stockLevels } from "@workspace/db/schema";
 import { and, asc, desc, eq, gte, like, or, sql } from "drizzle-orm";
-import { buildPaginatedResponse, getPaginationOffsetLimit } from "./pagination";
+import {
+  buildPaginatedResponse,
+  getPaginationOffsetLimit,
+} from "../pagination";
 
 const productSelectFields = {
   id: products.id,
@@ -112,7 +115,7 @@ export const createProduct = async (
   const formattedData = {
     ...data,
     organizationId: data.orgId,
-    price: data.price ? data.price.toString() : undefined,
+    price: data.price,
   };
   return await db.insert(products).values(formattedData).returning();
 };
@@ -124,7 +127,7 @@ export const updateProduct = async (
 ) => {
   const formattedData = {
     ...data,
-    price: data.price ? data.price.toString() : undefined,
+    price: data.price,
     updatedAt: new Date().toISOString(),
   };
 

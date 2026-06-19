@@ -1,8 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { movementFormSchema } from "@workspace/contract/products";
-import type { Warehouse } from "@workspace/contract/warehouses";
+import {
+  movementFormSchema,
+  type Warehouse,
+} from "@workspace/contract/catalog";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Field,
