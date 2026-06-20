@@ -185,9 +185,13 @@ The hub **emits domain events; it does not contain pack logic.**
 `core.emitDomainEvent(tx, …)` writes a `kind:event` row **inside the D1 batch**,
 then dispatches **two-tier**:
 
-- **`critical`** handlers run **in the same transaction** — only the two the base
-  owns: the **stock effect** (§8) and folio reservation. They must be fast and
-  cannot be skipped.
+- **`critical`** handlers run **in the same transaction** — fast, and they cannot be
+  skipped. The base *owns* exactly one (folio reservation) and *defines the tier as a
+  seam packs plug into*: a pack may register a `critical` handler when its effect must
+  be **atomic with finalize**. The canonical example is the inventory pack's **stock
+  effect** (§8) — so the "sell the last unit" decrement commits or rolls back *with*
+  the document, never in a torn state. (Most pack work is not this; it goes
+  `afterCommit`. The `critical` tier is intentionally narrow.)
 - **`afterCommit`** handlers run **after** the write commits, non-blocking —
   notifications, fiscal stamping (timbrado), shift/corte totals, and the **GL
   posting hook**. (Posting is deliberately *not* in the critical tier: a synchronous
@@ -216,10 +220,13 @@ How the other Tier-1 primitives relate to the hub:
 - **Catalog** — `line_items.productId` is **nullable** and every line carries a
   **snapshot** (description, price, tax), so a document is historically faithful even
   after the catalog changes. Inventory is **event-driven**, gated by
-  `shouldAffectStock(line)` = catalog `tracksInventory` × line `fulfillmentMode`:
-  the critical stock handler decrements **only** stock-effecting lines, so
-  drop-ship / service / consignment lines don't post fictional movements. Stock
-  movements themselves live in an inventory pack.
+  `shouldAffectStock(line)` = catalog `tracksInventory` × line `fulfillmentMode`.
+  The stock movement is **owned by the inventory pack**, but the pack registers it as
+  a **`critical` handler** (§7), so the decrement runs **in the same transaction** as
+  finalize and affects **only** stock-effecting lines (drop-ship / service /
+  consignment lines post no fictional movement). The base ships the gate and the
+  critical-tier seam; the pack ships the `movements` table and the handler — atomic,
+  yet not a base table.
 - **Entity & Contact** — `documents.entityId` is **nullable** (walk-in) with a
   counterparty **snapshot**. The entity carries the cached **AR `balance`** (§4,
   rebuildable), a `creditBalance` (wallet), and an optional `creditLimit` for a
