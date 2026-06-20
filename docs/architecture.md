@@ -167,6 +167,9 @@ singleton).
 
 ## Where to go next
 
+- **The transaction hub** every commercial flow grafts onto →
+  [`docs/architecture/transaction-core.md`](architecture/transaction-core.md)
+  (why: [ADR-006](decisions/006-transaction-core.md)).
 - **Why** a choice was made → `docs/decisions/` (ADRs, under a strict
   significance bar — see ADR-005).
 - **How** to do or extend something here → `docs/guides/`.
