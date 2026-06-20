@@ -13,10 +13,6 @@ overwritten by the next sync.
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 - [`ALW-299`](./ALW-299.md) — Generalize the inventory vertical into the neutral base + expose pack seams (ADR-0010 §E)
 
-## ready (1)
-
-- [`ALW-327`](./ALW-327.md) — Directory / package structure (Tier-1 foundation)
-
 ## merged (8)
 
 - [`ALW-335`](./ALW-335.md) — Find and remove unused functions, types, and dead code
@@ -28,8 +24,9 @@ overwritten by the next sync.
 - [`ALW-298`](./ALW-298.md) — Rename project identity from simple-monorepo-starter to sfab-starter
 - [`ALW-218`](./ALW-218.md) — Bring in the Think-based organization ERP agent (OrgAgent + OrgChat DO pattern from sfab)
 
-## done (2)
+## done (3)
 
+- [`ALW-327`](./ALW-327.md) — Directory / package structure (Tier-1 foundation)
 - [`ALW-302`](./ALW-302.md) — Raise Node heap in pre-commit hook to prevent build OOM
 - [`ALW-301`](./ALW-301.md) — Add pre-push hook to block direct pushes to main
 
