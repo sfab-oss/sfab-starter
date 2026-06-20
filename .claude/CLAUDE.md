@@ -47,7 +47,8 @@ Run from the **monorepo root** (not inside a package):
 ## Where things live (index)
 
 - **What the system is** → [`docs/architecture.md`](docs/architecture.md) — the
-  layer map + a worked `customer` slice.
+  layer map + a worked `customer` slice; the **transaction hub** every commercial
+  flow grafts onto → [`docs/architecture/transaction-core.md`](docs/architecture/transaction-core.md).
 - **Why a choice was made** → [`docs/decisions/`](docs/decisions/) — ADRs, under a
   strict significance bar ([template](docs/decisions/template.md)).
 - **How to do/extend something here** → [`docs/guides/`](docs/guides/).
