@@ -7,7 +7,8 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./client": "./src/client.ts"
+    "./client": "./src/client.ts",
+    "./access-control": "./src/access-control.ts"
   },
   "dependencies": {
     "@workspace/db": "workspace:*",

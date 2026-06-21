@@ -4,8 +4,8 @@ import { createProductTools, createWarehouseTools } from "./catalog";
 import { createDisplayTools } from "./display";
 
 export const getOrgAgentTools = (ctx: AgentToolsContext): ToolSet => ({
-  ...createProductTools(ctx.organizationId),
-  ...createWarehouseTools(ctx.organizationId),
+  ...createProductTools(ctx),
+  ...createWarehouseTools(ctx),
 });
 
 export const getOrgAgentDisplayTools = (ctx: AgentToolsContext): ToolSet =>

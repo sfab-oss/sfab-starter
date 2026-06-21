@@ -6,6 +6,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { eq } from "drizzle-orm";
+import { ac, roles } from "./access-control";
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -20,6 +21,11 @@ export const auth = betterAuth({
   plugins: [
     tanstackStartCookies(),
     organization({
+      // RBAC spine: fixed owner/admin/operator roles. `dynamicAccessControl` is
+      // intentionally left OFF (the plugin default) — orgs cannot invent roles
+      // at runtime. See packages/auth/src/access-control.ts.
+      ac,
+      roles,
       async sendInvitationEmail(data) {
         const inviteLink = `${env.BETTER_AUTH_URL}/accept-invitation/${data.id}`;
         await sendMail(data.email, "organization-invitation", {
