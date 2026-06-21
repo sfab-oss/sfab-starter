@@ -24,17 +24,3 @@ export function markdownPathToSlugs(segs: string[]) {
   }
   return out;
 }
-
-export function slugsToMarkdownPath(slugs: string[]) {
-  const segments = [...slugs];
-  if (segments.length === 0) {
-    segments.push("index.md");
-  } else {
-    segments[segments.length - 1] += ".md";
-  }
-
-  return {
-    segments,
-    url: `/docs/${segments.join("/")}`,
-  };
-}
