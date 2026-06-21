@@ -14,12 +14,9 @@ overwritten by the next sync.
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 - [`ALW-299`](./ALW-299.md) — Generalize the inventory vertical into the neutral base + expose pack seams (ADR-0010 §E)
 
-## review (1)
+## merged (9)
 
 - [`ALW-347`](./ALW-347.md) — Role-based access control spine (owner/admin/operator) — gate sensitive actions via better-auth
-
-## merged (8)
-
 - [`ALW-335`](./ALW-335.md) — Find and remove unused functions, types, and dead code
 - [`ALW-334`](./ALW-334.md) — Remove unused and stale comments from the codebase
 - [`ALW-330`](./ALW-330.md) — sfab-starter: documentation content + ADR cleanup & re-enumeration (knowledge-layer E1–E4)
