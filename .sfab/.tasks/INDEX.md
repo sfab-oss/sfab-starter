@@ -5,7 +5,7 @@ overwritten by the next sync.
 
 ## draft (9)
 
-- [`ALW-351`](./ALW-351.md) — Build the on-brand registry gallery — author the canonical "one of everything" blocks (UI-only) for the golden ERP base
+- [`ALW-351`](./ALW-351.md) — Build the on-brand registry gallery — Phase-0 spine first, hero/file surfaces deferred (UI-only)
 - [`ALW-350`](./ALW-350.md) — Build the first capability pack (POS) + complete the pack-install mechanism (ADR-0017)
 - [`ALW-348`](./ALW-348.md) — Codemode tool approvals: adopt the supported durable-approval pattern (revisit needsApproval)
 - [`ALW-332`](./ALW-332.md) — Add a working db:seed script for local first-run
