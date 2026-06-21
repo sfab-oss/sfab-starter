@@ -1,28 +1,29 @@
 ---
 title: Button
-description: Live demo of the shared Button component from @workspace/ui.
+description: Variants, sizes, and states of the shared @workspace/ui Button.
 ---
 
-The docs app registers `@workspace/ui` components in `getMDXComponents()` so MDX pages can render them interactively.
+The `Button` is a `registry:ui` entry. Its demo lives at
+`apps/docs/src/registry/demos/button-demo.tsx` and is registered by name in
+`apps/docs/src/registry/index.ts`, so `<ComponentPreview>` resolves it — the same
+map that powers the full-screen `/view/button` route.
 
-## Default
+<ComponentPreview name="button" />
 
-<Button>Click me</Button>
+## Usage
+
+```tsx
+import { Button } from "@workspace/ui/components/shadcn/button";
+
+<Button variant="outline" size="sm">
+  Click me
+</Button>;
+```
 
 ## Variants
 
-<div className="flex flex-wrap gap-2 not-prose">
-  <Button variant="default">Default</Button>
-  <Button variant="secondary">Secondary</Button>
-  <Button variant="outline">Outline</Button>
-  <Button variant="ghost">Ghost</Button>
-  <Button variant="destructive">Destructive</Button>
-</div>
+`default` · `secondary` · `outline` · `ghost` · `destructive` · `link`.
 
 ## Sizes
 
-<div className="flex flex-wrap items-center gap-2 not-prose">
-  <Button size="sm">Small</Button>
-  <Button size="default">Default</Button>
-  <Button size="lg">Large</Button>
-</div>
+`sm` · `default` · `lg` · `icon`.

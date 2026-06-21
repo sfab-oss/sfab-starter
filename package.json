@@ -10,7 +10,7 @@
     "lint:fix": "biome check --write .",
     "check:cycles": "madge --circular --extensions ts,tsx --exclude '(\\.gen\\.|/org/)' packages",
     "check:dead-code": "knip",
-    "test": "pnpm --filter web test",
+    "test": "turbo test",
     "test:e2e": "pnpm --filter web test:e2e",
     "typecheck": "turbo typecheck",
     "db:generate": "pnpm --filter @workspace/db db:generate",

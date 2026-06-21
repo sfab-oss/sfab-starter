@@ -1,0 +1,32 @@
+---
+title: Blocks
+description: Full-page, composed UI examples — rendered live in an iframe and openable full screen.
+---
+
+**Blocks** are complete, full-page screens built from `@workspace/ui` primitives
+with mock data — the marquee "one of everything" pieces. Unlike the per-component
+demos, a block is a whole route you can open on its own.
+
+Each block is:
+
+- **Authored** as a directory under `packages/registry/registry/<name>/` (a
+  `page.tsx` plus split `components/`) with an `item.ts` manifest.
+- **Published** to the GitHub registry — `pnpm --filter @workspace/registry generate`
+  generates the root `registry.json` and the gallery's lazy map, so a block is
+  both previewable here and installable via `shadcn add`.
+- **Rendered chromeless** at `/view/<name>` (no docs sidebar/header), and embedded
+  below via `<BlockViewer name="…" />` — with device-width breakpoints, a refresh
+  control, and an "open full screen" link.
+
+## Available blocks
+
+<Cards>
+  <Card
+    title="Operator dashboard"
+    description="The full app shell — sidebar, header, stat cards, data table, and activity feed."
+    href="/docs/blocks/dashboard"
+  />
+</Cards>
+
+More blocks (resource index table, entity detail, settings, auth, agent chat) are
+tracked in the gallery plan and land here as they're built.

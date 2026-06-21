@@ -16,10 +16,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tanstack/react-devtools": "^0.7.0",
     "@tanstack/react-router": "^1.132.0",
-    "@tanstack/react-router-devtools": "^1.132.0",
     "@tanstack/react-start": "^1.132.0",
+    "@workspace/registry": "workspace:*",
     "@workspace/ui": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "fumadocs-core": "16.10.4",
@@ -34,7 +33,6 @@
     "@cloudflare/vite-plugin": "^1.13.8",
     "@cloudflare/workers-types": "^4.20250214.0",
     "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/devtools-vite": "^0.3.11",
     "@tanstack/router-cli": "^1.132.0",
     "@tanstack/router-plugin": "^1.132.0",
     "@types/mdx": "^2.0.14",

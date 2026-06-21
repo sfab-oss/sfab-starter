@@ -1,0 +1,65 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "sfab-starter",
+  "homepage": "https://github.com/sfab-oss/sfab-starter",
+  "items": [
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "title": "Badge",
+      "description": "Status labels in every variant.",
+      "registryDependencies": ["badge"],
+      "meta": {
+        "sfabKind": "block"
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/badge/badge-demo.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "Variants, sizes, icon, and disabled states.",
+      "registryDependencies": ["button"],
+      "meta": {
+        "sfabKind": "block"
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/button/button-demo.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "dashboard-01",
+      "type": "registry:block",
+      "title": "Operator dashboard",
+      "description": "The full app shell — collapsible sidebar, header, stat cards, a data table, and an activity feed.",
+      "registryDependencies": ["sidebar", "card", "badge", "button"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 860
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/dashboard-01/page.tsx",
+          "type": "registry:page",
+          "target": "app/dashboard-01/page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/dashboard-01/components/gallery-sidebar.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "packages/registry/registry/dashboard-01/components/inventory-table.tsx",
+          "type": "registry:component"
+        }
+      ]
+    }
+  ]
+}

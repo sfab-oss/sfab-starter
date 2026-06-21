@@ -2,7 +2,7 @@
   "ref": null,
   "packs": {},
   "fabrication": {
-    "drop": ["apps/docs"],
+    "drop": ["apps/docs", "packages/registry"],
     "keep": ["docs"]
   }
 }
