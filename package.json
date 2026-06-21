@@ -10,7 +10,7 @@
     "lint:fix": "biome check --write .",
     "check:cycles": "madge --circular --extensions ts,tsx --exclude '(\\.gen\\.|/org/)' packages",
     "check:dead-code": "knip",
-    "test": "pnpm --filter web test",
+    "test": "turbo test",
     "test:e2e": "pnpm --filter web test:e2e",
     "typecheck": "turbo typecheck",
     "db:generate": "pnpm --filter @workspace/db db:generate",
@@ -34,12 +34,7 @@
     "typescript": "5.9.3",
     "ultracite": "7.0.11"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "better-sqlite3"
-    ]
-  },
-  "packageManager": "pnpm@10.4.1",
+  "packageManager": "pnpm@11.5.2",
   "engines": {
     "node": ">=20"
   },

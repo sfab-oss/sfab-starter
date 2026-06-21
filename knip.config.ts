@@ -47,6 +47,21 @@ const config: KnipConfig = {
       entry: ["src/**/*.tsx", "src/**/*.ts"],
       project: ["src/**/*.{ts,tsx}"],
     },
+    "packages/registry": {
+      // Item trees are distributable source, reached only via the generated
+      // lazy map / dynamic build import — treat them (and the build CLI) as entries.
+      entry: [
+        "src/index.ts!",
+        "scripts/build-registry.ts!",
+        "registry/**/*.{ts,tsx}!",
+        "test/**/*.{ts,tsx}!",
+      ],
+      project: [
+        "src/**/*.{ts,tsx}",
+        "registry/**/*.{ts,tsx}",
+        "scripts/**/*.ts",
+      ],
+    },
   },
   ignore: [
     "**/worker-configuration.d.ts",
