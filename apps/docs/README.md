@@ -1,13 +1,22 @@
-# docs (renderer)
+# Docs app
 
-A thin static renderer over the repo's canonical [`docs/`](../../docs)
-directory. It reads that markdown at build time and **duplicates no content** —
-`docs/` is the single source of truth.
+Fumadocs documentation site for the SFab starter template. Built with TanStack Start, Vite, and the Cloudflare Vite plugin; deploys as a Cloudflare Worker.
 
-```bash
-pnpm --filter docs build   # renders docs/ -> apps/docs/dist/
-```
+## Commands
 
-**Droppable at fabrication.** When a project is fabricated from this template,
-the `apps/docs` *app* is removed while `docs/` is **kept** (it travels with the
-fork as editable markdown). See `.sfab/template.json` → `fabrication.drop`.
+Run from the monorepo root:
+
+| Task | Command |
+|---|---|
+| Dev server | `pnpm --filter docs dev` (port **4012**) |
+| Build | `pnpm --filter docs build` |
+| Type check | `pnpm --filter docs typecheck` |
+| Wrangler types | `pnpm --filter docs cf-typegen` |
+
+## Content
+
+MDX pages live in `content/docs/`. The `fumadocs-mdx` postinstall step generates `.source/` — do not edit that folder by hand.
+
+## Live UI demos
+
+Register shared components in `src/components/mdx.tsx` (`getMDXComponents`) to render `@workspace/ui` pieces inside MDX. See `content/docs/components/button.mdx` for an example.
