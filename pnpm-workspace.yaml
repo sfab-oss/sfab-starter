@@ -1,3 +1,43 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Release-age gate — supply-chain hardening (Shai-Hulud class of npm worms,
+# whose compromised versions are live for only hours before takedown). Refuses
+# to install any dependency version younger than `minimumReleaseAge` minutes.
+# pnpm verifies EVERY lockfile entry against this on install, not just newly
+# resolved versions. Requires pnpm >= 10.16 (we pin pnpm 11 via packageManager).
+minimumReleaseAge: 2880 # 2 days. Raise (10080 = 7d, 43200 = 30d) for more cushion.
+
+# Build-script (postinstall) policy — supply-chain hardening. A malicious
+# postinstall is the classic npm infection vector, so pnpm blocks dependency
+# lifecycle scripts until you decide per-package. Recording the decision here is
+# also what stops pnpm 11 from failing the dep check. Anything NEW that ships a
+# postinstall appears here unset and trips the check again — by design. Flip one
+# to `true` only if a build is genuinely required (better-sqlite3 compiles a
+# native addon used by local auth/db tooling).
+allowBuilds:
+  "@mongodb-js/zstd": false
+  "@prisma/engines": false
+  better-sqlite3: true
+  core-js-pure: false
+  esbuild: false
+  msw: false
+  node-liblzma: false
+  prisma: false
+  sharp: false
+  workerd: false
+
+# Patch missing peer metadata. @hookform/resolvers@5 does a bare `import "zod"`
+# in its types but never declares zod as a peer, so it relies on whichever zod
+# happens to be hoisted next to it. This repo legitimately has two zod majors
+# (v4 in the web app, v3 pulled by better-auth); pnpm 11's hoisting otherwise
+# lands the resolver on better-auth's zod 3.x, breaking zodResolver() typecheck
+# in the web forms. Declaring the peer makes pnpm wire each importer's own zod.
+packageExtensions:
+  "@hookform/resolvers":
+    peerDependencies:
+      zod: "*"
+    peerDependenciesMeta:
+      zod:
+        optional: true

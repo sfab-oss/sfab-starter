@@ -34,12 +34,7 @@
     "typescript": "5.9.3",
     "ultracite": "7.0.11"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "better-sqlite3"
-    ]
-  },
-  "packageManager": "pnpm@10.4.1",
+  "packageManager": "pnpm@11.5.2",
   "engines": {
     "node": ">=20"
   },

@@ -13,7 +13,7 @@
   "dependencies": {
     "@workspace/db": "workspace:*",
     "@workspace/email": "workspace:*",
-    "better-auth": "^1.6.20",
+    "better-auth": "1.6.19",
     "drizzle-orm": "^0.44.5"
   },
   "devDependencies": {
