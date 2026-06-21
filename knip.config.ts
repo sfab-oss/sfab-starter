@@ -12,8 +12,8 @@ const config: KnipConfig = {
       project: ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}"],
     },
     "apps/docs": {
-      entry: ["build.mjs!"],
-      project: ["build.mjs"],
+      entry: ["src/router.tsx!", "src/routeTree.gen.ts!", "source.config.ts!"],
+      project: ["src/**/*.{ts,tsx}", "content/**/*.{md,mdx}"],
     },
     "packages/agent": {
       entry: ["src/index.ts!", "src/org/index.ts!", "src/org/chat/index.ts!"],
@@ -52,6 +52,7 @@ const config: KnipConfig = {
     "**/worker-configuration.d.ts",
     "packages/env/src/env.d.ts",
     "apps/web/src/routeTree.gen.ts",
+    "apps/docs/src/routeTree.gen.ts",
   ],
   ignoreDependencies: ["cloudflare:workers"],
   ignoreExportsUsedInFile: true,

@@ -1,13 +1,55 @@
 {
   "name": "docs",
-  "version": "0.0.1",
   "private": true,
   "type": "module",
+  "imports": {
+    "~/*": "./src/*"
+  },
   "scripts": {
-    "build": "node build.mjs",
-    "dev": "node build.mjs"
+    "postinstall": "fumadocs-mdx && tsr generate",
+    "dev": "vite dev --port 4012",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "generate-routes": "tsr generate",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "marked": "^15.0.7"
+    "@tanstack/react-devtools": "^0.7.0",
+    "@tanstack/react-router": "^1.132.0",
+    "@tanstack/react-router-devtools": "^1.132.0",
+    "@tanstack/react-start": "^1.132.0",
+    "@workspace/ui": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "fumadocs-core": "^16.9.3",
+    "fumadocs-ui": "^16.9.3",
+    "lucide-react": "^0.576.0",
+    "next-themes": "^0.4.6",
+    "radix-ui": "^1.4.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.13.8",
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/devtools-vite": "^0.3.11",
+    "@tanstack/router-cli": "^1.132.0",
+    "@tanstack/router-plugin": "^1.132.0",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^22.19.7",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.4",
+    "@workspace/tsconfig": "workspace:*",
+    "clsx": "^2.1.1",
+    "fumadocs-mdx": "^15.0.11",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.7.2",
+    "vite": "^7.1.7",
+    "vite-tsconfig-paths": "^5.1.4",
+    "wrangler": "^4.68.1"
   }
 }

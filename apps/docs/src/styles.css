@@ -1,0 +1,3 @@
+@import "@workspace/ui/globals.css";
+
+@source "../content/docs/**/*.{md,mdx}";
