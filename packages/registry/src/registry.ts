@@ -4,16 +4,10 @@ import type { RegistryEntry, SfabKind } from "./types";
 export { REGISTRY } from "./generated";
 
 /**
- * The runtime registry surface the gallery consumes.
- *
- * `REGISTRY` itself is GENERATED (`src/generated.ts`, from the `registry/<name>/`
- * source trees — see `scripts/build-registry.ts`); these helpers are the stable,
- * hand-written API over it. The two axes an item is sorted on:
- *
- * - shadcn `type` (`registry:ui` vs `registry:block`) decides how the gallery
- *   PREVIEWS it — inline component vs iframed full page.
- * - `meta.sfabKind` (`block` vs `pack`) decides the INSTALL contract — copy-in vs
- *   capability. These are independent; today every item is `sfabKind: "block"`.
+ * The stable, hand-written API over the GENERATED `REGISTRY` map (`src/generated.ts`,
+ * built from the `registry/<name>/` trees by `scripts/build-registry.ts`). An item
+ * is sorted on two independent axes: shadcn `type` (preview shape) and
+ * `meta.sfabKind` (install contract) — see each helper below.
  */
 
 export function getEntry(name: string): RegistryEntry | undefined {

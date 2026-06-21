@@ -4,9 +4,9 @@ description: Variants, sizes, and states of the shared @workspace/ui Button.
 ---
 
 The `Button` is a `registry:ui` entry. Its demo lives at
-`apps/docs/src/registry/demos/button-demo.tsx` and is registered by name in
-`apps/docs/src/registry/index.ts`, so `<ComponentPreview>` resolves it — the same
-map that powers the full-screen `/view/button` route.
+`packages/registry/registry/button/button-demo.tsx` and is surfaced through the
+generated `@workspace/registry` map, so `<ComponentPreview>` resolves it by name —
+the same map that powers the full-screen `/view/button` route.
 
 <ComponentPreview name="button" />
 

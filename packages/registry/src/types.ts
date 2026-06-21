@@ -2,16 +2,10 @@ import type { LazyExoticComponent } from "react";
 import type { RegistryItem } from "shadcn/schema";
 
 /**
- * The install-contract discriminator (ADR-0017, 2026-06-21 amendment).
- *
- * - `block` — a copy-in UI item: `shadcn add` drops the files and that's it. No
- *   `skill.md`, no `.sfab/template.json` provenance, no Layer-2 eval.
- * - `pack`  — a capability item: the SAME primitive carrying extra layer slices
- *   (`db/contract/core/server/tools`) plus an ephemeral `skill.md`. Install also
- *   runs the skill, writes provenance, and triggers a Layer-2 eval on change.
- *
- * It rides in shadcn's free-form `meta`, so one registry and one item primitive
- * serve both kinds (UNIFY). Every item today is a `block`; the first `pack` is POS.
+ * The install-contract discriminator (ADR-0017, 2026-06-21 amendment) — see the
+ * package README for the full `block` vs `pack` contract. It rides in shadcn's
+ * free-form `meta`, so one registry and one item primitive serve both kinds. Every
+ * item today is a `block`; the first `pack` is POS.
  */
 export type SfabKind = "block" | "pack";
 
