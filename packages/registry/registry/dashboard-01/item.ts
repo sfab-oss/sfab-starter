@@ -13,7 +13,7 @@ const def: RegistryItemDef = {
       {
         path: "page.tsx",
         type: "registry:page",
-        target: "app/dashboard-01/page.tsx",
+        target: "src/routes/dashboard-01.tsx",
       },
       { path: "components/gallery-sidebar.tsx", type: "registry:component" },
       { path: "components/inventory-table.tsx", type: "registry:component" },
