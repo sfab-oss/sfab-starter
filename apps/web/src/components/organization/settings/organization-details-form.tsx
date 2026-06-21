@@ -1,9 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { can } from "@workspace/auth/access-control";
+import { authClient } from "@workspace/auth/client";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -44,6 +47,11 @@ export function OrganizationDetailsForm({
   className,
 }: OrganizationDetailsFormProps) {
   const updateOrganization = useUpdateOrganization();
+  const { data: activeMember } = authClient.useActiveMember();
+  // Editing org settings is admin+; operators see the values read-only.
+  const canEditSettings = can("org:settings", {
+    role: activeMember?.role ?? null,
+  });
 
   const form = useForm<OrganizationDetailsData>({
     resolver: zodResolver(formSchema),
@@ -76,6 +84,7 @@ export function OrganizationDetailsForm({
               <Input
                 {...field}
                 aria-invalid={fieldState.invalid}
+                disabled={!canEditSettings}
                 id={field.name}
                 placeholder="Acme Inc."
                 type="text"
@@ -93,6 +102,7 @@ export function OrganizationDetailsForm({
               <Input
                 {...field}
                 aria-invalid={fieldState.invalid}
+                disabled={!canEditSettings}
                 id={field.name}
                 placeholder="acme"
                 type="text"
@@ -104,11 +114,17 @@ export function OrganizationDetailsForm({
         <Field>
           <Button
             className="w-full"
-            disabled={updateOrganization.isPending}
+            disabled={!canEditSettings || updateOrganization.isPending}
             type="submit"
           >
             {updateOrganization.isPending ? "Saving..." : "Save Changes"}
           </Button>
+          {!canEditSettings && (
+            <FieldDescription>
+              Solo los administradores pueden editar los datos de la
+              organización.
+            </FieldDescription>
+          )}
         </Field>
       </FieldGroup>
     </form>

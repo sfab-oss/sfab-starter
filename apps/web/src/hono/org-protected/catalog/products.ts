@@ -14,6 +14,7 @@ import {
 } from "@workspace/core/catalog";
 import { Hono } from "hono";
 import { z } from "zod";
+import { requirePermission } from "../../middleware/auth";
 import type { HonoContextWithAuthAndOrg } from "../../types";
 
 const productIdSchema = z.object({
@@ -42,14 +43,20 @@ const productsRoute = new Hono<HonoContextWithAuthAndOrg>()
     const data = await getProductMovements(id, orgId);
     return c.json(data);
   })
-  .post("/", zValidator("json", createProductSchema), async (c) => {
-    const orgId = c.get("session").activeOrganizationId;
-    const body = c.req.valid("json");
-    const result = await createProduct({ ...body, orgId });
-    return c.json(result[0]);
-  })
+  .post(
+    "/",
+    requirePermission("catalog:write"),
+    zValidator("json", createProductSchema),
+    async (c) => {
+      const orgId = c.get("session").activeOrganizationId;
+      const body = c.req.valid("json");
+      const result = await createProduct({ ...body, orgId });
+      return c.json(result[0]);
+    }
+  )
   .put(
     "/:id",
+    requirePermission("catalog:write"),
     zValidator("param", productIdSchema),
     zValidator("json", updateProductSchema),
     async (c) => {
@@ -60,11 +67,16 @@ const productsRoute = new Hono<HonoContextWithAuthAndOrg>()
       return c.json(result);
     }
   )
-  .delete("/:id", zValidator("param", productIdSchema), async (c) => {
-    const orgId = c.get("session").activeOrganizationId;
-    const { id } = c.req.valid("param");
-    const result = await deleteProduct(id, orgId);
-    return c.json(result);
-  });
+  .delete(
+    "/:id",
+    requirePermission("catalog:write"),
+    zValidator("param", productIdSchema),
+    async (c) => {
+      const orgId = c.get("session").activeOrganizationId;
+      const { id } = c.req.valid("param");
+      const result = await deleteProduct(id, orgId);
+      return c.json(result);
+    }
+  );
 
 export default productsRoute;

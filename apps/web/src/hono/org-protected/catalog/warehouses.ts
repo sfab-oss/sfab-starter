@@ -13,6 +13,7 @@ import {
 } from "@workspace/core/catalog";
 import { Hono } from "hono";
 import { z } from "zod";
+import { requirePermission } from "../../middleware/auth";
 import type { HonoContextWithAuthAndOrg } from "../../types";
 
 const warehouseIdSchema = z.object({
@@ -35,14 +36,20 @@ const warehousesRoute = new Hono<HonoContextWithAuthAndOrg>()
     }
     return c.json(data);
   })
-  .post("/", zValidator("json", createWarehouseSchema), async (c) => {
-    const orgId = c.get("session").activeOrganizationId;
-    const body = c.req.valid("json");
-    const result = await createWarehouse({ ...body, orgId });
-    return c.json(result);
-  })
+  .post(
+    "/",
+    requirePermission("catalog:write"),
+    zValidator("json", createWarehouseSchema),
+    async (c) => {
+      const orgId = c.get("session").activeOrganizationId;
+      const body = c.req.valid("json");
+      const result = await createWarehouse({ ...body, orgId });
+      return c.json(result);
+    }
+  )
   .put(
     "/:id",
+    requirePermission("catalog:write"),
     zValidator("param", warehouseIdSchema),
     zValidator("json", updateWarehouseSchema),
     async (c) => {
@@ -53,11 +60,16 @@ const warehousesRoute = new Hono<HonoContextWithAuthAndOrg>()
       return c.json(result);
     }
   )
-  .delete("/:id", zValidator("param", warehouseIdSchema), async (c) => {
-    const orgId = c.get("session").activeOrganizationId;
-    const { id } = c.req.valid("param");
-    const result = await deleteWarehouse(id, orgId);
-    return c.json(result);
-  });
+  .delete(
+    "/:id",
+    requirePermission("catalog:write"),
+    zValidator("param", warehouseIdSchema),
+    async (c) => {
+      const orgId = c.get("session").activeOrganizationId;
+      const { id } = c.req.valid("param");
+      const result = await deleteWarehouse(id, orgId);
+      return c.json(result);
+    }
+  );
 
 export default warehousesRoute;

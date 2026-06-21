@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  can,
+  ROLE_LABELS,
+  type RoleName,
+} from "@workspace/auth/access-control";
 import { authClient } from "@workspace/auth/client";
 import {
   Avatar,
@@ -37,8 +42,16 @@ interface MembersTableProps {
   members: Member[];
 }
 
+// "operator" = better-auth `member` renamed in UI copy only (no schema change).
+const roleLabel = (role: string) => ROLE_LABELS[role as RoleName] ?? role;
+
 export function MembersTable({ members }: MembersTableProps) {
   const { data: session } = authClient.useSession();
+  const { data: activeMember } = authClient.useActiveMember();
+  // Removing other members is admin+; you can always leave yourself.
+  const canManageMembers = can("member:manage", {
+    role: activeMember?.role ?? null,
+  });
   const removeMember = useRemoveMember();
   const [removingMemberId, setRemovingMemberId] = useState<
     string | undefined
@@ -77,6 +90,8 @@ export function MembersTable({ members }: MembersTableProps) {
         {members.map((member) => {
           const isCurrentUser = session?.user?.id === member.userId;
           const isLoading = removingMemberId === member.id;
+          // Operators can leave, but not remove others (honest-disabled).
+          const canAct = isCurrentUser || canManageMembers;
 
           return (
             <TableRow key={member.id}>
@@ -92,12 +107,17 @@ export function MembersTable({ members }: MembersTableProps) {
                 {member.user.name ?? "Unknown"}
               </TableCell>
               <TableCell>{member.user.email}</TableCell>
-              <TableCell className="capitalize">{member.role}</TableCell>
+              <TableCell>{roleLabel(member.role)}</TableCell>
               <TableCell className="text-right">
                 <Button
                   className="h-auto px-2 py-1 text-destructive text-xs underline hover:no-underline"
-                  disabled={isLoading}
+                  disabled={isLoading || !canAct}
                   onClick={() => handleRemoveMember(member)}
+                  title={
+                    canAct
+                      ? undefined
+                      : "Solo los administradores pueden quitar miembros"
+                  }
                   variant="ghost"
                 >
                   {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
@@ -158,7 +178,7 @@ export function InvitationsTable({ invitations }: InvitationsTableProps) {
         {invitations.map((invitation) => (
           <TableRow key={invitation.id}>
             <TableCell>{invitation.email}</TableCell>
-            <TableCell className="capitalize">{invitation.role}</TableCell>
+            <TableCell>{roleLabel(invitation.role)}</TableCell>
             <TableCell className="capitalize">{invitation.status}</TableCell>
             <TableCell>{formatDate(invitation.expiresAt)}</TableCell>
           </TableRow>

@@ -7,12 +7,13 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./client": "./src/client.ts"
+    "./client": "./src/client.ts",
+    "./access-control": "./src/access-control.ts"
   },
   "dependencies": {
     "@workspace/db": "workspace:*",
     "@workspace/email": "workspace:*",
-    "better-auth": "^1.4.19",
+    "better-auth": "^1.6.20",
     "drizzle-orm": "^0.44.5"
   },
   "devDependencies": {

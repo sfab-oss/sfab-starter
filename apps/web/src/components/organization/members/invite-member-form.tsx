@@ -1,10 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  can,
+  hasRoleRank,
+  ROLE_LABELS,
+  ROLE_RANK,
+  type RoleName,
+} from "@workspace/auth/access-control";
 import { authClient } from "@workspace/auth/client";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -29,12 +37,6 @@ const formSchema = z.object({
 
 type InviteMemberData = z.infer<typeof formSchema>;
 
-const ROLE_HIERARCHY = {
-  owner: 2,
-  admin: 1,
-  member: 0,
-} as const;
-
 interface InviteMemberFormProps {
   className?: string;
   onSuccess?: () => void;
@@ -46,6 +48,13 @@ export function InviteMemberForm({
 }: InviteMemberFormProps) {
   const inviteMember = useInviteMember();
   const { data: activeMember } = authClient.useActiveMember();
+  const currentRole = activeMember?.role ?? null;
+
+  // RBAC seam: member management is admin+. Operators see an honest, explained
+  // disabled state rather than a control that silently 403s on submit.
+  const canManageMembers = can("member:manage", { role: currentRole });
+  // Owners may invite owners; everyone else can only invite at or below their rank.
+  const canInviteOwner = hasRoleRank(currentRole, "owner");
 
   const form = useForm<InviteMemberData>({
     resolver: zodResolver(formSchema),
@@ -55,20 +64,29 @@ export function InviteMemberForm({
     },
   });
 
+  if (!canManageMembers) {
+    return (
+      <FieldGroup className={className}>
+        <Field>
+          <FieldLabel>Invitar miembro</FieldLabel>
+          <FieldDescription>
+            Solo los administradores pueden invitar o gestionar miembros.
+          </FieldDescription>
+        </Field>
+      </FieldGroup>
+    );
+  }
+
   async function onSubmit(values: InviteMemberData) {
-    if (!activeMember) {
-      toast.error("Unable to determine your permissions");
-      return;
-    }
-
-    const currentRole = activeMember.role as keyof typeof ROLE_HIERARCHY;
-    const targetRole = values.role;
-
+    // Defense in depth: the server enforces this too; this keeps the UI honest.
     if (
+      currentRole &&
       currentRole !== "owner" &&
-      ROLE_HIERARCHY[currentRole] < ROLE_HIERARCHY[targetRole]
+      ROLE_RANK[currentRole as RoleName] < ROLE_RANK[values.role]
     ) {
-      toast.error(`As a ${currentRole}, you can't invite a ${targetRole}`);
+      toast.error(
+        `Como ${ROLE_LABELS[currentRole as RoleName]}, no puedes invitar a un ${ROLE_LABELS[values.role]}`
+      );
       return;
     }
 
@@ -83,8 +101,6 @@ export function InviteMemberForm({
       );
     }
   }
-
-  const canInviteOwner = activeMember?.role === "owner";
 
   return (
     <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
@@ -121,10 +137,10 @@ export function InviteMemberForm({
                   </SelectTrigger>
                   <SelectContent>
                     {canInviteOwner && (
-                      <SelectItem value="owner">Owner</SelectItem>
+                      <SelectItem value="owner">{ROLE_LABELS.owner}</SelectItem>
                     )}
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="admin">{ROLE_LABELS.admin}</SelectItem>
+                    <SelectItem value="member">{ROLE_LABELS.member}</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldState.invalid && (
