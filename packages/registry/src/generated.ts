@@ -3,29 +3,98 @@ import { lazy } from "react";
 import type { RegistryEntry } from "./types";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
-  badge: {
-    name: "badge",
-    type: "registry:ui",
-    title: "Badge",
-    description: "Status labels in every variant.",
-    meta: { sfabKind: "block" },
-    component: lazy(() => import("../registry/badge/badge-demo")),
-  },
-  button: {
-    name: "button",
-    type: "registry:ui",
-    title: "Button",
-    description: "Variants, sizes, icon, and disabled states.",
-    meta: { sfabKind: "block" },
-    component: lazy(() => import("../registry/button/button-demo")),
-  },
-  "dashboard-01": {
-    name: "dashboard-01",
+  "chat-page": {
+    name: "chat-page",
     type: "registry:block",
-    title: "Operator dashboard",
+    title: "Chat page",
     description:
-      "The full app shell — collapsible sidebar, header, stat cards, a data table, and an activity feed.",
-    meta: { sfabKind: "block", iframeHeight: 860 },
-    component: lazy(() => import("../registry/dashboard-01/page")),
+      "Full-screen assistant chat inside the app shell — conversation, prompt input, and mock replies.",
+    meta: { sfabKind: "block", iframeHeight: 900 },
+    component: lazy(() => import("../registry/blocks/chat-page/page")),
+  },
+  "command-palette": {
+    name: "command-palette",
+    type: "registry:block",
+    title: "Command palette",
+    description:
+      "⌘K / sidebar search — go-to navigation from navigation-config (no faked entity search).",
+    meta: { sfabKind: "block", iframeHeight: 720 },
+    component: lazy(() => import("../registry/blocks/command-palette/page")),
+  },
+  "record-edit-page": {
+    name: "record-edit-page",
+    type: "registry:block",
+    title: "Record edit page",
+    description:
+      "Invoice edit route — due date and notes form on a full shell page with activity log.",
+    meta: { sfabKind: "block", iframeHeight: 900 },
+    component: lazy(() => import("../registry/blocks/record-edit-page/page")),
+  },
+  "record-payment-dialog": {
+    name: "record-payment-dialog",
+    type: "registry:block",
+    title: "Record payment dialog",
+    description:
+      "Collect hub with record-payment dialog open by default — money fields plus activity log (MXN minor units).",
+    meta: { sfabKind: "block", iframeHeight: 900 },
+    component: lazy(
+      () => import("../registry/blocks/record-payment-dialog/page")
+    ),
+  },
+  "record-read-page": {
+    name: "record-read-page",
+    type: "registry:block",
+    title: "Record read page",
+    description:
+      "Invoice record route — PropertyGrid and activity log on a full shell page (read-only).",
+    meta: { sfabKind: "block", iframeHeight: 900 },
+    component: lazy(() => import("../registry/blocks/record-read-page/page")),
+  },
+  "resource-list-page": {
+    name: "resource-list-page",
+    type: "registry:block",
+    title: "Resource list page",
+    description:
+      "Full list page — app shell, list page shell, filter toolbar, resource table, and a React Query hook on mock data.",
+    meta: { sfabKind: "block", iframeHeight: 900 },
+    component: lazy(() => import("../registry/blocks/resource-list-page/page")),
+  },
+  "resource-table": {
+    name: "resource-table",
+    type: "registry:ui",
+    title: "Resource table",
+    description:
+      "Extended DataTable with drill-in row click, inline CTA, and kebab actions.",
+    meta: { sfabKind: "block" },
+    component: lazy(
+      () => import("../registry/components/resource-table/resource-table-demo")
+    ),
+  },
+  "settings-page": {
+    name: "settings-page",
+    type: "registry:block",
+    title: "Settings page",
+    description:
+      "Full-route org settings — organization details, member invites, members table, and pending invitations (gallery mock, admin+ surface).",
+    meta: { sfabKind: "block", iframeHeight: 900 },
+    component: lazy(() => import("../registry/blocks/settings-page/page")),
+  },
+  shell: {
+    name: "shell",
+    type: "registry:ui",
+    title: "Shell",
+    description:
+      "App shell compound layout — sidebar frame, page header row, and main content slot.",
+    meta: { sfabKind: "block", iframeHeight: 720 },
+    component: lazy(() => import("../registry/components/shell/shell-demo")),
+  },
+  "today-overview": {
+    name: "today-overview",
+    type: "registry:block",
+    title: "Today overview",
+    description:
+      "Operator home — primary actions, honest KPI tiles, action items, and a capped inventory movements feed.",
+    meta: { sfabKind: "block", iframeHeight: 900 },
+    component: lazy(() => import("../registry/blocks/today-overview/page")),
   },
 };

@@ -8,12 +8,13 @@ import type {
 import type { Warehouse } from "@workspace/contract/catalog";
 import { paginationQuerySchema } from "@workspace/contract/pagination";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
-import {
-  AppLayoutHeader,
-  AppLayoutHeaderActions,
-  AppLayoutPage,
-} from "@workspace/ui/components/brand/app-layout";
 import { DataTable } from "@workspace/ui/components/brand/data-table";
+import {
+  ShellHeader,
+  ShellHeaderActions,
+  ShellHeaderSidebarTrigger,
+  ShellPage,
+} from "@workspace/ui/components/brand/shell";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
@@ -217,18 +218,19 @@ function WarehousesPage() {
   ];
 
   return (
-    <AppLayoutPage>
-      <AppLayoutHeader>
+    <ShellPage>
+      <ShellHeader>
+        <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
           items={[
             { title: "Inventory", href: "/inventory" },
             { title: "Warehouses" },
           ]}
         />
-        <AppLayoutHeaderActions>
+        <ShellHeaderActions>
           <CreateWarehouseDialog />
-        </AppLayoutHeaderActions>
-      </AppLayoutHeader>
+        </ShellHeaderActions>
+      </ShellHeader>
 
       <div className="space-y-4 p-6">
         {isLoading && !warehousesResponse ? (
@@ -250,6 +252,6 @@ function WarehousesPage() {
           />
         )}
       </div>
-    </AppLayoutPage>
+    </ShellPage>
   );
 }

@@ -2,6 +2,7 @@
 
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -18,7 +19,7 @@ export function MemoryDialog({
 }) {
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="flex max-h-[85vh] max-w-lg flex-col overflow-hidden">
+      <DialogContent className="max-w-lg sm:max-w-lg">
         <DialogHeader className="shrink-0">
           <DialogTitle>Organization memory</DialogTitle>
           <DialogDescription>
@@ -26,7 +27,9 @@ export function MemoryDialog({
             every chat. The agent maintains it as you work.
           </DialogDescription>
         </DialogHeader>
-        {open && <MemoryCard showHeader={false} variant="dialog" />}
+        <DialogBody className="pt-0">
+          {open && <MemoryCard showHeader={false} variant="dialog" />}
+        </DialogBody>
       </DialogContent>
     </Dialog>
   );

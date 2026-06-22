@@ -4,60 +4,434 @@
   "homepage": "https://github.com/sfab-oss/sfab-starter",
   "items": [
     {
-      "name": "badge",
-      "type": "registry:ui",
-      "title": "Badge",
-      "description": "Status labels in every variant.",
-      "registryDependencies": ["badge"],
-      "meta": {
-        "sfabKind": "block"
-      },
-      "files": [
-        {
-          "path": "packages/registry/registry/badge/badge-demo.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "button",
-      "type": "registry:ui",
-      "title": "Button",
-      "description": "Variants, sizes, icon, and disabled states.",
-      "registryDependencies": ["button"],
-      "meta": {
-        "sfabKind": "block"
-      },
-      "files": [
-        {
-          "path": "packages/registry/registry/button/button-demo.tsx",
-          "type": "registry:component"
-        }
-      ]
-    },
-    {
-      "name": "dashboard-01",
+      "name": "chat-page",
       "type": "registry:block",
-      "title": "Operator dashboard",
-      "description": "The full app shell — collapsible sidebar, header, stat cards, a data table, and an activity feed.",
-      "registryDependencies": ["sidebar", "card", "badge", "button"],
+      "title": "Chat page",
+      "description": "Full-screen assistant chat inside the app shell — conversation, prompt input, and mock replies.",
+      "registryDependencies": ["button", "sidebar", "input"],
       "meta": {
         "sfabKind": "block",
-        "iframeHeight": 860
+        "iframeHeight": 900
       },
       "files": [
         {
-          "path": "packages/registry/registry/dashboard-01/page.tsx",
+          "path": "packages/registry/registry/blocks/chat-page/page.tsx",
           "type": "registry:page",
-          "target": "src/routes/dashboard-01.tsx"
+          "target": "src/routes/assistant.tsx"
         },
         {
-          "path": "packages/registry/registry/dashboard-01/components/gallery-sidebar.tsx",
-          "type": "registry:component"
+          "path": "packages/registry/registry/blocks/chat-page/lib/mock-chat-messages.ts",
+          "type": "registry:lib",
+          "target": "src/features/assistant/lib/mock-chat-messages.ts"
         },
         {
-          "path": "packages/registry/registry/dashboard-01/components/inventory-table.tsx",
+          "path": "packages/registry/registry/blocks/chat-page/components/full-screen-chat.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant/components/full-screen-chat.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-page/components/chat-input.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant/components/chat-input.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-page/components/chat-message-parts.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant/components/chat-message-parts.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-page/components/chat-side-panel.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant/components/chat-side-panel.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-page/components/file-explorer-tree.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant/components/file-explorer-tree.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-page/hooks/use-chat-side-panel.ts",
+          "type": "registry:hook",
+          "target": "src/features/assistant/hooks/use-chat-side-panel.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-page/lib/mock-workspace-tree.ts",
+          "type": "registry:lib",
+          "target": "src/features/assistant/lib/mock-workspace-tree.ts"
+        }
+      ]
+    },
+    {
+      "name": "command-palette",
+      "type": "registry:block",
+      "title": "Command palette",
+      "description": "⌘K / sidebar search — go-to navigation from navigation-config (no faked entity search).",
+      "registryDependencies": ["button", "sidebar", "dialog"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 720
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/command-palette/page.tsx",
+          "type": "registry:page",
+          "target": "src/routes/command-palette.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/command-palette/lib/fetch-command-palette-search.ts",
+          "type": "registry:lib",
+          "target": "src/features/search/lib/fetch-command-palette-search.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/command-palette/hooks/use-command-palette-search.ts",
+          "type": "registry:hook",
+          "target": "src/features/search/hooks/use-command-palette-search.ts"
+        }
+      ]
+    },
+    {
+      "name": "record-edit-page",
+      "type": "registry:block",
+      "title": "Record edit page",
+      "description": "Invoice edit route — due date and notes form on a full shell page with activity log.",
+      "registryDependencies": [
+        "button",
+        "calendar",
+        "collapsible",
+        "field",
+        "input",
+        "popover",
+        "sidebar",
+        "textarea"
+      ],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 900
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/record-edit-page/page.tsx",
+          "type": "registry:page",
+          "target": "src/features/collect/record-edit-page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-edit-page/lib/payment-types.ts",
+          "type": "registry:lib",
+          "target": "src/features/collect/lib/payment-types.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-edit-page/lib/invoice-edit-schema.ts",
+          "type": "registry:lib",
+          "target": "src/features/collect/lib/invoice-edit-schema.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-edit-page/lib/mock-invoice-activity.tsx",
+          "type": "registry:lib",
+          "target": "src/features/collect/lib/mock-invoice-activity.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-edit-page/components/invoice-edit-form.tsx",
+          "type": "registry:component",
+          "target": "src/features/collect/components/invoice-edit-form.tsx"
+        }
+      ]
+    },
+    {
+      "name": "record-payment-dialog",
+      "type": "registry:block",
+      "title": "Record payment dialog",
+      "description": "Collect hub with record-payment dialog open by default — money fields plus activity log (MXN minor units).",
+      "registryDependencies": [
+        "button",
+        "calendar",
+        "collapsible",
+        "dialog",
+        "field",
+        "input",
+        "popover",
+        "sidebar"
+      ],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 900
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/record-payment-dialog/page.tsx",
+          "type": "registry:page",
+          "target": "src/features/collect/record-payment-dialog-page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-payment-dialog/lib/payment-types.ts",
+          "type": "registry:lib",
+          "target": "src/features/collect/lib/payment-types.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-payment-dialog/lib/payment-form-schema.ts",
+          "type": "registry:lib",
+          "target": "src/features/collect/lib/payment-form-schema.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-payment-dialog/lib/mock-invoice-activity.tsx",
+          "type": "registry:lib",
+          "target": "src/features/collect/lib/mock-invoice-activity.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-payment-dialog/lib/mock-open-invoices.ts",
+          "type": "registry:lib",
+          "target": "src/features/collect/lib/mock-open-invoices.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-payment-dialog/components/open-invoices-columns.tsx",
+          "type": "registry:component",
+          "target": "src/features/collect/components/open-invoices-columns.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-payment-dialog/components/payment-form.tsx",
+          "type": "registry:component",
+          "target": "src/features/collect/components/payment-form.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-payment-dialog/components/payment-form-dialog.tsx",
+          "type": "registry:component",
+          "target": "src/features/collect/components/payment-form-dialog.tsx"
+        }
+      ]
+    },
+    {
+      "name": "record-read-page",
+      "type": "registry:block",
+      "title": "Record read page",
+      "description": "Invoice record route — PropertyGrid and activity log on a full shell page (read-only).",
+      "registryDependencies": ["button", "collapsible", "popover", "sidebar"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 900
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/record-read-page/page.tsx",
+          "type": "registry:page",
+          "target": "src/features/collect/record-read-page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-read-page/lib/payment-types.ts",
+          "type": "registry:lib",
+          "target": "src/features/collect/lib/payment-types.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-read-page/lib/mock-invoice-activity.tsx",
+          "type": "registry:lib",
+          "target": "src/features/collect/lib/mock-invoice-activity.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/record-read-page/components/invoice-record-view.tsx",
+          "type": "registry:component",
+          "target": "src/features/collect/components/invoice-record-view.tsx"
+        }
+      ]
+    },
+    {
+      "name": "resource-list-page",
+      "type": "registry:block",
+      "title": "Resource list page",
+      "description": "Full list page — app shell, list page shell, filter toolbar, resource table, and a React Query hook on mock data.",
+      "registryDependencies": ["table", "button", "badge", "input", "sidebar"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 900
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/resource-list-page/page.tsx",
+          "type": "registry:page",
+          "target": "src/features/people/page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/resource-list-page/lib/people/types.ts",
+          "type": "registry:lib",
+          "target": "src/features/people/lib/people/types.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/resource-list-page/lib/people/mock-people.ts",
+          "type": "registry:lib",
+          "target": "src/features/people/lib/people/mock-people.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/resource-list-page/lib/people/fetch-people.ts",
+          "type": "registry:lib",
+          "target": "src/features/people/lib/people/fetch-people.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/resource-list-page/hooks/use-people.ts",
+          "type": "registry:hook",
+          "target": "src/features/people/hooks/use-people.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/resource-list-page/components/people/people-columns.tsx",
+          "type": "registry:component",
+          "target": "src/features/people/components/people/people-columns.tsx"
+        }
+      ]
+    },
+    {
+      "name": "resource-table",
+      "type": "registry:ui",
+      "title": "Resource table",
+      "description": "Extended DataTable with drill-in row click, inline CTA, and kebab actions.",
+      "registryDependencies": ["table", "button", "dropdown-menu", "input"],
+      "meta": {
+        "sfabKind": "block"
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/components/resource-table/resource-table-demo.tsx",
           "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "settings-page",
+      "type": "registry:block",
+      "title": "Settings page",
+      "description": "Full-route org settings — organization details, member invites, members table, and pending invitations (gallery mock, admin+ surface).",
+      "registryDependencies": [
+        "button",
+        "drawer",
+        "input",
+        "select",
+        "table",
+        "sidebar"
+      ],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 900
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/settings-page/page.tsx",
+          "type": "registry:page",
+          "target": "src/routes/_protected/settings/route.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/settings-page/components/settings-page-content.tsx",
+          "type": "registry:component",
+          "target": "src/features/settings/components/settings-page-content.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/settings-page/components/organization-details-form.tsx",
+          "type": "registry:component",
+          "target": "src/features/settings/components/organization-details-form.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/settings-page/components/invite-member-form.tsx",
+          "type": "registry:component",
+          "target": "src/features/settings/components/invite-member-form.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/settings-page/components/members-tables.tsx",
+          "type": "registry:component",
+          "target": "src/features/settings/components/members-tables.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/settings-page/lib/mock-organization.ts",
+          "type": "registry:lib",
+          "target": "src/features/settings/lib/mock-organization.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/settings-page/lib/settings-sections.ts",
+          "type": "registry:lib",
+          "target": "src/features/settings/lib/settings-sections.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/settings-page/lib/settings-schemas.ts",
+          "type": "registry:lib",
+          "target": "src/features/settings/lib/settings-schemas.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/settings-page/lib/fetch-organization-settings.ts",
+          "type": "registry:lib",
+          "target": "src/features/settings/lib/fetch-organization-settings.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/settings-page/hooks/use-organization-settings.ts",
+          "type": "registry:hook",
+          "target": "src/features/settings/hooks/use-organization-settings.ts"
+        }
+      ]
+    },
+    {
+      "name": "shell",
+      "type": "registry:ui",
+      "title": "Shell",
+      "description": "App shell compound layout — sidebar frame, page header row, and main content slot.",
+      "registryDependencies": ["button", "sidebar"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 720
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/components/shell/shell-demo.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "today-overview",
+      "type": "registry:block",
+      "title": "Today overview",
+      "description": "Operator home — primary actions, honest KPI tiles, action items, and a capped inventory movements feed.",
+      "registryDependencies": ["button", "sidebar"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 900
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/today-overview/page.tsx",
+          "type": "registry:page",
+          "target": "src/routes/index.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/today-overview/components/today-overview-content.tsx",
+          "type": "registry:component",
+          "target": "src/features/today/components/today-overview-content.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/today-overview/components/today-kpi-tile.tsx",
+          "type": "registry:component",
+          "target": "src/features/today/components/today-kpi-tile.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/today-overview/components/today-action-items.tsx",
+          "type": "registry:component",
+          "target": "src/features/today/components/today-action-items.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/today-overview/components/inventory-movements-feed.tsx",
+          "type": "registry:component",
+          "target": "src/features/today/components/inventory-movements-feed.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/today-overview/lib/mock-today-metrics.ts",
+          "type": "registry:lib",
+          "target": "src/features/today/lib/mock-today-metrics.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/today-overview/lib/mock-inventory-movements.ts",
+          "type": "registry:lib",
+          "target": "src/features/today/lib/mock-inventory-movements.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/today-overview/lib/fetch-today-overview.ts",
+          "type": "registry:lib",
+          "target": "src/features/today/lib/fetch-today-overview.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/today-overview/hooks/use-today-overview.ts",
+          "type": "registry:hook",
+          "target": "src/features/today/hooks/use-today-overview.ts"
         }
       ]
     }

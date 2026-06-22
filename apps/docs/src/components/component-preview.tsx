@@ -1,5 +1,6 @@
 import { getEntry } from "@workspace/registry";
 import { Button } from "@workspace/ui/components/shadcn/button";
+import { TooltipProvider } from "@workspace/ui/components/shadcn/tooltip";
 import { Fullscreen } from "lucide-react";
 import { Suspense } from "react";
 
@@ -44,9 +45,11 @@ export function ComponentPreview({ name }: { name: string }) {
         </Button>
       </div>
       <div className="flex min-h-56 items-center justify-center p-10">
-        <Suspense fallback={null}>
-          <Demo />
-        </Suspense>
+        <TooltipProvider delayDuration={0}>
+          <Suspense fallback={null}>
+            <Demo />
+          </Suspense>
+        </TooltipProvider>
       </div>
     </div>
   );

@@ -5,8 +5,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import type { RegistryItemDef } from "../src/types";
 
 /**
- * Generates the two derived artifacts from the `registry/<name>/` source trees,
- * which are the single source of truth (ADR-0017 amendment, RD-7):
+ * Generates the two derived artifacts from the `registry/{blocks,components}/<name>/`
+ * source trees (ADR-0017 amendment, RD-7):
  *
  *   1. the repo-root `registry.json` (the shadcn GitHub-registry manifest), and
  *   2. `src/generated.ts` (the gallery's `name -> { ...meta, lazy component }` map).
@@ -28,41 +28,77 @@ const HOMEPAGE = "https://github.com/sfab-oss/sfab-starter";
 const REGISTRY_JSON = join(REPO_ROOT, "registry.json");
 const GENERATED_TS = join(PKG_ROOT, "src", "generated.ts");
 
+const KIND_DIRS = ["blocks", "components"] as const;
+
 interface LoadedDef {
   name: string;
+  /** e.g. `blocks/chat-page` — path under `registry/` */
+  relPath: string;
   def: RegistryItemDef;
 }
 
-async function loadDefs(): Promise<LoadedDef[]> {
-  const names = readdirSync(ITEMS_DIR, { withFileTypes: true })
+async function loadKindDefs(
+  kind: (typeof KIND_DIRS)[number]
+): Promise<LoadedDef[]> {
+  const kindDir = join(ITEMS_DIR, kind);
+  if (!existsSync(kindDir)) {
+    return [];
+  }
+
+  const expectedType = kind === "blocks" ? "registry:block" : "registry:ui";
+  const names = readdirSync(kindDir, { withFileTypes: true })
     .filter(
-      (d) => d.isDirectory() && existsSync(join(ITEMS_DIR, d.name, "item.ts"))
+      (d) => d.isDirectory() && existsSync(join(kindDir, d.name, "item.ts"))
     )
     .map((d) => d.name)
     .sort();
 
   const defs: LoadedDef[] = [];
   for (const name of names) {
-    const href = pathToFileURL(join(ITEMS_DIR, name, "item.ts")).href;
+    const relPath = `${kind}/${name}`;
+    const itemDir = join(ITEMS_DIR, relPath);
+    const href = pathToFileURL(join(itemDir, "item.ts")).href;
     const mod = (await import(href)) as { default: RegistryItemDef };
     const def = mod.default;
+
+    if (def.item.name !== name) {
+      throw new Error(
+        `${relPath}: item.name "${def.item.name}" must match directory "${name}"`
+      );
+    }
+
+    if (def.item.type !== expectedType) {
+      throw new Error(
+        `${relPath}: type "${def.item.type}" must be "${expectedType}" for registry/${kind}/`
+      );
+    }
+
     for (const file of def.item.files ?? []) {
-      const abs = join(ITEMS_DIR, name, file.path);
+      const abs = join(itemDir, file.path);
       if (!existsSync(abs)) {
-        throw new Error(`${name}: file not found on disk: ${file.path}`);
+        throw new Error(`${relPath}: file not found on disk: ${file.path}`);
       }
     }
-    defs.push({ name, def });
+
+    defs.push({ name, relPath, def });
   }
   return defs;
 }
 
+async function loadDefs(): Promise<LoadedDef[]> {
+  const defs: LoadedDef[] = [];
+  for (const kind of KIND_DIRS) {
+    defs.push(...(await loadKindDefs(kind)));
+  }
+  return defs.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 function buildRegistryJson(defs: LoadedDef[]): string {
-  const items = defs.map(({ name, def }) => ({
+  const items = defs.map(({ relPath, def }) => ({
     ...def.item,
     files: (def.item.files ?? []).map((f) => ({
       ...f,
-      path: `${REPO_PREFIX}/${name}/${f.path}`,
+      path: `${REPO_PREFIX}/${relPath}/${f.path}`,
     })),
   }));
   const manifest = {
@@ -82,10 +118,10 @@ function buildGeneratedTs(defs: LoadedDef[]): string {
     "",
     "export const REGISTRY: Record<string, RegistryEntry> = {",
   ];
-  for (const { name, def } of defs) {
+  for (const { relPath, def } of defs) {
     const { item, preview } = def;
-    const importPath = `../registry/${name}/${preview}`;
-    lines.push(`  ${JSON.stringify(name)}: {`);
+    const importPath = `../registry/${relPath}/${preview}`;
+    lines.push(`  ${JSON.stringify(item.name)}: {`);
     lines.push(`    name: ${JSON.stringify(item.name)},`);
     lines.push(`    type: ${JSON.stringify(item.type)},`);
     if (item.title !== undefined) {

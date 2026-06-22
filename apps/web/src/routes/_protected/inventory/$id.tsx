@@ -2,10 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { Movement } from "@workspace/contract/catalog";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
-  AppLayoutHeader,
-  AppLayoutHeaderActions,
-  AppLayoutPage,
-} from "@workspace/ui/components/brand/app-layout";
+  ShellHeader,
+  ShellHeaderActions,
+  ShellHeaderSidebarTrigger,
+  ShellPage,
+} from "@workspace/ui/components/brand/shell";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -248,11 +249,11 @@ function ProductPage() {
 
   if (!productId) {
     return (
-      <AppLayoutPage>
+      <ShellPage>
         <div className="flex h-full flex-col items-center justify-center gap-4">
           <h2 className="font-semibold text-xl">Loading...</h2>
         </div>
-      </AppLayoutPage>
+      </ShellPage>
     );
   }
 
@@ -283,42 +284,44 @@ function ProductPage() {
 
   if (isLoadingProduct) {
     return (
-      <AppLayoutPage>
-        <AppLayoutHeader>
+      <ShellPage>
+        <ShellHeader>
+          <ShellHeaderSidebarTrigger className="-ml-1" />
           <div className="flex items-center gap-2">
             <div className="h-6 w-32 animate-pulse rounded bg-muted" />
           </div>
-        </AppLayoutHeader>
+        </ShellHeader>
         <div className="p-6">
           <div className="h-64 animate-pulse rounded-lg bg-muted/20" />
         </div>
-      </AppLayoutPage>
+      </ShellPage>
     );
   }
 
   if (!product) {
     return (
-      <AppLayoutPage>
+      <ShellPage>
         <div className="flex h-full flex-col items-center justify-center gap-4">
           <h2 className="font-semibold text-xl">Product not found</h2>
           <Button asChild>
             <Link to="/inventory">Back to Inventory</Link>
           </Button>
         </div>
-      </AppLayoutPage>
+      </ShellPage>
     );
   }
 
   return (
-    <AppLayoutPage>
-      <AppLayoutHeader>
+    <ShellPage>
+      <ShellHeader>
+        <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
           items={[
             { title: "Inventory", href: "/inventory" },
             { title: product.name },
           ]}
         />
-        <AppLayoutHeaderActions>
+        <ShellHeaderActions>
           {isEditing ? (
             <Button
               onClick={() => setIsEditing(false)}
@@ -356,8 +359,8 @@ function ProductPage() {
               </Button>
             </>
           )}
-        </AppLayoutHeaderActions>
-      </AppLayoutHeader>
+        </ShellHeaderActions>
+      </ShellHeader>
 
       <div className="space-y-8 overflow-y-auto p-6">
         <div className="grid gap-4 md:grid-cols-3">
@@ -540,6 +543,6 @@ function ProductPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppLayoutPage>
+    </ShellPage>
   );
 }

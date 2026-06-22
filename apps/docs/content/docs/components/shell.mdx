@@ -1,0 +1,64 @@
+---
+title: Shell
+description: Compound app shell — sidebar frame, page header, and main content slot.
+---
+
+`Shell` is the app frame: sidebar + main column. Compose `ShellInset` for the rounded
+panel, optional `ShellFooter` for dock chrome below it, then `ShellPage` / `ShellHeader` /
+`ShellContent` inside the inset.
+
+<ComponentPreview name="shell" />
+
+## Composition
+
+```tsx
+<Shell sidebar={<AppSidebar />}>
+  <ShellInset>
+    <ShellPage>
+    <ShellHeader>
+      <AppBreadcrumbs
+        items={[{ title: "Directory", href: "/people" }, { title: "People" }]}
+      />
+      <ShellHeaderActions>
+        <Button size="sm">New person</Button>
+      </ShellHeaderActions>
+    </ShellHeader>
+    <ShellContent>
+      <ResourceTable embedded ... />
+    </ShellContent>
+    </ShellPage>
+  </ShellInset>
+</Shell>
+```
+
+Add a dock below the inset with `ShellFooter`:
+
+```tsx
+<Shell sidebar={<AppSidebar />}>
+  <ShellInset>
+    <Outlet />
+  </ShellInset>
+  <ShellFooter>
+    <ChatDockMount />
+  </ShellFooter>
+</Shell>
+```
+
+Detail pages use the same page parts — add tabs between header and content, pad the body
+via `className` on `ShellContent`:
+
+```tsx
+<ShellPage>
+  <ShellHeader>
+    <AppBreadcrumbs items={[{ title: "Documents" }, { title: "INV-1042" }]} />
+    <ShellHeaderActions>...</ShellHeaderActions>
+  </ShellHeader>
+  <Tabs>...</Tabs>
+  <ShellContent className="flex-1 overflow-y-auto p-4 md:p-6">
+    <PropertyGrid items={...} />
+  </ShellContent>
+</ShellPage>
+```
+
+Source: `packages/ui/src/components/brand/shell.tsx`. Golden block:
+[resource list page](/docs/blocks/resource-list-page).

@@ -1,0 +1,26 @@
+---
+title: Settings page
+description: Full-route organization settings with org details, invites, members, and pending invitations.
+---
+
+Route-based **admin+** settings surface (`/settings` in operator-ux §4) — not a dialog or
+side-sheet. In-page **settings sidebar** (General · Members) matches the sfab platform
+`SettingsSectionLayout` pattern; org details, member invites, members table, and pending
+invitations compose per section.
+
+<BlockViewer name="settings-page" />
+
+## What it demonstrates
+
+- **Settings sidebar** — `SettingsSectionLayout` + `SettingsNav` (desktop aside, mobile drawer).
+- **Section routes** — General (org details) and Members (invite + tables).
+- **`OrganizationDetailsForm`** — RHF + Zod with honest disabled state when `canEditSettings` is false.
+- **`InviteMemberForm`** — email + role select; operator role labeled in UI copy.
+- **`MembersTable` / `InvitationsTable`** — member management with leave/remove affordances.
+
+Gallery mock uses Northside Distributors data and simulates saves with toast — no backend.
+
+## Source
+
+`packages/registry/registry/blocks/settings-page/` — open at
+[`/view/settings-page`](/view/settings-page).

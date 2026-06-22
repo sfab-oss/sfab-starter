@@ -2,12 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { authClient } from "@workspace/auth/client";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
-  AppLayoutContent,
-  AppLayoutHeader,
-  AppLayoutHeaderActions,
-  AppLayoutHeaderTitle,
-  AppLayoutPage,
-} from "@workspace/ui/components/brand/app-layout";
+  ShellContent,
+  ShellHeader,
+  ShellHeaderActions,
+  ShellHeaderSidebarTrigger,
+  ShellHeaderTitle,
+  ShellPage,
+} from "@workspace/ui/components/brand/shell";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Card,
@@ -40,21 +41,22 @@ function SettingsPage() {
 
   if (!activeOrganization) {
     return (
-      <AppLayoutPage>
-        <AppLayoutHeader>
+      <ShellPage>
+        <ShellHeader>
+          <ShellHeaderSidebarTrigger className="-ml-1" />
           <AppBreadcrumbs items={[{ title: "Settings" }]} />
-          <AppLayoutHeaderTitle>Settings</AppLayoutHeaderTitle>
-          <AppLayoutHeaderActions />
-        </AppLayoutHeader>
-        <AppLayoutContent>
+          <ShellHeaderTitle>Settings</ShellHeaderTitle>
+          <ShellHeaderActions />
+        </ShellHeader>
+        <ShellContent>
           <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
             <p className="text-muted-foreground">No active organization</p>
             <Button asChild>
               <Link to="/onboarding">Create an organization</Link>
             </Button>
           </div>
-        </AppLayoutContent>
-      </AppLayoutPage>
+        </ShellContent>
+      </ShellPage>
     );
   }
 
@@ -62,14 +64,15 @@ function SettingsPage() {
   const invitations = activeOrganization.invitations ?? [];
 
   return (
-    <AppLayoutPage>
-      <AppLayoutHeader>
+    <ShellPage>
+      <ShellHeader>
+        <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs items={[{ title: "Settings" }]} />
-        <AppLayoutHeaderTitle>Settings</AppLayoutHeaderTitle>
-        <AppLayoutHeaderActions />
-      </AppLayoutHeader>
+        <ShellHeaderTitle>Settings</ShellHeaderTitle>
+        <ShellHeaderActions />
+      </ShellHeader>
 
-      <AppLayoutContent>
+      <ShellContent>
         <div className="mx-auto w-full max-w-4xl space-y-8 py-8">
           <div>
             <h1 className="font-bold text-2xl">Organization Settings</h1>
@@ -123,20 +126,21 @@ function SettingsPage() {
             <InvitationsTable invitations={invitations} />
           </div>
         </div>
-      </AppLayoutContent>
-    </AppLayoutPage>
+      </ShellContent>
+    </ShellPage>
   );
 }
 
 function SettingsSkeleton() {
   return (
-    <AppLayoutPage>
-      <AppLayoutHeader>
+    <ShellPage>
+      <ShellHeader>
+        <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs items={[{ title: "Settings" }]} />
-        <AppLayoutHeaderTitle>Settings</AppLayoutHeaderTitle>
-        <AppLayoutHeaderActions />
-      </AppLayoutHeader>
-      <AppLayoutContent>
+        <ShellHeaderTitle>Settings</ShellHeaderTitle>
+        <ShellHeaderActions />
+      </ShellHeader>
+      <ShellContent>
         <div className="mx-auto w-full max-w-4xl space-y-8 py-8">
           <div className="space-y-2">
             <Skeleton className="h-8 w-48" />
@@ -155,7 +159,7 @@ function SettingsSkeleton() {
             </CardContent>
           </Card>
         </div>
-      </AppLayoutContent>
-    </AppLayoutPage>
+      </ShellContent>
+    </ShellPage>
   );
 }

@@ -14,8 +14,8 @@ export function baseOptions(): BaseLayoutProps {
     },
     links: [
       {
-        text: "Home",
-        url: "/",
+        text: "Docs home",
+        url: "/docs",
       },
     ],
   };

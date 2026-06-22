@@ -1,0 +1,25 @@
+---
+title: Command palette
+description: Global search dialog — sidebar trigger, ⌘K shortcut, and go-to navigation.
+---
+
+Extends the platform pattern: a **sidebar search button** opens the same dialog as **⌘K**
+(and `/` when not typing in a field). Navigation items come from `navigation-config` —
+go-to only, no faked entity search (operator-ux §8 Phase 0).
+
+<BlockViewer name="command-palette" />
+
+## What it demonstrates
+
+- **`CommandPalette`** (`@workspace/ui`) — Actions, Go to, and grouped mock results (People, Products, Invoices, Warehouses) with type badges.
+- **`useCommandPaletteShortcut`** — ⌘K / Ctrl+K and `/` toggle.
+- **`AppShellSidebar`** — search in the header (expanded + collapsed icon mode).
+
+This preview opens the palette on load. In other blocks, search starts closed until you
+click Search or press ⌘K.
+
+## Source
+
+`packages/registry/registry/blocks/command-palette/` · shared primitive in
+`packages/registry/registry/_shared/command-palette.tsx` · open at
+[`/view/command-palette`](/view/command-palette).

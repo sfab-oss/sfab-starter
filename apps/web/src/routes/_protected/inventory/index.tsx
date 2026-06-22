@@ -8,12 +8,13 @@ import type {
 import type { Product } from "@workspace/contract/catalog";
 import { paginationQuerySchema } from "@workspace/contract/pagination";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
-import {
-  AppLayoutHeader,
-  AppLayoutHeaderActions,
-  AppLayoutPage,
-} from "@workspace/ui/components/brand/app-layout";
 import { DataTable } from "@workspace/ui/components/brand/data-table";
+import {
+  ShellHeader,
+  ShellHeaderActions,
+  ShellHeaderSidebarTrigger,
+  ShellPage,
+} from "@workspace/ui/components/brand/shell";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { Checkbox } from "@workspace/ui/components/shadcn/checkbox";
@@ -32,6 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
+import { formatMoneyMinor, majorToMinor } from "@workspace/ui/lib/money";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
@@ -248,12 +250,12 @@ function InventoryPage() {
       },
       cell: ({ row }) => {
         const price = (row.getValue("price") as number | null) ?? 0;
-        const formatted = new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
-        }).format(price);
 
-        return <div className="text-right font-medium">{formatted}</div>;
+        return (
+          <div className="text-right font-medium">
+            {formatMoneyMinor(majorToMinor(price, "USD"), "USD")}
+          </div>
+        );
       },
     },
     {
@@ -300,13 +302,14 @@ function InventoryPage() {
   ];
 
   return (
-    <AppLayoutPage>
-      <AppLayoutHeader>
+    <ShellPage>
+      <ShellHeader>
+        <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs items={[{ title: "Inventory" }]} />
-        <AppLayoutHeaderActions>
+        <ShellHeaderActions>
           <CreateProductDialog />
-        </AppLayoutHeaderActions>
-      </AppLayoutHeader>
+        </ShellHeaderActions>
+      </ShellHeader>
 
       <div className="p-6">
         {isLoading && !productsResponse ? (
@@ -355,6 +358,6 @@ function InventoryPage() {
           )}
         </DialogContent>
       </Dialog>
-    </AppLayoutPage>
+    </ShellPage>
   );
 }
