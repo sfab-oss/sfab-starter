@@ -47,24 +47,6 @@ export function useChatSidePanel() {
     [tabs]
   );
 
-  const openFileTab = useCallback(
-    (path: string, name: string) => {
-      setPanelOpen(true);
-      const existing = tabs.find(
-        (tab) => tab.type === "file" && tab.path === path
-      );
-      if (existing) {
-        setActiveTabId(existing.id);
-        return;
-      }
-
-      const id = crypto.randomUUID();
-      setTabs((current) => [...current, { id, type: "file", path, name }]);
-      setActiveTabId(id);
-    },
-    [tabs]
-  );
-
   const closeTab = useCallback(
     (tabId: string) => {
       const closedIndex = tabs.findIndex((tab) => tab.id === tabId);
@@ -89,7 +71,6 @@ export function useChatSidePanel() {
     closePanel,
     togglePanel,
     openToolTab,
-    openFileTab,
     closeTab,
     setActiveTabId,
   };
