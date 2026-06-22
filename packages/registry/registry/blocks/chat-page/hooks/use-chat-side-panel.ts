@@ -67,17 +67,15 @@ export function useChatSidePanel() {
 
   const closeTab = useCallback(
     (tabId: string) => {
-      setTabs((current) => {
-        const next = current.filter((tab) => tab.id !== tabId);
-        if (activeTabId === tabId) {
-          const closedIndex = current.findIndex((tab) => tab.id === tabId);
-          const fallback = next[closedIndex] ?? next[closedIndex - 1];
-          setActiveTabId(fallback?.id ?? null);
-        }
-        return next;
-      });
+      const closedIndex = tabs.findIndex((tab) => tab.id === tabId);
+      const next = tabs.filter((tab) => tab.id !== tabId);
+      setTabs(next);
+      if (activeTabId === tabId) {
+        const fallback = next[closedIndex] ?? next[closedIndex - 1];
+        setActiveTabId(fallback?.id ?? null);
+      }
     },
-    [activeTabId]
+    [activeTabId, tabs]
   );
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? null;

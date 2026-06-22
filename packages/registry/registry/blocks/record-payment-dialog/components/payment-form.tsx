@@ -104,10 +104,16 @@ export function PaymentForm({
                   const major = Number.parseFloat(event.target.value);
                   if (Number.isFinite(major)) {
                     field.onChange(majorToMinor(major, invoice.currencyCode));
+                  } else {
+                    field.onChange(undefined as unknown as number);
                   }
                 }}
                 type="number"
-                value={minorToMajor(field.value, invoice.currencyCode)}
+                value={
+                  typeof field.value === "number"
+                    ? minorToMajor(field.value, invoice.currencyCode)
+                    : ""
+                }
               />
               {fieldState.invalid ? (
                 <FieldError errors={[fieldState.error]} />
