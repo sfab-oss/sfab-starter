@@ -1,0 +1,34 @@
+---
+title: Resource list page
+description: Full app layout with list page shell, filter toolbar, and resource table on mock people data.
+---
+
+Full list page block: `Shell` sidebar frame, composed page header, and a full-bleed filter
+toolbar + `ResourceTable` inside the inset panel. Data comes from a React Query
+hook (`usePeopleList`) over 28 mock people with server-style pagination (10 per
+page), sorting, and filters — swap `fetchPeopleList` for a Hono route when you
+wire up the API.
+
+<BlockViewer name="resource-list-page" />
+
+## What it demonstrates
+
+- **Shell** — `Shell` + `ShellPage` + `ShellHeader` + `ShellContent` (compound layout).
+- **Table kit** — filter toolbar, sort control, sortable headers, row actions.
+- **Data layer** — `lib/people/` mock data + `fetchPeopleList`, `hooks/use-people.ts`
+  (`peopleListQueryOptions` / `usePeopleList`).
+
+## Source
+
+`packages/registry/registry/blocks/resource-list-page/` — open at
+[`/view/resource-list-page`](/view/resource-list-page).
+
+```
+resource-list-page/
+  page.tsx
+  components/people/people-columns.tsx
+  hooks/use-people.ts
+  lib/people/{types,mock-people,fetch-people}.ts
+```
+
+Wire the route to `src/features/people/page.tsx` when you install the block.

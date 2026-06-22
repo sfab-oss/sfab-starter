@@ -1,0 +1,31 @@
+---
+title: Chat page
+description: Full-screen ERP assistant chat inside the app shell with mock conversation data.
+---
+
+Full-screen chat block: `Shell` sidebar frame with the inset filled by assistant
+UI — header chrome, scrollable conversation (`ai-elements`), and `PromptInput`.
+Messages are mocked; swap the submit handler for `ChatOrgConnection` when wiring
+the live org agent.
+
+<BlockViewer name="chat-page" />
+
+## What it demonstrates
+
+- **Shell** — sidebar + inset; chat owns the full inset (no `ShellPage` header).
+- **Full-screen chat** — route-style header, `Reasoning`, tool calls, plan steps, markdown via `MessageResponse`, message actions.
+- **Mock data** — `lib/mock-chat-messages.ts` seeds the thread; replies cycle canned text.
+
+## Source
+
+`packages/registry/registry/blocks/chat-page/` — open at
+[`/view/chat-page`](/view/chat-page).
+
+```
+chat-page/
+  page.tsx
+  components/full-screen-chat.tsx
+  lib/mock-chat-messages.ts
+```
+
+Install targets route `src/routes/assistant.tsx` and `src/features/assistant/`.

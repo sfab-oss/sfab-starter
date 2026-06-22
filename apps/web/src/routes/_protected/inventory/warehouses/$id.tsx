@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
-  AppLayoutHeader,
-  AppLayoutHeaderActions,
-  AppLayoutPage,
-} from "@workspace/ui/components/brand/app-layout";
+  ShellHeader,
+  ShellHeaderActions,
+  ShellHeaderSidebarTrigger,
+  ShellPage,
+} from "@workspace/ui/components/brand/shell";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,19 +92,19 @@ function WarehouseDetailPage() {
 
   if (isLoadingWarehouse) {
     return (
-      <AppLayoutPage>
+      <ShellPage>
         <div className="flex h-full items-center justify-center">
           <p className="animate-pulse text-muted-foreground">
             Loading warehouse details...
           </p>
         </div>
-      </AppLayoutPage>
+      </ShellPage>
     );
   }
 
   if (!warehouse) {
     return (
-      <AppLayoutPage>
+      <ShellPage>
         <div className="flex h-full flex-col items-center justify-center gap-4">
           <p className="font-medium text-xl">Warehouse not found</p>
           <Button asChild variant="outline">
@@ -112,13 +113,14 @@ function WarehouseDetailPage() {
             </Link>
           </Button>
         </div>
-      </AppLayoutPage>
+      </ShellPage>
     );
   }
 
   return (
-    <AppLayoutPage>
-      <AppLayoutHeader>
+    <ShellPage>
+      <ShellHeader>
+        <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
           items={[
             { title: "Inventory", href: "/inventory" },
@@ -126,7 +128,7 @@ function WarehouseDetailPage() {
             { title: warehouse.name },
           ]}
         />
-        <AppLayoutHeaderActions>
+        <ShellHeaderActions>
           {!isEditing && (
             <>
               <Button
@@ -148,8 +150,8 @@ function WarehouseDetailPage() {
               )}
             </>
           )}
-        </AppLayoutHeaderActions>
-      </AppLayoutHeader>
+        </ShellHeaderActions>
+      </ShellHeader>
 
       <div className="space-y-6 p-6">
         <div className="flex items-center gap-4">
@@ -272,6 +274,6 @@ function WarehouseDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppLayoutPage>
+    </ShellPage>
   );
 }

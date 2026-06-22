@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
-  AppLayoutHeader,
-  AppLayoutHeaderActions,
-  AppLayoutPage,
-  AppLayoutResizablePanelTrigger,
-} from "@workspace/ui/components/brand/app-layout";
+  ShellHeader,
+  ShellHeaderActions,
+  ShellHeaderSidebarTrigger,
+  ShellPage,
+} from "@workspace/ui/components/brand/shell";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { ArrowLeft } from "lucide-react";
 import { useMemo } from "react";
@@ -40,8 +40,9 @@ function WarehouseSetupPage() {
   useSetPageContext(pageConfig);
 
   return (
-    <AppLayoutPage>
-      <AppLayoutHeader>
+    <ShellPage>
+      <ShellHeader>
+        <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
           items={[
             { title: "Inventory", href: "/inventory" },
@@ -49,16 +50,15 @@ function WarehouseSetupPage() {
             { title: "Setup" },
           ]}
         />
-        <AppLayoutHeaderActions>
+        <ShellHeaderActions>
           <Button asChild size="sm" variant="outline">
             <Link to="/inventory/warehouses">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Warehouses
             </Link>
           </Button>
-          <AppLayoutResizablePanelTrigger panelId="chat-panel" />
-        </AppLayoutHeaderActions>
-      </AppLayoutHeader>
+        </ShellHeaderActions>
+      </ShellHeader>
 
       <div className="space-y-6 p-6">
         <div>
@@ -79,6 +79,6 @@ function WarehouseSetupPage() {
           />
         </div>
       </div>
-    </AppLayoutPage>
+    </ShellPage>
   );
 }

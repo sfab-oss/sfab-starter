@@ -1,4 +1,14 @@
 {
   "title": "Blocks",
-  "pages": ["index", "dashboard"]
+  "pages": [
+    "index",
+    "today-overview",
+    "resource-list-page",
+    "record-read-page",
+    "record-edit-page",
+    "record-payment-dialog",
+    "chat-page",
+    "command-palette",
+    "settings-page"
+  ]
 }

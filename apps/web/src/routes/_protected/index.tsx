@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
-  AppLayoutContent,
-  AppLayoutHeader,
-  AppLayoutHeaderActions,
-  AppLayoutHeaderTitle,
-  AppLayoutPage,
-} from "@workspace/ui/components/brand/app-layout";
+  ShellContent,
+  ShellHeader,
+  ShellHeaderActions,
+  ShellHeaderSidebarTrigger,
+  ShellHeaderTitle,
+  ShellPage,
+} from "@workspace/ui/components/brand/shell";
 import {
   Card,
   CardContent,
@@ -22,14 +23,15 @@ export const Route = createFileRoute("/_protected/")({
 
 function DashboardPage() {
   return (
-    <AppLayoutPage>
-      <AppLayoutHeader>
+    <ShellPage>
+      <ShellHeader>
+        <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs items={[{ title: "Dashboard" }]} />
-        <AppLayoutHeaderTitle>Dashboard</AppLayoutHeaderTitle>
-        <AppLayoutHeaderActions />
-      </AppLayoutHeader>
+        <ShellHeaderTitle>Dashboard</ShellHeaderTitle>
+        <ShellHeaderActions />
+      </ShellHeader>
 
-      <AppLayoutContent>
+      <ShellContent>
         <div className="@container flex-1 space-y-6 overflow-y-auto p-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
@@ -155,7 +157,7 @@ function DashboardPage() {
             </Card>
           </div>
         </div>
-      </AppLayoutContent>
-    </AppLayoutPage>
+      </ShellContent>
+    </ShellPage>
   );
 }

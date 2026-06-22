@@ -22,7 +22,18 @@ export const aiMetadataSchema = z.object({
 
 export type AIMetadata = z.infer<typeof aiMetadataSchema>;
 
-export const aiDataPartSchema = z.object({});
+export const aiPlanEntrySchema = z.object({
+  content: z.string(),
+  status: z.enum(["completed", "pending"]).optional(),
+});
+
+export const aiPlanDataSchema = z.object({
+  entries: z.array(aiPlanEntrySchema),
+});
+
+export const aiDataPartSchema = z.object({
+  plan: aiPlanDataSchema,
+});
 
 export type AIDataPart = z.infer<typeof aiDataPartSchema>;
 

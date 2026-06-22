@@ -19,7 +19,7 @@ export type SfabMeta = {
 export type SfabRegistryItem = RegistryItem & { meta: SfabMeta };
 
 /**
- * What each `registry/<name>/item.ts` default-exports — the single authoring
+ * What each `registry/{blocks,components}/<name>/item.ts` default-exports — the
  * source for one item.
  *
  * - `item` is the shadcn `RegistryItem` that lands in the generated root

@@ -510,21 +510,45 @@ importers:
 
   packages/registry:
     dependencies:
+      '@hookform/resolvers':
+        specifier: ^5.2.2
+        version: 5.2.2(react-hook-form@7.71.2(react@19.2.4))(zod@4.3.5)
+      '@tanstack/react-query':
+        specifier: ^5.90.21
+        version: 5.90.21(react@19.2.4)
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@workspace/contract':
+        specifier: workspace:*
+        version: link:../contract
       '@workspace/ui':
         specifier: workspace:*
         version: link:../ui
+      ai:
+        specifier: ^6.0.39
+        version: 6.0.39(zod@4.3.5)
       lucide-react:
         specifier: ^0.475.0
         version: 0.475.0(react@19.2.4)
+      next-themes:
+        specifier: ^0.4.6
+        version: 0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
         specifier: ^19.2.3
         version: 19.2.4
       react-dom:
         specifier: ^19.2.3
         version: 19.2.4(react@19.2.4)
+      react-hook-form:
+        specifier: ^7.71.1
+        version: 7.71.2(react@19.2.4)
+      sonner:
+        specifier: ^2.0.7
+        version: 2.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
     devDependencies:
       '@testing-library/dom':
         specifier: ^10.4.0

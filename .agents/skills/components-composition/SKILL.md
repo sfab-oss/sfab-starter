@@ -180,15 +180,14 @@ swaps the element.
 
 ## sfab layering & placement (non-negotiable)
 - **`packages/ui`** = pure, **no `core`/`contract` imports**. Tiers under `components/`:
-  `shadcn/*` (primitives), plus app-flavored composite tiers (`brand/*` — `DataTable`, `AppLayout`;
+  `shadcn/*` (primitives), plus app-flavored composite tiers (`brand/*` — `DataTable`, `Shell`;
   `ai-elements/*` — chat). A piece that knows nothing about Transaction Core lives here.
 - **`apps/web`** = domain composites, in **feature folders** (`components/<cap>/` — `catalog/`,
   `chat/`, `organization/`). **kebab-case filenames** (`create-product-dialog.tsx`). Add
   `"use client"` to any file using hooks/context/state.
-- **Money:** money is `MoneyMinor` (integer minor units), rendered via a `MoneyDisplay` primitive
-  (planned in the starter — build it rather than reaching for `Intl.NumberFormat`). When you touch
-  money, never add a new ad-hoc money `Intl.NumberFormat`; route it through `MoneyDisplay`.
-  (Non-money `Intl` — dates, quantities — is fine.)
+- **Money:** money is `MoneyMinor` (integer minor units). Format with `formatMoneyMinor` from
+  `@workspace/ui/lib/money`; use `majorToMinor` / `minorToMajor` for editable fields. Never add
+  ad-hoc `Intl.NumberFormat` for domain currency. (Non-money `Intl` — dates, quantities — is fine.)
 - **RBAC-gated controls:** a gated action stays **visible but `disabled` with a reason**, never
   hidden for role. `packages/ui` stays pure (takes `disabled` + `disabledReason`); the `apps/web`
   composite computes `disabled={!can(action)}` against the role gate.

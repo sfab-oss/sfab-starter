@@ -1,32 +1,23 @@
 ---
 title: Blocks
-description: Full-page, composed UI examples — rendered live in an iframe and openable full screen.
+description: Full-page composed UI examples — rendered live in an iframe and openable full screen.
 ---
 
-**Blocks** are complete, full-page screens built from `@workspace/ui` primitives
-with mock data — the marquee "one of everything" pieces. Unlike the per-component
-demos, a block is a whole route you can open on its own.
+**Blocks** are complete screens built from `@workspace/ui` primitives with mock
+data. Golden references cover the operator home, list spine, record routes (read / edit),
+create dialog, and full-screen assistant chat.
 
 Each block is:
 
-- **Authored** as a directory under `packages/registry/registry/<name>/` (a
-  `page.tsx` plus split `components/`) with an `item.ts` manifest.
-- **Published** to the GitHub registry — `pnpm --filter @workspace/registry generate`
-  generates the root `registry.json` and the gallery's lazy map, so a block is
-  both previewable here and installable via `shadcn add`.
-- **Rendered chromeless** at `/view/<name>` (no docs sidebar/header), and embedded
-  below via `<BlockViewer name="…" />` — with device-width breakpoints, a refresh
-  control, and an "open full screen" link.
+- **Authored** under `packages/registry/registry/blocks/<name>/` or
+  `packages/registry/registry/components/<name>/` with an `item.ts` manifest.
+- **Published** via `pnpm --filter @workspace/registry generate` to `registry.json`
+  and the gallery lazy map (`shadcn add` compatible).
+- **Rendered chromeless** at `/view/<name>` and embedded via `<BlockViewer />`.
 
-## Available blocks
+## All blocks
 
-<Cards>
-  <Card
-    title="Operator dashboard"
-    description="The full app shell — sidebar, header, stat cards, data table, and activity feed."
-    href="/docs/blocks/dashboard"
-  />
-</Cards>
+<BlocksGallery />
 
-More blocks (resource index table, entity detail, settings, auth, agent chat) are
-tracked in the gallery plan and land here as they're built.
+Browse [Components](/docs/components/shell) for the layout and table
+primitives that make up the blocks.

@@ -1,4 +1,4 @@
 {
   "title": "Components",
-  "pages": ["button", "badge"]
+  "pages": ["shell", "resource-table"]
 }

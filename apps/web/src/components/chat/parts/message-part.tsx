@@ -1,16 +1,15 @@
+import type { AIDataPart } from "@workspace/contract/ai";
 import { MessageResponse } from "@workspace/ui/components/ai-elements/message";
 import {
   Reasoning,
   ReasoningContent,
   ReasoningTrigger,
 } from "@workspace/ui/components/ai-elements/reasoning";
-import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   type DynamicToolUIPart,
   isToolUIPart,
   type ToolUIPart,
-  type UIDataTypes,
   type UIMessagePart,
   type UITools,
 } from "ai";
@@ -25,7 +24,7 @@ export function MessagePart({
   isLoading,
   isLastPart,
 }: {
-  part: UIMessagePart<UIDataTypes, UITools>;
+  part: UIMessagePart<AIDataPart, UITools>;
   messageId: string;
   partIndex: number;
   isLoading: boolean;
@@ -73,9 +72,7 @@ export function MessagePart({
   }
 
   if (part.type === "data-plan") {
-    const entries =
-      (part.data as { entries?: { content: string; status?: string }[] })
-        .entries ?? [];
+    const entries = part.data.entries;
     if (entries.length === 0) {
       return null;
     }
@@ -106,32 +103,6 @@ export function MessagePart({
           );
         })}
       </div>
-    );
-  }
-
-  if (part.type === "data-banner") {
-    const data = part.data as { variant?: "error" | "info"; text?: string };
-    return (
-      <div
-        className="my-2 flex justify-center"
-        key={`${messageId}-banner-${partIndex}`}
-      >
-        <Badge variant={data.variant === "error" ? "destructive" : "secondary"}>
-          {data.text}
-        </Badge>
-      </div>
-    );
-  }
-
-  if (part.type === "data-acp") {
-    const data = part.data as { sessionUpdate?: string };
-    return (
-      <p
-        className="my-0.5 text-muted-foreground text-xs"
-        key={`${messageId}-acp-${partIndex}`}
-      >
-        · {data.sessionUpdate ?? "event"}
-      </p>
     );
   }
 

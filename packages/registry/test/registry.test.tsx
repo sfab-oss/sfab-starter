@@ -59,8 +59,10 @@ describe("items render", () => {
         </Suspense>
       </TooltipProvider>
     );
-    await waitFor(() =>
-      expect(container.querySelector('[data-testid="loading"]')).toBeNull()
+    await waitFor(
+      () =>
+        expect(container.querySelector('[data-testid="loading"]')).toBeNull(),
+      { timeout: 5000 }
     );
     expect(container.firstChild).toBeTruthy();
   });

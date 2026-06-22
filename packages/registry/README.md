@@ -22,13 +22,18 @@ the docs gallery *previews* an item — inline vs iframed.
 
 ## Authoring an item
 
-Each item is a directory under `registry/<name>/`:
+Each item is a directory under `registry/blocks/<name>/` or
+`registry/components/<name>/`:
 
 ```
-registry/dashboard-01/
-  item.ts                       # the RegistryItemDef (metadata + preview entry)
-  page.tsx                      # the preview entrypoint
-  components/*.tsx              # split pieces
+registry/blocks/resource-list-page/
+  item.ts
+  page.tsx
+  ...
+
+registry/components/shell/
+  item.ts
+  shell-demo.tsx
 ```
 
 `item.ts` default-exports `{ item, preview }` — the shadcn `RegistryItem` (with

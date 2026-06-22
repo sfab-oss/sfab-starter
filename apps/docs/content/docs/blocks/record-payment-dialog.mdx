@@ -1,0 +1,22 @@
+---
+title: Record payment dialog
+description: Collect list with record-payment create dialog and activity log.
+---
+
+**Create** flow only: Collect list with **record payment** dialog open by default in the
+gallery. Read and edit are separate full-route blocks (`record-read-page`, `record-edit-page`).
+
+<BlockViewer name="record-payment-dialog" />
+
+## What it demonstrates
+
+- **`PaymentFormDialog`** — create payment in a dialog (money fields + activity log).
+- **Collect list** — row *Collect* opens the dialog.
+
+## Source
+
+`packages/registry/registry/blocks/record-payment-dialog/` — open at
+[`/view/record-payment-dialog`](/view/record-payment-dialog).
+
+Gallery currency is **MXN** (`GALLERY_CURRENCY_CODE`). Wire your org currency from settings when
+you install.

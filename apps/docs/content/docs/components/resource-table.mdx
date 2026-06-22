@@ -1,0 +1,19 @@
+---
+title: Resource table
+description: List table with filter toolbar, sort control, row actions, and server-side pagination.
+---
+
+`ResourceTable` is the list-page table primitive. It wraps `DataTable` with:
+
+- **Filter toolbar** — column filter popover, chips, row count (`filterDefinitions`)
+- **Sort control** — multi-column sort popover + `SortableHeader` on columns
+- **Row actions** — inline CTA and kebab menu
+- **Embedded mode** — no outer border when inside `ShellContent`
+
+<ComponentPreview name="resource-table" />
+
+## Source
+
+`packages/ui/src/components/brand/resource-table.tsx` plus the table kit
+(`table-filter-toolbar`, `table-sort-control`, `sortable-header`). The full
+composition lives in [`/view/resource-list-page`](/view/resource-list-page).
