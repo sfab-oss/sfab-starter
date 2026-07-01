@@ -71,6 +71,7 @@
         "sfabKind": "block",
         "iframeHeight": 720
       },
+      "docs": "Swap `fetchCommandPaletteSearch` for your search endpoint —\n`useCommandPaletteSearch` feeds the palette through React Query, so its loading\nand error rows are already wired. Go-to entries come from `navigation-config`;\nthe mock fetch adds a delay you can drop.",
       "files": [
         {
           "path": "packages/registry/registry/blocks/command-palette/page.tsx",
@@ -241,6 +242,7 @@
         "sfabKind": "block",
         "iframeHeight": 900
       },
+      "docs": "Before wiring your API, clean up hooks/use-people.ts: delete the two\n`GALLERY PREVIEW ONLY` fenced blocks and the preview import, then use the\n`PRODUCTION:` return on the last line of usePeopleList. What's left is a plain\nuseQuery over your fetch function — no other files need edits.",
       "files": [
         {
           "path": "packages/registry/registry/blocks/resource-list-page/page.tsx",
@@ -271,6 +273,11 @@
           "path": "packages/registry/registry/blocks/resource-list-page/components/people/people-columns.tsx",
           "type": "registry:component",
           "target": "src/features/people/components/people/people-columns.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/resource-list-page/components/resource-list-collection-state.tsx",
+          "type": "registry:component",
+          "target": "src/features/people/components/resource-list-collection-state.tsx"
         }
       ]
     },

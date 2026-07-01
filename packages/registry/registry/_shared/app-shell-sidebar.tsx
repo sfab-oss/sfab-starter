@@ -18,9 +18,13 @@ import {
   SIDEBAR_NAVIGATION,
 } from "@workspace/ui/lib/navigation-config";
 import { Boxes, Search } from "lucide-react";
-import { useCallback, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 import { useCommandPaletteSearch } from "../blocks/command-palette/hooks/use-command-palette-search";
-import { CommandPalette } from "./command-palette";
+import {
+  CommandPalette,
+  CommandPaletteResults,
+  CommandPaletteStatus,
+} from "./command-palette";
 import { SidebarUserMenu } from "./sidebar-user-menu";
 
 export function AppShellSidebar({
@@ -41,7 +45,33 @@ export function AppShellSidebar({
 
   useCommandPaletteShortcut(toggleSearch);
 
-  const { data: commandPaletteSearch } = useCommandPaletteSearch();
+  const {
+    data: commandPaletteSearch,
+    isLoading: commandPaletteLoading,
+    isError: commandPaletteError,
+    error: commandPaletteErrorValue,
+  } = useCommandPaletteSearch();
+  let commandPaletteBody: ReactNode;
+  if (commandPaletteError) {
+    const message =
+      commandPaletteErrorValue instanceof Error
+        ? commandPaletteErrorValue.message
+        : "Search failed.";
+    commandPaletteBody = (
+      <CommandPaletteStatus tone="error">{message}</CommandPaletteStatus>
+    );
+  } else if (commandPaletteLoading) {
+    commandPaletteBody = (
+      <CommandPaletteStatus>Searching…</CommandPaletteStatus>
+    );
+  } else {
+    commandPaletteBody = (
+      <CommandPaletteResults
+        groups={commandPaletteSearch?.searchGroups ?? []}
+        onSelect={() => setSearchOpen(false)}
+      />
+    );
+  }
 
   return (
     <Sidebar collapsible="icon" variant="inset">
@@ -126,10 +156,10 @@ export function AppShellSidebar({
         actions={commandPaletteSearch?.actions ?? []}
         onNavigate={() => setSearchOpen(false)}
         onOpenChange={setSearchOpen}
-        onSearchSelect={() => setSearchOpen(false)}
         open={searchOpen}
-        searchGroups={commandPaletteSearch?.searchGroups ?? []}
-      />
+      >
+        {commandPaletteBody}
+      </CommandPalette>
     </Sidebar>
   );
 }

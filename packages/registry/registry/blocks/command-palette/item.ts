@@ -9,6 +9,12 @@ const def: RegistryItemDef = {
       "⌘K / sidebar search — go-to navigation from navigation-config (no faked entity search).",
     registryDependencies: ["button", "sidebar", "dialog"],
     meta: { sfabKind: "block", iframeHeight: 720 },
+    docs: [
+      "Swap `fetchCommandPaletteSearch` for your search endpoint —",
+      "`useCommandPaletteSearch` feeds the palette through React Query, so its loading",
+      "and error rows are already wired. Go-to entries come from `navigation-config`;",
+      "the mock fetch adds a delay you can drop.",
+    ].join("\n"),
     files: [
       {
         path: "page.tsx",

@@ -57,7 +57,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     description:
       "Full list page — app shell, list page shell, filter toolbar, resource table, and a React Query hook on mock data.",
     meta: { sfabKind: "block", iframeHeight: 900 },
-    component: lazy(() => import("../registry/blocks/resource-list-page/page")),
+    component: lazy(
+      () => import("../registry/blocks/resource-list-page/preview")
+    ),
   },
   "resource-table": {
     name: "resource-table",

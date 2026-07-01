@@ -3,6 +3,14 @@ import type { PaginatedResponse } from "@workspace/contract/pagination";
 import { MOCK_PEOPLE } from "./mock-people";
 import type { PeopleListParams, PersonRow } from "./types";
 
+const LIST_FETCH_DELAY_MS = 400;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 function matchesTextColumn(
   row: PersonRow,
   columnId: "name" | "city",
@@ -74,9 +82,11 @@ function applySort(
   return sorted;
 }
 
-export function fetchPeopleList(
+export async function fetchPeopleList(
   params: PeopleListParams
-): PaginatedResponse<PersonRow> {
+): Promise<PaginatedResponse<PersonRow>> {
+  await sleep(LIST_FETCH_DELAY_MS);
+
   const filtered = applySort(
     applyColumnFilters(MOCK_PEOPLE, params.columnFilters),
     params.sortBy,

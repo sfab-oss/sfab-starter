@@ -25,11 +25,38 @@ import {
   PEOPLE_COLUMNS,
   PEOPLE_FILTER_DEFINITIONS,
 } from "./components/people/people-columns";
+import {
+  ResourceListEmptyState,
+  ResourceListErrorState,
+  ResourceListPresetEmptyState,
+  ResourceListStaleBanner,
+  ResourceListTableSkeleton,
+} from "./components/resource-list-collection-state";
 import { usePeopleList } from "./hooks/use-people";
 import { getPeopleUnfilteredTotal } from "./lib/people/fetch-people";
 import type { PeopleListParams } from "./lib/people/types";
 
 const DEFAULT_PAGE_SIZE = 10;
+
+function resolveCollectionEmpty({
+  isTrueEmpty,
+  isPresetEmpty,
+  clearFilters,
+}: {
+  isTrueEmpty: boolean;
+  isPresetEmpty: boolean;
+  clearFilters: () => void;
+}) {
+  if (isTrueEmpty) {
+    return <ResourceListEmptyState onCreate={() => undefined} />;
+  }
+
+  if (isPresetEmpty) {
+    return <ResourceListPresetEmptyState onClearFilters={clearFilters} />;
+  }
+
+  return undefined;
+}
 
 function ResourceListPageContent() {
   const [pagination, setPagination] = useState<PaginationState>({
@@ -52,8 +79,12 @@ function ResourceListPageContent() {
 
   const {
     data: peopleResponse,
+    error,
+    isError,
+    isFetching,
     isLoading,
     isPlaceholderData,
+    refetch,
   } = usePeopleList(listParams);
 
   const onPaginationChange = useCallback(
@@ -82,6 +113,31 @@ function ResourceListPageContent() {
     []
   );
 
+  const clearFilters = useCallback(() => {
+    setColumnFilters([]);
+    setPagination((current) => ({ ...current, pageIndex: 0 }));
+  }, []);
+
+  const filteredTotal = peopleResponse?.total ?? 0;
+  const hasActiveFilters = columnFilters.length > 0;
+  const showInitialLoading = isLoading && peopleResponse === undefined;
+  const showStale =
+    isFetching && isPlaceholderData && peopleResponse !== undefined;
+  // With no unfiltered count from the server, filters alone tell the two empties
+  // apart: filters + no matches = preset-empty; no filters + no rows = true-empty.
+  const isEmptyResult =
+    !(showInitialLoading || isError) &&
+    peopleResponse !== undefined &&
+    filteredTotal === 0;
+  const isPresetEmpty = isEmptyResult && hasActiveFilters;
+  const isTrueEmpty = isEmptyResult && !hasActiveFilters;
+
+  const collectionEmpty = resolveCollectionEmpty({
+    isTrueEmpty,
+    isPresetEmpty,
+    clearFilters,
+  });
+
   const pageCount = peopleResponse
     ? Math.ceil(peopleResponse.total / listParams.pageSize)
     : 0;
@@ -100,30 +156,44 @@ function ResourceListPageContent() {
             </ShellHeaderActions>
           </ShellHeader>
           <ShellContent>
-            <ResourceTable
-              className="min-h-0 flex-1"
-              columnFilters={columnFilters}
-              columns={PEOPLE_COLUMNS}
-              data={peopleResponse?.data ?? []}
-              embedded
-              filterDefinitions={PEOPLE_FILTER_DEFINITIONS}
-              filteredCount={peopleResponse?.total ?? 0}
-              onColumnFiltersChange={onColumnFiltersChange}
-              onPaginationChange={onPaginationChange}
-              onRowClick={() => undefined}
-              onSortingChange={onSortingChange}
-              pageCount={pageCount}
-              pagination={pagination}
-              rowMenuActions={() => [
-                { label: "View profile", onSelect: () => undefined },
-                { label: "Edit", onSelect: () => undefined },
-              ]}
-              sorting={sorting}
-              totalCount={getPeopleUnfilteredTotal()}
-            />
-            {isLoading || isPlaceholderData ? (
-              <span className="sr-only">Loading people…</span>
+            {showInitialLoading ? <ResourceListTableSkeleton /> : null}
+
+            {isError ? (
+              <ResourceListErrorState
+                message={error instanceof Error ? error.message : undefined}
+                onRetry={() => {
+                  refetch();
+                }}
+              />
             ) : null}
+
+            {showInitialLoading || isError ? null : (
+              <>
+                {showStale ? <ResourceListStaleBanner /> : null}
+                <ResourceTable
+                  className="min-h-0 flex-1"
+                  collectionEmpty={collectionEmpty}
+                  columnFilters={columnFilters}
+                  columns={PEOPLE_COLUMNS}
+                  data={peopleResponse?.data ?? []}
+                  embedded
+                  filterDefinitions={PEOPLE_FILTER_DEFINITIONS}
+                  filteredCount={peopleResponse?.total ?? 0}
+                  onColumnFiltersChange={onColumnFiltersChange}
+                  onPaginationChange={onPaginationChange}
+                  onRowClick={() => undefined}
+                  onSortingChange={onSortingChange}
+                  pageCount={pageCount}
+                  pagination={pagination}
+                  rowMenuActions={() => [
+                    { label: "View profile", onSelect: () => undefined },
+                    { label: "Edit", onSelect: () => undefined },
+                  ]}
+                  sorting={sorting}
+                  totalCount={getPeopleUnfilteredTotal()}
+                />
+              </>
+            )}
           </ShellContent>
         </ShellPage>
       </ShellInset>

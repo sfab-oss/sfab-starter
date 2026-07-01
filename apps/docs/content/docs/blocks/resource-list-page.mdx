@@ -17,6 +17,12 @@ wire up the API.
 - **Table kit** — filter toolbar, sort control, sortable headers, row actions.
 - **Data layer** — `lib/people/` mock data + `fetchPeopleList`, `hooks/use-people.ts`
   (`peopleListQueryOptions` / `usePeopleList`).
+- **Collection states** — skeleton (initial load), stale banner (background refetch),
+  preset-empty (filters with no matches + clear CTA), true empty (no records + create CTA),
+  and error + retry. All five react only to the `usePeopleList` result, so the page and
+  components are production-grade as-is. Flip between them with the **draggable preview
+  dock** on [`/view/resource-list-page`](/view/resource-list-page) — drag its handle to
+  snap it to any corner.
 
 ## Source
 
@@ -27,8 +33,13 @@ wire up the API.
 resource-list-page/
   page.tsx
   components/people/people-columns.tsx
+  components/resource-list-collection-state.tsx
   hooks/use-people.ts
   lib/people/{types,mock-people,fetch-people}.ts
+  # gallery-only, not installed:
+  preview.tsx, hooks/use-list-preview.tsx
 ```
 
-Wire the route to `src/features/people/page.tsx` when you install the block.
+Wire the route to `src/features/people/page.tsx` when you install the block. The
+preview switcher lives entirely in gallery-only files — the single seam is
+`usePeopleList` in `hooks/use-people.ts` (delete its fenced preview block to ship).
