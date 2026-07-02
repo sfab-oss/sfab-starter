@@ -1,0 +1,22 @@
+---
+title: Destructive confirm
+description: The default destructive confirm — one AlertDialog with Cancel / Delete, then a post-commit toast.
+---
+
+The baseline for destructive actions: a single **AlertDialog** with Cancel /
+Delete, then a **toast** once the mutation lands. Reach for this for ordinary
+destroys; escalate to **type-to-confirm** only for irreversible, org-scoped
+deletes.
+
+<BlockViewer name="destructive-confirm" />
+
+## What it demonstrates
+
+- **AlertDialog** — Cancel / Delete for an ordinary destructive action, run in the action's `onClick`.
+- **`Toaster`** — the post-commit success toast, mounted once at the shell.
+- **When to escalate** — reserve `type-to-confirm` for irreversible, org-scoped destroys.
+
+## Source
+
+`packages/registry/registry/blocks/destructive-confirm/` — open at
+[`/view/destructive-confirm`](/view/destructive-confirm).

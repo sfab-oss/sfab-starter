@@ -4,6 +4,40 @@
   "homepage": "https://github.com/sfab-oss/sfab-starter",
   "items": [
     {
+      "name": "accept-invite",
+      "type": "registry:block",
+      "title": "Accept invite",
+      "description": "Centered invite-acceptance route — org + role context over a name + password card, zod-validated.",
+      "registryDependencies": ["button", "card", "field", "input", "sonner"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 720
+      },
+      "docs": "`AuthShell` is the shared centered frame for every unauthenticated route.\n`AcceptInviteForm` takes the org, invited email, and role as props — resolve\nthem from the invite token on the server. Swap the mock `onSubmit` for your\naccept-invite call.",
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/accept-invite/page.tsx",
+          "type": "registry:page",
+          "target": "src/routes/accept-invite.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/accept-invite/components/auth-shell.tsx",
+          "type": "registry:component",
+          "target": "src/features/auth/components/auth-shell.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/accept-invite/components/accept-invite-form.tsx",
+          "type": "registry:component",
+          "target": "src/features/auth/components/accept-invite-form.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/accept-invite/lib/accept-invite-schema.ts",
+          "type": "registry:lib",
+          "target": "src/features/auth/lib/accept-invite-schema.ts"
+        }
+      ]
+    },
+    {
       "name": "chat-page",
       "type": "registry:block",
       "title": "Chat page",
@@ -62,6 +96,30 @@
       ]
     },
     {
+      "name": "coming-soon-page",
+      "type": "registry:block",
+      "title": "Coming soon page",
+      "description": "Honest full-page states — coming soon, not found, and empty — for routes that aren't built or have no data yet.",
+      "registryDependencies": ["button", "empty", "sidebar"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 720
+      },
+      "docs": "Import whichever placeholder a route needs from\n`components/page-placeholder.tsx` — the three are independent. `page.tsx`\nwires `ComingSoonPage` into the Buy route; swap in `EmptyResourcePage` once\nthe feature ships, or render `NotFoundPage` from a route's notFound handler.\nNever fake data — an honest placeholder beats a hollow screen.",
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/coming-soon-page/page.tsx",
+          "type": "registry:page",
+          "target": "src/features/buy/page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/coming-soon-page/components/page-placeholder.tsx",
+          "type": "registry:component",
+          "target": "src/features/buy/components/page-placeholder.tsx"
+        }
+      ]
+    },
+    {
       "name": "command-palette",
       "type": "registry:block",
       "title": "Command palette",
@@ -87,6 +145,36 @@
           "path": "packages/registry/registry/blocks/command-palette/hooks/use-command-palette-search.ts",
           "type": "registry:hook",
           "target": "src/features/search/hooks/use-command-palette-search.ts"
+        }
+      ]
+    },
+    {
+      "name": "destructive-confirm",
+      "type": "registry:block",
+      "title": "Destructive confirm",
+      "description": "The default destructive confirm — one AlertDialog with Cancel / Delete, then a post-commit toast.",
+      "registryDependencies": [
+        "alert-dialog",
+        "button",
+        "card",
+        "sidebar",
+        "sonner"
+      ],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 720
+      },
+      "docs": "The baseline for ordinary destroys: a single AlertDialog with Cancel /\nDelete. Run the mutation in the action's `onClick`, then confirm with a\ntoast. Escalate to `type-to-confirm` only for irreversible, org-scoped\ndeletes. Mount one `<Toaster />` at the shell for the post-commit toast.",
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/destructive-confirm/page.tsx",
+          "type": "registry:page",
+          "target": "src/features/confirm/destructive-confirm-page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/destructive-confirm/components/destructive-confirm-card.tsx",
+          "type": "registry:component",
+          "target": "src/features/confirm/components/destructive-confirm-card.tsx"
         }
       ]
     },
@@ -385,6 +473,74 @@
       ]
     },
     {
+      "name": "sign-in",
+      "type": "registry:block",
+      "title": "Sign in",
+      "description": "Centered sign-in route — brand mark over an email + password card, zod-validated.",
+      "registryDependencies": ["button", "card", "field", "input", "sonner"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 720
+      },
+      "docs": "`AuthShell` is the shared centered frame for every unauthenticated route.\nThe form validates with zod via `zodResolver` — swap the mock `onSubmit` for\nyour auth call. The 'Sign up' cross-link is inert; wire it to your router.",
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/sign-in/page.tsx",
+          "type": "registry:page",
+          "target": "src/routes/sign-in.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/sign-in/components/auth-shell.tsx",
+          "type": "registry:component",
+          "target": "src/features/auth/components/auth-shell.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/sign-in/components/sign-in-form.tsx",
+          "type": "registry:component",
+          "target": "src/features/auth/components/sign-in-form.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/sign-in/lib/sign-in-schema.ts",
+          "type": "registry:lib",
+          "target": "src/features/auth/lib/sign-in-schema.ts"
+        }
+      ]
+    },
+    {
+      "name": "sign-up",
+      "type": "registry:block",
+      "title": "Sign up",
+      "description": "Centered sign-up route — name, email, and password card on the shared auth shell, zod-validated.",
+      "registryDependencies": ["button", "card", "field", "input", "sonner"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 720
+      },
+      "docs": "`AuthShell` is the shared centered frame for every unauthenticated route.\nThe form validates with zod via `zodResolver` — swap the mock `onSubmit` for\nyour create-account call. The 'Sign in' cross-link is inert; wire it to your\nrouter.",
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/sign-up/page.tsx",
+          "type": "registry:page",
+          "target": "src/routes/sign-up.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/sign-up/components/auth-shell.tsx",
+          "type": "registry:component",
+          "target": "src/features/auth/components/auth-shell.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/sign-up/components/sign-up-form.tsx",
+          "type": "registry:component",
+          "target": "src/features/auth/components/sign-up-form.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/sign-up/lib/sign-up-schema.ts",
+          "type": "registry:lib",
+          "target": "src/features/auth/lib/sign-up-schema.ts"
+        }
+      ]
+    },
+    {
       "name": "today-overview",
       "type": "registry:block",
       "title": "Today overview",
@@ -439,6 +595,43 @@
           "path": "packages/registry/registry/blocks/today-overview/hooks/use-today-overview.ts",
           "type": "registry:hook",
           "target": "src/features/today/hooks/use-today-overview.ts"
+        }
+      ]
+    },
+    {
+      "name": "type-to-confirm",
+      "type": "registry:block",
+      "title": "Type-to-confirm",
+      "description": "The highest-stakes destroy guard — a dialog whose Delete button unlocks only once the operator types the resource's exact name.",
+      "registryDependencies": [
+        "alert-dialog",
+        "button",
+        "card",
+        "field",
+        "input",
+        "sidebar",
+        "sonner"
+      ],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 720
+      },
+      "docs": "Reserve `TypeNameConfirmDialog` for irreversible, org-scoped destroys\n(delete organization) — the destructive button stays disabled until the\noperator types the resource's exact name, so a one-click slip can't nuke\nit. The dialog is controlled: open it after your own guard, then run the\nmutation in `onConfirm`. Ordinary deletes only need `destructive-confirm`.",
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/type-to-confirm/page.tsx",
+          "type": "registry:page",
+          "target": "src/features/confirm/type-to-confirm-page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/type-to-confirm/components/type-to-confirm-card.tsx",
+          "type": "registry:component",
+          "target": "src/features/confirm/components/type-to-confirm-card.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/type-to-confirm/components/type-name-confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "src/features/confirm/components/type-name-confirm-dialog.tsx"
         }
       ]
     }

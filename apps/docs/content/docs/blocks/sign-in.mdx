@@ -1,0 +1,21 @@
+---
+title: Sign in
+description: Centered sign-in route — brand mark over an email + password card.
+---
+
+The signed-out entry point: the shared `AuthShell` frame over an email + password
+card, validated with zod. One of the three auth surfaces (with **Sign up** and
+**Accept invite**) that share the same centered shell.
+
+<BlockViewer name="sign-in" />
+
+## What it demonstrates
+
+- **`AuthShell`** — the centered, sidebar-less frame shared by every auth route.
+- **`SignInForm`** — RHF + `zodResolver` with inline field errors.
+- **Cross-link** — a "Sign up" link, inert in the gallery; wire it to your router.
+
+## Source
+
+`packages/registry/registry/blocks/sign-in/` — open at
+[`/view/sign-in`](/view/sign-in).

@@ -23,7 +23,6 @@ const LEGACY_BLOCK_REDIRECTS: Record<string, string> = {
   "blocks/operator-home": "blocks/today-overview",
   "blocks/app-shell": "blocks/resource-list-page",
   "blocks/master-data-list-page": "blocks/resource-list-page",
-  "blocks/coming-soon-page": "blocks/resource-list-page",
 };
 
 const LEGACY_COMPONENT_REDIRECTS: Record<string, string> = {

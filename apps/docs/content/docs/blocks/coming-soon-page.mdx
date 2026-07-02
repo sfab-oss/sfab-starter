@@ -1,0 +1,24 @@
+---
+title: Coming soon page
+description: Honest full-page states — coming soon, not found, and empty.
+---
+
+Truthful full-page placeholders for routes that aren't built yet, don't resolve, or
+have no data — never fake data, never a bare 404. Use the switcher to flip between
+the three states.
+
+<BlockViewer name="coming-soon-page" />
+
+## What it demonstrates
+
+- **`ComingSoonPage`** — a roadmap feature whose nav entry stays honest (e.g. Buy).
+- **`NotFoundPage`** — an unmatched route or missing record, with a way back.
+- **`EmptyResourcePage`** — a built feature with no records yet, plus the create CTA.
+
+The three are independent components — import whichever a route needs. `page.tsx`
+wires `ComingSoonPage` into the Buy route as the production default.
+
+## Source
+
+`packages/registry/registry/blocks/coming-soon-page/` — open at
+[`/view/coming-soon-page`](/view/coming-soon-page).

@@ -2,11 +2,17 @@
   "title": "Blocks",
   "pages": [
     "index",
+    "sign-in",
+    "sign-up",
+    "accept-invite",
     "today-overview",
     "resource-list-page",
     "record-read-page",
     "record-edit-page",
     "record-payment-dialog",
+    "destructive-confirm",
+    "type-to-confirm",
+    "coming-soon-page",
     "chat-page",
     "command-palette",
     "settings-page"

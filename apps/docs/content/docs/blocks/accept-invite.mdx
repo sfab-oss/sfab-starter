@@ -1,0 +1,22 @@
+---
+title: Accept invite
+description: Centered invite-acceptance route — org and role context over a name + password card.
+---
+
+Invite-acceptance surface: the shared `AuthShell` frame over a card that shows the
+organization, invited email, and role, then collects a name + password. One of the
+three auth surfaces (with **Sign in** and **Sign up**) that share the same centered
+shell.
+
+<BlockViewer name="accept-invite" />
+
+## What it demonstrates
+
+- **`AuthShell`** — the centered, sidebar-less frame shared by every auth route.
+- **`AcceptInviteForm`** — org/role context props + RHF + `zodResolver` form.
+- **Token-driven props** — resolve org, email, and role from the invite server-side.
+
+## Source
+
+`packages/registry/registry/blocks/accept-invite/` — open at
+[`/view/accept-invite`](/view/accept-invite).
