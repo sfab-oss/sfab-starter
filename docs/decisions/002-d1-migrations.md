@@ -76,7 +76,10 @@ foreign_keys=OFF` is a **no-op** — a destructive table-recreate can fire inbou
 FK cascades in production while passing locally. Prefer additive,
 backward-compatible (expand/contract) migrations; if a recreate is unavoidable,
 use `PRAGMA defer_foreign_keys=true`. Never rewrite an already-applied migration
-— fixes are forward-only. (See `docs/guides/` for the full data-layer house style.)
+— fixes are forward-only. This is enforced by a CI guard — see
+[ADR-007](./007-d1-drizzle-table-recreate-fk-cascades.md) for the full rationale
+(`apps/web/test/migration-safety.test.ts`), and `docs/guides/` for the
+data-layer house style.
 
 ## Implementation Notes
 
