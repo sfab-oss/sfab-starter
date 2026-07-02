@@ -3,6 +3,15 @@ import { lazy } from "react";
 import type { RegistryEntry } from "./types";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
+  "accept-invite": {
+    name: "accept-invite",
+    type: "registry:block",
+    title: "Accept invite",
+    description:
+      "Centered invite-acceptance route — org + role context over a name + password card, zod-validated.",
+    meta: { sfabKind: "block", iframeHeight: 720 },
+    component: lazy(() => import("../registry/blocks/accept-invite/page")),
+  },
   "chat-page": {
     name: "chat-page",
     type: "registry:block",
@@ -12,6 +21,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     meta: { sfabKind: "block", iframeHeight: 900 },
     component: lazy(() => import("../registry/blocks/chat-page/page")),
   },
+  "coming-soon-page": {
+    name: "coming-soon-page",
+    type: "registry:block",
+    title: "Coming soon page",
+    description:
+      "Honest full-page states — coming soon, not found, and empty — for routes that aren't built or have no data yet.",
+    meta: { sfabKind: "block", iframeHeight: 720 },
+    component: lazy(
+      () => import("../registry/blocks/coming-soon-page/preview")
+    ),
+  },
   "command-palette": {
     name: "command-palette",
     type: "registry:block",
@@ -20,6 +40,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "⌘K / sidebar search — go-to navigation from navigation-config (no faked entity search).",
     meta: { sfabKind: "block", iframeHeight: 720 },
     component: lazy(() => import("../registry/blocks/command-palette/page")),
+  },
+  "destructive-confirm": {
+    name: "destructive-confirm",
+    type: "registry:block",
+    title: "Destructive confirm",
+    description:
+      "The default destructive confirm — one AlertDialog with Cancel / Delete, then a post-commit toast.",
+    meta: { sfabKind: "block", iframeHeight: 720 },
+    component: lazy(
+      () => import("../registry/blocks/destructive-confirm/page")
+    ),
   },
   "record-edit-page": {
     name: "record-edit-page",
@@ -57,7 +88,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     description:
       "Full list page — app shell, list page shell, filter toolbar, resource table, and a React Query hook on mock data.",
     meta: { sfabKind: "block", iframeHeight: 900 },
-    component: lazy(() => import("../registry/blocks/resource-list-page/page")),
+    component: lazy(
+      () => import("../registry/blocks/resource-list-page/preview")
+    ),
   },
   "resource-table": {
     name: "resource-table",
@@ -88,6 +121,24 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     meta: { sfabKind: "block", iframeHeight: 720 },
     component: lazy(() => import("../registry/components/shell/shell-demo")),
   },
+  "sign-in": {
+    name: "sign-in",
+    type: "registry:block",
+    title: "Sign in",
+    description:
+      "Centered sign-in route — brand mark over an email + password card, zod-validated.",
+    meta: { sfabKind: "block", iframeHeight: 720 },
+    component: lazy(() => import("../registry/blocks/sign-in/page")),
+  },
+  "sign-up": {
+    name: "sign-up",
+    type: "registry:block",
+    title: "Sign up",
+    description:
+      "Centered sign-up route — name, email, and password card on the shared auth shell, zod-validated.",
+    meta: { sfabKind: "block", iframeHeight: 720 },
+    component: lazy(() => import("../registry/blocks/sign-up/page")),
+  },
   "today-overview": {
     name: "today-overview",
     type: "registry:block",
@@ -96,5 +147,14 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "Operator home — primary actions, honest KPI tiles, action items, and a capped inventory movements feed.",
     meta: { sfabKind: "block", iframeHeight: 900 },
     component: lazy(() => import("../registry/blocks/today-overview/page")),
+  },
+  "type-to-confirm": {
+    name: "type-to-confirm",
+    type: "registry:block",
+    title: "Type-to-confirm",
+    description:
+      "The highest-stakes destroy guard — a dialog whose Delete button unlocks only once the operator types the resource's exact name.",
+    meta: { sfabKind: "block", iframeHeight: 720 },
+    component: lazy(() => import("../registry/blocks/type-to-confirm/page")),
   },
 };

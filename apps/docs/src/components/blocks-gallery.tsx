@@ -5,11 +5,17 @@ import { BlockViewer } from "./block-viewer";
 
 /** Gallery order on the blocks index — new blocks append at the end if omitted. */
 const BLOCK_ORDER = [
+  "sign-in",
+  "sign-up",
+  "accept-invite",
   "today-overview",
   "resource-list-page",
   "record-read-page",
   "record-edit-page",
   "record-payment-dialog",
+  "destructive-confirm",
+  "type-to-confirm",
+  "coming-soon-page",
   "chat-page",
   "command-palette",
   "settings-page",

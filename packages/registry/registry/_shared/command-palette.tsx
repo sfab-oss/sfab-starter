@@ -16,6 +16,7 @@ import {
 } from "@workspace/ui/lib/navigation-config";
 import type { LucideIcon } from "lucide-react";
 import { CornerDownLeft } from "lucide-react";
+import type { ReactNode } from "react";
 
 export interface CommandPaletteAction {
   id: string;
@@ -45,9 +46,14 @@ export interface CommandPaletteProps {
   onOpenChange: (open: boolean) => void;
   navigation?: NavigationItem[];
   actions?: CommandPaletteAction[];
-  searchGroups?: CommandPaletteSearchGroup[];
   onNavigate?: (path: string) => void;
-  onSearchSelect?: (item: CommandPaletteSearchItem) => void;
+  /**
+   * The stateful body rendered below the static "Go to" navigation — compose
+   * `CommandPaletteResults`, a `CommandPaletteStatus`, or nothing. The frame owns
+   * the invariant chrome (dialog, input, nav, footer); the caller owns the state
+   * branch.
+   */
+  children?: ReactNode;
 }
 
 function searchItemValue(item: CommandPaletteSearchItem) {
@@ -92,17 +98,85 @@ function CommandPaletteSearchRow({ item }: { item: CommandPaletteSearchItem }) {
   );
 }
 
+/**
+ * A remote-state row for the palette body (searching / error). Compose it as a
+ * child of `CommandPalette` in place of `CommandPaletteResults`.
+ */
+export function CommandPaletteStatus({
+  tone = "default",
+  children,
+}: {
+  tone?: "default" | "error";
+  children: ReactNode;
+}) {
+  if (tone === "error") {
+    return (
+      <div
+        className="px-4 py-6 text-center text-destructive text-sm"
+        role="alert"
+      >
+        {children}
+      </div>
+    );
+  }
+
+  // `<output>` carries an implicit `status` live region — no explicit role.
+  return (
+    <output className="block px-4 py-6 text-center text-muted-foreground text-sm">
+      {children}
+    </output>
+  );
+}
+
+/**
+ * The grouped remote search results. Compose it as a child of `CommandPalette`;
+ * renders nothing when there are no matching items.
+ */
+export function CommandPaletteResults({
+  groups,
+  onSelect,
+}: {
+  groups: CommandPaletteSearchGroup[];
+  onSelect?: (item: CommandPaletteSearchItem) => void;
+}) {
+  const hasItems = groups.some((group) => group.items.length > 0);
+
+  if (!hasItems) {
+    return null;
+  }
+
+  return (
+    <>
+      <CommandSeparator />
+      {groups.map((group) =>
+        group.items.length > 0 ? (
+          <CommandGroup heading={group.heading} key={group.heading}>
+            {group.items.map((item) => (
+              <CommandItem
+                className="items-start py-2.5"
+                key={item.id}
+                onSelect={() => onSelect?.(item)}
+                value={searchItemValue(item)}
+              >
+                <CommandPaletteSearchRow item={item} />
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        ) : null
+      )}
+    </>
+  );
+}
+
 export function CommandPalette({
   open,
   onOpenChange,
   navigation = COMMAND_PALETTE_NAVIGATION,
   actions = [],
-  searchGroups = [],
   onNavigate,
-  onSearchSelect,
+  children,
 }: CommandPaletteProps) {
   const hasActions = actions.length > 0;
-  const hasSearchGroups = searchGroups.some((group) => group.items.length > 0);
 
   return (
     <CommandDialog
@@ -151,26 +225,7 @@ export function CommandPalette({
             </CommandItem>
           ))}
         </CommandGroup>
-        {hasSearchGroups ? <CommandSeparator /> : null}
-        {searchGroups.map((group) =>
-          group.items.length > 0 ? (
-            <CommandGroup heading={group.heading} key={group.heading}>
-              {group.items.map((item) => (
-                <CommandItem
-                  className="items-start py-2.5"
-                  key={item.id}
-                  onSelect={() => {
-                    onSearchSelect?.(item);
-                    onOpenChange(false);
-                  }}
-                  value={searchItemValue(item)}
-                >
-                  <CommandPaletteSearchRow item={item} />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          ) : null
-        )}
+        {children}
       </CommandList>
       <div className="flex h-10 items-center justify-between border-t bg-muted/20 px-3 text-muted-foreground text-xs">
         <div className="flex items-center gap-2">

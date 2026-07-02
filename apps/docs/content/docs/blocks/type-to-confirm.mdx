@@ -1,0 +1,22 @@
+---
+title: Type-to-confirm
+description: The highest-stakes destroy guard — the Delete button unlocks only once the operator types the resource's exact name.
+---
+
+Reserve this for irreversible, org-scoped destroys (delete organization). The
+destructive button in **`TypeNameConfirmDialog`** stays disabled until the operator
+types the resource's exact name, so a one-click slip can't nuke it. Ordinary
+deletes only need [**destructive-confirm**](/docs/blocks/destructive-confirm).
+
+<BlockViewer name="type-to-confirm" />
+
+## What it demonstrates
+
+- **`TypeNameConfirmDialog`** — the destructive button stays disabled until you type the resource's exact name.
+- **Controlled dialog** — open it after your own guard, then run the mutation in `onConfirm`.
+- **`Toaster`** — the post-commit success toast, mounted once at the shell.
+
+## Source
+
+`packages/registry/registry/blocks/type-to-confirm/` — open at
+[`/view/type-to-confirm`](/view/type-to-confirm).

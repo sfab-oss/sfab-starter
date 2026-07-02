@@ -356,6 +356,8 @@ interface DataTableProps<TData, TValue> {
   filteredEmptyMessage?: string;
   filteredCount?: number;
   totalCount?: number;
+  /** Rich empty UI for server-driven lists — replaces the default table empty row. */
+  collectionEmpty?: ReactNode;
 }
 
 export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
@@ -381,6 +383,7 @@ function useDataTableController<TData, TValue>({
   filteredEmptyMessage = "No rows match your filters.",
   filteredCount: filteredCountProp,
   totalCount: totalCountProp,
+  collectionEmpty,
 }: DataTableProps<TData, TValue>) {
   const isServerSide = externalPagination !== undefined;
   const useFilterToolbar =
@@ -447,12 +450,17 @@ function useDataTableController<TData, TValue>({
     toolbarFilteredCount,
   });
 
+  const showCollectionEmpty =
+    isServerSide && toolbarFilteredCount === 0 && collectionEmpty !== undefined;
+
   return {
     columnFilters,
+    collectionEmpty,
     filteredRows,
     isServerSide,
     setColumnFilters,
     setSorting,
+    showCollectionEmpty,
     showLegacyFilterRow,
     sorting,
     table,
@@ -486,6 +494,8 @@ function DataTableView<TData, TValue>({
   toolbarTotalCount,
   useFilterToolbar,
   showClientPagination,
+  collectionEmpty,
+  showCollectionEmpty,
 }: DataTableProps<TData, TValue> &
   ReturnType<typeof useDataTableController<TData, TValue>>) {
   return (
@@ -523,20 +533,32 @@ function DataTableView<TData, TValue>({
         />
       ) : null}
 
-      <div
-        className={cn(
-          !useFilterToolbar && "rounded-md border",
-          useFilterToolbar &&
-            cn("min-h-0 flex-1 overflow-auto", FILTER_TOOLBAR_TABLE_GUTTER)
-        )}
-      >
-        <Table>
-          <DataTableHeaderRows table={table} />
-          <TableBody>{tableBodyContent}</TableBody>
-        </Table>
-      </div>
+      {showCollectionEmpty ? (
+        <div
+          className={cn(
+            "flex min-h-0 flex-1 flex-col",
+            useFilterToolbar && FILTER_TOOLBAR_TABLE_GUTTER
+          )}
+          data-slot="resource-table-collection-empty"
+        >
+          {collectionEmpty}
+        </div>
+      ) : (
+        <div
+          className={cn(
+            !useFilterToolbar && "rounded-md border",
+            useFilterToolbar &&
+              cn("min-h-0 flex-1 overflow-auto", FILTER_TOOLBAR_TABLE_GUTTER)
+          )}
+        >
+          <Table>
+            <DataTableHeaderRows table={table} />
+            <TableBody>{tableBodyContent}</TableBody>
+          </Table>
+        </div>
+      )}
 
-      {isServerSide ? (
+      {isServerSide && !showCollectionEmpty ? (
         <div className="flex shrink-0 items-center justify-end gap-2 border-t px-4 py-3">
           <div className="flex-1 text-muted-foreground text-sm tabular-nums">
             Page {(externalPagination?.pageIndex ?? 0) + 1} of{" "}

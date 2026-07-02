@@ -1,0 +1,21 @@
+---
+title: Sign up
+description: Centered sign-up route — name, email, and password on the shared auth shell.
+---
+
+Create-account surface: the shared `AuthShell` frame over a name + email + password
+card, validated with zod. One of the three auth surfaces (with **Sign in** and
+**Accept invite**) that share the same centered shell.
+
+<BlockViewer name="sign-up" />
+
+## What it demonstrates
+
+- **`AuthShell`** — the centered, sidebar-less frame shared by every auth route.
+- **`SignUpForm`** — RHF + `zodResolver` with inline field errors.
+- **Cross-link** — a "Sign in" link, inert in the gallery; wire it to your router.
+
+## Source
+
+`packages/registry/registry/blocks/sign-up/` — open at
+[`/view/sign-up`](/view/sign-up).

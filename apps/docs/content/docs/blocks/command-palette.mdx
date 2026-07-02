@@ -14,9 +14,13 @@ go-to only, no faked entity search (operator-ux §8 Phase 0).
 - **`CommandPalette`** (`@workspace/ui`) — Actions, Go to, and grouped mock results (People, Products, Invoices, Warehouses) with type badges.
 - **`useCommandPaletteShortcut`** — ⌘K / Ctrl+K and `/` toggle.
 - **`AppShellSidebar`** — search in the header (expanded + collapsed icon mode).
+- **Search states** — a searching row while `useCommandPaletteSearch` loads, then results;
+  an error row if it fails, and cmdk's built-in empty state ("No results.") when a query
+  matches nothing. They react only to the query, so the palette is production-grade as-is.
 
-This preview opens the palette on load. In other blocks, search starts closed until you
-click Search or press ⌘K.
+This preview opens the palette on load, so you catch the brief loading row before results
+appear; type a nonsense query to see the empty state. In other blocks, search starts
+closed until you click Search or press ⌘K.
 
 ## Source
 

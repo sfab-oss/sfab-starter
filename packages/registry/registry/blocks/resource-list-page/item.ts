@@ -9,6 +9,12 @@ const def: RegistryItemDef = {
       "Full list page — app shell, list page shell, filter toolbar, resource table, and a React Query hook on mock data.",
     registryDependencies: ["table", "button", "badge", "input", "sidebar"],
     meta: { sfabKind: "block", iframeHeight: 900 },
+    docs: [
+      "Before wiring your API, clean up hooks/use-people.ts: delete the two",
+      "`GALLERY PREVIEW ONLY` fenced blocks and the preview import, then use the",
+      "`PRODUCTION:` return on the last line of usePeopleList. What's left is a plain",
+      "useQuery over your fetch function — no other files need edits.",
+    ].join("\n"),
     files: [
       {
         path: "page.tsx",
@@ -40,9 +46,18 @@ const def: RegistryItemDef = {
         type: "registry:component",
         target: "src/features/people/components/people/people-columns.tsx",
       },
+      {
+        path: "components/resource-list-collection-state.tsx",
+        type: "registry:component",
+        target:
+          "src/features/people/components/resource-list-collection-state.tsx",
+      },
     ],
   },
-  preview: "page",
+  // `preview.tsx` wraps `page.tsx` with a gallery-only mode switcher; it and the
+  // preview seam (`hooks/use-list-preview.tsx`) are intentionally NOT in `files`,
+  // so production installs ship only the production-grade `page.tsx`.
+  preview: "preview",
 };
 
 export default def;

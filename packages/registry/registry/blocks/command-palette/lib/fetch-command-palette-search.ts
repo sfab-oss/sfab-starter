@@ -12,8 +12,12 @@ export async function fetchCommandPaletteSearch(): Promise<{
   actions: CommandPaletteAction[];
   searchGroups: CommandPaletteSearchGroup[];
 }> {
-  return await simulateRequest({
-    actions: COMMAND_PALETTE_MOCK_ACTIONS,
-    searchGroups: COMMAND_PALETTE_MOCK_SEARCH_GROUPS,
-  });
+  return await simulateRequest(
+    {
+      actions: COMMAND_PALETTE_MOCK_ACTIONS,
+      searchGroups: COMMAND_PALETTE_MOCK_SEARCH_GROUPS,
+    },
+    // Long enough that the palette's loading row is visible when it opens.
+    2000
+  );
 }

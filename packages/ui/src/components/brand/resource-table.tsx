@@ -50,6 +50,8 @@ export interface ResourceTableProps<TData, TValue> {
   /** Inside `ShellContent` / app inset — no outer border on the table chrome. */
   embedded?: boolean;
   className?: string;
+  /** Rich empty UI — keeps the filter toolbar visible on server-driven lists. */
+  collectionEmpty?: React.ReactNode;
 }
 
 export function ResourceTable<TData, TValue>({
@@ -74,6 +76,7 @@ export function ResourceTable<TData, TValue>({
   totalCount,
   embedded = false,
   className,
+  collectionEmpty,
 }: ResourceTableProps<TData, TValue>) {
   const hasActions = rowPrimaryAction || rowMenuActions;
 
@@ -143,6 +146,7 @@ export function ResourceTable<TData, TValue>({
       data-slot="resource-table"
     >
       <DataTable
+        collectionEmpty={collectionEmpty}
         columnFilters={columnFilters}
         columns={allColumns}
         data={data}
