@@ -33,7 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
-import { formatMoneyMinor, majorToMinor } from "@workspace/ui/lib/money";
+import { formatMoneyMinor } from "@workspace/ui/lib/money";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
@@ -253,7 +253,7 @@ function InventoryPage() {
 
         return (
           <div className="text-right font-medium">
-            {formatMoneyMinor(majorToMinor(price, "USD"), "USD")}
+            {formatMoneyMinor(price, "USD")}
           </div>
         );
       },

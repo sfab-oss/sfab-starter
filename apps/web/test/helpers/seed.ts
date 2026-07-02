@@ -54,7 +54,7 @@ export async function seedProduct(
       organizationId: orgId,
       sku: `SKU-${crypto.randomUUID().slice(0, 8)}`,
       name: "Test Product",
-      price: "19.99",
+      price: 1999,
       minStockLevel: 10,
       ...overrides,
     })

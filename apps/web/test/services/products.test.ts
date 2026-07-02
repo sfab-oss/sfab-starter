@@ -119,11 +119,11 @@ describe("createProduct", () => {
       sku: "FULL-SKU",
       name: "Full Product",
       description: "A description",
-      price: 49.99,
+      price: 4999,
       minStockLevel: 20,
     });
     expect(result[0].description).toBe("A description");
-    expect(result[0].price).toBe(49.99);
+    expect(result[0].price).toBe(4999);
     expect(result[0].minStockLevel).toBe(20);
   });
 });

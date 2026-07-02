@@ -42,6 +42,11 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/shadcn/table";
+import {
+  formatMoneyMinor,
+  majorToMinor,
+  minorToMajor,
+} from "@workspace/ui/lib/money";
 import { format } from "date-fns";
 import {
   Box,
@@ -260,7 +265,7 @@ function ProductPage() {
   const handleUpdate = async (data: ProductFormValues) => {
     await updateProduct.mutateAsync({
       id: productId,
-      data,
+      data: { ...data, price: majorToMinor(data.price, "USD") },
     });
     setIsEditing(false);
   };
@@ -389,7 +394,7 @@ function ProductPage() {
             </CardHeader>
             <CardContent>
               <div className="font-bold text-2xl">
-                ${(product.price ?? 0).toFixed(2)}
+                {formatMoneyMinor(product.price ?? 0, "USD")}
               </div>
               <p className="text-muted-foreground text-xs">Per unit</p>
             </CardContent>
@@ -403,13 +408,9 @@ function ProductPage() {
             </CardHeader>
             <CardContent>
               <div className="font-bold text-2xl">
-                $
-                {(product.totalStock * (product.price ?? 0)).toLocaleString(
-                  undefined,
-                  {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }
+                {formatMoneyMinor(
+                  product.totalStock * (product.price ?? 0),
+                  "USD"
                 )}
               </div>
               <p className="text-muted-foreground text-xs">Total asset value</p>
@@ -432,7 +433,7 @@ function ProductPage() {
                     defaultValues={{
                       name: product.name,
                       sku: product.sku,
-                      price: product.price ?? 0,
+                      price: minorToMajor(product.price ?? 0, "USD"),
                       description: product.description || "",
                       minStockLevel: product.minStockLevel || 5,
                       imageUrl: product.imageUrl || null,

@@ -109,14 +109,14 @@ describe("POST /api/protected/inventory/products", () => {
       body: JSON.stringify({
         name: "New Product",
         sku: "NP-001",
-        price: 29.99,
+        price: 2999,
       }),
     });
     expect(res.status).toBe(200);
     const data = (await res.json()) as {
       name: string;
       sku: string;
-      price: string;
+      price: number;
     };
     expect(data.name).toBe("New Product");
     expect(data.sku).toBe("NP-001");
