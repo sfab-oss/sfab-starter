@@ -61,20 +61,3 @@ export async function seedProduct(
     .returning();
   return product;
 }
-
-export async function seedWarehouse(
-  orgId: string,
-  overrides?: Partial<typeof schema.warehouses.$inferInsert>
-) {
-  const [warehouse] = await db
-    .insert(schema.warehouses)
-    .values({
-      organizationId: orgId,
-      name: "Test Warehouse",
-      location: "Test Location",
-      isDefault: false,
-      ...overrides,
-    })
-    .returning();
-  return warehouse;
-}

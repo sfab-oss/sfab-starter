@@ -7,7 +7,7 @@ import type { AgentToolsContext } from "../types";
  * active organization and throws if `can(action, ...)` is false, so an in-chat
  * "Approve" only executes when the caller is actually allowed to make that edit.
  *
- * Only **low-stakes catalog/inventory** writes are ever exposed as agent tools;
+ * Only **low-stakes catalog** writes are ever exposed as agent tools;
  * money and document mutations deliberately have no agent tool — they hand off
  * to the real screen and are never executed from chat.
  */

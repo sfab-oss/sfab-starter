@@ -39,7 +39,7 @@ export function CreateProductDialog() {
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
           <DialogDescription>
-            Create a new product record in your inventory.
+            Create a new product record in your catalog.
           </DialogDescription>
         </DialogHeader>
         <ProductForm isLoading={createProduct.isPending} onSubmit={onSubmit} />

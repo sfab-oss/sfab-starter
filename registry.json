@@ -544,7 +544,7 @@
       "name": "today-overview",
       "type": "registry:block",
       "title": "Today overview",
-      "description": "Operator home — primary actions, honest KPI tiles, action items, and a capped inventory movements feed.",
+      "description": "Operator home — primary actions, honest KPI tiles, and action items.",
       "registryDependencies": ["button", "sidebar"],
       "meta": {
         "sfabKind": "block",
@@ -572,19 +572,9 @@
           "target": "src/features/today/components/today-action-items.tsx"
         },
         {
-          "path": "packages/registry/registry/blocks/today-overview/components/inventory-movements-feed.tsx",
-          "type": "registry:component",
-          "target": "src/features/today/components/inventory-movements-feed.tsx"
-        },
-        {
           "path": "packages/registry/registry/blocks/today-overview/lib/mock-today-metrics.ts",
           "type": "registry:lib",
           "target": "src/features/today/lib/mock-today-metrics.ts"
-        },
-        {
-          "path": "packages/registry/registry/blocks/today-overview/lib/mock-inventory-movements.ts",
-          "type": "registry:lib",
-          "target": "src/features/today/lib/mock-inventory-movements.ts"
         },
         {
           "path": "packages/registry/registry/blocks/today-overview/lib/fetch-today-overview.ts",

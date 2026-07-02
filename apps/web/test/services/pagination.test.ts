@@ -1,10 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  seedOrganization,
-  seedProduct,
-  seedUser,
-  seedWarehouse,
-} from "../helpers/seed";
+import { seedOrganization, seedProduct, seedUser } from "../helpers/seed";
 
 let orgId: string;
 
@@ -158,82 +153,5 @@ describe("getPaginatedProducts", () => {
 
     expect(result.data).toHaveLength(0);
     expect(result.total).toBe(1);
-  });
-});
-
-describe("getPaginatedWarehouses", () => {
-  it("returns paginated response with correct shape", async () => {
-    await seedWarehouse(orgId, { name: "Warehouse 1" });
-    await seedWarehouse(orgId, { name: "Warehouse 2" });
-
-    const { getPaginatedWarehouses } = await import("@workspace/core/catalog");
-    const result = await getPaginatedWarehouses(orgId, {
-      page: 1,
-      pageSize: 10,
-    });
-
-    expect(result.data).toHaveLength(2);
-    expect(result.total).toBe(2);
-    expect(result.page).toBe(1);
-  });
-
-  it("respects page size limit", async () => {
-    for (let i = 0; i < 5; i++) {
-      await seedWarehouse(orgId, { name: `Warehouse ${i}` });
-    }
-
-    const { getPaginatedWarehouses } = await import("@workspace/core/catalog");
-    const result = await getPaginatedWarehouses(orgId, {
-      page: 1,
-      pageSize: 3,
-    });
-
-    expect(result.data).toHaveLength(3);
-    expect(result.total).toBe(5);
-  });
-
-  it("filters by search term", async () => {
-    await seedWarehouse(orgId, { name: "Main Depot" });
-    await seedWarehouse(orgId, { name: "Satellite Hub" });
-
-    const { getPaginatedWarehouses } = await import("@workspace/core/catalog");
-    const result = await getPaginatedWarehouses(orgId, {
-      page: 1,
-      pageSize: 10,
-      search: "Main",
-    });
-
-    expect(result.data).toHaveLength(1);
-    expect(result.data[0].name).toBe("Main Depot");
-  });
-
-  it("sorts by name ascending by default", async () => {
-    await seedWarehouse(orgId, { name: "Zeta" });
-    await seedWarehouse(orgId, { name: "Alpha" });
-
-    const { getPaginatedWarehouses } = await import("@workspace/core/catalog");
-    const result = await getPaginatedWarehouses(orgId, {
-      page: 1,
-      pageSize: 10,
-    });
-
-    expect(result.data[0].name).toBe("Alpha");
-    expect(result.data[1].name).toBe("Zeta");
-  });
-
-  it("does not return warehouses from other orgs", async () => {
-    const otherUser = await seedUser();
-    const otherOrg = await seedOrganization(otherUser.id);
-    await seedWarehouse(orgId, { name: "My Warehouse" });
-    await seedWarehouse(otherOrg.id, { name: "Other Warehouse" });
-
-    const { getPaginatedWarehouses } = await import("@workspace/core/catalog");
-    const result = await getPaginatedWarehouses(orgId, {
-      page: 1,
-      pageSize: 10,
-    });
-
-    expect(result.total).toBe(1);
-    expect(result.data[0].name).toBe("My Warehouse");
   });
 });

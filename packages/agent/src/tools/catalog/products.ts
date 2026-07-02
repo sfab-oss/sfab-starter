@@ -1,7 +1,5 @@
 import {
-  createMovementSchema,
   createProductSchema,
-  movementSchema,
   productSchema,
   productsListSchema,
   updateProductSchema,
@@ -11,7 +9,6 @@ import {
   deleteProduct,
   getProduct,
   getProducts,
-  performStockMovement,
   updateProduct,
 } from "@workspace/core/catalog";
 import { tool } from "ai";
@@ -23,7 +20,7 @@ export const createProductTools = (ctx: AgentToolsContext) => {
   const orgId = ctx.organizationId;
   return {
     "list-products": tool({
-      description: "List all inventory products with their stock levels.",
+      description: "List all catalog products.",
       inputSchema: z.object({}),
       outputSchema: productsListSchema,
       execute: async () => getProducts(orgId),
@@ -35,7 +32,7 @@ export const createProductTools = (ctx: AgentToolsContext) => {
       execute: async ({ id }) => getProduct(id, orgId),
     }),
     "create-product": tool({
-      description: "Create a new inventory product.",
+      description: "Create a new catalog product.",
       inputSchema: createProductSchema,
       outputSchema: productSchema,
       execute: async (input) => {
@@ -54,19 +51,6 @@ export const createProductTools = (ctx: AgentToolsContext) => {
       execute: async ({ id, data }) => {
         await assertCan("catalog:write", ctx);
         return updateProduct(id, orgId, data);
-      },
-    }),
-    // biome-ignore lint/suspicious/noExplicitAny: AI SDK type compatibility
-    "create-movement": tool<any, any>({
-      description: "Record a stock movement (restock, adjust, transfer).",
-      inputSchema: createMovementSchema,
-      outputSchema: movementSchema,
-      execute: async (input) => {
-        await assertCan("catalog:write", ctx);
-        return performStockMovement({
-          ...input,
-          orgId,
-        });
       },
     }),
     "delete-product": tool({

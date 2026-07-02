@@ -36,7 +36,7 @@ import {
  */
 export const statement = {
   ...defaultStatements,
-  /** Catalog / inventory writes (create, update, stock movements). Low-stakes. */
+  /** Catalog writes (create, update products). Low-stakes. */
   catalog: ["write"],
   /** Bypass an over-limit fiado sale ("Acepto/Continuar"). Admin+ only. */
   credit: ["bypass"],
@@ -90,7 +90,7 @@ export type RoleName = keyof typeof roles;
  * touching call sites.
  */
 export const ACTION_PERMISSIONS = {
-  /** Create/update products or record stock movements. Operator+ (low-stakes). */
+  /** Create/update products. Operator+ (low-stakes). */
   "catalog:write": { catalog: ["write"] },
   /** Bypass an over-limit fiado sale. Admin+. (Wired by Transaction Core / ALW-299.) */
   "credit:bypass": { credit: ["bypass"] },

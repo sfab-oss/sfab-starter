@@ -4,7 +4,6 @@ import { Skeleton } from "@workspace/ui/components/shadcn/skeleton";
 import { cn } from "@workspace/ui/lib/utils";
 import { Banknote, ShoppingCart } from "lucide-react";
 import { useTodayOverview } from "../hooks/use-today-overview";
-import { InventoryMovementsFeed } from "./inventory-movements-feed";
 import { PrimaryActionBar } from "./primary-action-bar";
 import { type TodayActionItem, TodayActionItems } from "./today-action-items";
 import { TodayKpiTile } from "./today-kpi-tile";
@@ -57,7 +56,7 @@ export function TodayOverviewContent() {
     );
   }
 
-  const { metrics, movements } = data;
+  const { metrics } = data;
 
   const actionItems: TodayActionItem[] = [];
 
@@ -73,7 +72,7 @@ export function TodayOverviewContent() {
     actionItems.push({
       id: "low-stock",
       label: `${metrics.lowStockCount} products below reorder`,
-      description: "Review stock levels in Inventory.",
+      description: "Review low-stock products.",
     });
   }
 
@@ -120,13 +119,13 @@ export function TodayOverviewContent() {
 
       <OverviewSection
         className="lg:col-span-12"
-        description="Live inventory signal plus honest placeholders until Transaction Core metrics land."
+        description="Honest placeholders until Transaction Core metrics land."
         title="At a glance"
       >
         <div className="grid gap-4 md:grid-cols-12 lg:items-stretch">
           <TodayKpiTile
             className="md:col-span-12 lg:col-span-7 lg:min-h-36"
-            hint="From live inventory thresholds"
+            hint="From catalog reorder thresholds"
             size="featured"
             title="Low stock"
             value={metrics.lowStockCount}
@@ -156,14 +155,6 @@ export function TodayOverviewContent() {
           />
         </div>
       ) : null}
-
-      <div
-        className={cn(
-          actionItems.length > 0 ? "lg:col-span-8" : "lg:col-span-12"
-        )}
-      >
-        <InventoryMovementsFeed className="min-h-0" movements={movements} />
-      </div>
     </div>
   );
 }

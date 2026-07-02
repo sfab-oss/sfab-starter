@@ -7,12 +7,6 @@ export const searchMetadataSchema = z.discriminatedUnion("type", [
     title: z.string(),
     sku: z.string(),
   }),
-  z.object({
-    type: z.literal("warehouse"),
-    id: z.string(),
-    title: z.string(),
-    location: z.string().nullable(),
-  }),
 ]);
 
 export const searchResultSchema = z.object({

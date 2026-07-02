@@ -9,9 +9,9 @@ beforeEach(async () => {
   cookie = session.cookie;
 });
 
-const API = "http://localhost/api/protected/inventory/products";
+const API = "http://localhost/api/protected/catalog/products";
 
-describe("GET /api/protected/inventory/products", () => {
+describe("GET /api/protected/catalog/products", () => {
   it("returns empty paginated product list", async () => {
     const res = await SELF.fetch(API, {
       headers: { Cookie: cookie },
@@ -101,7 +101,7 @@ describe("GET /api/protected/inventory/products", () => {
   });
 });
 
-describe("POST /api/protected/inventory/products", () => {
+describe("POST /api/protected/catalog/products", () => {
   it("creates a product", async () => {
     const res = await SELF.fetch(API, {
       method: "POST",
@@ -132,7 +132,7 @@ describe("POST /api/protected/inventory/products", () => {
   });
 });
 
-describe("GET /api/protected/inventory/products/:id", () => {
+describe("GET /api/protected/catalog/products/:id", () => {
   it("returns a specific product", async () => {
     const createRes = await SELF.fetch(API, {
       method: "POST",
@@ -157,7 +157,7 @@ describe("GET /api/protected/inventory/products/:id", () => {
   });
 });
 
-describe("PUT /api/protected/inventory/products/:id", () => {
+describe("PUT /api/protected/catalog/products/:id", () => {
   it("updates a product", async () => {
     const createRes = await SELF.fetch(API, {
       method: "POST",
@@ -177,7 +177,7 @@ describe("PUT /api/protected/inventory/products/:id", () => {
   });
 });
 
-describe("DELETE /api/protected/inventory/products/:id", () => {
+describe("DELETE /api/protected/catalog/products/:id", () => {
   it("deletes a product", async () => {
     const createRes = await SELF.fetch(API, {
       method: "POST",

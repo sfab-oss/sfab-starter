@@ -33,11 +33,6 @@ export function buildPageContextSection(ctx: OrgPageContext): string {
         `- Hint: Use codemode \`get-product\` with id \`${params.entityId}\` for current state.`
       );
     }
-    if (params.entityType === "warehouse") {
-      lines.push(
-        `- Hint: Use codemode \`get-warehouse\` with id \`${params.entityId}\` for current state.`
-      );
-    }
   }
   if (params.title) {
     lines.push(`- Title: ${params.title}`);

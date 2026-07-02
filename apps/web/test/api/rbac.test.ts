@@ -70,7 +70,7 @@ describe("catalog:write gate on the real REST routes", () => {
     await demoteToOperator(operator.userId);
 
     const res = await SELF.fetch(
-      "http://localhost/api/protected/inventory/products",
+      "http://localhost/api/protected/catalog/products",
       {
         method: "POST",
         headers: {

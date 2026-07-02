@@ -14,13 +14,6 @@ export const createDisplayTools = (_ctx: AgentToolsContext): ToolSet => ({
     }),
     execute: async ({ productIds }) => ({ productIds }),
   }),
-  [DISPLAY_TOOL_NAMES.WAREHOUSE_LIST]: tool({
-    description: `Show warehouses as an inline list in the chat. Pass warehouse IDs from codemode.${DISPLAY_NO_DUPLICATE}`,
-    inputSchema: z.object({
-      warehouseIds: z.array(z.string()).describe("Warehouse IDs to display."),
-    }),
-    execute: async ({ warehouseIds }) => ({ warehouseIds }),
-  }),
   [DISPLAY_TOOL_NAMES.MEMORY]: tool({
     description:
       "Show the organization's shared memory as an inline card. Use when the user asks what you remember about the organization.",
