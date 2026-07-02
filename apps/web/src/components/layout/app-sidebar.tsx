@@ -14,7 +14,14 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@workspace/ui/components/shadcn/sidebar";
-import { Home, type LucideIcon, Package, Search, Settings } from "lucide-react";
+import {
+  FileText,
+  Home,
+  type LucideIcon,
+  Package,
+  Search,
+  Settings,
+} from "lucide-react";
 import { useState } from "react";
 import { AppSidebarFooter } from "@/components/layout/app-sidebar-footer";
 import { SearchCommand } from "@/components/search/search-command";
@@ -35,6 +42,11 @@ const mainNavigationItems: NavigationItem[] = [
     title: "Catalog",
     url: "/catalog",
     icon: Package,
+  },
+  {
+    title: "Documents",
+    url: "/documents",
+    icon: FileText,
   },
   {
     title: "Settings",

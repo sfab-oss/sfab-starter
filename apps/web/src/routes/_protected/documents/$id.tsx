@@ -1,0 +1,259 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
+import {
+  ShellHeader,
+  ShellHeaderSidebarTrigger,
+  ShellPage,
+} from "@workspace/ui/components/brand/shell";
+import { Badge } from "@workspace/ui/components/shadcn/badge";
+import { Button } from "@workspace/ui/components/shadcn/button";
+import { Input } from "@workspace/ui/components/shadcn/input";
+import { formatMoneyMinor } from "@workspace/ui/lib/money";
+import { format } from "date-fns";
+import { useMemo, useState } from "react";
+import { useSetPageContext } from "@/components/providers/page-context";
+import {
+  useActivity,
+  useAddLineItem,
+  useDocument,
+  useFinalizeDocument,
+} from "@/hooks/use-documents";
+
+export const Route = createFileRoute("/_protected/documents/$id")({
+  component: DocumentPage,
+});
+
+function DocumentPage() {
+  const { id } = Route.useParams();
+  const { data } = useDocument(id);
+  const { data: activityResp } = useActivity(id);
+  const addLineItem = useAddLineItem();
+  const finalize = useFinalizeDocument();
+
+  const doc = data?.doc;
+  const lines = data?.lines ?? [];
+
+  useSetPageContext(
+    useMemo(
+      () => ({
+        title: doc ? `${doc.type} ${doc.folio ?? ""}` : "Document",
+        description: doc?.entityName ?? undefined,
+        entityType: "document",
+        entityId: id,
+      }),
+      [doc, id]
+    )
+  );
+
+  const [line, setLine] = useState({
+    description: "",
+    quantity: 1,
+    unitPrice: 0,
+    taxRate: 0,
+  });
+
+  const handleAddLine = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!line.description) {
+      return;
+    }
+    await addLineItem.mutateAsync({
+      id,
+      data: {
+        description: line.description,
+        quantity: line.quantity,
+        unitPrice: line.unitPrice,
+        taxRate: line.taxRate || undefined,
+      },
+    });
+    setLine({ description: "", quantity: 1, unitPrice: 0, taxRate: 0 });
+  };
+
+  const handleFinalize = async () => {
+    await finalize.mutateAsync(id);
+  };
+
+  if (!doc) {
+    return (
+      <ShellPage>
+        <div className="flex h-full flex-col items-center justify-center gap-4">
+          <h2 className="font-semibold text-xl">Loading document...</h2>
+        </div>
+      </ShellPage>
+    );
+  }
+
+  const isDraft = doc.status === "draft";
+  const liveSubtotal = lines.reduce(
+    (sum, l) => sum + l.unitPrice * l.quantity,
+    0
+  );
+
+  return (
+    <ShellPage>
+      <ShellHeader>
+        <ShellHeaderSidebarTrigger className="-ml-1" />
+        <AppBreadcrumbs
+          items={[
+            { title: "Documents", href: "/documents" },
+            { title: `${doc.type} ${doc.folio ?? ""}`.trim() },
+          ]}
+        />
+      </ShellHeader>
+
+      <div className="grid gap-6 p-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <div className="flex items-center justify-between rounded-lg border p-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-semibold text-lg capitalize">
+                  {doc.type.replace("_", " ")}
+                </h2>
+                <Badge variant={isDraft ? "secondary" : "default"}>
+                  {doc.status}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                {doc.entityName ?? "Walk-in"} ·{" "}
+                {doc.folio !== null
+                  ? `Folio #${doc.series ?? doc.type}-${doc.folio}`
+                  : "No folio (draft)"}
+              </p>
+            </div>
+            {isDraft && (
+              <Button
+                disabled={finalize.isPending || lines.length === 0}
+                onClick={handleFinalize}
+              >
+                Finalize
+              </Button>
+            )}
+          </div>
+
+          <div>
+            <h3 className="mb-2 font-medium text-sm">Line items</h3>
+            <div className="divide-y rounded-lg border">
+              {lines.map((l) => (
+                <div
+                  className="flex items-center gap-3 px-4 py-2 text-sm"
+                  key={l.id}
+                >
+                  <span className="min-w-0 flex-1 truncate">
+                    {l.description}
+                  </span>
+                  <span className="text-muted-foreground tabular-nums">
+                    {l.quantity} ×{" "}
+                    {formatMoneyMinor(l.unitPrice, doc.currencyCode)}
+                  </span>
+                  <span className="w-24 text-right font-medium tabular-nums">
+                    {formatMoneyMinor(
+                      l.unitPrice * l.quantity,
+                      doc.currencyCode
+                    )}
+                  </span>
+                </div>
+              ))}
+              {lines.length === 0 && (
+                <div className="px-4 py-6 text-center text-muted-foreground text-xs">
+                  No lines yet.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {isDraft && (
+            <form
+              className="grid grid-cols-1 gap-2 rounded-lg border p-4 sm:grid-cols-[1fr_auto_auto_auto]"
+              onSubmit={handleAddLine}
+            >
+              <Input
+                onChange={(e) =>
+                  setLine((s) => ({ ...s, description: e.target.value }))
+                }
+                placeholder="Description"
+                value={line.description}
+              />
+              <Input
+                className="w-20"
+                min={1}
+                onChange={(e) =>
+                  setLine((s) => ({
+                    ...s,
+                    quantity: Number(e.target.value) || 1,
+                  }))
+                }
+                placeholder="Qty"
+                type="number"
+                value={line.quantity}
+              />
+              <Input
+                className="w-28"
+                min={0}
+                onChange={(e) =>
+                  setLine((s) => ({
+                    ...s,
+                    unitPrice: Number(e.target.value) || 0,
+                  }))
+                }
+                placeholder="Unit price (minor)"
+                type="number"
+                value={line.unitPrice}
+              />
+              <Button type="submit">Add</Button>
+            </form>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-2 rounded-lg border p-4 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span className="tabular-nums">
+                {formatMoneyMinor(
+                  doc.subtotal || liveSubtotal,
+                  doc.currencyCode
+                )}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Tax</span>
+              <span className="tabular-nums">
+                {formatMoneyMinor(doc.taxTotal, doc.currencyCode)}
+              </span>
+            </div>
+            <div className="flex justify-between border-t pt-2 font-medium">
+              <span>Total</span>
+              <span className="tabular-nums">
+                {formatMoneyMinor(doc.total || liveSubtotal, doc.currencyCode)}
+              </span>
+            </div>
+            <p className="text-muted-foreground text-xs">
+              {isDraft
+                ? "Draft — totals freeze at finalize."
+                : "Frozen at finalize (C5). Payment recording arrives with ALW-354."}
+            </p>
+          </div>
+
+          <div>
+            <h3 className="mb-2 font-medium text-sm">Activity</h3>
+            <div className="divide-y rounded-lg border">
+              {(activityResp?.data ?? []).map((event) => (
+                <div className="px-4 py-2 text-sm" key={event.id}>
+                  <div className="text-muted-foreground text-xs">
+                    {format(new Date(event.createdAt), "MMM d, h:mm a")}
+                  </div>
+                  <div>{event.summary ?? event.eventType}</div>
+                </div>
+              ))}
+              {(activityResp?.data ?? []).length === 0 && (
+                <div className="px-4 py-4 text-center text-muted-foreground text-xs">
+                  No activity yet.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </ShellPage>
+  );
+}

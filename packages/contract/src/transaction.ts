@@ -53,3 +53,17 @@ export const createDocumentSchema = z.object({
 
 export type LineItemInput = z.infer<typeof lineItemInputSchema>;
 export type CreateDocumentInput = z.infer<typeof createDocumentSchema>;
+
+// Summary shape for lists / the agent (omits heavy projection + lineage cols).
+export const documentListItemSchema = z.object({
+  id: z.string(),
+  type: documentTypeSchema,
+  status: z.string(),
+  entityName: z.string().nullable(),
+  currencyCode: z.string(),
+  total: z.number(),
+  folio: z.number().nullable(),
+  createdAt: z.string(),
+});
+export const documentListSchema = z.array(documentListItemSchema);
+export type DocumentListItem = z.infer<typeof documentListItemSchema>;

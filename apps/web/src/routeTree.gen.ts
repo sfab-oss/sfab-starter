@@ -16,7 +16,9 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
 import { Route as AcceptInvitationIdRouteImport } from './routes/accept-invitation.$id'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
+import { Route as ProtectedDocumentsIndexRouteImport } from './routes/_protected/documents/index'
 import { Route as ProtectedCatalogIndexRouteImport } from './routes/_protected/catalog/index'
+import { Route as ProtectedDocumentsIdRouteImport } from './routes/_protected/documents/$id'
 import { Route as ProtectedCatalogIdRouteImport } from './routes/_protected/catalog/$id'
 
 const SignupRoute = SignupRouteImport.update({
@@ -53,9 +55,19 @@ const ProtectedSettingsRoute = ProtectedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedDocumentsIndexRoute = ProtectedDocumentsIndexRouteImport.update({
+  id: '/documents/',
+  path: '/documents/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedCatalogIndexRoute = ProtectedCatalogIndexRouteImport.update({
   id: '/catalog/',
   path: '/catalog/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedDocumentsIdRoute = ProtectedDocumentsIdRouteImport.update({
+  id: '/documents/$id',
+  path: '/documents/$id',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedCatalogIdRoute = ProtectedCatalogIdRouteImport.update({
@@ -72,7 +84,9 @@ export interface FileRoutesByFullPath {
   '/settings': typeof ProtectedSettingsRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/catalog/$id': typeof ProtectedCatalogIdRoute
+  '/documents/$id': typeof ProtectedDocumentsIdRoute
   '/catalog/': typeof ProtectedCatalogIndexRoute
+  '/documents/': typeof ProtectedDocumentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -82,7 +96,9 @@ export interface FileRoutesByTo {
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/': typeof ProtectedIndexRoute
   '/catalog/$id': typeof ProtectedCatalogIdRoute
+  '/documents/$id': typeof ProtectedDocumentsIdRoute
   '/catalog': typeof ProtectedCatalogIndexRoute
+  '/documents': typeof ProtectedDocumentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -94,7 +110,9 @@ export interface FileRoutesById {
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/_protected/': typeof ProtectedIndexRoute
   '/_protected/catalog/$id': typeof ProtectedCatalogIdRoute
+  '/_protected/documents/$id': typeof ProtectedDocumentsIdRoute
   '/_protected/catalog/': typeof ProtectedCatalogIndexRoute
+  '/_protected/documents/': typeof ProtectedDocumentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -106,7 +124,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/accept-invitation/$id'
     | '/catalog/$id'
+    | '/documents/$id'
     | '/catalog/'
+    | '/documents/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -116,7 +136,9 @@ export interface FileRouteTypes {
     | '/accept-invitation/$id'
     | '/'
     | '/catalog/$id'
+    | '/documents/$id'
     | '/catalog'
+    | '/documents'
   id:
     | '__root__'
     | '/_protected'
@@ -127,7 +149,9 @@ export interface FileRouteTypes {
     | '/accept-invitation/$id'
     | '/_protected/'
     | '/_protected/catalog/$id'
+    | '/_protected/documents/$id'
     | '/_protected/catalog/'
+    | '/_protected/documents/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -189,11 +213,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedSettingsRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/documents/': {
+      id: '/_protected/documents/'
+      path: '/documents'
+      fullPath: '/documents/'
+      preLoaderRoute: typeof ProtectedDocumentsIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/catalog/': {
       id: '/_protected/catalog/'
       path: '/catalog'
       fullPath: '/catalog/'
       preLoaderRoute: typeof ProtectedCatalogIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/documents/$id': {
+      id: '/_protected/documents/$id'
+      path: '/documents/$id'
+      fullPath: '/documents/$id'
+      preLoaderRoute: typeof ProtectedDocumentsIdRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/catalog/$id': {
@@ -210,14 +248,18 @@ interface ProtectedRouteChildren {
   ProtectedSettingsRoute: typeof ProtectedSettingsRoute
   ProtectedIndexRoute: typeof ProtectedIndexRoute
   ProtectedCatalogIdRoute: typeof ProtectedCatalogIdRoute
+  ProtectedDocumentsIdRoute: typeof ProtectedDocumentsIdRoute
   ProtectedCatalogIndexRoute: typeof ProtectedCatalogIndexRoute
+  ProtectedDocumentsIndexRoute: typeof ProtectedDocumentsIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedSettingsRoute: ProtectedSettingsRoute,
   ProtectedIndexRoute: ProtectedIndexRoute,
   ProtectedCatalogIdRoute: ProtectedCatalogIdRoute,
+  ProtectedDocumentsIdRoute: ProtectedDocumentsIdRoute,
   ProtectedCatalogIndexRoute: ProtectedCatalogIndexRoute,
+  ProtectedDocumentsIndexRoute: ProtectedDocumentsIndexRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
