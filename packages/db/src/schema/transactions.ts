@@ -332,7 +332,7 @@ export const payments = sqliteTable(
       table.idempotencyKey
     ),
     index("payments_org_entity_idx").on(table.organizationId, table.entityId),
-    index("payments_org_reverses_idx").on(
+    uniqueIndex("payments_org_reverses_uniq").on(
       table.organizationId,
       table.reversesPaymentId
     ),

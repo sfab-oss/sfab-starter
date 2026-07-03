@@ -112,6 +112,18 @@ export async function applyCreditNoteDisposition(
         "conflict"
       );
     }
+    if (target.entityId !== cn.entityId) {
+      throw new DomainError(
+        "Target document must belong to the same entity as the credit note",
+        "unprocessable"
+      );
+    }
+    if (target.direction !== "sales") {
+      throw new DomainError(
+        "Credit notes may only be applied to sales documents, not purchase bills",
+        "unprocessable"
+      );
+    }
 
     const result = await recordPayment(
       orgId,

@@ -5,6 +5,7 @@ import {
   createEntity,
   finalizeDocument,
   getDocumentWithLines,
+  getEntity,
   rebuildDocumentPayment,
   rebuildEntityBalance,
   recordPayment,
@@ -438,6 +439,44 @@ describe("credit-note disposition (AC-6)", () => {
     expect(invLoaded?.doc.balanceDue).toBe(800);
     expect(invLoaded?.doc.paymentStatus).toBe("partial");
   });
+
+  it("apply_to_document rejects cross-entity application (F3)", async () => {
+    const entityA = await createEntity(orgId, {
+      name: "Customer A",
+      type: "customer",
+    });
+    const entityB = await createEntity(orgId, {
+      name: "Customer B",
+      type: "customer",
+    });
+
+    // Invoice for entity B.
+    const invoice = await seedFinalizedInvoice(orgId, {
+      total: 1000,
+      entityId: entityB.id,
+      entityName: entityB.name,
+    });
+
+    // Credit note for entity A.
+    const cn = await createDocument(orgId, {
+      type: "credit_note",
+      direction: "sales",
+      entityId: entityA.id,
+      entityName: entityA.name,
+    });
+    await addLineItem(orgId, cn.id, {
+      description: "Return",
+      quantity: -1,
+      unitPrice: 200,
+    });
+    await finalizeDocument(cn.id, orgId);
+
+    await expect(
+      applyCreditNoteDisposition(cn.id, orgId, "apply_to_document", {
+        targetDocumentId: invoice.id,
+      })
+    ).rejects.toThrow("same entity");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -559,6 +598,101 @@ describe("sale_completed event (AC-7)", () => {
       .from(activityLog)
       .where(eq(activityLog.entityId, cn.id));
     expect(events.some((e) => e.eventType === "sale_completed")).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Entity balance maintenance + credit-limit enforcement (review F1, F2, F4, F6)
+// ---------------------------------------------------------------------------
+
+describe("entity balance + credit-limit (F1, F2, F4, F6)", () => {
+  it("finalize updates entity.balance so the next credit-limit check sees it (F1)", async () => {
+    const entity = await createEntity(orgId, {
+      name: "Credit Customer",
+      type: "customer",
+      creditLimit: 1500,
+    });
+
+    // First finalize: 1000, under 1500 limit.
+    await seedFinalizedInvoice(orgId, {
+      total: 1000,
+      entityId: entity.id,
+      entityName: entity.name,
+    });
+
+    // Entity balance should now be 1000 (updated by the finalize batch).
+    const updated = await getEntity(entity.id, orgId);
+    expect(updated?.balance).toBe(1000);
+
+    // Second finalize: 1000 more → projected 2000 > 1500 → should throw.
+    await expect(
+      seedFinalizedInvoice(orgId, {
+        total: 1000,
+        entityId: entity.id,
+        entityName: entity.name,
+      })
+    ).rejects.toThrow("Credit limit exceeded");
+  });
+
+  it("entity.balance updates from doc entityIds even without input.entityId (F2)", async () => {
+    const entity = await createEntity(orgId, {
+      name: "Test Customer",
+      type: "customer",
+    });
+
+    const invoice = await seedFinalizedInvoice(orgId, {
+      total: 1000,
+      entityId: entity.id,
+      entityName: entity.name,
+    });
+
+    // Payment WITHOUT input.entityId — the demo form does this.
+    await recordPayment(orgId, {
+      amount: 600,
+      method: "cash",
+      allocations: [{ documentId: invoice.id, amount: 600 }],
+    });
+
+    // Entity balance should be 400 (1000 - 600), derived from the doc.
+    const updated = await getEntity(entity.id, orgId);
+    expect(updated?.balance).toBe(400);
+  });
+
+  it("idempotencyKey returns existing payment on retry (F4)", async () => {
+    const doc = await seedFinalizedInvoice(orgId, { total: 1000 });
+
+    const result1 = await recordPayment(orgId, {
+      amount: 1000,
+      method: "cash",
+      idempotencyKey: "retry-test-1",
+      allocations: [{ documentId: doc.id, amount: 1000 }],
+    });
+
+    const result2 = await recordPayment(orgId, {
+      amount: 1000,
+      method: "cash",
+      idempotencyKey: "retry-test-1",
+      allocations: [{ documentId: doc.id, amount: 1000 }],
+    });
+
+    expect(result2.paymentId).toBe(result1.paymentId);
+    expect(result2.touchedDocuments).toEqual([]);
+  });
+
+  it("finalized credit note has paymentStatus 'paid' (F6)", async () => {
+    const cn = await createDocument(orgId, {
+      type: "credit_note",
+      direction: "sales",
+    });
+    await addLineItem(orgId, cn.id, {
+      description: "Return",
+      quantity: -1,
+      unitPrice: 200,
+    });
+    await finalizeDocument(cn.id, orgId);
+
+    const loaded = await getDocumentWithLines(cn.id, orgId);
+    expect(loaded?.doc.paymentStatus).toBe("paid");
   });
 });
 

@@ -43,13 +43,7 @@ function paymentBadgeVariant(
   return "outline";
 }
 
-function RecordPaymentForm({
-  docId,
-  disabled,
-}: {
-  docId: string;
-  disabled: boolean;
-}) {
+function RecordPaymentForm({ docId }: { docId: string }) {
   const recordPayment = useRecordPayment();
   const [method, setMethod] = useState("cash");
   const [amount, setAmount] = useState(0);
@@ -91,10 +85,7 @@ function RecordPaymentForm({
           type="number"
           value={amount}
         />
-        <Button
-          disabled={disabled || recordPayment.isPending || amount <= 0}
-          type="submit"
-        >
+        <Button disabled={recordPayment.isPending || amount <= 0} type="submit">
           Pay
         </Button>
       </div>
@@ -346,9 +337,7 @@ function DocumentPage() {
             )}
           </div>
 
-          {!isDraft && doc.balanceDue > 0 && (
-            <RecordPaymentForm disabled={false} docId={id} />
-          )}
+          {!isDraft && doc.balanceDue > 0 && <RecordPaymentForm docId={id} />}
 
           <div>
             <h3 className="mb-2 font-medium text-sm">Activity</h3>

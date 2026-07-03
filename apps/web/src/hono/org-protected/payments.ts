@@ -50,7 +50,7 @@ const paymentsRoute = new Hono<HonoContextWithAuthAndOrg>()
     "/:id/reverse",
     requirePermission("payment:reverse"),
     zValidator("param", idSchema),
-    zValidator("json", reversePaymentSchema.optional()),
+    zValidator("json", reversePaymentSchema),
     async (c) => {
       const orgId = c.get("session").activeOrganizationId;
       const userId = c.get("session").userId;
@@ -58,7 +58,7 @@ const paymentsRoute = new Hono<HonoContextWithAuthAndOrg>()
       const body = c.req.valid("json");
       const result = await reversePayment(id, orgId, {
         actorId: userId,
-        reason: body?.reason,
+        reason: body.reason,
       });
       return c.json(result);
     }

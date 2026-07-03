@@ -9,6 +9,7 @@ import {
 import { and, eq, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 import { assertCanFinalize, assertHasLines } from "./guards";
+import { derivePaymentStatus, entityBalanceUpdate } from "./projections";
 import { computeDocumentTotals, type DocumentTotals } from "./totals";
 
 /**
@@ -117,6 +118,7 @@ export async function finalizeDocument(
       taxTotal: totals.taxTotal, // excludes withholdings
       total: totals.total,
       balanceDue: totals.total, // projection default: no payments yet
+      paymentStatus: derivePaymentStatus(0, totals.total),
       issuedAt: doc.issuedAt ?? now,
       postingDate,
       metadata,
@@ -148,6 +150,13 @@ export async function finalizeDocument(
       `Document ${documentId} was already finalized (or no longer draft)`,
       "conflict"
     );
+  }
+
+  // 4b. Update the entity's AR balance so the credit-limit check (§8) on the
+  //     NEXT finalize sees this document. Same post-batch pattern as the event
+  //     log below — a crash here is repairable via rebuildEntityBalance.
+  if (doc.entityId) {
+    await entityBalanceUpdate(doc.entityId, orgId, now);
   }
 
   // 5. Write the event row AFTER the batch commits and the folio is verified.

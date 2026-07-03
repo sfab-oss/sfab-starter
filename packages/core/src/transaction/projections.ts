@@ -26,9 +26,8 @@ export interface DocumentPaymentProjection {
 
 /**
  * Derive payment status from raw amounts — the single JS source of truth.
- * The SQL CASE in `docProjectionUpdate` (payments.ts) must mirror this; a
- * cross-reference comment there points back here. Both must agree for the
- * "rebuildable projection" guarantee (§4) to hold.
+ * The SQL CASE in `docProjectionUpdate` below must mirror this. Both must
+ * agree for the "rebuildable projection" guarantee (§4) to hold.
  */
 export function derivePaymentStatus(
   amountPaid: number,
@@ -42,6 +41,69 @@ export function derivePaymentStatus(
     return "partial";
   }
   return "unpaid";
+}
+
+// ---------------------------------------------------------------------------
+// Batch-statement builders — shared by recordPayment, reversePayment, finalize
+// ---------------------------------------------------------------------------
+
+/** Build the SQL subquery that sums live allocations for a document. */
+export function allocSumSubquery(docId: string, orgId: string) {
+  // No `reversed_at IS NULL` filter: compensating rows (reversals) cancel
+  // originals naturally in the SUM (C6). `reversedAt` is a display/audit
+  // marker, not a projection filter.
+  return sql`(
+    SELECT COALESCE(SUM(amount), 0) FROM payment_allocations
+    WHERE document_id = ${docId}
+      AND organization_id = ${orgId}
+  )`;
+}
+
+/** Build a document projection UPDATE statement for the batch. */
+export function docProjectionUpdate(
+  docId: string,
+  orgId: string,
+  now: string,
+  paymentId?: string
+) {
+  const allocSum = allocSumSubquery(docId, orgId);
+  return db
+    .update(documents)
+    .set({
+      amountPaid: allocSum,
+      balanceDue: sql`${documents.total} - ${allocSum}`,
+      paymentStatus: sql`CASE
+        -- Mirrors derivePaymentStatus() above — keep in sync (§4).
+        WHEN ${documents.total} - ${allocSum} <= 0 THEN 'paid'
+        WHEN ${allocSum} > 0 THEN 'partial'
+        ELSE 'unpaid'
+      END`,
+      ...(paymentId ? { lastAppliedPaymentId: paymentId } : {}),
+      updatedAt: now,
+    })
+    .where(and(eq(documents.id, docId), eq(documents.organizationId, orgId)));
+}
+
+/** Build an entity balance UPDATE statement for the batch. */
+export function entityBalanceUpdate(
+  entityId: string,
+  orgId: string,
+  now: string
+) {
+  return db
+    .update(entities)
+    .set({
+      balance: sql`(
+        SELECT COALESCE(SUM(balance_due), 0) FROM documents
+        WHERE entity_id = ${entityId}
+          AND organization_id = ${orgId}
+          AND family = 'fiscal'
+          AND direction = 'sales'
+          AND status = 'finalized'
+      )`,
+      updatedAt: now,
+    })
+    .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
 }
 
 /**

@@ -4,14 +4,17 @@ import type { Document, Payment } from "@workspace/db/schema";
 import {
   activityLog,
   documents,
-  entities,
   paymentAllocations,
   payments,
 } from "@workspace/db/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 import { documentFamily } from "./family";
-import { derivePaymentStatus } from "./projections";
+import {
+  derivePaymentStatus,
+  docProjectionUpdate,
+  entityBalanceUpdate,
+} from "./projections";
 
 /**
  * Settlement engine — payments, allocations, and projections (§4).
@@ -91,61 +94,6 @@ function detectNewlyCompletedSales(
   return completed;
 }
 
-/** Build the SQL subquery that sums live allocations for a document. */
-function allocSumSubquery(docId: string, orgId: string) {
-  // No `reversed_at IS NULL` filter: compensating rows (reversals) cancel
-  // originals naturally in the SUM (C6). `reversedAt` is a display/audit
-  // marker, not a projection filter.
-  return sql`(
-    SELECT COALESCE(SUM(amount), 0) FROM payment_allocations
-    WHERE document_id = ${docId}
-      AND organization_id = ${orgId}
-  )`;
-}
-
-/** Build a document projection UPDATE statement for the batch. */
-function docProjectionUpdate(
-  docId: string,
-  orgId: string,
-  now: string,
-  paymentId?: string
-) {
-  const allocSum = allocSumSubquery(docId, orgId);
-  return db
-    .update(documents)
-    .set({
-      amountPaid: allocSum,
-      balanceDue: sql`${documents.total} - ${allocSum}`,
-      paymentStatus: sql`CASE
-        -- Mirrors derivePaymentStatus() in projections.ts — keep in sync (§4).
-        WHEN ${documents.total} - ${allocSum} <= 0 THEN 'paid'
-        WHEN ${allocSum} > 0 THEN 'partial'
-        ELSE 'unpaid'
-      END`,
-      ...(paymentId ? { lastAppliedPaymentId: paymentId } : {}),
-      updatedAt: now,
-    })
-    .where(and(eq(documents.id, docId), eq(documents.organizationId, orgId)));
-}
-
-/** Build an entity balance UPDATE statement for the batch. */
-function entityBalanceUpdate(entityId: string, orgId: string, now: string) {
-  return db
-    .update(entities)
-    .set({
-      balance: sql`(
-        SELECT COALESCE(SUM(balance_due), 0) FROM documents
-        WHERE entity_id = ${entityId}
-          AND organization_id = ${orgId}
-          AND family = 'fiscal'
-          AND direction = 'sales'
-          AND status = 'finalized'
-      )`,
-      updatedAt: now,
-    })
-    .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
-}
-
 // ---------------------------------------------------------------------------
 // recordPayment
 // ---------------------------------------------------------------------------
@@ -203,12 +151,32 @@ export async function recordPayment(
   validateAllocationTargets(docs);
   const completedSales = detectNewlyCompletedSales(docs, input.allocations);
 
-  // 2. PRE-GENERATE IDs (so allocation rows reference the payment in-batch).
+  // 2. IDEMPOTENCY: if a key is provided, return the existing payment.
+  if (input.idempotencyKey) {
+    const [existing] = await db
+      .select({ id: payments.id })
+      .from(payments)
+      .where(
+        and(
+          eq(payments.organizationId, orgId),
+          eq(payments.idempotencyKey, input.idempotencyKey)
+        )
+      );
+    if (existing) {
+      return {
+        paymentId: existing.id,
+        touchedDocuments: [],
+        completedSales: [],
+      };
+    }
+  }
+
+  // 3. PRE-GENERATE IDs (so allocation rows reference the payment in-batch).
   const paymentId = createId("pmt");
   const now = new Date().toISOString();
   const paidAt = input.paidAt ?? now;
 
-  // 3. ASSEMBLE the batch: payment + allocations + projection updates.
+  // 4. ASSEMBLE the batch: payment + allocations + projection updates.
   const stmts: BatchStmt[] = [];
 
   // (a) Payment header.
@@ -258,15 +226,20 @@ export async function recordPayment(
     stmts.push(docProjectionUpdate(docId, orgId, now, paymentId));
   }
 
-  // (d) Entity balance update (if entityId provided).
-  if (input.entityId) {
-    stmts.push(entityBalanceUpdate(input.entityId, orgId, now));
+  // (d) Entity balance updates — for every entity that owns an allocated doc.
+  // Derived from the documents, not input.entityId, so balance stays correct
+  // even when the caller omits entityId (e.g. the demo RecordPaymentForm).
+  const entityIds = [
+    ...new Set(docs.map((d) => d.entityId).filter(Boolean)),
+  ] as string[];
+  for (const eid of entityIds) {
+    stmts.push(entityBalanceUpdate(eid, orgId, now));
   }
 
-  // 4. EXECUTE — one atomic batch.
+  // 5. EXECUTE — one atomic batch.
   await runBatch(stmts);
 
-  // 5. POST-BATCH events (best-effort, same pattern as finalize).
+  // 6. POST-BATCH events (best-effort, same pattern as finalize).
   const eventStmts: BatchStmt[] = completedSales.map((docId) =>
     db.insert(activityLog).values({
       organizationId: orgId,
@@ -360,6 +333,22 @@ export async function reversePayment(
       )
     );
 
+  // Read entityIds of the touched documents for balance updates.
+  const touchedDocRows = allocations.length
+    ? await db
+        .select({ entityId: documents.entityId })
+        .from(documents)
+        .where(
+          and(
+            eq(documents.organizationId, orgId),
+            inArray(
+              documents.id,
+              allocations.map((a) => a.documentId)
+            )
+          )
+        )
+    : [];
+
   // 2. PRE-GENERATE IDs.
   const reversalPaymentId = createId("pmt");
   const now = new Date().toISOString();
@@ -403,17 +392,31 @@ export async function reversePayment(
     );
   }
 
-  // (c) Document projection updates + (d) entity balance.
+  // (c) Document projection updates.
   for (const docId of touchedDocIds) {
     stmts.push(docProjectionUpdate(docId, orgId, now));
   }
 
-  if (payment.entityId) {
-    stmts.push(entityBalanceUpdate(payment.entityId, orgId, now));
+  // (d) Entity balance updates — for every entity that owns a reversed doc.
+  const entityIds = [
+    ...new Set(touchedDocRows.map((d) => d.entityId).filter(Boolean)),
+  ] as string[];
+  for (const eid of entityIds) {
+    stmts.push(entityBalanceUpdate(eid, orgId, now));
   }
 
-  // 4. EXECUTE.
-  await runBatch(stmts);
+  // 4. EXECUTE. The unique index on (org_id, reverses_payment_id) is the
+  //    last-line defense against concurrent double-reversal: if two calls
+  //    race past the pre-check, the batch fails atomically here.
+  try {
+    await runBatch(stmts);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("reverses_payment_id") && msg.includes("UNIQUE")) {
+      throw new DomainError("Payment already reversed", "conflict");
+    }
+    throw err;
+  }
 
   // 5. POST-BATCH event.
   await db.insert(activityLog).values({
