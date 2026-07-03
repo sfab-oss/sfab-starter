@@ -14,12 +14,9 @@ overwritten by the next sync.
 - [`ALW-305`](./ALW-305.md) — Port sfab vitest-pool-workers / workerd test harness (ALW-241 pattern)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
+## merged (13)
 
 - [`ALW-354`](./ALW-354.md) — Transaction Core settlement engine — payments, allocations, projections & conservation (base)
-
-## merged (12)
-
 - [`ALW-351`](./ALW-351.md) — Build the on-brand registry gallery — Phase-0 spine first, hero/file surfaces deferred (UI-only)
 - [`ALW-347`](./ALW-347.md) — Role-based access control spine (owner/admin/operator) — gate sensitive actions via better-auth
 - [`ALW-335`](./ALW-335.md) — Find and remove unused functions, types, and dead code
