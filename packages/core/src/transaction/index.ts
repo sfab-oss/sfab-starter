@@ -7,3 +7,4 @@ export * from "./guards";
 export * from "./payments";
 export * from "./projections";
 export * from "./totals";
+export * from "./wallet";

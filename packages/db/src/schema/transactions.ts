@@ -269,9 +269,10 @@ export const CREDIT_NOTE_DISPOSITIONS = [
 export type CreditNoteDisposition = (typeof CREDIT_NOTE_DISPOSITIONS)[number];
 
 /**
- * A counterparty with the cached AR projection (§4/§8). `balance` is rebuildable
- * via `rebuildEntityBalance`; `creditLimit` gates fiado sales. The wallet
- * `creditBalance` arrives with ALW-355 (customer_credit).
+ * A counterparty with the cached AR + wallet projections (§4/§8). `balance` is
+ * the **net** AR (Σ open fiscal-sales balanceDue − creditBalance), rebuildable
+ * via `rebuildEntityBalance`. `creditBalance` is the wallet projection
+ * (rebuildable via `rebuildCreditBalance`). `creditLimit` gates fiado sales.
  */
 export const entities = sqliteTable(
   "entities",
@@ -282,8 +283,10 @@ export const entities = sqliteTable(
     name: text("name").notNull(),
     type: text("type", { enum: ENTITY_TYPES }).default("customer").notNull(),
 
-    // AR projection — Σ open fiscal-sales balanceDue (rebuildable).
+    // Net AR projection — Σ open fiscal-sales balanceDue − creditBalance (§4).
     balance: moneyMinor("balance").default(0).notNull(),
+    // Wallet credit projection — Σ customer_credit.amount (rebuildable).
+    creditBalance: moneyMinor("credit_balance").default(0).notNull(),
     // Credit limit for fiado checks (nullable = no limit).
     creditLimit: moneyMinor("credit_limit"),
 
@@ -378,6 +381,76 @@ export const paymentAllocations = sqliteTable(
   ]
 );
 
+// --- customer_credit (wallet) ------------------------------------------------
+
+export const CREDIT_ENTRY_TYPES = [
+  "deposit",
+  "overpay",
+  "store_credit",
+  "claim",
+  "redemption",
+  "correction",
+] as const;
+export type CreditEntryType = (typeof CREDIT_ENTRY_TYPES)[number];
+
+/**
+ * The customer-credit wallet — append-only, signed amounts (§4).
+ *
+ * Holds deposits / overpayment / store credit / `saldo a favor` — structurally
+ * the liability opposite of AR. `entityId` is **nullable** for walk-ins (C3):
+ * a walk-in deposit writes a `reference` (claim token); redemption requires
+ * presenting it. Corrections are **compensating rows** — never UPDATE in place.
+ *
+ * `creditBalance` on the entity is a rebuilt projection: `SUM(amount)` across
+ * all rows for that entity. Positive amounts increase credit (deposit);
+ * negative amounts consume it (redemption).
+ *
+ * @see docs/architecture/transaction-core.md §4
+ */
+export const customerCredit = sqliteTable(
+  "customer_credit",
+  {
+    id: id(),
+    organizationId: text("organization_id").notNull(),
+
+    // Nullable for walk-ins (C3). A walk-in deposit writes a reference token;
+    // redemption by reference claims it into an entity's scope.
+    entityId: text("entity_id"),
+    amount: moneyMinor("amount").notNull(),
+    type: text("type", { enum: CREDIT_ENTRY_TYPES }).notNull(),
+
+    // Links to the payment that created this entry (e.g. a deposit payment or
+    // a redemption payment with its allocation).
+    paymentId: text("payment_id"),
+
+    // Walk-in claim token — the reference that links a walk-in deposit to its
+    // later redemption.
+    reference: text("reference"),
+
+    notes: text("notes"),
+
+    metadata: text("metadata", { mode: "json" }).$type<
+      Record<string, unknown>
+    >(),
+
+    ...timestamps,
+  },
+  (table) => [
+    index("customer_credit_org_entity_idx").on(
+      table.organizationId,
+      table.entityId
+    ),
+    index("customer_credit_org_payment_idx").on(
+      table.organizationId,
+      table.paymentId
+    ),
+    index("customer_credit_org_reference_idx").on(
+      table.organizationId,
+      table.reference
+    ),
+  ]
+);
+
 // --- type exports ------------------------------------------------------------
 
 export type Document = typeof documents.$inferSelect;
@@ -392,3 +465,5 @@ export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
 export type PaymentAllocation = typeof paymentAllocations.$inferSelect;
 export type NewPaymentAllocation = typeof paymentAllocations.$inferInsert;
+export type CustomerCredit = typeof customerCredit.$inferSelect;
+export type NewCustomerCredit = typeof customerCredit.$inferInsert;

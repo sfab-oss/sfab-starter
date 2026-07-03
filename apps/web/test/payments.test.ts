@@ -23,6 +23,7 @@ import _idx from "@workspace/core/transaction/index?raw";
 import _pay from "@workspace/core/transaction/payments?raw";
 import _proj from "@workspace/core/transaction/projections?raw";
 import _tot from "@workspace/core/transaction/totals?raw";
+import _wallet from "@workspace/core/transaction/wallet?raw";
 import { db, eq } from "@workspace/db";
 import {
   activityLog,
@@ -51,6 +52,7 @@ const txSources: Record<string, string> = {
   "payments.ts": _pay,
   "projections.ts": _proj,
   "totals.ts": _tot,
+  "wallet.ts": _wallet,
 };
 
 beforeEach(async () => {
@@ -384,12 +386,22 @@ describe("credit-note disposition (AC-6)", () => {
     return cn;
   }
 
-  it("store_credit throws a clear not-implemented error", async () => {
-    const cn = await seedCreditNote(200);
+  it("store_credit deposits to the wallet (ALW-355)", async () => {
+    const entity = await createEntity(orgId, {
+      name: "Store Credit Customer",
+      type: "customer",
+    });
+    const cn = await seedCreditNote(200, entity.id);
 
-    await expect(
-      applyCreditNoteDisposition(cn.id, orgId, "store_credit")
-    ).rejects.toThrow("wallet");
+    const result = await applyCreditNoteDisposition(
+      cn.id,
+      orgId,
+      "store_credit"
+    );
+    expect(result.paymentId).toBeTruthy();
+
+    const loaded = await getDocumentWithLines(cn.id, orgId);
+    expect(loaded?.doc.balanceDue).toBe(0);
   });
 
   it("cash_refund settles the credit note with a negative payment", async () => {

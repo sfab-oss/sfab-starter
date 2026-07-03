@@ -100,6 +100,37 @@ export const reversePaymentSchema = z.object({
 });
 export type ReversePaymentInput = z.infer<typeof reversePaymentSchema>;
 
+// --- Wallet (§4 — customer_credit) -------------------------------------------
+
+export const depositCreditSchema = z.object({
+  entityId: z.string().nullable().optional(),
+  amount: z.number().int().min(1),
+  type: z.enum(["deposit", "overpay", "store_credit"]).default("deposit"),
+  method: z.string().optional(),
+  reference: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  paidAt: z.string().optional(),
+  idempotencyKey: z.string().nullable().optional(),
+});
+export type DepositCreditInput = z.infer<typeof depositCreditSchema>;
+
+export const redeemCreditSchema = z.object({
+  entityId: z.string().min(1),
+  documentId: z.string().min(1),
+  amount: z.number().int().min(1),
+});
+export type RedeemCreditInput = z.infer<typeof redeemCreditSchema>;
+
+export const redeemCreditByReferenceSchema = z.object({
+  reference: z.string().min(1),
+  entityId: z.string().min(1),
+  documentId: z.string().min(1),
+  amount: z.number().int().min(1),
+});
+export type RedeemCreditByReferenceInput = z.infer<
+  typeof redeemCreditByReferenceSchema
+>;
+
 export const createEntitySchema = z.object({
   name: z.string().min(1),
   type: z.enum(["customer", "supplier", "walk_in"]).default("customer"),

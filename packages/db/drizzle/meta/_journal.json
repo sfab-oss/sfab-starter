@@ -43,6 +43,13 @@
       "when": 1783109504229,
       "tag": "0005_stiff_maverick",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1783110642073,
+      "tag": "0006_zippy_jean_grey",
+      "breakpoints": true
     }
   ]
 }

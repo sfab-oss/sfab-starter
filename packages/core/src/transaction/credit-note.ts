@@ -1,12 +1,21 @@
-import { db } from "@workspace/db";
-import type { CreditNoteDisposition } from "@workspace/db/schema";
-import { documents } from "@workspace/db/schema";
+import { createId, db } from "@workspace/db";
+import type { CreditNoteDisposition, Document } from "@workspace/db/schema";
+import {
+  activityLog,
+  customerCredit,
+  documents,
+  paymentAllocations,
+  payments,
+} from "@workspace/db/schema";
 import { and, eq } from "drizzle-orm";
 import { DomainError } from "../errors";
 import { recordPayment } from "./payments";
+import { docProjectionUpdate, entityBalanceUpdate } from "./projections";
+
+type BatchStmt = Parameters<typeof db.batch>[0][number];
 
 /**
- * Credit-note disposition routing (§2, §4).
+ * Credit-note disposition routing (§2, §4, §10).
  *
  * A finalized `credit_note` is a fiscal document whose `total` is negative
  * (it reverses value). The disposition determines how the credit is consumed:
@@ -19,8 +28,9 @@ import { recordPayment } from "./payments";
  *   customer owes. Records a zero-amount "credit" payment with two allocations:
  *   one settling the credit note, one reducing the target document's balance.
  *
- * - **store_credit** — deferred to the wallet task (ALW-355). Returns a clear
- *   not-implemented error.
+ * - **store_credit** — the credit lands in the customer-credit wallet as
+ *   `saldo a favor`. Settles the credit note and writes a positive
+ *   `customer_credit` row in one atomic batch.
  *
  * @see docs/architecture/transaction-core.md §2, §4, §10
  */
@@ -36,13 +46,6 @@ export async function applyCreditNoteDisposition(
   disposition: CreditNoteDisposition,
   opts: { targetDocumentId?: string; actorId?: string } = {}
 ): Promise<CreditNoteDispositionResult> {
-  if (disposition === "store_credit") {
-    throw new DomainError(
-      "Store-credit disposition requires the customer_credit wallet (ALW-355)",
-      "unprocessable"
-    );
-  }
-
   const [cn] = await db
     .select()
     .from(documents)
@@ -66,6 +69,17 @@ export async function applyCreditNoteDisposition(
       `Credit note must be finalized before disposition (current: ${cn.status})`,
       "conflict"
     );
+  }
+
+  if (disposition === "store_credit") {
+    if (!cn.entityId) {
+      throw new DomainError(
+        "Store-credit disposition requires the credit note to have an entityId",
+        "unprocessable"
+      );
+    }
+
+    return applyStoreCreditDisposition(cn, orgId, opts);
   }
 
   if (disposition === "cash_refund") {
@@ -143,4 +157,76 @@ export async function applyCreditNoteDisposition(
   }
 
   throw new DomainError(`Unknown disposition: ${disposition}`, "unprocessable");
+}
+
+/**
+ * Store-credit disposition: settle the credit note AND write a positive
+ * `customer_credit` row (the wallet deposit) in one atomic batch.
+ *
+ * The CN's `total` is negative (e.g. −200). The allocation to the CN carries
+ * that same negative amount, settling `balanceDue` to zero. The wallet entry
+ * carries `−total` (positive), giving the entity store credit.
+ */
+async function applyStoreCreditDisposition(
+  cn: Document,
+  orgId: string,
+  opts: { actorId?: string }
+): Promise<CreditNoteDispositionResult> {
+  const entityId = cn.entityId;
+  if (!entityId) {
+    throw new DomainError(
+      "Store-credit disposition requires an entityId",
+      "unprocessable"
+    );
+  }
+
+  const now = new Date().toISOString();
+  const paymentId = createId("pmt");
+  const entryId = createId("cred");
+  const creditAmount = -cn.total;
+
+  const stmts: BatchStmt[] = [
+    db.insert(payments).values({
+      id: paymentId,
+      organizationId: orgId,
+      amount: 0,
+      method: "store_credit",
+      paidAt: now,
+      entityId,
+    }),
+    db.insert(paymentAllocations).values({
+      id: createId("alloc"),
+      organizationId: orgId,
+      paymentId,
+      documentId: cn.id,
+      amount: cn.total,
+      effectiveAt: now,
+    }),
+    db.insert(customerCredit).values({
+      id: entryId,
+      organizationId: orgId,
+      entityId,
+      amount: creditAmount,
+      type: "store_credit",
+      paymentId,
+    }),
+    docProjectionUpdate(cn.id, orgId, now, paymentId),
+    entityBalanceUpdate(entityId, orgId, now),
+  ];
+
+  await db.batch(stmts as [BatchStmt, ...BatchStmt[]]);
+
+  await db.insert(activityLog).values({
+    organizationId: orgId,
+    kind: "event",
+    eventType: "store_credit_issued",
+    entityType: "entity",
+    entityId,
+    actorId: opts.actorId ?? null,
+    summary: `Store credit from credit note: ${creditAmount}`,
+    metadata: { amount: creditAmount, creditNoteId: cn.id, entryId, paymentId },
+    createdAt: now,
+  });
+
+  return { paymentId, disposition: "store_credit" as const };
 }

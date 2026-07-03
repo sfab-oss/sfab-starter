@@ -1,5 +1,10 @@
 import { db } from "@workspace/db";
-import { documents, entities, paymentAllocations } from "@workspace/db/schema";
+import {
+  customerCredit,
+  documents,
+  entities,
+  paymentAllocations,
+} from "@workspace/db/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 
@@ -84,23 +89,37 @@ export function docProjectionUpdate(
     .where(and(eq(documents.id, docId), eq(documents.organizationId, orgId)));
 }
 
-/** Build an entity balance UPDATE statement for the batch. */
+/**
+ * Build an entity balance + credit-balance UPDATE statement for the batch.
+ *
+ * Sets both `balance` (net AR = Σ open fiscal-sales balanceDue − creditBalance)
+ * and `creditBalance` (Σ wallet entries) in a single UPDATE. Every settlement
+ * mutation that touches an entity's financial state includes this statement so
+ * the two columns never drift.
+ */
 export function entityBalanceUpdate(
   entityId: string,
   orgId: string,
   now: string
 ) {
+  const arSubquery = sql`(
+    SELECT COALESCE(SUM(balance_due), 0) FROM documents
+    WHERE entity_id = ${entityId}
+      AND organization_id = ${orgId}
+      AND family = 'fiscal'
+      AND direction = 'sales'
+      AND status = 'finalized'
+  )`;
+  const creditSubquery = sql`(
+    SELECT COALESCE(SUM(amount), 0) FROM customer_credit
+    WHERE entity_id = ${entityId}
+      AND organization_id = ${orgId}
+  )`;
   return db
     .update(entities)
     .set({
-      balance: sql`(
-        SELECT COALESCE(SUM(balance_due), 0) FROM documents
-        WHERE entity_id = ${entityId}
-          AND organization_id = ${orgId}
-          AND family = 'fiscal'
-          AND direction = 'sales'
-          AND status = 'finalized'
-      )`,
+      balance: sql`${arSubquery} - ${creditSubquery}`,
+      creditBalance: creditSubquery,
       updatedAt: now,
     })
     .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
@@ -168,6 +187,10 @@ export async function rebuildDocumentPayment(
  * Recompute an entity's AR balance from all open finalized fiscal-sales docs.
  * AP bills (direction = 'purchase') are excluded — they never poison a
  * customer's fiado balance (C2).
+ *
+ * Note: this rebuilds the raw AR sum only. The persisted `balance` column is
+ * the **net** (AR − creditBalance); use `rebuildEntityBalanceWithCredit` for
+ * the full projection, or call `rebuildCreditBalance` then this.
  */
 export async function rebuildEntityBalance(
   entityId: string,
@@ -188,12 +211,50 @@ export async function rebuildEntityBalance(
       )
     );
 
-  const balance = row?.total ?? 0;
+  const arBalance = row?.total ?? 0;
+
+  // Also rebuild credit balance so the persisted net balance is correct.
+  const creditBalance = await rebuildCreditBalance(entityId, orgId);
+
+  const netBalance = arBalance - creditBalance;
 
   await db
     .update(entities)
-    .set({ balance })
+    .set({ balance: netBalance })
     .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
 
-  return balance;
+  return netBalance;
+}
+
+/**
+ * Recompute an entity's wallet credit balance from the full customer_credit
+ * scan. Positive deposits minus negative redemptions = available credit.
+ * Also updates the `creditBalance` projection on the entity row.
+ */
+export async function rebuildCreditBalance(
+  entityId: string,
+  orgId: string
+): Promise<number> {
+  const [row] = await db
+    .select({
+      total: sql<number>`COALESCE(SUM(${customerCredit.amount}), 0)`.as(
+        "total"
+      ),
+    })
+    .from(customerCredit)
+    .where(
+      and(
+        eq(customerCredit.organizationId, orgId),
+        eq(customerCredit.entityId, entityId)
+      )
+    );
+
+  const creditBalance = row?.total ?? 0;
+
+  await db
+    .update(entities)
+    .set({ creditBalance })
+    .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
+
+  return creditBalance;
 }
