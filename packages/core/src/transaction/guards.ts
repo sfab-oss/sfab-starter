@@ -1,4 +1,5 @@
 import type { Document, DocumentFamily, LineItem } from "@workspace/db/schema";
+import { DomainError } from "../errors";
 import { documentFamily } from "./family";
 
 /**
@@ -18,14 +19,16 @@ import { documentFamily } from "./family";
  */
 export function assertCanFinalize(doc: Document): DocumentFamily {
   if (doc.status !== "draft") {
-    throw new Error(
-      `Cannot finalize document ${doc.id} from status "${doc.status}" — only draft may finalize (C5)`
+    throw new DomainError(
+      `Cannot finalize document ${doc.id} from status "${doc.status}" — only draft may finalize (C5)`,
+      "conflict"
     );
   }
   const family = documentFamily(doc.type);
   if (family !== "fiscal") {
-    throw new Error(
-      `finalize freezes fiscal records; "${doc.type}" is a ${family} document (${doc.id})`
+    throw new DomainError(
+      `finalize freezes fiscal records; "${doc.type}" is a ${family} document (${doc.id})`,
+      "unprocessable"
     );
   }
   return family;
@@ -34,7 +37,10 @@ export function assertCanFinalize(doc: Document): DocumentFamily {
 /** A document needs at least one line to finalize. */
 export function assertHasLines(lines: LineItem[], docId: string): void {
   if (lines.length === 0) {
-    throw new Error(`Cannot finalize document ${docId} with no line items`);
+    throw new DomainError(
+      `Cannot finalize document ${docId} with no line items`,
+      "unprocessable"
+    );
   }
 }
 

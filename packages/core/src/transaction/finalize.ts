@@ -6,6 +6,7 @@ import {
   sequences,
 } from "@workspace/db/schema";
 import { and, eq, sql } from "drizzle-orm";
+import { DomainError } from "../errors";
 import { assertCanFinalize, assertHasLines } from "./guards";
 import { computeDocumentTotals, type DocumentTotals } from "./totals";
 
@@ -22,7 +23,10 @@ import { computeDocumentTotals, type DocumentTotals } from "./totals";
  * D1 has no interactive transactions, so atomicity is the single batch; reads
  * happen before assembly. The folio is assigned **inside** the batch via a
  * subquery against `sequences` (read+assign+increment in one atomic unit), so
- * concurrent finalizes cannot draw a duplicate folio.
+ * concurrent finalizes cannot draw a duplicate folio. The freeze UPDATE also
+ * requires `status = 'draft'` — if a concurrent finalize wins, the loser's
+ * UPDATE matches zero rows, RETURNING is empty, and we throw a conflict. The
+ * residual cost is one burned sequence number (the bump runs unconditionally).
  *
  * @see docs/architecture/transaction-core.md §2, §5, §7
  */
@@ -45,7 +49,7 @@ export async function finalizeDocument(
       and(eq(documents.id, documentId), eq(documents.organizationId, orgId))
     );
   if (!doc) {
-    throw new Error(`Document not found: ${documentId}`);
+    throw new DomainError(`Document not found: ${documentId}`, "not_found");
   }
 
   const family = assertCanFinalize(doc);
@@ -108,7 +112,11 @@ export async function finalizeDocument(
       updatedAt: now,
     })
     .where(
-      and(eq(documents.id, documentId), eq(documents.organizationId, orgId))
+      and(
+        eq(documents.id, documentId),
+        eq(documents.organizationId, orgId),
+        eq(documents.status, "draft")
+      )
     )
     .returning({ folio: documents.folio });
 
@@ -149,8 +157,11 @@ export async function finalizeDocument(
   //    extra round-trip; the batch committed or we threw).
   const folio = frozen[0]?.folio;
   if (folio == null) {
-    throw new Error(
-      `Finalize assigned no folio for ${documentId} (should be impossible)`
+    // Empty RETURNING means the status='draft' guard didn't match — another
+    // request finalized this document between our read and the batch.
+    throw new DomainError(
+      `Document ${documentId} was already finalized (or no longer draft)`,
+      "conflict"
     );
   }
   return { documentId, folio, totals };

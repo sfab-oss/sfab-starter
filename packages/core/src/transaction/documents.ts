@@ -6,6 +6,7 @@ import { db } from "@workspace/db";
 import type { Document, DocumentType, LineItem } from "@workspace/db/schema";
 import { documents, lineItems } from "@workspace/db/schema";
 import { and, desc, eq } from "drizzle-orm";
+import { DomainError } from "../errors";
 import { documentFamily } from "./family";
 import { computeLineTax, computeLineTaxableBase } from "./totals";
 
@@ -54,11 +55,12 @@ export async function addLineItem(
       and(eq(documents.id, documentId), eq(documents.organizationId, orgId))
     );
   if (!doc) {
-    throw new Error(`Document not found: ${documentId}`);
+    throw new DomainError(`Document not found: ${documentId}`, "not_found");
   }
   if (doc.status !== "draft") {
-    throw new Error(
-      `Cannot add lines to a ${doc.status} document (${documentId})`
+    throw new DomainError(
+      `Cannot add lines to a ${doc.status} document (${documentId})`,
+      "conflict"
     );
   }
   const discount = input.discount ?? 0;
@@ -75,6 +77,8 @@ export async function addLineItem(
     unitPrice: input.unitPrice,
     quantity: input.quantity,
     discount,
+    taxMode,
+    taxRate,
   });
   const [line] = await db
     .insert(lineItems)

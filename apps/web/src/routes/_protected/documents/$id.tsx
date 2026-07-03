@@ -163,7 +163,7 @@ function DocumentPage() {
 
           {isDraft && (
             <form
-              className="grid grid-cols-1 gap-2 rounded-lg border p-4 sm:grid-cols-[1fr_auto_auto_auto]"
+              className="grid grid-cols-1 gap-2 rounded-lg border p-4 sm:grid-cols-[1fr_auto_auto_auto_auto]"
               onSubmit={handleAddLine}
             >
               <Input
@@ -198,6 +198,19 @@ function DocumentPage() {
                 placeholder="Unit price (minor)"
                 type="number"
                 value={line.unitPrice}
+              />
+              <Input
+                className="w-24"
+                min={0}
+                onChange={(e) =>
+                  setLine((s) => ({
+                    ...s,
+                    taxRate: Number(e.target.value) || 0,
+                  }))
+                }
+                placeholder="Tax (bps)"
+                type="number"
+                value={line.taxRate}
               />
               <Button type="submit">Add</Button>
             </form>

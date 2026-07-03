@@ -55,6 +55,10 @@ export const useCreateDocument = () => {
   return useMutation({
     mutationFn: async (data: z.infer<typeof createDocumentSchema>) => {
       const res = await client.protected.documents.$post({ json: data });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error || "Failed to create document");
+      }
       return (await res.json()) as Document;
     },
     onSuccess: () => {
@@ -78,6 +82,10 @@ export const useAddLineItem = () => {
         param: { id: params.id },
         json: params.data,
       });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error || "Failed to add line");
+      }
       return (await res.json()) as LineItem;
     },
     onSuccess: (_data, variables) => {

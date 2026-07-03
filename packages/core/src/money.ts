@@ -70,7 +70,7 @@ export function sum(values: readonly MoneyMinor[]): MoneyMinor {
   return total;
 }
 
-/** Round to the nearest minor unit (half away from zero). */
+/** Round to the nearest minor unit (half toward +∞). */
 export function roundMinor(value: number): MoneyMinor {
   return Math.round(value);
 }

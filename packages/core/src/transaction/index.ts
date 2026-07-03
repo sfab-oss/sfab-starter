@@ -1,3 +1,4 @@
+export { DomainError } from "../errors";
 export * from "./documents";
 export * from "./family";
 export * from "./finalize";
