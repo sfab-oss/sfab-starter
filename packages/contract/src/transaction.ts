@@ -54,7 +54,61 @@ export const createDocumentSchema = z.object({
 export type LineItemInput = z.infer<typeof lineItemInputSchema>;
 export type CreateDocumentInput = z.infer<typeof createDocumentSchema>;
 
-// Summary shape for lists / the agent (omits heavy projection + lineage cols).
+// --- Settlement (§4) ----------------------------------------------------------
+
+export const creditNoteDispositionSchema = z.enum([
+  "cash_refund",
+  "store_credit",
+  "apply_to_document",
+]);
+
+/**
+ * One allocation row: how much of a payment goes to a document. UPSERT
+ * semantics: re-allocating the same (paymentId, documentId) pair is an UPDATE
+ * under the unique index, not a second row (AC-5). `amount` is signed (negative
+ * for credit notes).
+ */
+export const paymentAllocationInputSchema = z.object({
+  documentId: z.string().min(1),
+  amount: z.number().int(),
+  effectiveAt: z.string().optional(),
+});
+
+/**
+ * A payment header + its allocations (§4). `amount` is the total tender
+ * received (non-negative for inbound HTTP; reversals carry a negative amount
+ * but are created programmatically by `reversePayment`, not via this schema).
+ * The allocation amounts should sum to `amount` (overpayment remainder goes to
+ * the wallet — deferred to ALW-355; for now the remainder is unallocated).
+ */
+export const recordPaymentSchema = z.object({
+  amount: z.number().int().min(0),
+  method: z.string().min(1),
+  paidAt: z.string().optional(),
+  reference: z.string().nullable().optional(),
+  idempotencyKey: z.string().nullable().optional(),
+  entityId: z.string().nullable().optional(),
+  allocations: z.array(paymentAllocationInputSchema).min(1),
+});
+export type PaymentAllocationInput = z.infer<
+  typeof paymentAllocationInputSchema
+>;
+export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
+
+export const reversePaymentSchema = z.object({
+  reason: z.string().optional(),
+});
+export type ReversePaymentInput = z.infer<typeof reversePaymentSchema>;
+
+export const createEntitySchema = z.object({
+  name: z.string().min(1),
+  type: z.enum(["customer", "supplier", "walk_in"]).default("customer"),
+  creditLimit: z.number().int().nullable().optional(),
+});
+export type CreateEntityInput = z.infer<typeof createEntitySchema>;
+
+// --- Summary shapes (lists / agent) -------------------------------------------
+
 export const documentListItemSchema = z.object({
   id: z.string(),
   type: documentTypeSchema,

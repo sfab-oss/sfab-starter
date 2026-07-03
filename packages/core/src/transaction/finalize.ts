@@ -2,13 +2,17 @@ import { db } from "@workspace/db";
 import {
   activityLog,
   documents,
+  entities,
   lineItems,
   sequences,
 } from "@workspace/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 import { assertCanFinalize, assertHasLines } from "./guards";
+import { derivePaymentStatus, entityBalanceUpdate } from "./projections";
 import { computeDocumentTotals, type DocumentTotals } from "./totals";
+
+type BatchItem = Parameters<typeof db.batch>[0][number];
 
 /**
  * Folio-atomic finalize — the load-bearing write of the hub (AC-9, C5).
@@ -17,10 +21,12 @@ import { computeDocumentTotals, type DocumentTotals } from "./totals";
  * tax/identity, sets the payment projection defaults, snapshots the frozen tax
  * context into `metadata.tax`, and writes the `document_finalized` event.
  *
- * **Atomicity:** the batch `[ensureSeq, freezeDoc, bumpSeq]` is the atomic
- * folio-assignment unit — it commits or rolls back together. The event row is
- * written *after* the batch commits and the folio is verified, so a losing
- * concurrent finalize never produces a phantom `document_finalized` event.
+ * **Atomicity:** the batch `[ensureSeq, freezeDoc, bumpSeq, entityBalance?]`
+ * is the atomic folio-assignment unit — it commits or rolls back together.
+ * The entity balance update rides in the same batch so the credit-limit check
+ * on the next finalize never sees a stale AR balance. The event row is written
+ * after the batch commits and the folio is verified, so a losing concurrent
+ * finalize never produces a phantom `document_finalized` event.
  *
  * D1 has no interactive transactions. The folio is assigned **inside** the
  * batch via a subquery against `sequences` (read+assign+increment in one atomic
@@ -41,7 +47,7 @@ export interface FinalizeResult {
 export async function finalizeDocument(
   documentId: string,
   orgId: string,
-  opts: { actorId?: string } = {}
+  opts: { actorId?: string; bypassCreditLimit?: boolean } = {}
 ): Promise<FinalizeResult> {
   // 1. READ (before batch assembly).
   const [doc] = await db
@@ -70,6 +76,14 @@ export async function finalizeDocument(
 
   // 2. COMPUTE totals — round per line; header = exact Σ (§3).
   const totals = computeDocumentTotals(lines);
+
+  // Credit-limit enforcement (§8): if this is a sales-fiscal doc with an
+  // entity that has a creditLimit, check the projected AR balance after this
+  // document's total lands. The `credit:bypass` RBAC key lets an admin
+  // override (the route layer checks can("credit:bypass") and passes the flag).
+  if (doc.direction === "sales" && doc.entityId && !opts.bypassCreditLimit) {
+    await assertWithinCreditLimit(doc.entityId, orgId, totals.total);
+  }
 
   const now = new Date().toISOString();
   const postingDate = doc.postingDate ?? now;
@@ -108,6 +122,7 @@ export async function finalizeDocument(
       taxTotal: totals.taxTotal, // excludes withholdings
       total: totals.total,
       balanceDue: totals.total, // projection default: no payments yet
+      paymentStatus: derivePaymentStatus(0, totals.total),
       issuedAt: doc.issuedAt ?? now,
       postingDate,
       metadata,
@@ -129,7 +144,20 @@ export async function finalizeDocument(
 
   // SEAM marker: a pack (ALW-350) appends critical statements (e.g. the stock
   // decrement) into this array so they commit or roll back WITH the finalize.
-  const [, frozen] = await db.batch([ensureSeq, freezeDoc, bumpSeq]);
+  const batchStmts: BatchItem[] = [ensureSeq, freezeDoc, bumpSeq];
+
+  // (d) Update the entity's AR balance so the credit-limit check (§8) on the
+  //     NEXT finalize sees this document. Inside the batch (not post-batch):
+  //     the freeze UPDATE that sets balanceDue precedes this statement, and
+  //     batch statements see each other's effects, so the subquery SUMs the
+  //     newly frozen balanceDue. Eliminates the post-batch crash window where
+  //     entity.balance could go stale — a stale balance is exactly what the
+  //     credit-limit check trusts.
+  if (doc.entityId) {
+    batchStmts.push(entityBalanceUpdate(doc.entityId, orgId, now));
+  }
+
+  const [, frozen] = await db.batch(batchStmts as [BatchItem, ...BatchItem[]]);
 
   // 4. Verify the freeze won — empty RETURNING means a concurrent finalize
   //    beat us (the status='draft' guard didn't match).
@@ -162,4 +190,31 @@ export async function finalizeDocument(
   });
 
   return { documentId, folio, totals };
+}
+
+/**
+ * Check that finalizing a document with `additionalAmount` won't push the
+ * entity's AR balance over their creditLimit (§8). Throws a `conflict`
+ * DomainError if exceeded. No-op if the entity has no creditLimit.
+ */
+async function assertWithinCreditLimit(
+  entityId: string,
+  orgId: string,
+  additionalAmount: number
+): Promise<void> {
+  const [entity] = await db
+    .select()
+    .from(entities)
+    .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
+  if (!entity || entity.creditLimit == null) {
+    return;
+  }
+
+  const projectedBalance = entity.balance + additionalAmount;
+  if (projectedBalance > entity.creditLimit) {
+    throw new DomainError(
+      `Credit limit exceeded for "${entity.name}": projected balance ${projectedBalance} exceeds limit ${entity.creditLimit}`,
+      "conflict"
+    );
+  }
 }
