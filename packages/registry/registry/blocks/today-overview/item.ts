@@ -6,7 +6,7 @@ const def: RegistryItemDef = {
     type: "registry:block",
     title: "Today overview",
     description:
-      "Operator home — primary actions, honest KPI tiles, action items, and a capped inventory movements feed.",
+      "Operator home — primary actions, honest KPI tiles, and action items.",
     registryDependencies: ["button", "sidebar"],
     meta: { sfabKind: "block", iframeHeight: 900 },
     files: [
@@ -31,19 +31,9 @@ const def: RegistryItemDef = {
         target: "src/features/today/components/today-action-items.tsx",
       },
       {
-        path: "components/inventory-movements-feed.tsx",
-        type: "registry:component",
-        target: "src/features/today/components/inventory-movements-feed.tsx",
-      },
-      {
         path: "lib/mock-today-metrics.ts",
         type: "registry:lib",
         target: "src/features/today/lib/mock-today-metrics.ts",
-      },
-      {
-        path: "lib/mock-inventory-movements.ts",
-        type: "registry:lib",
-        target: "src/features/today/lib/mock-inventory-movements.ts",
       },
       {
         path: "lib/fetch-today-overview.ts",

@@ -31,15 +31,17 @@ export const timestamps = {
   updatedAt,
 };
 
-// Float-backed numeric — production currency may want integer cents or a decimal library.
-export const money = customType<{ data: number; driverData: string }>({
+// Integer minor units — the smallest currency unit (cents, centavos). Replaces
+// the float `numeric → number` placeholder per ADR-006; floats never touch money.
+// Math lives in `@workspace/core/money`; formatting in `@workspace/ui/lib/money`.
+export const moneyMinor = customType<{ data: number; driverData: number }>({
   dataType() {
-    return "numeric";
+    return "integer";
   },
   fromDriver(value) {
     return Number(value);
   },
   toDriver(value) {
-    return String(value);
+    return value;
   },
 });

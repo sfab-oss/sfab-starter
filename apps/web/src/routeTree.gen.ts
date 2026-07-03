@@ -15,12 +15,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
 import { Route as AcceptInvitationIdRouteImport } from './routes/accept-invitation.$id'
-import { Route as ProtectedWarehouseSetupRouteImport } from './routes/_protected/warehouse-setup'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
-import { Route as ProtectedInventoryIndexRouteImport } from './routes/_protected/inventory/index'
-import { Route as ProtectedInventoryIdRouteImport } from './routes/_protected/inventory/$id'
-import { Route as ProtectedInventoryWarehousesIndexRouteImport } from './routes/_protected/inventory/warehouses/index'
-import { Route as ProtectedInventoryWarehousesIdRouteImport } from './routes/_protected/inventory/warehouses/$id'
+import { Route as ProtectedDocumentsIndexRouteImport } from './routes/_protected/documents/index'
+import { Route as ProtectedCatalogIndexRouteImport } from './routes/_protected/catalog/index'
+import { Route as ProtectedDocumentsIdRouteImport } from './routes/_protected/documents/$id'
+import { Route as ProtectedCatalogIdRouteImport } from './routes/_protected/catalog/$id'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -51,38 +50,31 @@ const AcceptInvitationIdRoute = AcceptInvitationIdRouteImport.update({
   path: '/accept-invitation/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProtectedWarehouseSetupRoute = ProtectedWarehouseSetupRouteImport.update({
-  id: '/warehouse-setup',
-  path: '/warehouse-setup',
-  getParentRoute: () => ProtectedRoute,
-} as any)
 const ProtectedSettingsRoute = ProtectedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ProtectedInventoryIndexRoute = ProtectedInventoryIndexRouteImport.update({
-  id: '/inventory/',
-  path: '/inventory/',
+const ProtectedDocumentsIndexRoute = ProtectedDocumentsIndexRouteImport.update({
+  id: '/documents/',
+  path: '/documents/',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ProtectedInventoryIdRoute = ProtectedInventoryIdRouteImport.update({
-  id: '/inventory/$id',
-  path: '/inventory/$id',
+const ProtectedCatalogIndexRoute = ProtectedCatalogIndexRouteImport.update({
+  id: '/catalog/',
+  path: '/catalog/',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ProtectedInventoryWarehousesIndexRoute =
-  ProtectedInventoryWarehousesIndexRouteImport.update({
-    id: '/inventory/warehouses/',
-    path: '/inventory/warehouses/',
-    getParentRoute: () => ProtectedRoute,
-  } as any)
-const ProtectedInventoryWarehousesIdRoute =
-  ProtectedInventoryWarehousesIdRouteImport.update({
-    id: '/inventory/warehouses/$id',
-    path: '/inventory/warehouses/$id',
-    getParentRoute: () => ProtectedRoute,
-  } as any)
+const ProtectedDocumentsIdRoute = ProtectedDocumentsIdRouteImport.update({
+  id: '/documents/$id',
+  path: '/documents/$id',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedCatalogIdRoute = ProtectedCatalogIdRouteImport.update({
+  id: '/catalog/$id',
+  path: '/catalog/$id',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ProtectedIndexRoute
@@ -90,25 +82,23 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/settings': typeof ProtectedSettingsRoute
-  '/warehouse-setup': typeof ProtectedWarehouseSetupRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
-  '/inventory/$id': typeof ProtectedInventoryIdRoute
-  '/inventory/': typeof ProtectedInventoryIndexRoute
-  '/inventory/warehouses/$id': typeof ProtectedInventoryWarehousesIdRoute
-  '/inventory/warehouses/': typeof ProtectedInventoryWarehousesIndexRoute
+  '/catalog/$id': typeof ProtectedCatalogIdRoute
+  '/documents/$id': typeof ProtectedDocumentsIdRoute
+  '/catalog/': typeof ProtectedCatalogIndexRoute
+  '/documents/': typeof ProtectedDocumentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/settings': typeof ProtectedSettingsRoute
-  '/warehouse-setup': typeof ProtectedWarehouseSetupRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/': typeof ProtectedIndexRoute
-  '/inventory/$id': typeof ProtectedInventoryIdRoute
-  '/inventory': typeof ProtectedInventoryIndexRoute
-  '/inventory/warehouses/$id': typeof ProtectedInventoryWarehousesIdRoute
-  '/inventory/warehouses': typeof ProtectedInventoryWarehousesIndexRoute
+  '/catalog/$id': typeof ProtectedCatalogIdRoute
+  '/documents/$id': typeof ProtectedDocumentsIdRoute
+  '/catalog': typeof ProtectedCatalogIndexRoute
+  '/documents': typeof ProtectedDocumentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -117,13 +107,12 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
-  '/_protected/warehouse-setup': typeof ProtectedWarehouseSetupRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/_protected/': typeof ProtectedIndexRoute
-  '/_protected/inventory/$id': typeof ProtectedInventoryIdRoute
-  '/_protected/inventory/': typeof ProtectedInventoryIndexRoute
-  '/_protected/inventory/warehouses/$id': typeof ProtectedInventoryWarehousesIdRoute
-  '/_protected/inventory/warehouses/': typeof ProtectedInventoryWarehousesIndexRoute
+  '/_protected/catalog/$id': typeof ProtectedCatalogIdRoute
+  '/_protected/documents/$id': typeof ProtectedDocumentsIdRoute
+  '/_protected/catalog/': typeof ProtectedCatalogIndexRoute
+  '/_protected/documents/': typeof ProtectedDocumentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -133,25 +122,23 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/settings'
-    | '/warehouse-setup'
     | '/accept-invitation/$id'
-    | '/inventory/$id'
-    | '/inventory/'
-    | '/inventory/warehouses/$id'
-    | '/inventory/warehouses/'
+    | '/catalog/$id'
+    | '/documents/$id'
+    | '/catalog/'
+    | '/documents/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/onboarding'
     | '/signup'
     | '/settings'
-    | '/warehouse-setup'
     | '/accept-invitation/$id'
     | '/'
-    | '/inventory/$id'
-    | '/inventory'
-    | '/inventory/warehouses/$id'
-    | '/inventory/warehouses'
+    | '/catalog/$id'
+    | '/documents/$id'
+    | '/catalog'
+    | '/documents'
   id:
     | '__root__'
     | '/_protected'
@@ -159,13 +146,12 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/_protected/settings'
-    | '/_protected/warehouse-setup'
     | '/accept-invitation/$id'
     | '/_protected/'
-    | '/_protected/inventory/$id'
-    | '/_protected/inventory/'
-    | '/_protected/inventory/warehouses/$id'
-    | '/_protected/inventory/warehouses/'
+    | '/_protected/catalog/$id'
+    | '/_protected/documents/$id'
+    | '/_protected/catalog/'
+    | '/_protected/documents/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -220,13 +206,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcceptInvitationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_protected/warehouse-setup': {
-      id: '/_protected/warehouse-setup'
-      path: '/warehouse-setup'
-      fullPath: '/warehouse-setup'
-      preLoaderRoute: typeof ProtectedWarehouseSetupRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
     '/_protected/settings': {
       id: '/_protected/settings'
       path: '/settings'
@@ -234,32 +213,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedSettingsRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/inventory/': {
-      id: '/_protected/inventory/'
-      path: '/inventory'
-      fullPath: '/inventory/'
-      preLoaderRoute: typeof ProtectedInventoryIndexRouteImport
+    '/_protected/documents/': {
+      id: '/_protected/documents/'
+      path: '/documents'
+      fullPath: '/documents/'
+      preLoaderRoute: typeof ProtectedDocumentsIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/inventory/$id': {
-      id: '/_protected/inventory/$id'
-      path: '/inventory/$id'
-      fullPath: '/inventory/$id'
-      preLoaderRoute: typeof ProtectedInventoryIdRouteImport
+    '/_protected/catalog/': {
+      id: '/_protected/catalog/'
+      path: '/catalog'
+      fullPath: '/catalog/'
+      preLoaderRoute: typeof ProtectedCatalogIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/inventory/warehouses/': {
-      id: '/_protected/inventory/warehouses/'
-      path: '/inventory/warehouses'
-      fullPath: '/inventory/warehouses/'
-      preLoaderRoute: typeof ProtectedInventoryWarehousesIndexRouteImport
+    '/_protected/documents/$id': {
+      id: '/_protected/documents/$id'
+      path: '/documents/$id'
+      fullPath: '/documents/$id'
+      preLoaderRoute: typeof ProtectedDocumentsIdRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/inventory/warehouses/$id': {
-      id: '/_protected/inventory/warehouses/$id'
-      path: '/inventory/warehouses/$id'
-      fullPath: '/inventory/warehouses/$id'
-      preLoaderRoute: typeof ProtectedInventoryWarehousesIdRouteImport
+    '/_protected/catalog/$id': {
+      id: '/_protected/catalog/$id'
+      path: '/catalog/$id'
+      fullPath: '/catalog/$id'
+      preLoaderRoute: typeof ProtectedCatalogIdRouteImport
       parentRoute: typeof ProtectedRoute
     }
   }
@@ -267,23 +246,20 @@ declare module '@tanstack/react-router' {
 
 interface ProtectedRouteChildren {
   ProtectedSettingsRoute: typeof ProtectedSettingsRoute
-  ProtectedWarehouseSetupRoute: typeof ProtectedWarehouseSetupRoute
   ProtectedIndexRoute: typeof ProtectedIndexRoute
-  ProtectedInventoryIdRoute: typeof ProtectedInventoryIdRoute
-  ProtectedInventoryIndexRoute: typeof ProtectedInventoryIndexRoute
-  ProtectedInventoryWarehousesIdRoute: typeof ProtectedInventoryWarehousesIdRoute
-  ProtectedInventoryWarehousesIndexRoute: typeof ProtectedInventoryWarehousesIndexRoute
+  ProtectedCatalogIdRoute: typeof ProtectedCatalogIdRoute
+  ProtectedDocumentsIdRoute: typeof ProtectedDocumentsIdRoute
+  ProtectedCatalogIndexRoute: typeof ProtectedCatalogIndexRoute
+  ProtectedDocumentsIndexRoute: typeof ProtectedDocumentsIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedSettingsRoute: ProtectedSettingsRoute,
-  ProtectedWarehouseSetupRoute: ProtectedWarehouseSetupRoute,
   ProtectedIndexRoute: ProtectedIndexRoute,
-  ProtectedInventoryIdRoute: ProtectedInventoryIdRoute,
-  ProtectedInventoryIndexRoute: ProtectedInventoryIndexRoute,
-  ProtectedInventoryWarehousesIdRoute: ProtectedInventoryWarehousesIdRoute,
-  ProtectedInventoryWarehousesIndexRoute:
-    ProtectedInventoryWarehousesIndexRoute,
+  ProtectedCatalogIdRoute: ProtectedCatalogIdRoute,
+  ProtectedDocumentsIdRoute: ProtectedDocumentsIdRoute,
+  ProtectedCatalogIndexRoute: ProtectedCatalogIndexRoute,
+  ProtectedDocumentsIndexRoute: ProtectedDocumentsIndexRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(

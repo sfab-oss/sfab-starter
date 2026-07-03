@@ -4,16 +4,15 @@ import { createTestSessionWithOrg } from "../helpers/auth";
 
 let cookie: string;
 
-const PRODUCTS_API = "http://localhost/api/protected/inventory/products";
-const WAREHOUSES_API = "http://localhost/api/protected/inventory/warehouses";
-const SEARCH_API = "http://localhost/api/protected/inventory/search";
+const PRODUCTS_API = "http://localhost/api/protected/catalog/products";
+const SEARCH_API = "http://localhost/api/protected/catalog/search";
 
 beforeEach(async () => {
   const session = await createTestSessionWithOrg();
   cookie = session.cookie;
 });
 
-describe("GET /api/protected/inventory/search", () => {
+describe("GET /api/protected/catalog/search", () => {
   it("returns empty results for empty query", async () => {
     const res = await SELF.fetch(SEARCH_API, {
       headers: { Cookie: cookie },
@@ -57,48 +56,6 @@ describe("GET /api/protected/inventory/search", () => {
     };
     expect(data.results).toHaveLength(1);
     expect(data.results[0].metadata.sku).toBe("UNIQUE-SKU-123");
-  });
-
-  it("finds warehouses by name", async () => {
-    await SELF.fetch(WAREHOUSES_API, {
-      method: "POST",
-      headers: { Cookie: cookie, "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Downtown Depot", isDefault: false }),
-    });
-
-    const res = await SELF.fetch(`${SEARCH_API}?q=Downtown`, {
-      headers: { Cookie: cookie },
-    });
-    const data = (await res.json()) as {
-      results: { metadata: { type: string; title: string } }[];
-    };
-    expect(data.results).toHaveLength(1);
-    expect(data.results[0].metadata.type).toBe("warehouse");
-    expect(data.results[0].metadata.title).toBe("Downtown Depot");
-  });
-
-  it("returns both products and warehouses in results", async () => {
-    await SELF.fetch(PRODUCTS_API, {
-      method: "POST",
-      headers: { Cookie: cookie, "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Alpha Item", sku: "AI-001" }),
-    });
-    await SELF.fetch(WAREHOUSES_API, {
-      method: "POST",
-      headers: { Cookie: cookie, "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Alpha Storage", isDefault: false }),
-    });
-
-    const res = await SELF.fetch(`${SEARCH_API}?q=Alpha`, {
-      headers: { Cookie: cookie },
-    });
-    const data = (await res.json()) as {
-      results: { metadata: { type: string } }[];
-    };
-    expect(data.results).toHaveLength(2);
-    const types = data.results.map((r) => r.metadata.type);
-    expect(types).toContain("product");
-    expect(types).toContain("warehouse");
   });
 
   it("returns no results for unmatched query", async () => {

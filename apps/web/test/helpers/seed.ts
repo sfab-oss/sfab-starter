@@ -54,27 +54,10 @@ export async function seedProduct(
       organizationId: orgId,
       sku: `SKU-${crypto.randomUUID().slice(0, 8)}`,
       name: "Test Product",
-      price: "19.99",
+      price: 1999,
       minStockLevel: 10,
       ...overrides,
     })
     .returning();
   return product;
-}
-
-export async function seedWarehouse(
-  orgId: string,
-  overrides?: Partial<typeof schema.warehouses.$inferInsert>
-) {
-  const [warehouse] = await db
-    .insert(schema.warehouses)
-    .values({
-      organizationId: orgId,
-      name: "Test Warehouse",
-      location: "Test Location",
-      isDefault: false,
-      ...overrides,
-    })
-    .returning();
-  return warehouse;
 }

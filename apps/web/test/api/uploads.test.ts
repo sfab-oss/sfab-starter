@@ -9,7 +9,7 @@ beforeEach(async () => {
   cookie = session.cookie;
 });
 
-const API = "http://localhost/api/protected/inventory/uploads";
+const API = "http://localhost/api/protected/catalog/uploads";
 const JPG_EXT_PATTERN = /\.jpg$/;
 
 function createTestFile(name: string, type: string, sizeBytes = 100): File {
@@ -27,7 +27,7 @@ function uploadRequest(file: File, authCookie: string) {
   });
 }
 
-describe("POST /api/protected/inventory/uploads", () => {
+describe("POST /api/protected/catalog/uploads", () => {
   it("uploads a file and returns a key", async () => {
     const file = createTestFile("photo.jpg", "image/jpeg");
     const res = await uploadRequest(file, cookie);
@@ -91,7 +91,7 @@ describe("POST /api/protected/inventory/uploads", () => {
   });
 });
 
-describe("GET /api/protected/inventory/uploads/:key", () => {
+describe("GET /api/protected/catalog/uploads/:key", () => {
   it("serves an uploaded file", async () => {
     const file = createTestFile("photo.jpg", "image/jpeg", 150);
     const uploadRes = await uploadRequest(file, cookie);
@@ -146,7 +146,7 @@ describe("GET /api/protected/inventory/uploads/:key", () => {
   });
 });
 
-describe("DELETE /api/protected/inventory/uploads/:key", () => {
+describe("DELETE /api/protected/catalog/uploads/:key", () => {
   it("deletes an uploaded file", async () => {
     const file = createTestFile("delete-me.jpg", "image/jpeg");
     const uploadRes = await uploadRequest(file, cookie);

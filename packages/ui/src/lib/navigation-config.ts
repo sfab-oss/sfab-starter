@@ -32,7 +32,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: FileText,
     comingSoon: true,
   },
-  { id: "inventory", label: "Inventory", path: "/inventory", icon: Package },
+  { id: "catalog", label: "Catalog", path: "/catalog", icon: Package },
   { id: "people", label: "People", path: "/people", icon: Users },
   {
     id: "documents",

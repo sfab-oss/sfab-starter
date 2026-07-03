@@ -3,7 +3,6 @@ import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import type { ComponentType } from "react";
 import { MemoryDisplay } from "./memory-display";
 import { ProductListDisplay } from "./product-list";
-import { WarehouseListDisplay } from "./warehouse-list";
 
 export interface ToolRenderProps {
   part: ToolUIPart | DynamicToolUIPart;
@@ -11,7 +10,6 @@ export interface ToolRenderProps {
 
 export const TOOL_RENDERERS: Record<string, ComponentType<ToolRenderProps>> = {
   [DISPLAY_TOOL_NAMES.PRODUCT_LIST]: ProductListDisplay,
-  [DISPLAY_TOOL_NAMES.WAREHOUSE_LIST]: WarehouseListDisplay,
   [DISPLAY_TOOL_NAMES.MEMORY]: MemoryDisplay,
 };
 

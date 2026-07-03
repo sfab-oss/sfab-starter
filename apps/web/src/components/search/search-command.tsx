@@ -14,14 +14,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@workspace/ui/components/shadcn/dialog";
-import {
-  CornerDownLeft,
-  Home,
-  Loader2,
-  Package,
-  Settings,
-  Warehouse,
-} from "lucide-react";
+import { CornerDownLeft, Home, Loader2, Package, Settings } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -40,16 +33,10 @@ const availablePages: SearchResult[] = [
     icon: Home,
   },
   {
-    id: "inventory",
-    title: "Inventory",
-    path: "/inventory",
+    id: "catalog",
+    title: "Catalog",
+    path: "/catalog",
     icon: Package,
-  },
-  {
-    id: "warehouses",
-    title: "Warehouses",
-    path: "/inventory/warehouses",
-    icon: Warehouse,
   },
   {
     id: "settings",

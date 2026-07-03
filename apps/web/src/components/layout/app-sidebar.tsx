@@ -15,12 +15,12 @@ import {
   SidebarTrigger,
 } from "@workspace/ui/components/shadcn/sidebar";
 import {
+  FileText,
   Home,
   type LucideIcon,
   Package,
   Search,
   Settings,
-  Warehouse,
 } from "lucide-react";
 import { useState } from "react";
 import { AppSidebarFooter } from "@/components/layout/app-sidebar-footer";
@@ -39,14 +39,14 @@ const mainNavigationItems: NavigationItem[] = [
     icon: Home,
   },
   {
-    title: "Inventory",
-    url: "/inventory",
+    title: "Catalog",
+    url: "/catalog",
     icon: Package,
   },
   {
-    title: "Warehouses",
-    url: "/inventory/warehouses",
-    icon: Warehouse,
+    title: "Documents",
+    url: "/documents",
+    icon: FileText,
   },
   {
     title: "Settings",

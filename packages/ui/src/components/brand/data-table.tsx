@@ -339,7 +339,7 @@ interface DataTableProps<TData, TValue> {
   sorting?: SortingState;
   onSortingChange?: OnChangeFn<SortingState>;
 
-  /** Legacy single-column search input (inventory tables). */
+  /** Legacy single-column search input (catalog tables). */
   filterValue?: string;
   onFilterChange?: (value: string) => void;
   filterPlaceholder?: string;

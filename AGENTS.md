@@ -36,8 +36,8 @@ Run from the **monorepo root** (not inside a package):
   Inbound is defined once in `contract`; outbound is inferred from `core`. → [ADR-004](docs/decisions/004-schema-sources-and-boundary-types.md)
 - **Naming = role over technology** (`db` not `db-d1`, `contract` not `types`,
   `env` not `cloudflare-env`); scope stays `@workspace/*`.
-- **Timestamps are ISO `text`** for domain tables; money is a numeric → `number`
-  customType.
+- **Timestamps are ISO `text`** for domain tables; money is integer minor units
+  (`moneyMinor` customType + `core/money` math; floats never touch money — ADR-006).
 - **Boundaries are mechanical** — the `package.json` dep graph + the
   `cloudflare:workers`/server-only import guard make illegal cross-layer imports
   fail on their own. Don't add a wiring file; `import { db } from "@workspace/db"`.

@@ -1,12 +1,8 @@
-import type {
-  CreateMovement,
-  CreateProduct,
-  UpdateProduct,
-} from "@workspace/contract/catalog";
+import type { CreateProduct, UpdateProduct } from "@workspace/contract/catalog";
 import type { PaginationQuery } from "@workspace/contract/pagination";
 import { db } from "@workspace/db";
-import { movements, products, stockLevels } from "@workspace/db/schema";
-import { and, asc, desc, eq, gte, like, or, sql } from "drizzle-orm";
+import { products } from "@workspace/db/schema";
+import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import {
   buildPaginatedResponse,
   getPaginationOffsetLimit,
@@ -24,9 +20,6 @@ const productSelectFields = {
   imageUrl: products.imageUrl,
   createdAt: products.createdAt,
   updatedAt: products.updatedAt,
-  totalStock: sql<number>`coalesce(sum(${stockLevels.quantity}), 0)`.mapWith(
-    Number
-  ),
 };
 
 const productSortColumns = {
@@ -56,11 +49,8 @@ export const getPaginatedProducts = async (
   const whereClause = and(...conditions);
 
   const countResult = await db
-    .select({
-      total: sql<number>`count(DISTINCT ${products.id})`.mapWith(Number),
-    })
+    .select({ total: sql<number>`count(*)`.mapWith(Number) })
     .from(products)
-    .leftJoin(stockLevels, eq(products.id, stockLevels.productId))
     .where(whereClause);
   const total = countResult[0]?.total ?? 0;
 
@@ -68,21 +58,14 @@ export const getPaginatedProducts = async (
     params.sortBy && params.sortBy in productSortColumns
       ? productSortColumns[params.sortBy as keyof typeof productSortColumns]
       : null;
-  const totalStockExpr = sql<number>`coalesce(sum(${stockLevels.quantity}), 0)`;
   const dirFn = params.sortOrder === "desc" ? desc : asc;
-  const sortTarget =
-    params.sortBy === "totalStock"
-      ? totalStockExpr
-      : sortColumn || products.name;
-  const orderByClause = dirFn(sortTarget);
+  const sortTarget = sortColumn ?? products.name;
 
   const data = await db
     .select(productSelectFields)
     .from(products)
-    .leftJoin(stockLevels, eq(products.id, stockLevels.productId))
     .where(whereClause)
-    .groupBy(products.id)
-    .orderBy(orderByClause)
+    .orderBy(dirFn(sortTarget))
     .limit(limit)
     .offset(offset);
 
@@ -93,18 +76,14 @@ export const getProducts = async (orgId: string) => {
   return await db
     .select(productSelectFields)
     .from(products)
-    .leftJoin(stockLevels, eq(products.id, stockLevels.productId))
-    .where(eq(products.organizationId, orgId))
-    .groupBy(products.id);
+    .where(eq(products.organizationId, orgId));
 };
 
 export const getProduct = async (id: string, orgId: string) => {
   const [product] = await db
     .select(productSelectFields)
     .from(products)
-    .leftJoin(stockLevels, eq(products.id, stockLevels.productId))
-    .where(and(eq(products.id, id), eq(products.organizationId, orgId)))
-    .groupBy(products.id);
+    .where(and(eq(products.id, id), eq(products.organizationId, orgId)));
 
   return product;
 };
@@ -144,84 +123,4 @@ export const deleteProduct = async (id: string, orgId: string) => {
     .where(and(eq(products.id, id), eq(products.organizationId, orgId)))
     .returning();
   return deleted;
-};
-
-export const getProductMovements = async (productId: string, orgId: string) => {
-  return await db
-    .select()
-    .from(movements)
-    .where(
-      and(
-        eq(movements.productId, productId),
-        eq(movements.organizationId, orgId)
-      )
-    )
-    .orderBy(movements.createdAt);
-};
-
-export const getDashboardMetrics = async (orgId: string) => {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  const recentMovements = await db
-    .select({
-      date: sql<string>`DATE(${movements.createdAt})`,
-      type: movements.type,
-      quantity: movements.quantity,
-    })
-    .from(movements)
-    .where(
-      and(
-        eq(movements.organizationId, orgId),
-        gte(movements.createdAt, thirtyDaysAgo.toISOString()),
-        sql`${movements.type} IN ('IN', 'OUT')`
-      )
-    );
-
-  const activeProducts = await getProducts(orgId);
-
-  return {
-    recentMovements,
-    activeProducts,
-  };
-};
-
-export const performStockMovement = async (
-  data: CreateMovement & { orgId: string }
-) => {
-  await db.insert(movements).values({
-    organizationId: data.orgId,
-    productId: data.productId,
-    type: data.type,
-    quantity: data.quantity,
-    fromWarehouseId: data.fromWarehouseId,
-    toWarehouseId: data.toWarehouseId,
-    notes: data.notes,
-  });
-
-  if (data.toWarehouseId) {
-    await db
-      .insert(stockLevels)
-      .values({
-        productId: data.productId,
-        warehouseId: data.toWarehouseId,
-        quantity: data.quantity,
-      })
-      .onConflictDoUpdate({
-        target: [stockLevels.productId, stockLevels.warehouseId],
-        set: { quantity: sql`${stockLevels.quantity} + ${data.quantity}` },
-      });
-  }
-
-  if (data.fromWarehouseId) {
-    await db
-      .update(stockLevels)
-      .set({ quantity: sql`${stockLevels.quantity} - ${data.quantity}` })
-      .where(
-        and(
-          eq(stockLevels.productId, data.productId),
-          eq(stockLevels.warehouseId, data.fromWarehouseId)
-        )
-      );
-  }
 };

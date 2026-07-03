@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { aiOptional } from "../utils";
 
 const selectProductSchema = z.object({
   id: z.string(),
@@ -7,17 +6,15 @@ const selectProductSchema = z.object({
   sku: z.string(),
   name: z.string(),
   description: z.string().nullable(),
-  price: z.number().nullable(),
-  cost: z.number().nullable(),
+  price: z.number().int().nullable(),
+  cost: z.number().int().nullable(),
   minStockLevel: z.number().nullable(),
   imageUrl: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 
-export const productSchema = selectProductSchema.extend({
-  totalStock: z.number(),
-});
+export const productSchema = selectProductSchema;
 
 export type Product = z.infer<typeof productSchema>;
 
@@ -26,7 +23,7 @@ export const productsListSchema = z.array(productSchema);
 export const createProductSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   sku: z.string().min(2, "SKU must be at least 2 characters"),
-  price: z.coerce.number().min(0, "Price must be positive").optional(),
+  price: z.coerce.number().int().min(0, "Price must be positive").optional(),
   description: z.string().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
   minStockLevel: z.coerce
@@ -39,7 +36,7 @@ export const createProductSchema = z.object({
 export const updateProductSchema = z.object({
   name: z.string().min(2).optional(),
   sku: z.string().min(2).optional(),
-  price: z.coerce.number().min(0).optional(),
+  price: z.coerce.number().int().min(0).optional(),
   description: z.string().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
   minStockLevel: z.coerce.number().min(0).optional(),
@@ -48,6 +45,8 @@ export const updateProductSchema = z.object({
 export type CreateProduct = z.infer<typeof createProductSchema>;
 export type UpdateProduct = z.infer<typeof updateProductSchema>;
 
+// Form schema: price stays in major units (what the user types); the UI converts
+// major -> minor at the submit boundary (@workspace/ui/lib/money).
 export const productFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   sku: z.string().min(2, "SKU must be at least 2 characters"),
@@ -56,46 +55,3 @@ export const productFormSchema = z.object({
   description: z.string().nullable(),
   imageUrl: z.string().nullable(),
 });
-
-export const createMovementSchema = z.object({
-  productId: z.string().describe("The ID of the product being moved"),
-  type: z
-    .enum(["IN", "OUT", "TRANSFER", "ADJUSTMENT"])
-    .describe(
-      "The type of movement. IN (restock), OUT (sales/removal), TRANSFER (between warehouses), ADJUSTMENT (stock correction)."
-    ),
-  quantity: z.coerce
-    .number()
-    .min(1)
-    .describe("The quantity of items moved. Must be positive."),
-  fromWarehouseId: aiOptional(z.string()).describe(
-    "The source warehouse ID. Required for TRANSFER and OUT movements. Optional for ADJUSTMENT when decreasing stock."
-  ),
-  toWarehouseId: aiOptional(z.string()).describe(
-    "The destination warehouse ID. Required for TRANSFER and IN movements. Optional for ADJUSTMENT when increasing stock."
-  ),
-  notes: aiOptional(z.string()).describe(
-    "Optional notes details about the movement"
-  ),
-});
-
-export const movementFormSchema = createMovementSchema
-  .omit({ productId: true })
-  .extend({
-    quantity: z.number().min(1, "Quantity must be at least 1"),
-  });
-
-export const movementSchema = z.object({
-  type: z.enum(["IN", "OUT", "TRANSFER", "ADJUSTMENT"]),
-  id: z.string(),
-  createdAt: z.string(),
-  organizationId: z.string(),
-  productId: z.string(),
-  quantity: z.number(),
-  fromWarehouseId: z.string().nullable(),
-  toWarehouseId: z.string().nullable(),
-  notes: z.string().nullable(),
-});
-
-export type Movement = z.infer<typeof movementSchema>;
-export type CreateMovement = z.infer<typeof createMovementSchema>;

@@ -4,6 +4,7 @@
   "private": true,
   "exports": {
     "./catalog": "./src/catalog/index.ts",
+    "./transaction": "./src/transaction/index.ts",
     "./*": "./src/*.ts"
   },
   "scripts": {

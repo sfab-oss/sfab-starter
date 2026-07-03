@@ -1,10 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  seedOrganization,
-  seedProduct,
-  seedUser,
-  seedWarehouse,
-} from "../helpers/seed";
+import { seedOrganization, seedProduct, seedUser } from "../helpers/seed";
 
 let orgId: string;
 
@@ -42,34 +37,6 @@ describe("getProducts", () => {
     const products = await getProducts(orgId);
     expect(products).toHaveLength(1);
     expect(products[0].name).toBe("My Product");
-  });
-
-  it("includes aggregated stock total", async () => {
-    const product = await seedProduct(orgId);
-    const wh1 = await seedWarehouse(orgId, { name: "WH1" });
-    const wh2 = await seedWarehouse(orgId, { name: "WH2" });
-
-    const { performStockMovement, getProducts } = await import(
-      "@workspace/core/catalog"
-    );
-
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "IN",
-      quantity: 10,
-      toWarehouseId: wh1.id,
-    });
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "IN",
-      quantity: 5,
-      toWarehouseId: wh2.id,
-    });
-
-    const products = await getProducts(orgId);
-    expect(products[0].totalStock).toBe(15);
   });
 });
 
@@ -119,11 +86,11 @@ describe("createProduct", () => {
       sku: "FULL-SKU",
       name: "Full Product",
       description: "A description",
-      price: 49.99,
+      price: 4999,
       minStockLevel: 20,
     });
     expect(result[0].description).toBe("A description");
-    expect(result[0].price).toBe(49.99);
+    expect(result[0].price).toBe(4999);
     expect(result[0].minStockLevel).toBe(20);
   });
 });
@@ -196,203 +163,5 @@ describe("deleteProduct", () => {
 
     const stillExists = await getProduct(seeded.id, otherOrg.id);
     expect(stillExists).toBeDefined();
-  });
-});
-
-describe("performStockMovement", () => {
-  it("adds stock to a warehouse on IN movement", async () => {
-    const product = await seedProduct(orgId);
-    const warehouse = await seedWarehouse(orgId);
-
-    const { performStockMovement, getProduct } = await import(
-      "@workspace/core/catalog"
-    );
-
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "IN",
-      quantity: 25,
-      toWarehouseId: warehouse.id,
-    });
-
-    const updated = await getProduct(product.id, orgId);
-    expect(updated.totalStock).toBe(25);
-  });
-
-  it("subtracts stock from a warehouse on OUT movement", async () => {
-    const product = await seedProduct(orgId);
-    const warehouse = await seedWarehouse(orgId);
-
-    const { performStockMovement, getProduct } = await import(
-      "@workspace/core/catalog"
-    );
-
-    // Stock in first
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "IN",
-      quantity: 30,
-      toWarehouseId: warehouse.id,
-    });
-
-    // Stock out
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "OUT",
-      quantity: 10,
-      fromWarehouseId: warehouse.id,
-    });
-
-    const updated = await getProduct(product.id, orgId);
-    expect(updated.totalStock).toBe(20);
-  });
-
-  it("transfers stock between warehouses", async () => {
-    const product = await seedProduct(orgId);
-    const whFrom = await seedWarehouse(orgId, { name: "From WH" });
-    const whTo = await seedWarehouse(orgId, { name: "To WH" });
-
-    const { performStockMovement, getProduct } = await import(
-      "@workspace/core/catalog"
-    );
-
-    // Initial stock in source warehouse
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "IN",
-      quantity: 50,
-      toWarehouseId: whFrom.id,
-    });
-
-    // Transfer
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "TRANSFER",
-      quantity: 20,
-      fromWarehouseId: whFrom.id,
-      toWarehouseId: whTo.id,
-    });
-
-    // Total stock should remain the same
-    const updated = await getProduct(product.id, orgId);
-    expect(updated.totalStock).toBe(50);
-  });
-
-  it("records movements in history", async () => {
-    const product = await seedProduct(orgId);
-    const warehouse = await seedWarehouse(orgId);
-
-    const { performStockMovement, getProductMovements } = await import(
-      "@workspace/core/catalog"
-    );
-
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "IN",
-      quantity: 10,
-      toWarehouseId: warehouse.id,
-      notes: "Initial stock",
-    });
-
-    const movements = await getProductMovements(product.id, orgId);
-    expect(movements).toHaveLength(1);
-    expect(movements[0].type).toBe("IN");
-    expect(movements[0].quantity).toBe(10);
-    expect(movements[0].notes).toBe("Initial stock");
-  });
-
-  it("accumulates stock on repeated IN movements to same warehouse", async () => {
-    const product = await seedProduct(orgId);
-    const warehouse = await seedWarehouse(orgId);
-
-    const { performStockMovement, getProduct } = await import(
-      "@workspace/core/catalog"
-    );
-
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "IN",
-      quantity: 10,
-      toWarehouseId: warehouse.id,
-    });
-
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "IN",
-      quantity: 15,
-      toWarehouseId: warehouse.id,
-    });
-
-    const updated = await getProduct(product.id, orgId);
-    expect(updated.totalStock).toBe(25);
-  });
-});
-
-describe("getProductMovements", () => {
-  it("returns empty list when no movements exist", async () => {
-    const product = await seedProduct(orgId);
-    const { getProductMovements } = await import("@workspace/core/catalog");
-    const movements = await getProductMovements(product.id, orgId);
-    expect(movements).toHaveLength(0);
-  });
-
-  it("does not return movements from other orgs", async () => {
-    const otherUser = await seedUser();
-    const otherOrg = await seedOrganization(otherUser.id);
-    const product = await seedProduct(orgId);
-    const warehouse = await seedWarehouse(orgId);
-
-    const { performStockMovement, getProductMovements } = await import(
-      "@workspace/core/catalog"
-    );
-
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "IN",
-      quantity: 5,
-      toWarehouseId: warehouse.id,
-    });
-
-    const movements = await getProductMovements(product.id, otherOrg.id);
-    expect(movements).toHaveLength(0);
-  });
-});
-
-describe("getDashboardMetrics", () => {
-  it("returns empty metrics for new org", async () => {
-    const { getDashboardMetrics } = await import("@workspace/core/catalog");
-    const metrics = await getDashboardMetrics(orgId);
-    expect(metrics.activeProducts).toHaveLength(0);
-    expect(metrics.recentMovements).toHaveLength(0);
-  });
-
-  it("returns products and recent movements", async () => {
-    const product = await seedProduct(orgId);
-    const warehouse = await seedWarehouse(orgId);
-
-    const { performStockMovement, getDashboardMetrics } = await import(
-      "@workspace/core/catalog"
-    );
-
-    await performStockMovement({
-      orgId,
-      productId: product.id,
-      type: "IN",
-      quantity: 10,
-      toWarehouseId: warehouse.id,
-    });
-
-    const metrics = await getDashboardMetrics(orgId);
-    expect(metrics.activeProducts).toHaveLength(1);
-    expect(metrics.recentMovements).toHaveLength(1);
   });
 });

@@ -9,7 +9,6 @@ import {
   deleteProduct,
   getPaginatedProducts,
   getProduct,
-  getProductMovements,
   updateProduct,
 } from "@workspace/core/catalog";
 import { Hono } from "hono";
@@ -35,12 +34,6 @@ const productsRoute = new Hono<HonoContextWithAuthAndOrg>()
     if (!data) {
       return c.json({ error: "Product not found" }, 404);
     }
-    return c.json(data);
-  })
-  .get("/:id/movements", zValidator("param", productIdSchema), async (c) => {
-    const orgId = c.get("session").activeOrganizationId;
-    const { id } = c.req.valid("param");
-    const data = await getProductMovements(id, orgId);
     return c.json(data);
   })
   .post(

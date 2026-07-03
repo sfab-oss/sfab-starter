@@ -25,6 +25,35 @@ wired-up auth, org-scoping, and agent are the point of the starter. See the work
 example in [`docs/architecture.md`](docs/architecture.md) for how a feature flows
 through the layers.
 
+## The base contract
+
+The starter ships a **country-neutral transaction hub** — not a vertical demo.
+Catalog (products) and Documents (quotes, orders, invoices) work end-to-end:
+create a product, draft an invoice, add lines, finalize to draw a folio and freeze
+the totals. This is the base; you build your domain on top of it.
+
+**What ships in the base:**
+
+- **Catalog** — products with integer-minor-unit pricing (the money convention;
+  see `packages/core/src/money.ts`).
+- **Documents** — the `documents`/`line_items`/`sequences`/`activity_log` hub
+  with folio-atomic finalize, an event spine, and pack seams. The design lives in
+  [`docs/architecture/transaction-core.md`](docs/architecture/transaction-core.md)
+  (ADR-006).
+- **The AI agent** — reads your data (catalog, documents, activity) and reasons
+  about it. Money and document mutations stay user-gated by convention.
+
+**What the base deliberately leaves out** (they graft on as packs or follow-on
+work, never by editing the hub):
+
+- Payments / settlement / allocation engine.
+- A customer-credit wallet.
+- A posting handler (inventory decrement, GL entry) — the `shouldAffectStock`
+  gate and `afterCommit` seam are in place; the handler is pack-owned.
+
+New projects clone, `pnpm install`, run migrations, and have a working neutral
+app — nothing to delete before building a domain on top.
+
 ## Stack
 
 | Layer | Technology |

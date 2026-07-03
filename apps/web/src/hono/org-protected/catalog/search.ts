@@ -1,4 +1,4 @@
-import { searchInventory } from "@workspace/core/catalog";
+import { searchCatalog } from "@workspace/core/catalog";
 import { Hono } from "hono";
 import type { HonoContextWithAuthAndOrg } from "../../types";
 
@@ -13,7 +13,7 @@ const searchRoute = new Hono<HonoContextWithAuthAndOrg>().get(
     }
 
     try {
-      const results = await searchInventory(orgId, query);
+      const results = await searchCatalog(orgId, query);
       return c.json({ results });
     } catch (e) {
       console.error("Search error:", e);

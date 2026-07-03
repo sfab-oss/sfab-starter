@@ -1,9 +1,9 @@
 import type { SearchResult } from "@workspace/contract/catalog";
 import { db } from "@workspace/db";
-import { products, warehouses } from "@workspace/db/schema";
+import { products } from "@workspace/db/schema";
 import { and, eq, like, or } from "drizzle-orm";
 
-export const searchInventory = async (
+export const searchCatalog = async (
   orgId: string,
   query: string
 ): Promise<SearchResult[]> => {
@@ -28,45 +28,15 @@ export const searchInventory = async (
     )
     .limit(10);
 
-  const warehouseResults = await db
-    .select({
-      id: warehouses.id,
-      name: warehouses.name,
-      location: warehouses.location,
-    })
-    .from(warehouses)
-    .where(
-      and(
-        eq(warehouses.organizationId, orgId),
-        like(warehouses.name, searchPattern)
-      )
-    )
-    .limit(10);
-
-  const results: SearchResult[] = [
-    ...productResults.map((p) => ({
-      path: `/inventory/products/${p.id}`,
-      snippet: p.description || `Product SKU: ${p.sku}`,
-      score: 1.0,
-      metadata: {
-        type: "product" as const,
-        id: p.id,
-        title: p.name,
-        sku: p.sku,
-      },
-    })),
-    ...warehouseResults.map((w) => ({
-      path: `/inventory/warehouses/${w.id}`,
-      snippet: w.location || "Warehouse location not specified",
-      score: 0.9,
-      metadata: {
-        type: "warehouse" as const,
-        id: w.id,
-        title: w.name,
-        location: w.location,
-      },
-    })),
-  ];
-
-  return results.sort((a, b) => b.score - a.score);
+  return productResults.map((p) => ({
+    path: `/catalog/${p.id}`,
+    snippet: p.description || `Product SKU: ${p.sku}`,
+    score: 1.0,
+    metadata: {
+      type: "product" as const,
+      id: p.id,
+      title: p.name,
+      sku: p.sku,
+    },
+  }));
 };

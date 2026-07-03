@@ -5,6 +5,7 @@
   "exports": {
     "./ai": "./src/ai.ts",
     "./catalog": "./src/catalog/index.ts",
+    "./transaction": "./src/transaction.ts",
     "./utils": "./src/utils.ts",
     "./pagination": "./src/pagination.ts"
   },

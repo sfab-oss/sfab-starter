@@ -1,13 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-const INVENTORY_DETAIL_URL_PATTERN = /\/inventory\/.+/;
+const CATALOG_DETAIL_URL_PATTERN = /\/catalog\/.+/;
 
-test.describe("inventory products", () => {
+test.describe("catalog products", () => {
   const productName = `E2E Product ${Date.now()}`;
   const productSku = `E2E-${Date.now()}`;
 
   test("can create a product", async ({ page }) => {
-    await page.goto("/inventory");
+    await page.goto("/catalog");
     await page.waitForLoadState("networkidle");
 
     // Open the create product dialog
@@ -36,7 +36,7 @@ test.describe("inventory products", () => {
     const detailProductName = `Detail Product ${Date.now()}`;
     const detailProductSku = `DET-${Date.now()}`;
 
-    await page.goto("/inventory");
+    await page.goto("/catalog");
     await page.waitForLoadState("networkidle");
 
     await page.getByRole("button", { name: "Add Product" }).click();
@@ -57,7 +57,7 @@ test.describe("inventory products", () => {
     await page.getByRole("link", { name: detailProductName }).click();
 
     // Verify we're on the product detail page
-    await expect(page).toHaveURL(INVENTORY_DETAIL_URL_PATTERN);
+    await expect(page).toHaveURL(CATALOG_DETAIL_URL_PATTERN);
     await expect(page.getByText(detailProductName)).toBeVisible();
   });
 });

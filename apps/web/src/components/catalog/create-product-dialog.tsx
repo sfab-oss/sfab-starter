@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/shadcn/dialog";
+import { majorToMinor } from "@workspace/ui/lib/money";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useCreateProduct } from "@/hooks/use-products";
@@ -19,7 +20,10 @@ export function CreateProductDialog() {
   const createProduct = useCreateProduct();
 
   const onSubmit = async (data: ProductFormValues) => {
-    await createProduct.mutateAsync(data);
+    await createProduct.mutateAsync({
+      ...data,
+      price: majorToMinor(data.price, "USD"),
+    });
     setOpen(false);
   };
 
@@ -35,7 +39,7 @@ export function CreateProductDialog() {
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
           <DialogDescription>
-            Create a new product record in your inventory.
+            Create a new product record in your catalog.
           </DialogDescription>
         </DialogHeader>
         <ProductForm isLoading={createProduct.isPending} onSubmit={onSubmit} />

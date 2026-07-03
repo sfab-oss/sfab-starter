@@ -144,7 +144,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     type: "registry:block",
     title: "Today overview",
     description:
-      "Operator home — primary actions, honest KPI tiles, action items, and a capped inventory movements feed.",
+      "Operator home — primary actions, honest KPI tiles, and action items.",
     meta: { sfabKind: "block", iframeHeight: 900 },
     component: lazy(() => import("../registry/blocks/today-overview/page")),
   },

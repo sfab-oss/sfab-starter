@@ -3,23 +3,13 @@
 import type { ChatContext } from "@workspace/contract/ai";
 import { cn } from "@workspace/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
-import {
-  LayoutDashboard,
-  Package,
-  Pin,
-  PinOff,
-  Warehouse,
-  X,
-} from "lucide-react";
+import { LayoutDashboard, Package, Pin, PinOff, X } from "lucide-react";
 
 type PageConfig = NonNullable<ChatContext["page"]>;
 
 export function iconForPageContext(config: PageConfig): LucideIcon {
   if (config.entityType === "product") {
     return Package;
-  }
-  if (config.entityType === "warehouse") {
-    return Warehouse;
   }
   return LayoutDashboard;
 }
@@ -30,9 +20,6 @@ export function iconForPageContextMeta(meta: {
 }): LucideIcon {
   if (meta.params?.entityType === "product") {
     return Package;
-  }
-  if (meta.params?.entityType === "warehouse") {
-    return Warehouse;
   }
   return LayoutDashboard;
 }
