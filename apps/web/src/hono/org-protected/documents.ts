@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import {
   createDocumentSchema,
+  documentTypeSchema,
   lineItemInputSchema,
 } from "@workspace/contract/transaction";
 import {
@@ -11,7 +12,6 @@ import {
   listActivity,
   listDocuments,
 } from "@workspace/core/transaction";
-import type { DocumentType } from "@workspace/db/schema";
 import { Hono } from "hono";
 import { z } from "zod";
 import { requirePermission } from "../middleware/auth";
@@ -20,12 +20,16 @@ import type { HonoContextWithAuthAndOrg } from "../types";
 const documentIdSchema = z.object({ id: z.string() });
 
 const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
-  .get("/", async (c) => {
-    const orgId = c.get("session").activeOrganizationId;
-    const type = c.req.query("type") as DocumentType | undefined;
-    const data = await listDocuments(orgId, type);
-    return c.json({ data });
-  })
+  .get(
+    "/",
+    zValidator("query", z.object({ type: documentTypeSchema.optional() })),
+    async (c) => {
+      const orgId = c.get("session").activeOrganizationId;
+      const { type } = c.req.valid("query");
+      const data = await listDocuments(orgId, type);
+      return c.json({ data });
+    }
+  )
   .get("/activity", async (c) => {
     const orgId = c.get("session").activeOrganizationId;
     const entityId = c.req.query("entityId");
@@ -38,7 +42,7 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
   })
   .post(
     "/",
-    requirePermission("catalog:write"),
+    requirePermission("document:write"),
     zValidator("json", createDocumentSchema),
     async (c) => {
       const orgId = c.get("session").activeOrganizationId;
@@ -58,7 +62,7 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
   })
   .post(
     "/:id/lines",
-    requirePermission("catalog:write"),
+    requirePermission("document:write"),
     zValidator("param", documentIdSchema),
     zValidator("json", lineItemInputSchema),
     async (c) => {
@@ -71,7 +75,7 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
   )
   .post(
     "/:id/finalize",
-    requirePermission("catalog:write"),
+    requirePermission("document:write"),
     zValidator("param", documentIdSchema),
     async (c) => {
       const orgId = c.get("session").activeOrganizationId;

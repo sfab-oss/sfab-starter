@@ -42,8 +42,8 @@ export const statement = {
   credit: ["bypass"],
   /** Reverse a finalized payment. Admin+ only. */
   payment: ["reverse"],
-  /** Void a finalized document. Admin+ only. */
-  document: ["void"],
+  /** Create/finalize documents (operator+) and void them (admin+ only). */
+  document: ["write", "void"],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -56,6 +56,7 @@ export const ac = createAccessControl(statement);
 export const member = ac.newRole({
   ...memberAc.statements,
   catalog: ["write"],
+  document: ["write"],
 });
 
 /** **admin** — member management + org settings + the sensitive money/credit gates. */
@@ -64,7 +65,7 @@ export const admin = ac.newRole({
   catalog: ["write"],
   credit: ["bypass"],
   payment: ["reverse"],
-  document: ["void"],
+  document: ["write", "void"],
 });
 
 /** **owner** — everything admin can do, plus org deletion (from `ownerAc`). */
@@ -73,7 +74,7 @@ export const owner = ac.newRole({
   catalog: ["write"],
   credit: ["bypass"],
   payment: ["reverse"],
-  document: ["void"],
+  document: ["write", "void"],
 });
 
 /**
@@ -92,6 +93,8 @@ export type RoleName = keyof typeof roles;
 export const ACTION_PERMISSIONS = {
   /** Create/update products. Operator+ (low-stakes). */
   "catalog:write": { catalog: ["write"] },
+  /** Create/finalize documents. Operator+. */
+  "document:write": { document: ["write"] },
   /** Bypass an over-limit fiado sale. Admin+. (Wired by Transaction Core / ALW-299.) */
   "credit:bypass": { credit: ["bypass"] },
   /** Reverse a finalized payment. Admin+. (Wired by Transaction Core / ALW-299.) */

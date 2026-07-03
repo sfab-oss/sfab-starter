@@ -14,9 +14,24 @@ export interface DocumentTotals {
   taxableBase: MoneyMinor; // Σ (line taxable base)
 }
 
+/** Per-line taxable base: gross minus discount, floored at 0. */
+export function computeLineTaxableBase(line: {
+  unitPrice: number;
+  quantity: number;
+  discount: number;
+}): MoneyMinor {
+  return Math.max(0, line.unitPrice * line.quantity - line.discount);
+}
+
 /** Per-line tax, rounded once. Exclusive (default) or inclusive of the price. */
-function lineTax(line: LineItem): MoneyMinor {
-  const base = line.unitPrice * line.quantity - line.discount; // taxable base
+export function computeLineTax(line: {
+  unitPrice: number;
+  quantity: number;
+  discount: number;
+  taxRate: number;
+  taxMode: string | null;
+}): MoneyMinor {
+  const base = computeLineTaxableBase(line);
   if (base <= 0) {
     return 0;
   }
@@ -36,11 +51,9 @@ export function computeDocumentTotals(lines: LineItem[]): DocumentTotals {
   const grossPerLine = lines.map((l) => l.unitPrice * l.quantity);
   const subtotal = sum(grossPerLine);
   const discountTotal = sum(lines.map((l) => l.discount));
-  const taxPerLine = lines.map(lineTax);
+  const taxPerLine = lines.map(computeLineTax);
   const taxTotal = sum(taxPerLine);
-  const taxableBase = sum(
-    lines.map((l) => l.unitPrice * l.quantity - l.discount)
-  );
+  const taxableBase = sum(lines.map(computeLineTaxableBase));
   const total = subtotal - discountTotal + taxTotal;
   return { subtotal, discountTotal, taxTotal, total, taxableBase };
 }

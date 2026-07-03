@@ -5,7 +5,7 @@ import type {
   createDocumentSchema,
   lineItemInputSchema,
 } from "@workspace/contract/transaction";
-import type { Document, LineItem } from "@workspace/db/schema";
+import type { Document, DocumentType, LineItem } from "@workspace/db/schema";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import type { z } from "zod";
 import { client } from "@/lib/client";
@@ -22,12 +22,12 @@ export interface DocumentWithLines {
   lines: LineItem[];
 }
 
-export const useDocuments = (type?: string) => {
+export const useDocuments = (type?: DocumentType) => {
   return useQuery({
     queryKey: getDocumentsKey(type),
     queryFn: async () => {
       const res = await client.protected.documents.$get({
-        ...(type && { query: { type } }),
+        query: { type },
       });
       return (await res.json()) as { data: Document[] };
     },

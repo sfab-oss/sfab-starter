@@ -1,4 +1,7 @@
-import { documentListSchema } from "@workspace/contract/transaction";
+import {
+  documentListSchema,
+  documentTypeSchema,
+} from "@workspace/contract/transaction";
 import { listDocuments } from "@workspace/core/transaction";
 import { tool } from "ai";
 import { z } from "zod";
@@ -14,19 +17,7 @@ export const createDocumentTools = (ctx: AgentToolsContext) => {
       description:
         "List business documents (quotes, orders, invoices, etc.). Optional type filter.",
       inputSchema: z.object({
-        type: z
-          .enum([
-            "quote",
-            "sales_order",
-            "purchase_order",
-            "invoice",
-            "credit_note",
-            "receipt",
-            "bill",
-            "goods_receipt",
-            "adjustment",
-            "transfer",
-          ])
+        type: documentTypeSchema
           .optional()
           .describe("Filter to a single document type."),
       }),

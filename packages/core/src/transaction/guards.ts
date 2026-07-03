@@ -2,9 +2,9 @@ import type { Document, DocumentFamily, LineItem } from "@workspace/db/schema";
 import { documentFamily } from "./family";
 
 /**
- * Transition + posting guards for the document hub. Immutability (C5) and the
- * fiscal freeze are core-enforced conventions — the schema under-advertises
- * them, so these helpers are load-bearing.
+ * Transition guards for the document hub. Immutability (C5) and the fiscal
+ * freeze are core-enforced conventions — the schema under-advertises them, so
+ * these helpers are load-bearing.
  *
  * @see docs/architecture/transaction-core.md §2, §6
  */
@@ -17,17 +17,9 @@ import { documentFamily } from "./family";
  * immutable (corrections are credit_note successors), a voided one is dead.
  */
 export function assertCanFinalize(doc: Document): DocumentFamily {
-  if (doc.status === "finalized") {
-    throw new Error(
-      `Document ${doc.id} is already finalized — fiscal records are immutable (C5)`
-    );
-  }
-  if (doc.status === "voided") {
-    throw new Error(`Cannot finalize a voided document (${doc.id})`);
-  }
   if (doc.status !== "draft") {
     throw new Error(
-      `Cannot finalize from status "${doc.status}" (only draft; ${doc.id})`
+      `Cannot finalize document ${doc.id} from status "${doc.status}" — only draft may finalize (C5)`
     );
   }
   const family = documentFamily(doc.type);
@@ -44,15 +36,6 @@ export function assertHasLines(lines: LineItem[], docId: string): void {
   if (lines.length === 0) {
     throw new Error(`Cannot finalize document ${docId} with no line items`);
   }
-}
-
-/**
- * SEAM: fiscal-period posting guard (§6). Close *enforcement* is a pack, but the
- * hook ships — a period-close pack rejects posting into a closed period here.
- * The base permits any date.
- */
-export function assertPostingAllowed(_postingDate: string): void {
-  // SEAM: a fiscal-period-close pack rejects posting into a closed period here.
 }
 
 /**

@@ -122,7 +122,7 @@ describe("finalizeDocument — folio-atomic finalize (AC-9)", () => {
     });
     await finalizeDocument(doc.id, orgId);
     await expect(finalizeDocument(doc.id, orgId)).rejects.toThrow(
-      "already finalized"
+      'from status "finalized"'
     );
   });
 

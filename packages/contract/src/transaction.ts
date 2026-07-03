@@ -61,7 +61,7 @@ export const documentListItemSchema = z.object({
   status: z.string(),
   entityName: z.string().nullable(),
   currencyCode: z.string(),
-  total: z.number(),
+  total: z.number().int(),
   folio: z.number().nullable(),
   createdAt: z.string(),
 });

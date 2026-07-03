@@ -6,12 +6,7 @@ import {
   sequences,
 } from "@workspace/db/schema";
 import { and, eq, sql } from "drizzle-orm";
-import { type DomainEvent, runAfterCommit } from "./events";
-import {
-  assertCanFinalize,
-  assertHasLines,
-  assertPostingAllowed,
-} from "./guards";
+import { assertCanFinalize, assertHasLines } from "./guards";
 import { computeDocumentTotals, type DocumentTotals } from "./totals";
 
 /**
@@ -33,14 +28,14 @@ import { computeDocumentTotals, type DocumentTotals } from "./totals";
  */
 export interface FinalizeResult {
   documentId: string;
-  folio: number | null;
+  folio: number;
   totals: DocumentTotals;
 }
 
 export async function finalizeDocument(
   documentId: string,
   orgId: string,
-  opts: { actorId?: string; postingDate?: string } = {}
+  opts: { actorId?: string } = {}
 ): Promise<FinalizeResult> {
   // 1. READ (before batch assembly).
   const [doc] = await db
@@ -53,7 +48,7 @@ export async function finalizeDocument(
     throw new Error(`Document not found: ${documentId}`);
   }
 
-  const family = assertCanFinalize(doc); // draft + fiscal, else throws
+  const family = assertCanFinalize(doc);
 
   const lines = await db
     .select()
@@ -71,33 +66,20 @@ export async function finalizeDocument(
   const totals = computeDocumentTotals(lines);
 
   const now = new Date().toISOString();
-  const postingDate = opts.postingDate ?? doc.postingDate ?? now;
-  assertPostingAllowed(postingDate);
+  const postingDate = doc.postingDate ?? now;
 
   // Folio key is open (per series/type); default to the type.
   const seqKey = doc.series ?? doc.type;
 
   // Frozen tax context snapshot (§3) — what an engine / fiscal Base needs.
-  const taxContext = {
-    currencyCode: doc.currencyCode,
-    taxMode: lines[0]?.taxMode ?? "exclusive",
-    taxableBase: totals.taxableBase,
-    taxTotal: totals.taxTotal, // excludes withholdings (none in base)
-    computedAt: now,
-  };
-  const metadata = { ...(doc.metadata ?? {}), tax: taxContext };
-
-  const event: DomainEvent = {
-    organizationId: orgId,
-    eventType: "document_finalized",
-    entityType: "document",
-    entityId: documentId,
-    actorId: opts.actorId ?? null,
-    summary: `${doc.type} finalized`,
-    metadata: {
-      total: totals.total,
+  const metadata = {
+    ...(doc.metadata ?? {}),
+    tax: {
       currencyCode: doc.currencyCode,
-      family,
+      taxMode: lines[0]?.taxMode ?? "exclusive",
+      taxableBase: totals.taxableBase,
+      taxTotal: totals.taxTotal, // excludes withholdings (none in base)
+      computedAt: now,
     },
   };
 
@@ -137,27 +119,36 @@ export async function finalizeDocument(
   const insertEvent = db.insert(activityLog).values({
     organizationId: orgId,
     kind: "event",
-    eventType: event.eventType,
-    entityType: event.entityType,
-    entityId: event.entityId,
-    actorId: event.actorId ?? null,
-    summary: event.summary,
-    metadata: event.metadata ?? null,
+    eventType: "document_finalized",
+    entityType: "document",
+    entityId: documentId,
+    actorId: opts.actorId ?? null,
+    summary: `${doc.type} finalized`,
+    metadata: {
+      total: totals.total,
+      currencyCode: doc.currencyCode,
+      family,
+    },
     createdAt: now,
   });
 
   // SEAM marker: a pack (ALW-350) appends critical statements (e.g. the stock
   // decrement) into this array so they commit or roll back WITH the finalize.
+  // The afterCommit posting seam (C7) is this batch's commit itself — a GL
+  // pack subscribes by appending in-batch statements, not via a post-batch
+  // hook (there is no base consumer; the event row serves timeline + log).
   await db.batch([ensureSeq, freezeDoc, bumpSeq, insertEvent]);
 
-  // 4. afterCommit dispatch — the posting seam (C7). Non-blocking; no base
-  //    consumer (the in-batch event row already serves timeline + log).
-  await runAfterCommit([event]);
-
-  // 5. re-read the folio the subquery assigned.
+  // 4. re-read the folio the subquery assigned (guaranteed non-null — the
+  //    batch committed or we threw).
   const [finalized] = await db
     .select({ folio: documents.folio })
     .from(documents)
     .where(eq(documents.id, documentId));
-  return { documentId, folio: finalized?.folio ?? null, totals };
+  if (!finalized || finalized.folio === null) {
+    throw new Error(
+      `Document ${documentId} has no folio after finalize (should be impossible)`
+    );
+  }
+  return { documentId, folio: finalized.folio, totals };
 }

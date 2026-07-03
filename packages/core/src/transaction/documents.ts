@@ -7,6 +7,7 @@ import type { Document, DocumentType, LineItem } from "@workspace/db/schema";
 import { documents, lineItems } from "@workspace/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { documentFamily } from "./family";
+import { computeLineTax, computeLineTaxableBase } from "./totals";
 
 /**
  * Document + line-item reads/writes for Transaction Core. Money values are
@@ -60,6 +61,21 @@ export async function addLineItem(
       `Cannot add lines to a ${doc.status} document (${documentId})`
     );
   }
+  const discount = input.discount ?? 0;
+  const taxRate = input.taxRate ?? 0;
+  const taxMode = input.taxMode ?? "exclusive";
+  const taxAmount = computeLineTax({
+    unitPrice: input.unitPrice,
+    quantity: input.quantity,
+    discount,
+    taxRate,
+    taxMode,
+  });
+  const taxableBase = computeLineTaxableBase({
+    unitPrice: input.unitPrice,
+    quantity: input.quantity,
+    discount,
+  });
   const [line] = await db
     .insert(lineItems)
     .values({
@@ -69,10 +85,12 @@ export async function addLineItem(
       description: input.description,
       quantity: input.quantity,
       unitPrice: input.unitPrice,
-      discount: input.discount ?? 0,
-      taxRate: input.taxRate ?? 0,
+      discount,
+      taxRate,
       taxCode: input.taxCode ?? null,
-      taxMode: input.taxMode ?? "exclusive",
+      taxMode,
+      taxAmount,
+      taxableBase,
       fulfillmentMode: input.fulfillmentMode ?? "none",
     })
     .returning();

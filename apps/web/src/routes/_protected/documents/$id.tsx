@@ -210,7 +210,7 @@ function DocumentPage() {
               <span className="text-muted-foreground">Subtotal</span>
               <span className="tabular-nums">
                 {formatMoneyMinor(
-                  doc.subtotal || liveSubtotal,
+                  isDraft ? liveSubtotal : doc.subtotal,
                   doc.currencyCode
                 )}
               </span>
@@ -224,7 +224,10 @@ function DocumentPage() {
             <div className="flex justify-between border-t pt-2 font-medium">
               <span>Total</span>
               <span className="tabular-nums">
-                {formatMoneyMinor(doc.total || liveSubtotal, doc.currencyCode)}
+                {formatMoneyMinor(
+                  isDraft ? liveSubtotal : doc.total,
+                  doc.currencyCode
+                )}
               </span>
             </div>
             <p className="text-muted-foreground text-xs">
