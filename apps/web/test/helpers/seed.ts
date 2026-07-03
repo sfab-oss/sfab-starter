@@ -2,6 +2,7 @@ import {
   addLineItem,
   createDocument,
   finalizeDocument,
+  getDocumentWithLines,
 } from "@workspace/core/transaction";
 import { db } from "@workspace/db";
 // biome-ignore lint/performance/noNamespaceImport: Schema barrel export
@@ -93,5 +94,10 @@ export async function seedFinalizedInvoice(
     unitPrice: opts.total,
   });
   await finalizeDocument(doc.id, orgId);
-  return doc;
+  // Re-fetch so callers get the finalized state (status, total, folio, etc.).
+  const loaded = await getDocumentWithLines(doc.id, orgId);
+  if (!loaded) {
+    throw new Error("Failed to load finalized document");
+  }
+  return loaded.doc;
 }

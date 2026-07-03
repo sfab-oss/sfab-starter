@@ -77,7 +77,7 @@ export async function applyCreditNoteDisposition(
         entityId: cn.entityId,
         allocations: [{ documentId: creditNoteId, amount: cn.total }],
       },
-      { actorId: opts.actorId }
+      { actorId: opts.actorId, docs: [cn] }
     );
 
     return { paymentId: result.paymentId, disposition };
@@ -124,7 +124,7 @@ export async function applyCreditNoteDisposition(
           { documentId: opts.targetDocumentId, amount: -cn.total },
         ],
       },
-      { actorId: opts.actorId }
+      { actorId: opts.actorId, docs: [cn, target] }
     );
 
     return { paymentId: result.paymentId, disposition };

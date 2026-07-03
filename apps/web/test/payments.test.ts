@@ -10,6 +10,18 @@ import {
   recordPayment,
   reversePayment,
 } from "@workspace/core/transaction";
+// Raw source for the db.transaction static ban test (resolved by Vite at build
+// time — the Workers pool can't read the filesystem at runtime).
+import _cn from "@workspace/core/transaction/credit-note?raw";
+import _docs from "@workspace/core/transaction/documents?raw";
+import _ent from "@workspace/core/transaction/entities?raw";
+import _fam from "@workspace/core/transaction/family?raw";
+import _fin from "@workspace/core/transaction/finalize?raw";
+import _grd from "@workspace/core/transaction/guards?raw";
+import _idx from "@workspace/core/transaction/index?raw";
+import _pay from "@workspace/core/transaction/payments?raw";
+import _proj from "@workspace/core/transaction/projections?raw";
+import _tot from "@workspace/core/transaction/totals?raw";
 import { db, eq } from "@workspace/db";
 import {
   activityLog,
@@ -24,6 +36,21 @@ import {
 } from "./helpers/seed";
 
 let orgId: string;
+
+const TXN_BAN_RE = /\bdb\.transaction\b/;
+
+const txSources: Record<string, string> = {
+  "credit-note.ts": _cn,
+  "documents.ts": _docs,
+  "entities.ts": _ent,
+  "family.ts": _fam,
+  "finalize.ts": _fin,
+  "guards.ts": _grd,
+  "index.ts": _idx,
+  "payments.ts": _pay,
+  "projections.ts": _proj,
+  "totals.ts": _tot,
+};
 
 beforeEach(async () => {
   const user = await seedUser();
@@ -189,21 +216,44 @@ describe("conservation (AC-4)", () => {
     expect(loaded?.doc.paymentStatus).toBe("partial");
   });
 
-  it("double-pay does not over-pay: second payment is rejected by the user", async () => {
-    // Two separate payments for different amounts against the same doc.
-    // The system allows over-payment (wallet territory); projections
-    // faithfully reflect the sum. A real UI would prevent it.
+  it("overpayment pushes balanceDue negative (projections are faithful)", async () => {
     const doc = await seedFinalizedInvoice(orgId, { total: 1000 });
 
+    // Full payment.
     await recordPayment(orgId, {
       amount: 1000,
       method: "cash",
       allocations: [{ documentId: doc.id, amount: 1000 }],
     });
 
+    // Second payment — overpay by 200. The system does not reject this
+    // (the wallet, ALW-355, will handle remainders); projections faithfully
+    // reflect the sum.
+    await recordPayment(orgId, {
+      amount: 200,
+      method: "cash",
+      allocations: [{ documentId: doc.id, amount: 200 }],
+    });
+
     const loaded = await getDocumentWithLines(doc.id, orgId);
+    expect(loaded?.doc.amountPaid).toBe(1200);
+    expect(loaded?.doc.balanceDue).toBe(-200);
     expect(loaded?.doc.paymentStatus).toBe("paid");
-    expect(loaded?.doc.balanceDue).toBe(0);
+  });
+
+  it("rejects duplicate documentId in allocations", async () => {
+    const doc = await seedFinalizedInvoice(orgId, { total: 1000 });
+
+    await expect(
+      recordPayment(orgId, {
+        amount: 500,
+        method: "cash",
+        allocations: [
+          { documentId: doc.id, amount: 300 },
+          { documentId: doc.id, amount: 200 },
+        ],
+      })
+    ).rejects.toThrow("Duplicate documentId");
   });
 
   it("AP isolation: supplier bills (purchase direction) do not affect entity AR balance", async () => {
@@ -469,6 +519,47 @@ describe("sale_completed event (AC-7)", () => {
       .where(eq(activityLog.entityId, doc.id));
     expect(events.some((e) => e.eventType === "sale_completed")).toBe(true);
   });
+
+  it("does NOT fire when a purchase bill is fully paid (B1 regression)", async () => {
+    const bill = await seedFinalizedInvoice(orgId, {
+      total: 500,
+      direction: "purchase",
+      type: "bill",
+    });
+
+    await recordPayment(orgId, {
+      amount: 500,
+      method: "cash",
+      allocations: [{ documentId: bill.id, amount: 500 }],
+    });
+
+    const events = await db
+      .select()
+      .from(activityLog)
+      .where(eq(activityLog.entityId, bill.id));
+    expect(events.some((e) => e.eventType === "sale_completed")).toBe(false);
+  });
+
+  it("does NOT fire when a credit note is settled via cash_refund (B1 regression)", async () => {
+    const cn = await createDocument(orgId, {
+      type: "credit_note",
+      direction: "sales",
+    });
+    await addLineItem(orgId, cn.id, {
+      description: "Return",
+      quantity: -1,
+      unitPrice: 200,
+    });
+    await finalizeDocument(cn.id, orgId);
+
+    await applyCreditNoteDisposition(cn.id, orgId, "cash_refund");
+
+    const events = await db
+      .select()
+      .from(activityLog)
+      .where(eq(activityLog.entityId, cn.id));
+    expect(events.some((e) => e.eventType === "sale_completed")).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -476,19 +567,15 @@ describe("sale_completed event (AC-7)", () => {
 // ---------------------------------------------------------------------------
 
 describe("db.transaction ban (AC-2)", () => {
-  it("the core package never calls db.transaction", async () => {
-    // This is a code-level invariant: drizzle's db.transaction is banned on D1.
-    // We verify by checking that recordPayment/reversePayment don't throw
-    // the D1 interactive-transaction error. The actual ban is enforced by
-    // the review checklist, but we sanity-check that batch is used.
-    const doc = await seedFinalizedInvoice(orgId, { total: 100 });
-
-    // This should complete without throwing — proving batch, not transaction.
-    const result = await recordPayment(orgId, {
-      amount: 100,
-      method: "cash",
-      allocations: [{ documentId: doc.id, amount: 100 }],
-    });
-    expect(result.paymentId).toBeTruthy();
+  it("the core transaction package never calls db.transaction", () => {
+    // D1 has no interactive transactions; the ban is a code-level invariant.
+    // Source files are imported as raw strings at build time (the Workers pool
+    // cannot read the filesystem at runtime). If a new file is added to
+    // core/transaction, add its raw import above.
+    for (const [file, content] of Object.entries(txSources)) {
+      if (TXN_BAN_RE.test(content)) {
+        throw new Error(`${file} calls db.transaction — banned on D1 (AC-2)`);
+      }
+    }
   });
 });

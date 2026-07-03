@@ -1,6 +1,6 @@
 import { db } from "@workspace/db";
 import { documents, entities, paymentAllocations } from "@workspace/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 
 /**
@@ -11,8 +11,9 @@ import { DomainError } from "../errors";
  * the payment/allocation facts. `lastAppliedPaymentId` is a perf hint only;
  * the authoritative rebuild is a **full scan** of non-reversed allocations.
  *
- * Reversals are **compensating rows**: a reversal inserts negated allocations
- * and marks the originals `reversedAt`, so the SUM naturally excludes them.
+ * Reversals are **compensating rows**: a reversal inserts negated allocations.
+ * The originals stay in place and cancel naturally in every SUM (C6) — no
+ * `WHERE reversed_at IS NULL` filter is ever applied.
  *
  * @see docs/architecture/transaction-core.md §4
  */
@@ -21,6 +22,26 @@ export interface DocumentPaymentProjection {
   amountPaid: number;
   balanceDue: number;
   paymentStatus: "unpaid" | "partial" | "paid";
+}
+
+/**
+ * Derive payment status from raw amounts — the single JS source of truth.
+ * The SQL CASE in `docProjectionUpdate` (payments.ts) must mirror this; a
+ * cross-reference comment there points back here. Both must agree for the
+ * "rebuildable projection" guarantee (§4) to hold.
+ */
+export function derivePaymentStatus(
+  amountPaid: number,
+  total: number
+): "unpaid" | "partial" | "paid" {
+  const balance = total - amountPaid;
+  if (balance <= 0) {
+    return "paid";
+  }
+  if (amountPaid > 0) {
+    return "partial";
+  }
+  return "unpaid";
 }
 
 /**
@@ -44,6 +65,7 @@ export async function rebuildDocumentPayment(
 
   // Full scan of ALL allocations (including compensating reversal rows).
   // Reversed originals + their compensating negatives cancel in the SUM (C6).
+  // Ordered by createdAt so lastAppliedPaymentId is deterministic.
   const allocs = await db
     .select({
       amount: paymentAllocations.amount,
@@ -55,18 +77,12 @@ export async function rebuildDocumentPayment(
         eq(paymentAllocations.documentId, documentId),
         eq(paymentAllocations.organizationId, orgId)
       )
-    );
+    )
+    .orderBy(asc(paymentAllocations.createdAt));
 
   const amountPaid = allocs.reduce((sum, a) => sum + a.amount, 0);
   const balanceDue = doc.total - amountPaid;
-  let paymentStatus: "unpaid" | "partial" | "paid";
-  if (balanceDue <= 0) {
-    paymentStatus = "paid";
-  } else if (amountPaid > 0) {
-    paymentStatus = "partial";
-  } else {
-    paymentStatus = "unpaid";
-  }
+  const paymentStatus = derivePaymentStatus(amountPaid, doc.total);
 
   const lastPaymentId =
     allocs.length > 0 ? (allocs.at(-1)?.paymentId ?? null) : null;

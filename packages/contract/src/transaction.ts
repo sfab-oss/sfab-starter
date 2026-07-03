@@ -76,12 +76,13 @@ export const paymentAllocationInputSchema = z.object({
 
 /**
  * A payment header + its allocations (§4). `amount` is the total tender
- * received (signed: positive for payments, negative for reversals). The
- * allocation amounts should sum to `amount` (overpayment remainder goes to the
- * wallet — deferred to ALW-355; for now the remainder is unallocated).
+ * received (non-negative for inbound HTTP; reversals carry a negative amount
+ * but are created programmatically by `reversePayment`, not via this schema).
+ * The allocation amounts should sum to `amount` (overpayment remainder goes to
+ * the wallet — deferred to ALW-355; for now the remainder is unallocated).
  */
 export const recordPaymentSchema = z.object({
-  amount: z.number().int(),
+  amount: z.number().int().min(0),
   method: z.string().min(1),
   paidAt: z.string().optional(),
   reference: z.string().nullable().optional(),

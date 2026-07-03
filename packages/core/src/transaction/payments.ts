@@ -8,9 +8,10 @@ import {
   paymentAllocations,
   payments,
 } from "@workspace/db/schema";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 import { documentFamily } from "./family";
+import { derivePaymentStatus } from "./projections";
 
 /**
  * Settlement engine — payments, allocations, and projections (§4).
@@ -22,8 +23,10 @@ import { documentFamily } from "./family";
  * accepted; `rebuild*` is the correctness backstop).
  *
  * Reversals are **compensating rows** (C6): a reversal payment carries negated
- * allocations and marks the originals `reversedAt`, so the SUM naturally
- * excludes them. Reversing an old payment can never leave a stale "paid".
+ * allocations. The original rows remain in place and the negated compensating
+ * rows cancel them in every SUM — projection correctness comes from the math,
+ * not from a `WHERE reversed_at IS NULL` filter. `reversedAt` on the original
+ * rows is an audit marker only.
  *
  * @see docs/architecture/transaction-core.md §4
  */
@@ -31,6 +34,13 @@ import { documentFamily } from "./family";
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+type BatchStmt = Parameters<typeof db.batch>[0][number];
+
+/** Run a batch of statements (typed wrapper to avoid repeating the tuple cast). */
+function runBatch(stmts: BatchStmt[]) {
+  return db.batch(stmts as [BatchStmt, ...BatchStmt[]]);
+}
 
 /** Validate that every target document is fiscal + finalized (§4). */
 function validateAllocationTargets(docs: Document[]): void {
@@ -51,24 +61,31 @@ function validateAllocationTargets(docs: Document[]): void {
   }
 }
 
-/** Detect which docs will transition to "paid" from this payment's allocations. */
+/**
+ * Detect which docs will transition to "paid" from this payment's allocations.
+ * Only **sales receivables** (not credit notes, not purchase bills) qualify —
+ * `sale_completed` is a sales-domain event (§7); paying a supplier bill or
+ * settling a credit note must not fire it.
+ */
 function detectNewlyCompletedSales(
   docs: Document[],
   allocations: RecordPaymentInput["allocations"]
 ): string[] {
-  const docById = new Map(docs.map((d) => [d.id, d]));
   const allocSums = new Map<string, number>();
   for (const a of allocations) {
     allocSums.set(a.documentId, (allocSums.get(a.documentId) ?? 0) + a.amount);
   }
   const completed: string[] = [];
-  for (const [docId, doc] of docById) {
+  for (const doc of docs) {
+    if (doc.direction !== "sales" || doc.type === "credit_note") {
+      continue;
+    }
     if (doc.paymentStatus === "paid") {
       continue;
     }
-    const newAmountPaid = doc.amountPaid + (allocSums.get(docId) ?? 0);
-    if (newAmountPaid >= doc.total) {
-      completed.push(docId);
+    const newAmountPaid = doc.amountPaid + (allocSums.get(doc.id) ?? 0);
+    if (derivePaymentStatus(newAmountPaid, doc.total) === "paid") {
+      completed.push(doc.id);
     }
   }
   return completed;
@@ -100,6 +117,7 @@ function docProjectionUpdate(
       amountPaid: allocSum,
       balanceDue: sql`${documents.total} - ${allocSum}`,
       paymentStatus: sql`CASE
+        -- Mirrors derivePaymentStatus() in projections.ts — keep in sync (§4).
         WHEN ${documents.total} - ${allocSum} <= 0 THEN 'paid'
         WHEN ${allocSum} > 0 THEN 'partial'
         ELSE 'unpaid'
@@ -150,16 +168,30 @@ export interface RecordPaymentResult {
 export async function recordPayment(
   orgId: string,
   input: RecordPaymentInput,
-  opts: { actorId?: string } = {}
+  opts: { actorId?: string; docs?: Document[] } = {}
 ): Promise<RecordPaymentResult> {
   // 1. READ: validate all target documents are fiscal + finalized.
   const docIds = [...new Set(input.allocations.map((a) => a.documentId))];
-  const docs = await db
-    .select()
-    .from(documents)
-    .where(
-      and(eq(documents.organizationId, orgId), inArray(documents.id, docIds))
+  if (docIds.length !== input.allocations.length) {
+    throw new DomainError(
+      "Duplicate documentId in allocations — a payment may have at most one allocation per document",
+      "unprocessable"
     );
+  }
+
+  // When opts.docs is provided (e.g. credit-note disposition), skip the
+  // redundant DB round-trip and use the pre-fetched rows directly.
+  const docs = opts.docs
+    ? opts.docs.filter((d) => docIds.includes(d.id))
+    : await db
+        .select()
+        .from(documents)
+        .where(
+          and(
+            eq(documents.organizationId, orgId),
+            inArray(documents.id, docIds)
+          )
+        );
 
   if (docs.length !== docIds.length) {
     throw new DomainError(
@@ -177,7 +209,6 @@ export async function recordPayment(
   const paidAt = input.paidAt ?? now;
 
   // 3. ASSEMBLE the batch: payment + allocations + projection updates.
-  type BatchStmt = Parameters<typeof db.batch>[0][number];
   const stmts: BatchStmt[] = [];
 
   // (a) Payment header.
@@ -233,11 +264,11 @@ export async function recordPayment(
   }
 
   // 4. EXECUTE — one atomic batch.
-  await db.batch(stmts as [BatchStmt, ...BatchStmt[]]);
+  await runBatch(stmts);
 
   // 5. POST-BATCH events (best-effort, same pattern as finalize).
-  for (const docId of completedSales) {
-    await db.insert(activityLog).values({
+  const eventStmts: BatchStmt[] = completedSales.map((docId) =>
+    db.insert(activityLog).values({
       organizationId: orgId,
       kind: "event",
       eventType: "sale_completed",
@@ -246,24 +277,26 @@ export async function recordPayment(
       actorId: opts.actorId ?? null,
       summary: "Sale completed (fully paid)",
       createdAt: now,
-    });
-  }
-
-  await db.insert(activityLog).values({
-    organizationId: orgId,
-    kind: "event",
-    eventType: "payment_recorded",
-    entityType: "payment",
-    entityId: paymentId,
-    actorId: opts.actorId ?? null,
-    summary: `Payment recorded: ${input.method}`,
-    metadata: {
-      amount: input.amount,
-      method: input.method,
-      allocations: input.allocations.length,
-    },
-    createdAt: now,
-  });
+    })
+  );
+  eventStmts.push(
+    db.insert(activityLog).values({
+      organizationId: orgId,
+      kind: "event",
+      eventType: "payment_recorded",
+      entityType: "payment",
+      entityId: paymentId,
+      actorId: opts.actorId ?? null,
+      summary: `Payment recorded: ${input.method}`,
+      metadata: {
+        amount: input.amount,
+        method: input.method,
+        allocations: input.allocations.length,
+      },
+      createdAt: now,
+    })
+  );
+  await runBatch(eventStmts);
 
   return { paymentId, touchedDocuments: docIds, completedSales };
 }
@@ -275,10 +308,13 @@ export async function recordPayment(
 /**
  * Reverse a payment by writing **compensating rows** (C6): a reversal payment
  * header with negated amount + negated allocation rows. The original
- * allocations are marked `reversedAt` so projection subqueries exclude them.
+ * allocations are NOT deleted — the negated compensating rows cancel them in
+ * every SUM, so projections stay correct without filtering on `reversedAt`.
  *
- * This guarantees that reversing an old payment can never leave a stale "paid":
- * the SUM of live allocations is immediately correct.
+ * `reversedAt` is written on the originals as an **audit marker** (display/
+ * traceability); it is never used as a projection filter. Double-reversal is
+ * prevented by the payment-level guard (checks for an existing reversal row),
+ * not by per-allocation state.
  */
 export async function reversePayment(
   paymentId: string,
@@ -311,14 +347,16 @@ export async function reversePayment(
     throw new DomainError("Payment already reversed", "conflict");
   }
 
+  // Select all allocations of the original payment — the payment-level guard
+  // above already ensures this payment has no existing reversal, so every row
+  // is live. No `isNull(reversedAt)` needed.
   const allocations = await db
     .select()
     .from(paymentAllocations)
     .where(
       and(
         eq(paymentAllocations.paymentId, paymentId),
-        eq(paymentAllocations.organizationId, orgId),
-        isNull(paymentAllocations.reversedAt)
+        eq(paymentAllocations.organizationId, orgId)
       )
     );
 
@@ -328,7 +366,6 @@ export async function reversePayment(
   const touchedDocIds = new Set<string>();
 
   // 3. ASSEMBLE the batch.
-  type BatchStmt = Parameters<typeof db.batch>[0][number];
   const stmts: BatchStmt[] = [];
 
   // (a) Reversal payment header (negated amount).
@@ -376,7 +413,7 @@ export async function reversePayment(
   }
 
   // 4. EXECUTE.
-  await db.batch(stmts as [BatchStmt, ...BatchStmt[]]);
+  await runBatch(stmts);
 
   // 5. POST-BATCH event.
   await db.insert(activityLog).values({

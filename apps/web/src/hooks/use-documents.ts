@@ -166,9 +166,9 @@ export const useRecordPayment = () => {
       return res.json();
     },
     onSuccess: (_data, variables) => {
-      for (const docId of variables.input.allocations) {
+      for (const alloc of variables.input.allocations) {
         queryClient.invalidateQueries({
-          queryKey: getDocumentKey(docId.documentId),
+          queryKey: getDocumentKey(alloc.documentId),
         });
       }
       queryClient.invalidateQueries({ queryKey: ["documents"] });
