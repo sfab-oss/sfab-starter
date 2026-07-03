@@ -76,11 +76,13 @@ function detectNewlyCompletedSales(
 
 /** Build the SQL subquery that sums live allocations for a document. */
 function allocSumSubquery(docId: string, orgId: string) {
+  // No `reversed_at IS NULL` filter: compensating rows (reversals) cancel
+  // originals naturally in the SUM (C6). `reversedAt` is a display/audit
+  // marker, not a projection filter.
   return sql`(
     SELECT COALESCE(SUM(amount), 0) FROM payment_allocations
     WHERE document_id = ${docId}
       AND organization_id = ${orgId}
-      AND reversed_at IS NULL
   )`;
 }
 

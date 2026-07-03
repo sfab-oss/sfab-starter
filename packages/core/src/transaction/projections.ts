@@ -1,6 +1,6 @@
 import { db } from "@workspace/db";
 import { documents, entities, paymentAllocations } from "@workspace/db/schema";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 
 /**
@@ -42,6 +42,8 @@ export async function rebuildDocumentPayment(
     throw new DomainError(`Document not found: ${documentId}`, "not_found");
   }
 
+  // Full scan of ALL allocations (including compensating reversal rows).
+  // Reversed originals + their compensating negatives cancel in the SUM (C6).
   const allocs = await db
     .select({
       amount: paymentAllocations.amount,
@@ -51,8 +53,7 @@ export async function rebuildDocumentPayment(
     .where(
       and(
         eq(paymentAllocations.documentId, documentId),
-        eq(paymentAllocations.organizationId, orgId),
-        isNull(paymentAllocations.reversedAt)
+        eq(paymentAllocations.organizationId, orgId)
       )
     );
 

@@ -1,10 +1,12 @@
 import { zValidator } from "@hono/zod-validator";
+import { can } from "@workspace/auth/access-control";
 import {
   createDocumentSchema,
   documentTypeSchema,
   lineItemInputSchema,
 } from "@workspace/contract/transaction";
 import { listActivity } from "@workspace/core/activity";
+import { getActiveMemberRole } from "@workspace/core/auth";
 import {
   addLineItem,
   createDocument,
@@ -83,8 +85,13 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
       const orgId = c.get("session").activeOrganizationId;
       const userId = c.get("session").userId;
       const { id } = c.req.valid("param");
+      const role = await getActiveMemberRole({
+        userId,
+        organizationId: orgId,
+      });
       const result = await finalizeDocument(id, orgId, {
         actorId: userId,
+        bypassCreditLimit: can("credit:bypass", { role }),
       });
       return c.json(result);
     }

@@ -1,3 +1,8 @@
+import {
+  addLineItem,
+  createDocument,
+  finalizeDocument,
+} from "@workspace/core/transaction";
 import { db } from "@workspace/db";
 // biome-ignore lint/performance/noNamespaceImport: Schema barrel export
 import * as schema from "@workspace/db/schema";
@@ -60,4 +65,33 @@ export async function seedProduct(
     })
     .returning();
   return product;
+}
+
+/**
+ * Create + finalize an invoice with a single line, returning the document.
+ * Convenience for settlement tests that need a finalized fiscal doc.
+ */
+export async function seedFinalizedInvoice(
+  orgId: string,
+  opts: {
+    total: number;
+    entityId?: string;
+    entityName?: string;
+    direction?: "sales" | "purchase";
+    type?: "invoice" | "receipt" | "bill";
+  }
+) {
+  const doc = await createDocument(orgId, {
+    type: opts.type ?? "invoice",
+    direction: opts.direction ?? "sales",
+    entityId: opts.entityId,
+    entityName: opts.entityName,
+  });
+  await addLineItem(orgId, doc.id, {
+    description: "Test item",
+    quantity: 1,
+    unitPrice: opts.total,
+  });
+  await finalizeDocument(doc.id, orgId);
+  return doc;
 }
