@@ -1,4 +1,4 @@
-import type { LineItem } from "@workspace/db/schema";
+import type { LineItem, TaxMode } from "@workspace/db/schema";
 import { applyRate, type MoneyMinor, sum } from "../money";
 
 /**
@@ -29,7 +29,7 @@ export function computeLineTax(line: {
   quantity: number;
   discount: number;
   taxRate: number;
-  taxMode: string | null;
+  taxMode: TaxMode;
 }): MoneyMinor {
   const base = computeLineTaxableBase(line);
   if (base <= 0) {

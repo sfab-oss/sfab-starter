@@ -109,7 +109,8 @@ export async function finalizeDocument(
     })
     .where(
       and(eq(documents.id, documentId), eq(documents.organizationId, orgId))
-    );
+    )
+    .returning({ folio: documents.folio });
 
   const bumpSeq = db
     .update(sequences)
@@ -137,18 +138,20 @@ export async function finalizeDocument(
   // The afterCommit posting seam (C7) is this batch's commit itself — a GL
   // pack subscribes by appending in-batch statements, not via a post-batch
   // hook (there is no base consumer; the event row serves timeline + log).
-  await db.batch([ensureSeq, freezeDoc, bumpSeq, insertEvent]);
+  const [, frozen] = await db.batch([
+    ensureSeq,
+    freezeDoc,
+    bumpSeq,
+    insertEvent,
+  ]);
 
-  // 4. re-read the folio the subquery assigned (guaranteed non-null — the
-  //    batch committed or we threw).
-  const [finalized] = await db
-    .select({ folio: documents.folio })
-    .from(documents)
-    .where(eq(documents.id, documentId));
-  if (!finalized || finalized.folio === null) {
+  // 4. read the folio the subquery assigned (from the batch result — no
+  //    extra round-trip; the batch committed or we threw).
+  const folio = frozen[0]?.folio;
+  if (folio == null) {
     throw new Error(
-      `Document ${documentId} has no folio after finalize (should be impossible)`
+      `Finalize assigned no folio for ${documentId} (should be impossible)`
     );
   }
-  return { documentId, folio: finalized.folio, totals };
+  return { documentId, folio, totals };
 }

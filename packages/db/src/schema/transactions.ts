@@ -203,9 +203,11 @@ export const lineItems = sqliteTable(
     // One generic tax per line (§3); multi-tax is a pack (line_tax_components).
     taxRate: integer("tax_rate").default(0).notNull(), // basis points
     taxCode: text("tax_code"), // opaque
-    taxMode: text("tax_mode", { enum: TAX_MODES }).default("exclusive"),
+    taxMode: text("tax_mode", { enum: TAX_MODES })
+      .default("exclusive")
+      .notNull(),
     taxAmount: moneyMinor("tax_amount").default(0).notNull(),
-    taxableBase: moneyMinor("taxable_base"),
+    taxableBase: moneyMinor("taxable_base").default(0).notNull(),
 
     // Stock gate (§7/§8): shouldAffectStock(line) = catalog.tracksInventory x
     // fulfillmentMode. Bare nullable warehouseId — the location table is a pack.

@@ -4,12 +4,12 @@ import {
   documentTypeSchema,
   lineItemInputSchema,
 } from "@workspace/contract/transaction";
+import { listActivity } from "@workspace/core/activity";
 import {
   addLineItem,
   createDocument,
   finalizeDocument,
   getDocumentWithLines,
-  listActivity,
   listDocuments,
 } from "@workspace/core/transaction";
 import { Hono } from "hono";

@@ -17,7 +17,7 @@
 export type MoneyMinor = number;
 
 /** ISO 4217 minor-unit exponents for currencies the starter handles. */
-const CURRENCY_MINOR_EXPONENT: Record<string, number> = {
+export const CURRENCY_MINOR_EXPONENT: Record<string, number> = {
   ARS: 2,
   BRL: 2,
   CAD: 2,
