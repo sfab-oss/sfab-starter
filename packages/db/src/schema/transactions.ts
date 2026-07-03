@@ -256,9 +256,139 @@ export const sequences = sqliteTable(
   ]
 );
 
+// --- entities (counterparty) -------------------------------------------------
+
+export const ENTITY_TYPES = ["customer", "supplier", "walk_in"] as const;
+export type EntityType = (typeof ENTITY_TYPES)[number];
+
+export const CREDIT_NOTE_DISPOSITIONS = [
+  "cash_refund",
+  "store_credit",
+  "apply_to_document",
+] as const;
+export type CreditNoteDisposition = (typeof CREDIT_NOTE_DISPOSITIONS)[number];
+
+/**
+ * A counterparty with the cached AR projection (§4/§8). `balance` is rebuildable
+ * via `rebuildEntityBalance`; `creditLimit` gates fiado sales. The wallet
+ * `creditBalance` arrives with ALW-355 (customer_credit).
+ */
+export const entities = sqliteTable(
+  "entities",
+  {
+    id: id(),
+    organizationId: text("organization_id").notNull(),
+
+    name: text("name").notNull(),
+    type: text("type", { enum: ENTITY_TYPES }).default("customer").notNull(),
+
+    // AR projection — Σ open fiscal-sales balanceDue (rebuildable).
+    balance: moneyMinor("balance").default(0).notNull(),
+    // Credit limit for fiado checks (nullable = no limit).
+    creditLimit: moneyMinor("credit_limit"),
+
+    metadata: text("metadata", { mode: "json" }).$type<
+      Record<string, unknown>
+    >(),
+
+    ...timestamps,
+  },
+  (table) => [
+    index("entities_org_type_idx").on(table.organizationId, table.type),
+  ]
+);
+
+// --- payments + payment_allocations ------------------------------------------
+
+/**
+ * A payment — the tender/receipt (§4). Signed `amount` (positive = received,
+ * negative = reversal). `method` is an open string (cash, transfer, card …).
+ * `reversesPaymentId` marks a compensating reversal payment.
+ */
+export const payments = sqliteTable(
+  "payments",
+  {
+    id: id(),
+    organizationId: text("organization_id").notNull(),
+
+    amount: moneyMinor("amount").notNull(),
+    method: text("method").notNull(),
+    paidAt: text("paid_at").notNull(),
+    reference: text("reference"),
+    idempotencyKey: text("idempotency_key"),
+    reversesPaymentId: text("reverses_payment_id"),
+
+    entityId: text("entity_id"),
+
+    metadata: text("metadata", { mode: "json" }).$type<
+      Record<string, unknown>
+    >(),
+
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("payments_org_idem_uniq").on(
+      table.organizationId,
+      table.idempotencyKey
+    ),
+    index("payments_org_entity_idx").on(table.organizationId, table.entityId),
+    index("payments_org_reverses_idx").on(
+      table.organizationId,
+      table.reversesPaymentId
+    ),
+  ]
+);
+
+/**
+ * A payment ↔ document allocation row (§4). `amount` is signed (negative for
+ * reversals/credit notes). `effectiveAt` is the posting timestamp for as-of
+ * queries; `reversedAt` marks when this allocation was compensated.
+ *
+ * `unique(orgId, paymentId, documentId)` forbids double-allocation (C4) and
+ * gives UPSERT semantics: re-allocating the same pair updates the row.
+ */
+export const paymentAllocations = sqliteTable(
+  "payment_allocations",
+  {
+    id: id(),
+    organizationId: text("organization_id").notNull(),
+
+    paymentId: text("payment_id").notNull(),
+    documentId: text("document_id").notNull(),
+    amount: moneyMinor("amount").notNull(),
+
+    effectiveAt: text("effective_at").notNull(),
+    reversedAt: text("reversed_at"),
+
+    metadata: text("metadata", { mode: "json" }).$type<
+      Record<string, unknown>
+    >(),
+
+    createdAt,
+    updatedAt,
+  },
+  (table) => [
+    uniqueIndex("pmt_alloc_org_pmt_doc_uniq").on(
+      table.organizationId,
+      table.paymentId,
+      table.documentId
+    ),
+    index("pmt_alloc_org_doc_idx").on(table.organizationId, table.documentId),
+    index("pmt_alloc_org_pmt_idx").on(table.organizationId, table.paymentId),
+  ]
+);
+
+// --- type exports ------------------------------------------------------------
+
 export type Document = typeof documents.$inferSelect;
 export type NewDocument = typeof documents.$inferInsert;
 export type LineItem = typeof lineItems.$inferSelect;
 export type NewLineItem = typeof lineItems.$inferInsert;
 export type Sequence = typeof sequences.$inferSelect;
 export type NewSequence = typeof sequences.$inferInsert;
+export type Entity = typeof entities.$inferSelect;
+export type NewEntity = typeof entities.$inferInsert;
+export type Payment = typeof payments.$inferSelect;
+export type NewPayment = typeof payments.$inferInsert;
+export type PaymentAllocation = typeof paymentAllocations.$inferSelect;
+export type NewPaymentAllocation = typeof paymentAllocations.$inferInsert;
