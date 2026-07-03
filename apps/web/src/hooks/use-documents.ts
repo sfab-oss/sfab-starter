@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   createDocumentSchema,
   lineItemInputSchema,
+  recordPaymentSchema,
 } from "@workspace/contract/transaction";
 import type { Document, DocumentType, LineItem } from "@workspace/db/schema";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
@@ -147,6 +148,62 @@ export const useActivity = (entityId?: string) => {
           createdAt: string;
         }>;
       };
+    },
+  });
+};
+
+export const useRecordPayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      input: z.infer<typeof recordPaymentSchema>;
+    }) => {
+      const res = await client.protected.payments.$post({ json: data.input });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error || "Failed to record payment");
+      }
+      return res.json();
+    },
+    onSuccess: (_data, variables) => {
+      for (const docId of variables.input.allocations) {
+        queryClient.invalidateQueries({
+          queryKey: getDocumentKey(docId.documentId),
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: ["activity"] });
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      toast.success("Payment recorded");
+    },
+    onError: () => {
+      toast.error("Failed to record payment");
+    },
+  });
+};
+
+export const useReversePayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { id: string; reason?: string }) => {
+      const res = await client.protected.payments[":id"].reverse.$post({
+        param: { id: params.id },
+        json: params.reason ? { reason: params.reason } : {},
+      });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error || "Failed to reverse payment");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["activity"] });
+      toast.success("Payment reversed");
+    },
+    onError: () => {
+      toast.error("Failed to reverse payment");
     },
   });
 };

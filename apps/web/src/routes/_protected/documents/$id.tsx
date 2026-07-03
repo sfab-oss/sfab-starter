@@ -8,6 +8,13 @@ import {
 import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { Input } from "@workspace/ui/components/shadcn/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/shadcn/select";
 import { formatMoneyMinor } from "@workspace/ui/lib/money";
 import { format } from "date-fns";
 import { useMemo, useState } from "react";
@@ -17,11 +24,83 @@ import {
   useAddLineItem,
   useDocument,
   useFinalizeDocument,
+  useRecordPayment,
 } from "@/hooks/use-documents";
 
 export const Route = createFileRoute("/_protected/documents/$id")({
   component: DocumentPage,
 });
+
+function paymentBadgeVariant(
+  status: string
+): "default" | "secondary" | "outline" {
+  if (status === "paid") {
+    return "default";
+  }
+  if (status === "partial") {
+    return "secondary";
+  }
+  return "outline";
+}
+
+function RecordPaymentForm({
+  docId,
+  disabled,
+}: {
+  docId: string;
+  disabled: boolean;
+}) {
+  const recordPayment = useRecordPayment();
+  const [method, setMethod] = useState("cash");
+  const [amount, setAmount] = useState(0);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (amount <= 0) {
+      return;
+    }
+    await recordPayment.mutateAsync({
+      input: {
+        amount,
+        method,
+        allocations: [{ documentId: docId, amount }],
+      },
+    });
+    setAmount(0);
+  };
+
+  return (
+    <form className="space-y-2 rounded-lg border p-4" onSubmit={handleSubmit}>
+      <h3 className="font-medium text-sm">Record payment</h3>
+      <div className="flex gap-2">
+        <Select onValueChange={setMethod} value={method}>
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="cash">Cash</SelectItem>
+            <SelectItem value="transfer">Transfer</SelectItem>
+            <SelectItem value="card">Card</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
+          className="flex-1"
+          min={0}
+          onChange={(e) => setAmount(Number(e.target.value) || 0)}
+          placeholder="Amount (minor)"
+          type="number"
+          value={amount}
+        />
+        <Button
+          disabled={disabled || recordPayment.isPending || amount <= 0}
+          type="submit"
+        >
+          Pay
+        </Button>
+      </div>
+    </form>
+  );
+}
 
 function DocumentPage() {
   const { id } = Route.useParams();
@@ -243,12 +322,33 @@ function DocumentPage() {
                 {formatMoneyMinor(display.total, doc.currencyCode)}
               </span>
             </div>
-            <p className="text-muted-foreground text-xs">
-              {isDraft
-                ? "Draft — totals freeze at finalize."
-                : "Frozen at finalize (C5). Payment recording arrives with ALW-354."}
-            </p>
+            {!isDraft && (
+              <>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="text-muted-foreground">Paid</span>
+                  <span className="tabular-nums">
+                    {formatMoneyMinor(doc.amountPaid, doc.currencyCode)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Balance</span>
+                  <span className="font-medium tabular-nums">
+                    {formatMoneyMinor(doc.balanceDue, doc.currencyCode)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Payment</span>
+                  <Badge variant={paymentBadgeVariant(doc.paymentStatus)}>
+                    {doc.paymentStatus}
+                  </Badge>
+                </div>
+              </>
+            )}
           </div>
+
+          {!isDraft && doc.balanceDue > 0 && (
+            <RecordPaymentForm disabled={false} docId={id} />
+          )}
 
           <div>
             <h3 className="mb-2 font-medium text-sm">Activity</h3>
