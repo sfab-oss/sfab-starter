@@ -2,6 +2,7 @@ import { db } from "@workspace/db";
 import {
   activityLog,
   documents,
+  entities,
   lineItems,
   sequences,
 } from "@workspace/db/schema";
@@ -41,7 +42,7 @@ export interface FinalizeResult {
 export async function finalizeDocument(
   documentId: string,
   orgId: string,
-  opts: { actorId?: string } = {}
+  opts: { actorId?: string; bypassCreditLimit?: boolean } = {}
 ): Promise<FinalizeResult> {
   // 1. READ (before batch assembly).
   const [doc] = await db
@@ -70,6 +71,14 @@ export async function finalizeDocument(
 
   // 2. COMPUTE totals — round per line; header = exact Σ (§3).
   const totals = computeDocumentTotals(lines);
+
+  // Credit-limit enforcement (§8): if this is a sales-fiscal doc with an
+  // entity that has a creditLimit, check the projected AR balance after this
+  // document's total lands. The `credit:bypass` RBAC key lets an admin
+  // override (the route layer checks can("credit:bypass") and passes the flag).
+  if (doc.direction === "sales" && doc.entityId && !opts.bypassCreditLimit) {
+    await assertWithinCreditLimit(doc.entityId, orgId, totals.total);
+  }
 
   const now = new Date().toISOString();
   const postingDate = doc.postingDate ?? now;
@@ -162,4 +171,31 @@ export async function finalizeDocument(
   });
 
   return { documentId, folio, totals };
+}
+
+/**
+ * Check that finalizing a document with `additionalAmount` won't push the
+ * entity's AR balance over their creditLimit (§8). Throws a `conflict`
+ * DomainError if exceeded. No-op if the entity has no creditLimit.
+ */
+async function assertWithinCreditLimit(
+  entityId: string,
+  orgId: string,
+  additionalAmount: number
+): Promise<void> {
+  const [entity] = await db
+    .select()
+    .from(entities)
+    .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
+  if (!entity || entity.creditLimit == null) {
+    return;
+  }
+
+  const projectedBalance = entity.balance + additionalAmount;
+  if (projectedBalance > entity.creditLimit) {
+    throw new DomainError(
+      `Credit limit exceeded for "${entity.name}": projected balance ${projectedBalance} exceeds limit ${entity.creditLimit}`,
+      "conflict"
+    );
+  }
 }

@@ -1,3 +1,4 @@
+export * from "./credit-note";
 export * from "./documents";
 export * from "./entities";
 export * from "./family";
