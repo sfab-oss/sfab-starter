@@ -36,6 +36,13 @@
       "when": 1783096383576,
       "tag": "0004_neat_patch",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1783109504229,
+      "tag": "0005_stiff_maverick",
+      "breakpoints": true
     }
   ]
 }

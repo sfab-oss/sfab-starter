@@ -65,6 +65,125 @@ function validateAllocationTargets(docs: Document[]): void {
 }
 
 /**
+ * Fetch the existing payment for an idempotency-key replay, validate the
+ * request amount matches, and return the stored payment's touched documents.
+ * Called both from the pre-check (happy-path retry) and from the batch catch
+ * handler (concurrent race loser — F2/F3).
+ *
+ * `completedSales` is always `[]` on a replay: the events were already written
+ * by the original call, and we must not fire duplicate `sale_completed`.
+ */
+async function replayIdempotentPayment(
+  orgId: string,
+  idempotencyKey: string,
+  inputAmount: number
+): Promise<RecordPaymentResult | null> {
+  const [existing] = await db
+    .select({ id: payments.id, amount: payments.amount })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.organizationId, orgId),
+        eq(payments.idempotencyKey, idempotencyKey)
+      )
+    );
+  if (!existing) {
+    return null;
+  }
+
+  if (existing.amount !== inputAmount) {
+    throw new DomainError(
+      `Idempotency key "${idempotencyKey}" is already used for a payment of amount ${existing.amount}, cannot reuse for amount ${inputAmount}`,
+      "conflict"
+    );
+  }
+
+  const allocations = await db
+    .select({ documentId: paymentAllocations.documentId })
+    .from(paymentAllocations)
+    .where(
+      and(
+        eq(paymentAllocations.organizationId, orgId),
+        eq(paymentAllocations.paymentId, existing.id)
+      )
+    );
+
+  return {
+    paymentId: existing.id,
+    touchedDocuments: allocations.map((a) => a.documentId),
+    completedSales: [],
+  };
+}
+
+/**
+ * Handle a batch conflict: if the UNIQUE constraint on idempotency_key fired
+ * (concurrent race past the pre-check — F2), re-read and return the existing
+ * payment; otherwise rethrow.
+ */
+async function catchIdempotentRace(
+  err: unknown,
+  orgId: string,
+  idempotencyKey: string | null | undefined,
+  inputAmount: number
+): Promise<RecordPaymentResult> {
+  if (idempotencyKey) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("idempotency_key") && msg.includes("UNIQUE")) {
+      const replay = await replayIdempotentPayment(
+        orgId,
+        idempotencyKey,
+        inputAmount
+      );
+      if (replay) {
+        return replay;
+      }
+    }
+  }
+  throw err;
+}
+
+/** Build the post-batch event-log batch statements (best-effort writes). */
+function buildPaymentEventStmts(
+  orgId: string,
+  paymentId: string,
+  input: RecordPaymentInput,
+  completedSales: string[],
+  actorId: string | undefined,
+  now: string
+): BatchStmt[] {
+  const stmts: BatchStmt[] = completedSales.map((docId) =>
+    db.insert(activityLog).values({
+      organizationId: orgId,
+      kind: "event",
+      eventType: "sale_completed",
+      entityType: "document",
+      entityId: docId,
+      actorId: actorId ?? null,
+      summary: "Sale completed (fully paid)",
+      createdAt: now,
+    })
+  );
+  stmts.push(
+    db.insert(activityLog).values({
+      organizationId: orgId,
+      kind: "event",
+      eventType: "payment_recorded",
+      entityType: "payment",
+      entityId: paymentId,
+      actorId: actorId ?? null,
+      summary: `Payment recorded: ${input.method}`,
+      metadata: {
+        amount: input.amount,
+        method: input.method,
+        allocations: input.allocations.length,
+      },
+      createdAt: now,
+    })
+  );
+  return stmts;
+}
+
+/**
  * Detect which docs will transition to "paid" from this payment's allocations.
  * Only **sales receivables** (not credit notes, not purchase bills) qualify —
  * `sale_completed` is a sales-domain event (§7); paying a supplier bill or
@@ -153,21 +272,13 @@ export async function recordPayment(
 
   // 2. IDEMPOTENCY: if a key is provided, return the existing payment.
   if (input.idempotencyKey) {
-    const [existing] = await db
-      .select({ id: payments.id })
-      .from(payments)
-      .where(
-        and(
-          eq(payments.organizationId, orgId),
-          eq(payments.idempotencyKey, input.idempotencyKey)
-        )
-      );
-    if (existing) {
-      return {
-        paymentId: existing.id,
-        touchedDocuments: [],
-        completedSales: [],
-      };
+    const replay = await replayIdempotentPayment(
+      orgId,
+      input.idempotencyKey,
+      input.amount
+    );
+    if (replay) {
+      return replay;
     }
   }
 
@@ -236,40 +347,27 @@ export async function recordPayment(
     stmts.push(entityBalanceUpdate(eid, orgId, now));
   }
 
-  // 5. EXECUTE — one atomic batch.
-  await runBatch(stmts);
+  // 5. EXECUTE — one atomic batch. If a concurrent first-time request with
+  //    the same idempotency key raced past the pre-check, the
+  //    payments_org_idem_uniq UNIQUE constraint fires here; the catch handler
+  //    re-reads and returns the existing payment instead of a raw 500 (F2).
+  try {
+    await runBatch(stmts);
+  } catch (err) {
+    return catchIdempotentRace(err, orgId, input.idempotencyKey, input.amount);
+  }
 
   // 6. POST-BATCH events (best-effort, same pattern as finalize).
-  const eventStmts: BatchStmt[] = completedSales.map((docId) =>
-    db.insert(activityLog).values({
-      organizationId: orgId,
-      kind: "event",
-      eventType: "sale_completed",
-      entityType: "document",
-      entityId: docId,
-      actorId: opts.actorId ?? null,
-      summary: "Sale completed (fully paid)",
-      createdAt: now,
-    })
+  await runBatch(
+    buildPaymentEventStmts(
+      orgId,
+      paymentId,
+      input,
+      completedSales,
+      opts.actorId,
+      now
+    )
   );
-  eventStmts.push(
-    db.insert(activityLog).values({
-      organizationId: orgId,
-      kind: "event",
-      eventType: "payment_recorded",
-      entityType: "payment",
-      entityId: paymentId,
-      actorId: opts.actorId ?? null,
-      summary: `Payment recorded: ${input.method}`,
-      metadata: {
-        amount: input.amount,
-        method: input.method,
-        allocations: input.allocations.length,
-      },
-      createdAt: now,
-    })
-  );
-  await runBatch(eventStmts);
 
   return { paymentId, touchedDocuments: docIds, completedSales };
 }

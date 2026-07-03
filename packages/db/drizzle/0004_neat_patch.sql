@@ -44,4 +44,4 @@ CREATE TABLE `payments` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `payments_org_idem_uniq` ON `payments` (`organization_id`,`idempotency_key`);--> statement-breakpoint
 CREATE INDEX `payments_org_entity_idx` ON `payments` (`organization_id`,`entity_id`);--> statement-breakpoint
-CREATE UNIQUE INDEX `payments_org_reverses_uniq` ON `payments` (`organization_id`,`reverses_payment_id`);
+CREATE INDEX `payments_org_reverses_idx` ON `payments` (`organization_id`,`reverses_payment_id`);

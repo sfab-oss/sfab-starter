@@ -12,6 +12,8 @@ import { assertCanFinalize, assertHasLines } from "./guards";
 import { derivePaymentStatus, entityBalanceUpdate } from "./projections";
 import { computeDocumentTotals, type DocumentTotals } from "./totals";
 
+type BatchItem = Parameters<typeof db.batch>[0][number];
+
 /**
  * Folio-atomic finalize — the load-bearing write of the hub (AC-9, C5).
  *
@@ -19,10 +21,12 @@ import { computeDocumentTotals, type DocumentTotals } from "./totals";
  * tax/identity, sets the payment projection defaults, snapshots the frozen tax
  * context into `metadata.tax`, and writes the `document_finalized` event.
  *
- * **Atomicity:** the batch `[ensureSeq, freezeDoc, bumpSeq]` is the atomic
- * folio-assignment unit — it commits or rolls back together. The event row is
- * written *after* the batch commits and the folio is verified, so a losing
- * concurrent finalize never produces a phantom `document_finalized` event.
+ * **Atomicity:** the batch `[ensureSeq, freezeDoc, bumpSeq, entityBalance?]`
+ * is the atomic folio-assignment unit — it commits or rolls back together.
+ * The entity balance update rides in the same batch so the credit-limit check
+ * on the next finalize never sees a stale AR balance. The event row is written
+ * after the batch commits and the folio is verified, so a losing concurrent
+ * finalize never produces a phantom `document_finalized` event.
  *
  * D1 has no interactive transactions. The folio is assigned **inside** the
  * batch via a subquery against `sequences` (read+assign+increment in one atomic
@@ -140,7 +144,20 @@ export async function finalizeDocument(
 
   // SEAM marker: a pack (ALW-350) appends critical statements (e.g. the stock
   // decrement) into this array so they commit or roll back WITH the finalize.
-  const [, frozen] = await db.batch([ensureSeq, freezeDoc, bumpSeq]);
+  const batchStmts: BatchItem[] = [ensureSeq, freezeDoc, bumpSeq];
+
+  // (d) Update the entity's AR balance so the credit-limit check (§8) on the
+  //     NEXT finalize sees this document. Inside the batch (not post-batch):
+  //     the freeze UPDATE that sets balanceDue precedes this statement, and
+  //     batch statements see each other's effects, so the subquery SUMs the
+  //     newly frozen balanceDue. Eliminates the post-batch crash window where
+  //     entity.balance could go stale — a stale balance is exactly what the
+  //     credit-limit check trusts.
+  if (doc.entityId) {
+    batchStmts.push(entityBalanceUpdate(doc.entityId, orgId, now));
+  }
+
+  const [, frozen] = await db.batch(batchStmts as [BatchItem, ...BatchItem[]]);
 
   // 4. Verify the freeze won — empty RETURNING means a concurrent finalize
   //    beat us (the status='draft' guard didn't match).
@@ -150,13 +167,6 @@ export async function finalizeDocument(
       `Document ${documentId} was already finalized (or no longer draft)`,
       "conflict"
     );
-  }
-
-  // 4b. Update the entity's AR balance so the credit-limit check (§8) on the
-  //     NEXT finalize sees this document. Same post-batch pattern as the event
-  //     log below — a crash here is repairable via rebuildEntityBalance.
-  if (doc.entityId) {
-    await entityBalanceUpdate(doc.entityId, orgId, now);
   }
 
   // 5. Write the event row AFTER the batch commits and the folio is verified.

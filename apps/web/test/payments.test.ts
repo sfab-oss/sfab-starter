@@ -658,7 +658,7 @@ describe("entity balance + credit-limit (F1, F2, F4, F6)", () => {
     expect(updated?.balance).toBe(400);
   });
 
-  it("idempotencyKey returns existing payment on retry (F4)", async () => {
+  it("idempotencyKey returns existing payment on retry with stored allocations (F3)", async () => {
     const doc = await seedFinalizedInvoice(orgId, { total: 1000 });
 
     const result1 = await recordPayment(orgId, {
@@ -676,7 +676,27 @@ describe("entity balance + credit-limit (F1, F2, F4, F6)", () => {
     });
 
     expect(result2.paymentId).toBe(result1.paymentId);
-    expect(result2.touchedDocuments).toEqual([]);
+    expect(result2.touchedDocuments).toEqual([doc.id]);
+  });
+
+  it("idempotencyKey with mismatched amount throws conflict (F3)", async () => {
+    const doc = await seedFinalizedInvoice(orgId, { total: 1000 });
+
+    await recordPayment(orgId, {
+      amount: 1000,
+      method: "cash",
+      idempotencyKey: "reuse-test",
+      allocations: [{ documentId: doc.id, amount: 1000 }],
+    });
+
+    await expect(
+      recordPayment(orgId, {
+        amount: 500,
+        method: "cash",
+        idempotencyKey: "reuse-test",
+        allocations: [{ documentId: doc.id, amount: 500 }],
+      })
+    ).rejects.toThrow("already used");
   });
 
   it("finalized credit note has paymentStatus 'paid' (F6)", async () => {
