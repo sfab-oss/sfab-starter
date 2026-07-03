@@ -65,8 +65,12 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
     async (c) => {
       const orgId = c.get("session").activeOrganizationId;
       const body = c.req.valid("json");
-      const doc = await createDocument(orgId, body);
-      return c.json(doc);
+      try {
+        const doc = await createDocument(orgId, body);
+        return c.json(doc);
+      } catch (e) {
+        return mapDomainError(c, e);
+      }
     }
   )
   .get("/:id", zValidator("param", documentIdSchema), async (c) => {

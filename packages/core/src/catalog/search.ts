@@ -29,7 +29,7 @@ export const searchCatalog = async (
     .limit(10);
 
   return productResults.map((p) => ({
-    path: `/catalog/products/${p.id}`,
+    path: `/catalog/${p.id}`,
     snippet: p.description || `Product SKU: ${p.sku}`,
     score: 1.0,
     metadata: {
