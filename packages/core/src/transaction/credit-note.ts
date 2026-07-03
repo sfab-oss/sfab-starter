@@ -1,18 +1,9 @@
 import { createId, db } from "@workspace/db";
 import type { CreditNoteDisposition, Document } from "@workspace/db/schema";
-import {
-  activityLog,
-  customerCredit,
-  documents,
-  paymentAllocations,
-  payments,
-} from "@workspace/db/schema";
+import { customerCredit, documents } from "@workspace/db/schema";
 import { and, eq } from "drizzle-orm";
 import { DomainError } from "../errors";
 import { recordPayment } from "./payments";
-import { docProjectionUpdate, entityBalanceUpdate } from "./projections";
-
-type BatchStmt = Parameters<typeof db.batch>[0][number];
 
 /**
  * Credit-note disposition routing (§2, §4, §10).
@@ -30,7 +21,11 @@ type BatchStmt = Parameters<typeof db.batch>[0][number];
  *
  * - **store_credit** — the credit lands in the customer-credit wallet as
  *   `saldo a favor`. Settles the credit note and writes a positive
- *   `customer_credit` row in one atomic batch.
+ *   `customer_credit` row via `recordPayment`'s `extraStmts` — one atomic
+ *   batch for the payment, allocation, and wallet deposit.
+ *
+ * All three dispositions compose with `recordPayment` — no duplicated
+ * settlement-engine logic.
  *
  * @see docs/architecture/transaction-core.md §2, §4, §10
  */
@@ -161,7 +156,8 @@ export async function applyCreditNoteDisposition(
 
 /**
  * Store-credit disposition: settle the credit note AND write a positive
- * `customer_credit` row (the wallet deposit) in one atomic batch.
+ * `customer_credit` row (the wallet deposit) in one atomic batch via
+ * `recordPayment`'s `extraStmts`.
  *
  * The CN's `total` is negative (e.g. −200). The allocation to the CN carries
  * that same negative amount, settling `balanceDue` to zero. The wallet entry
@@ -180,53 +176,34 @@ async function applyStoreCreditDisposition(
     );
   }
 
-  const now = new Date().toISOString();
   const paymentId = createId("pmt");
   const entryId = createId("cred");
   const creditAmount = -cn.total;
 
-  const stmts: BatchStmt[] = [
-    db.insert(payments).values({
-      id: paymentId,
-      organizationId: orgId,
+  await recordPayment(
+    orgId,
+    {
       amount: 0,
       method: "store_credit",
-      paidAt: now,
       entityId,
-    }),
-    db.insert(paymentAllocations).values({
-      id: createId("alloc"),
-      organizationId: orgId,
+      allocations: [{ documentId: cn.id, amount: cn.total }],
+    },
+    {
+      actorId: opts.actorId,
+      docs: [cn],
       paymentId,
-      documentId: cn.id,
-      amount: cn.total,
-      effectiveAt: now,
-    }),
-    db.insert(customerCredit).values({
-      id: entryId,
-      organizationId: orgId,
-      entityId,
-      amount: creditAmount,
-      type: "store_credit",
-      paymentId,
-    }),
-    docProjectionUpdate(cn.id, orgId, now, paymentId),
-    entityBalanceUpdate(entityId, orgId, now),
-  ];
-
-  await db.batch(stmts as [BatchStmt, ...BatchStmt[]]);
-
-  await db.insert(activityLog).values({
-    organizationId: orgId,
-    kind: "event",
-    eventType: "store_credit_issued",
-    entityType: "entity",
-    entityId,
-    actorId: opts.actorId ?? null,
-    summary: `Store credit from credit note: ${creditAmount}`,
-    metadata: { amount: creditAmount, creditNoteId: cn.id, entryId, paymentId },
-    createdAt: now,
-  });
+      extraStmts: [
+        db.insert(customerCredit).values({
+          id: entryId,
+          organizationId: orgId,
+          entityId,
+          amount: creditAmount,
+          type: "store_credit",
+          paymentId,
+        }),
+      ],
+    }
+  );
 
   return { paymentId, disposition: "store_credit" as const };
 }

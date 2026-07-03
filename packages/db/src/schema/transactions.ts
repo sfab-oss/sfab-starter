@@ -427,6 +427,11 @@ export const customerCredit = sqliteTable(
     // later redemption.
     reference: text("reference"),
 
+    // Double-claim prevention: set to `reference` ONLY on the walk-in-scope
+    // claim debit row. NULL for all other rows. SQLite treats NULL as distinct
+    // in UNIQUE constraints, so only one claim per reference can land.
+    claimReference: text("claim_reference"),
+
     notes: text("notes"),
 
     metadata: text("metadata", { mode: "json" }).$type<
@@ -447,6 +452,10 @@ export const customerCredit = sqliteTable(
     index("customer_credit_org_reference_idx").on(
       table.organizationId,
       table.reference
+    ),
+    uniqueIndex("customer_credit_claim_ref_uniq").on(
+      table.organizationId,
+      table.claimReference
     ),
   ]
 );

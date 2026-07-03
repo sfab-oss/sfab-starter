@@ -39,9 +39,10 @@ import {
 // ---------------------------------------------------------------------------
 
 type BatchStmt = Parameters<typeof db.batch>[0][number];
+export type { BatchStmt };
 
 /** Run a batch of statements (typed wrapper to avoid repeating the tuple cast). */
-function runBatch(stmts: BatchStmt[]) {
+export function runBatch(stmts: BatchStmt[]) {
   return db.batch(stmts as [BatchStmt, ...BatchStmt[]]);
 }
 
@@ -235,7 +236,12 @@ export interface RecordPaymentResult {
 export async function recordPayment(
   orgId: string,
   input: RecordPaymentInput,
-  opts: { actorId?: string; docs?: Document[] } = {}
+  opts: {
+    actorId?: string;
+    docs?: Document[];
+    paymentId?: string;
+    extraStmts?: BatchStmt[];
+  } = {}
 ): Promise<RecordPaymentResult> {
   // 1. READ: validate all target documents are fiscal + finalized.
   const docIds = [...new Set(input.allocations.map((a) => a.documentId))];
@@ -283,7 +289,7 @@ export async function recordPayment(
   }
 
   // 3. PRE-GENERATE IDs (so allocation rows reference the payment in-batch).
-  const paymentId = createId("pmt");
+  const paymentId = opts.paymentId ?? createId("pmt");
   const now = new Date().toISOString();
   const paidAt = input.paidAt ?? now;
 
@@ -337,7 +343,15 @@ export async function recordPayment(
     stmts.push(docProjectionUpdate(docId, orgId, now, paymentId));
   }
 
-  // (d) Entity balance updates — for every entity that owns an allocated doc.
+  // (d) Companion statements from the caller (e.g. wallet debit/deposit rows)
+  //     — they ride in the same atomic batch so the payment + wallet mutation
+  //     commit or roll back together. They run BEFORE the entity projection
+  //     update so entityBalanceUpdate's full-scan credit subquery sees them.
+  if (opts.extraStmts) {
+    stmts.push(...opts.extraStmts);
+  }
+
+  // (e) Entity balance updates — for every entity that owns an allocated doc.
   // Derived from the documents, not input.entityId, so balance stays correct
   // even when the caller omits entityId (e.g. the demo RecordPaymentForm).
   const entityIds = [

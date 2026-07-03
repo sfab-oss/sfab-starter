@@ -1,10 +1,5 @@
 import { db } from "@workspace/db";
-import {
-  customerCredit,
-  documents,
-  entities,
-  paymentAllocations,
-} from "@workspace/db/schema";
+import { documents, entities, paymentAllocations } from "@workspace/db/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 
@@ -184,77 +179,39 @@ export async function rebuildDocumentPayment(
 }
 
 /**
- * Recompute an entity's AR balance from all open finalized fiscal-sales docs.
+ * Recompute an entity's balance and creditBalance projections by executing
+ * the authoritative `entityBalanceUpdate` SQL and reading the row back.
+ * Both columns are set in a single UPDATE — one source of truth for the
+ * formula `balance = AR − creditBalance`.
+ *
  * AP bills (direction = 'purchase') are excluded — they never poison a
  * customer's fiado balance (C2).
- *
- * Note: this rebuilds the raw AR sum only. The persisted `balance` column is
- * the **net** (AR − creditBalance); use `rebuildEntityBalanceWithCredit` for
- * the full projection, or call `rebuildCreditBalance` then this.
  */
 export async function rebuildEntityBalance(
   entityId: string,
   orgId: string
 ): Promise<number> {
+  await entityBalanceUpdate(entityId, orgId, new Date().toISOString());
   const [row] = await db
-    .select({
-      total: sql<number>`COALESCE(SUM(${documents.balanceDue}), 0)`.as("total"),
-    })
-    .from(documents)
-    .where(
-      and(
-        eq(documents.organizationId, orgId),
-        eq(documents.entityId, entityId),
-        eq(documents.family, "fiscal"),
-        eq(documents.direction, "sales"),
-        eq(documents.status, "finalized")
-      )
-    );
-
-  const arBalance = row?.total ?? 0;
-
-  // Also rebuild credit balance so the persisted net balance is correct.
-  const creditBalance = await rebuildCreditBalance(entityId, orgId);
-
-  const netBalance = arBalance - creditBalance;
-
-  await db
-    .update(entities)
-    .set({ balance: netBalance })
+    .select({ balance: entities.balance })
+    .from(entities)
     .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
-
-  return netBalance;
+  return row?.balance ?? 0;
 }
 
 /**
- * Recompute an entity's wallet credit balance from the full customer_credit
- * scan. Positive deposits minus negative redemptions = available credit.
- * Also updates the `creditBalance` projection on the entity row.
+ * Recompute an entity's wallet credit balance. Delegates to
+ * `entityBalanceUpdate` (which sets both `balance` and `creditBalance` in
+ * one UPDATE) and reads the `creditBalance` column back.
  */
 export async function rebuildCreditBalance(
   entityId: string,
   orgId: string
 ): Promise<number> {
+  await entityBalanceUpdate(entityId, orgId, new Date().toISOString());
   const [row] = await db
-    .select({
-      total: sql<number>`COALESCE(SUM(${customerCredit.amount}), 0)`.as(
-        "total"
-      ),
-    })
-    .from(customerCredit)
-    .where(
-      and(
-        eq(customerCredit.organizationId, orgId),
-        eq(customerCredit.entityId, entityId)
-      )
-    );
-
-  const creditBalance = row?.total ?? 0;
-
-  await db
-    .update(entities)
-    .set({ creditBalance })
+    .select({ creditBalance: entities.creditBalance })
+    .from(entities)
     .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
-
-  return creditBalance;
+  return row?.creditBalance ?? 0;
 }

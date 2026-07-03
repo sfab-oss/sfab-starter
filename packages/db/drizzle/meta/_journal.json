@@ -50,6 +50,13 @@
       "when": 1783110642073,
       "tag": "0006_zippy_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1783120895730,
+      "tag": "0007_organic_firestar",
+      "breakpoints": true
     }
   ]
 }

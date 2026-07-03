@@ -4,23 +4,19 @@ import type {
   RedeemCreditInput,
 } from "@workspace/contract/transaction";
 import { createId, db } from "@workspace/db";
-import type { CustomerCredit, Document } from "@workspace/db/schema";
+import type { CustomerCredit } from "@workspace/db/schema";
 import {
   activityLog,
   customerCredit,
   documents,
   entities,
-  paymentAllocations,
   payments,
 } from "@workspace/db/schema";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 import { documentFamily } from "./family";
-import {
-  derivePaymentStatus,
-  docProjectionUpdate,
-  entityBalanceUpdate,
-} from "./projections";
+import { type BatchStmt, recordPayment, runBatch } from "./payments";
+import { entityBalanceUpdate } from "./projections";
 
 /**
  * Customer-credit wallet — deposits, redemptions, and walk-in claims (§4).
@@ -33,63 +29,19 @@ import {
  *
  * **Conservation (C1, full form):** a deposit lands **only** in the wallet,
  * never also as an AR allocation. Redemption debits the wallet AND allocates
- * to a document in one atomic `db.batch()`.
+ * to a document via `recordPayment` (the settlement engine) with companion
+ * wallet statements in the same atomic batch — no duplicated engine logic.
  *
  * **Walk-in matching (C3):** a walk-in deposit writes a `reference` (claim
- * token) with `entityId = null`. Later redemption by reference writes a
- * `claim` row (transferring credit into the entity's scope) + a `redemption`
- * row, so the entity's `creditBalance` nets correctly.
+ * token) with `entityId = null`. Redemption by reference is a **balanced
+ * transfer**: the full walk-in total is debited from the walk-in scope and
+ * credited to the entity scope, then `input.amount` is redeemed as an ordinary
+ * wallet redemption. The remainder stays as entity credit. Double-claim is
+ * prevented by a UNIQUE index on `claim_reference` (set only on the walk-in
+ * debit row; NULL for all others, and SQLite treats NULLs as distinct).
  *
  * @see docs/architecture/transaction-core.md §4
  */
-
-type BatchStmt = Parameters<typeof db.batch>[0][number];
-
-function runBatch(stmts: BatchStmt[]) {
-  return db.batch(stmts as [BatchStmt, ...BatchStmt[]]);
-}
-
-// ---------------------------------------------------------------------------
-// Validation helpers
-// ---------------------------------------------------------------------------
-
-function validateRedemptionTarget(doc: Document, amount: number): void {
-  const family = documentFamily(doc.type);
-  if (family !== "fiscal") {
-    throw new DomainError(
-      `Wallet redemption may target fiscal documents only — "${doc.id}" is a ${family} document`,
-      "unprocessable"
-    );
-  }
-  if (doc.status !== "finalized") {
-    throw new DomainError(
-      `Target document must be finalized — "${doc.id}" is ${doc.status}`,
-      "conflict"
-    );
-  }
-  if (doc.direction !== "sales") {
-    throw new DomainError(
-      "Wallet redemption may only target sales documents, not purchase bills",
-      "unprocessable"
-    );
-  }
-  if (amount > doc.balanceDue) {
-    throw new DomainError(
-      `Redemption amount ${amount} exceeds document balance due ${doc.balanceDue}`,
-      "conflict"
-    );
-  }
-}
-
-function willCompleteSale(doc: Document, amount: number): boolean {
-  if (doc.direction !== "sales" || doc.type === "credit_note") {
-    return false;
-  }
-  if (doc.paymentStatus === "paid") {
-    return false;
-  }
-  return derivePaymentStatus(doc.amountPaid + amount, doc.total) === "paid";
-}
 
 // ---------------------------------------------------------------------------
 // depositCredit
@@ -100,12 +52,46 @@ export interface DepositCreditResult {
   paymentId: string;
 }
 
+/** Pre-check / replay an idempotent deposit (same pattern as recordPayment). */
+async function replayIdempotentDeposit(
+  orgId: string,
+  key: string
+): Promise<DepositCreditResult | null> {
+  const existing = await findPaymentByIdempotencyKey(orgId, key);
+  if (!existing) {
+    return null;
+  }
+  const entry = await findCreditEntryByPaymentId(orgId, existing);
+  return { entryId: entry ?? "", paymentId: existing };
+}
+
+/** Handle a batch UNIQUE constraint error from a concurrent deposit race. */
+async function catchDepositRace(
+  err: unknown,
+  orgId: string,
+  key: string | null | undefined
+): Promise<DepositCreditResult> {
+  if (key) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("idempotency_key") && msg.includes("UNIQUE")) {
+      const replay = await replayIdempotentDeposit(orgId, key);
+      if (replay) {
+        return replay;
+      }
+    }
+  }
+  throw err;
+}
+
 /**
  * Deposit credit to the wallet. Creates a payment header (audit trail — cash
  * received, no AR allocation) + a positive `customer_credit` row + entity
  * projection update, all in one `db.batch()`.
  *
  * For walk-ins (`entityId = null`), a `reference` (claim token) is required.
+ * Idempotency: if `idempotencyKey` is provided, a pre-check returns the
+ * existing payment on retry, and the batch UNIQUE constraint is the
+ * last-line race defense.
  */
 export async function depositCredit(
   orgId: string,
@@ -119,13 +105,37 @@ export async function depositCredit(
     );
   }
 
+  if (input.idempotencyKey) {
+    const replay = await replayIdempotentDeposit(orgId, input.idempotencyKey);
+    if (replay) {
+      return replay;
+    }
+  }
+
   const now = new Date().toISOString();
   const paymentId = createId("pmt");
   const entryId = createId("cred");
+  const stmts = buildDepositStmts(orgId, input, paymentId, entryId, now);
 
-  const stmts: BatchStmt[] = [];
+  try {
+    await runBatch(stmts);
+  } catch (err) {
+    return catchDepositRace(err, orgId, input.idempotencyKey);
+  }
 
-  stmts.push(
+  await logDepositEvent(orgId, paymentId, entryId, input, opts.actorId, now);
+
+  return { entryId, paymentId };
+}
+
+function buildDepositStmts(
+  orgId: string,
+  input: DepositCreditInput,
+  paymentId: string,
+  entryId: string,
+  now: string
+): BatchStmt[] {
+  const stmts: BatchStmt[] = [
     db.insert(payments).values({
       id: paymentId,
       organizationId: orgId,
@@ -135,10 +145,7 @@ export async function depositCredit(
       reference: input.reference ?? null,
       idempotencyKey: input.idempotencyKey ?? null,
       entityId: input.entityId ?? null,
-    })
-  );
-
-  stmts.push(
+    }),
     db.insert(customerCredit).values({
       id: entryId,
       organizationId: orgId,
@@ -148,33 +155,38 @@ export async function depositCredit(
       paymentId,
       reference: input.reference ?? null,
       notes: input.notes ?? null,
-    })
-  );
-
+    }),
+  ];
   if (input.entityId) {
     stmts.push(entityBalanceUpdate(input.entityId, orgId, now));
   }
+  return stmts;
+}
 
-  await runBatch(stmts);
-
+async function logDepositEvent(
+  orgId: string,
+  paymentId: string,
+  entryId: string,
+  input: DepositCreditInput,
+  actorId: string | undefined,
+  now: string
+): Promise<void> {
   await db.insert(activityLog).values({
     organizationId: orgId,
     kind: "event",
     eventType: "credit_deposited",
     entityType: input.entityId ? "entity" : "payment",
     entityId: input.entityId ?? paymentId,
-    actorId: opts.actorId ?? null,
+    actorId: actorId ?? null,
     summary: `Credit deposited: ${input.amount}`,
     metadata: {
       amount: input.amount,
-      type: input.type,
+      type: input.type ?? "deposit",
       entryId,
       reference: input.reference ?? null,
     },
     createdAt: now,
   });
-
-  return { entryId, paymentId };
 }
 
 // ---------------------------------------------------------------------------
@@ -190,9 +202,12 @@ export interface RedeemCreditResult {
 
 /**
  * Redeem wallet credit against a document. Debits the wallet (negative
- * `customer_credit` row) AND allocates to the target document (payment +
- * allocation) in one atomic `db.batch()`. The entity's `creditBalance` and
- * the document's payment projections are updated in the same batch.
+ * `customer_credit` row) AND allocates to the target document via
+ * `recordPayment` — all in one atomic batch via `opts.extraStmts`.
+ *
+ * The entity's `creditBalance` projection is updated automatically by
+ * `recordPayment`'s `entityBalanceUpdate` call (which includes the wallet
+ * subquery).
  */
 export async function redeemCredit(
   orgId: string,
@@ -231,126 +246,91 @@ export async function redeemCredit(
     );
   }
 
-  validateRedemptionTarget(doc, input.amount);
-  const completedSale = willCompleteSale(doc, input.amount);
+  validateWalletTarget(doc, input.amount);
 
-  const now = new Date().toISOString();
   const paymentId = createId("pmt");
   const entryId = createId("cred");
 
-  const stmts: BatchStmt[] = [
-    db.insert(payments).values({
-      id: paymentId,
-      organizationId: orgId,
+  const result = await recordPayment(
+    orgId,
+    {
       amount: input.amount,
       method: "wallet",
-      paidAt: now,
       entityId: input.entityId,
-    }),
-    db.insert(customerCredit).values({
-      id: entryId,
-      organizationId: orgId,
-      entityId: input.entityId,
-      amount: -input.amount,
-      type: "redemption",
+      allocations: [{ documentId: input.documentId, amount: input.amount }],
+    },
+    {
+      actorId: opts.actorId,
+      docs: [doc],
       paymentId,
-    }),
-    db.insert(paymentAllocations).values({
-      id: createId("alloc"),
-      organizationId: orgId,
-      paymentId,
-      documentId: input.documentId,
-      amount: input.amount,
-      effectiveAt: now,
-    }),
-    docProjectionUpdate(input.documentId, orgId, now, paymentId),
-    entityBalanceUpdate(input.entityId, orgId, now),
-  ];
-
-  await runBatch(stmts);
-
-  const completedSales = completedSale ? [input.documentId] : [];
-  await runBatch(
-    buildWalletEventStmts(
-      orgId,
-      paymentId,
-      entryId,
-      input.entityId,
-      input.amount,
-      input.documentId,
-      completedSales,
-      opts.actorId,
-      now,
-      "credit_redeemed"
-    )
+      extraStmts: [
+        db.insert(customerCredit).values({
+          id: entryId,
+          organizationId: orgId,
+          entityId: input.entityId,
+          amount: -input.amount,
+          type: "redemption",
+          paymentId,
+        }),
+      ],
+    }
   );
 
   return {
-    paymentId,
+    paymentId: result.paymentId,
     entryId,
-    touchedDocuments: [input.documentId],
-    completedSales,
+    touchedDocuments: result.touchedDocuments,
+    completedSales: result.completedSales,
   };
 }
 
 // ---------------------------------------------------------------------------
-// redeemCreditByReference (walk-in C3)
+// redeemCreditByReference (walk-in C3 — balanced transfer)
 // ---------------------------------------------------------------------------
 
 /**
- * Redeem walk-in credit by presenting the claim-reference token. Writes a
- * `claim` row (transfers credit from walk-in scope into the entity's scope) +
- * a `redemption` row (consumes it) + payment allocation to the document, all
- * in one atomic batch.
+ * Redeem walk-in credit by presenting the claim-reference token.
  *
- * Double-claim prevention: a pre-check rejects if a `claim` row already exists
- * for the reference (TOCTOU accepted per D1 constraints; the correctness
- * backstop is the full-scan rebuild).
+ * **Balanced transfer model:** the **full** walk-in total is debited from
+ * the walk-in scope (`entityId = null`) and credited to the entity scope.
+ * Then `input.amount` is redeemed as an ordinary wallet redemption. The
+ * remainder stays as entity credit, redeemable later via `redeemCredit`.
+ *
+ * This conserves globally (the walk-in debit cancels the deposit), supports
+ * partial claims (the remainder is normal entity credit), and makes reversed
+ * deposits unclaimable (the signed SUM nets to zero — no positive filter).
+ *
+ * Double-claim prevention: the walk-in debit row carries `claimReference =
+ * reference`, and a UNIQUE index on `(org, claim_reference)` prevents a second
+ * claim. SQLite treats NULLs as distinct in UNIQUE constraints, so only the
+ * claim row (non-null `claimReference`) conflicts.
  */
 export async function redeemCreditByReference(
   orgId: string,
   input: RedeemCreditByReferenceInput,
   opts: { actorId?: string } = {}
 ): Promise<RedeemCreditResult> {
-  const walkInEntries = await db
+  // One query for all entries with this reference — partition in JS.
+  const refEntries = await db
     .select()
     .from(customerCredit)
     .where(
       and(
         eq(customerCredit.organizationId, orgId),
-        eq(customerCredit.reference, input.reference),
-        isNull(customerCredit.entityId)
+        eq(customerCredit.reference, input.reference)
       )
     );
 
-  if (walkInEntries.length === 0) {
-    throw new DomainError(
-      `No walk-in credit found for reference: ${input.reference}`,
-      "not_found"
-    );
-  }
+  const walkInEntries = refEntries.filter((e) => e.entityId === null);
+  const walkInTotal = walkInEntries.reduce((sum, e) => sum + e.amount, 0);
+  const alreadyClaimed = walkInEntries.some((e) => e.type === "claim");
 
-  const walkInTotal = walkInEntries
-    .filter((e) => e.amount > 0)
-    .reduce((sum, e) => sum + e.amount, 0);
-
-  const [existingClaim] = await db
-    .select({ id: customerCredit.id })
-    .from(customerCredit)
-    .where(
-      and(
-        eq(customerCredit.organizationId, orgId),
-        eq(customerCredit.reference, input.reference),
-        eq(customerCredit.type, "claim")
-      )
-    );
-  if (existingClaim) {
+  if (alreadyClaimed) {
     throw new DomainError(
       `Reference "${input.reference}" has already been claimed`,
       "conflict"
     );
   }
-
   if (walkInTotal < input.amount) {
     throw new DomainError(
       `Insufficient walk-in credit for reference "${input.reference}": ${walkInTotal} < ${input.amount}`,
@@ -384,75 +364,79 @@ export async function redeemCreditByReference(
     );
   }
 
-  validateRedemptionTarget(doc, input.amount);
-  const completedSale = willCompleteSale(doc, input.amount);
+  validateWalletTarget(doc, input.amount);
 
-  const now = new Date().toISOString();
   const paymentId = createId("pmt");
-  const claimEntryId = createId("cred");
+  const claimWalkInId = createId("cred");
+  const claimEntityId = createId("cred");
   const redemptionEntryId = createId("cred");
 
-  const stmts: BatchStmt[] = [
-    db.insert(payments).values({
-      id: paymentId,
-      organizationId: orgId,
-      amount: input.amount,
-      method: "wallet",
-      paidAt: now,
-      entityId: input.entityId,
-    }),
-    db.insert(customerCredit).values({
-      id: claimEntryId,
-      organizationId: orgId,
-      entityId: input.entityId,
-      amount: input.amount,
-      type: "claim",
-      reference: input.reference,
-    }),
-    db.insert(customerCredit).values({
-      id: redemptionEntryId,
-      organizationId: orgId,
-      entityId: input.entityId,
-      amount: -input.amount,
-      type: "redemption",
-      paymentId,
-    }),
-    db.insert(paymentAllocations).values({
-      id: createId("alloc"),
-      organizationId: orgId,
-      paymentId,
-      documentId: input.documentId,
-      amount: input.amount,
-      effectiveAt: now,
-    }),
-    docProjectionUpdate(input.documentId, orgId, now, paymentId),
-    entityBalanceUpdate(input.entityId, orgId, now),
-  ];
-
-  await runBatch(stmts);
-
-  const completedSales = completedSale ? [input.documentId] : [];
-  await runBatch(
-    buildWalletEventStmts(
+  try {
+    const result = await recordPayment(
       orgId,
-      paymentId,
-      redemptionEntryId,
-      input.entityId,
-      input.amount,
-      input.documentId,
-      completedSales,
-      opts.actorId,
-      now,
-      "credit_redeemed"
-    )
-  );
+      {
+        amount: input.amount,
+        method: "wallet",
+        entityId: input.entityId,
+        allocations: [{ documentId: input.documentId, amount: input.amount }],
+      },
+      {
+        actorId: opts.actorId,
+        docs: [doc],
+        paymentId,
+        extraStmts: [
+          // Balanced transfer: debit walk-in scope (claimReference set for
+          // UNIQUE race prevention), credit entity scope.
+          db
+            .insert(customerCredit)
+            .values({
+              id: claimWalkInId,
+              organizationId: orgId,
+              entityId: null,
+              amount: -walkInTotal,
+              type: "claim",
+              reference: input.reference,
+              claimReference: input.reference,
+            }),
+          db.insert(customerCredit).values({
+            id: claimEntityId,
+            organizationId: orgId,
+            entityId: input.entityId,
+            amount: walkInTotal,
+            type: "claim",
+            reference: input.reference,
+          }),
+          // Ordinary wallet redemption for the requested amount.
+          db
+            .insert(customerCredit)
+            .values({
+              id: redemptionEntryId,
+              organizationId: orgId,
+              entityId: input.entityId,
+              amount: -input.amount,
+              type: "redemption",
+              paymentId,
+            }),
+        ],
+      }
+    );
 
-  return {
-    paymentId,
-    entryId: redemptionEntryId,
-    touchedDocuments: [input.documentId],
-    completedSales,
-  };
+    return {
+      paymentId: result.paymentId,
+      entryId: redemptionEntryId,
+      touchedDocuments: result.touchedDocuments,
+      completedSales: result.completedSales,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("claim_reference") && msg.includes("UNIQUE")) {
+      throw new DomainError(
+        `Reference "${input.reference}" has already been claimed`,
+        "conflict"
+      );
+    }
+    throw err;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -545,45 +529,59 @@ export async function getCreditBalance(
 }
 
 // ---------------------------------------------------------------------------
-// Event-log helper
+// Validation + idempotency helpers
 // ---------------------------------------------------------------------------
 
-function buildWalletEventStmts(
+function validateWalletTarget(
+  doc: typeof documents.$inferSelect,
+  amount: number
+): void {
+  const family = documentFamily(doc.type);
+  if (family !== "fiscal") {
+    throw new DomainError(
+      `Wallet redemption may target fiscal documents only — "${doc.id}" is a ${family} document`,
+      "unprocessable"
+    );
+  }
+  if (doc.direction !== "sales") {
+    throw new DomainError(
+      "Wallet redemption may only target sales documents, not purchase bills",
+      "unprocessable"
+    );
+  }
+  if (amount > doc.balanceDue) {
+    throw new DomainError(
+      `Redemption amount ${amount} exceeds document balance due ${doc.balanceDue}`,
+      "conflict"
+    );
+  }
+}
+
+async function findPaymentByIdempotencyKey(
   orgId: string,
-  paymentId: string,
-  entryId: string,
-  entityId: string,
-  amount: number,
-  documentId: string,
-  completedSales: string[],
-  actorId: string | undefined,
-  now: string,
-  eventType: string
-): BatchStmt[] {
-  const stmts: BatchStmt[] = completedSales.map((docId) =>
-    db.insert(activityLog).values({
-      organizationId: orgId,
-      kind: "event",
-      eventType: "sale_completed",
-      entityType: "document",
-      entityId: docId,
-      actorId: actorId ?? null,
-      summary: "Sale completed (paid from wallet)",
-      createdAt: now,
-    })
-  );
-  stmts.push(
-    db.insert(activityLog).values({
-      organizationId: orgId,
-      kind: "event",
-      eventType,
-      entityType: "entity",
-      entityId,
-      actorId: actorId ?? null,
-      summary: `Credit redeemed: ${amount}`,
-      metadata: { amount, documentId, entryId, paymentId },
-      createdAt: now,
-    })
-  );
-  return stmts;
+  key: string
+): Promise<string | null> {
+  const [row] = await db
+    .select({ id: payments.id })
+    .from(payments)
+    .where(
+      and(eq(payments.organizationId, orgId), eq(payments.idempotencyKey, key))
+    );
+  return row?.id ?? null;
+}
+
+async function findCreditEntryByPaymentId(
+  orgId: string,
+  paymentId: string
+): Promise<string | null> {
+  const [row] = await db
+    .select({ id: customerCredit.id })
+    .from(customerCredit)
+    .where(
+      and(
+        eq(customerCredit.organizationId, orgId),
+        eq(customerCredit.paymentId, paymentId)
+      )
+    );
+  return row?.id ?? null;
 }
