@@ -1,5 +1,5 @@
 import type { LineItem, TaxMode } from "@workspace/db/schema";
-import { applyRate, type MoneyMinor, sum } from "../money";
+import { applyRate, type MoneyMinor } from "../money";
 
 /**
  * Document totals, computed by rounding per line and taking the exact Σ for the
@@ -73,19 +73,28 @@ export function computeLineTax(line: {
  * so it is NOT added again — only **exclusive**-line tax is added on top.
  */
 export function computeDocumentTotals(lines: LineItem[]): DocumentTotals {
-  const grossPerLine = lines.map((l) => l.unitPrice * l.quantity);
-  const subtotal = sum(grossPerLine);
-  const discountTotal = sum(lines.map((l) => l.discount));
-  const taxPerLine = lines.map(computeLineTax);
-  const taxTotal = sum(taxPerLine);
-  const taxableBase = sum(lines.map(computeLineTaxableBase));
+  let subtotal = 0;
+  let discountTotal = 0;
+  let taxTotal = 0;
+  let taxableBase = 0;
+  let exclusiveTaxTotal = 0;
 
-  // Only exclusive-line tax is added on top of subtotal. Inclusive-line tax is
-  // already baked into unitPrice, so adding it again would double-count.
-  const exclusiveTaxTotal = sum(
-    lines.map((l, i) => (l.taxMode === "inclusive" ? 0 : (taxPerLine[i] ?? 0)))
-  );
-  const total = subtotal - discountTotal + exclusiveTaxTotal;
+  for (const l of lines) {
+    subtotal += l.unitPrice * l.quantity;
+    discountTotal += l.discount;
+    taxableBase += computeLineTaxableBase(l);
+    const tax = computeLineTax(l);
+    taxTotal += tax;
+    if (l.taxMode !== "inclusive") {
+      exclusiveTaxTotal += tax;
+    }
+  }
 
-  return { subtotal, discountTotal, taxTotal, total, taxableBase };
+  return {
+    subtotal,
+    discountTotal,
+    taxTotal,
+    total: subtotal - discountTotal + exclusiveTaxTotal,
+    taxableBase,
+  };
 }

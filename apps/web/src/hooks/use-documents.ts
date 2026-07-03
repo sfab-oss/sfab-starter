@@ -20,6 +20,13 @@ export const getActivityKey = (entityId?: string) => [
 export interface DocumentWithLines {
   doc: Document;
   lines: LineItem[];
+  draftTotals?: {
+    subtotal: number;
+    discountTotal: number;
+    taxTotal: number;
+    total: number;
+    taxableBase: number;
+  };
 }
 
 export const useDocuments = (type?: DocumentType) => {

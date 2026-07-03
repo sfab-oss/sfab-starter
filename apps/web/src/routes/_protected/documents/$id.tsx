@@ -84,10 +84,16 @@ function DocumentPage() {
   }
 
   const isDraft = doc.status === "draft";
-  const liveSubtotal = lines.reduce(
-    (sum, l) => sum + l.unitPrice * l.quantity,
-    0
-  );
+  const draftTotals = data?.draftTotals;
+
+  // For drafts: show computed live totals; for finalized docs: show frozen values.
+  const display = isDraft
+    ? {
+        subtotal: draftTotals?.subtotal ?? 0,
+        taxTotal: draftTotals?.taxTotal ?? 0,
+        total: draftTotals?.total ?? 0,
+      }
+    : { subtotal: doc.subtotal, taxTotal: doc.taxTotal, total: doc.total };
 
   return (
     <ShellPage>
@@ -222,25 +228,19 @@ function DocumentPage() {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
               <span className="tabular-nums">
-                {formatMoneyMinor(
-                  isDraft ? liveSubtotal : doc.subtotal,
-                  doc.currencyCode
-                )}
+                {formatMoneyMinor(display.subtotal, doc.currencyCode)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Tax</span>
               <span className="tabular-nums">
-                {formatMoneyMinor(doc.taxTotal, doc.currencyCode)}
+                {formatMoneyMinor(display.taxTotal, doc.currencyCode)}
               </span>
             </div>
             <div className="flex justify-between border-t pt-2 font-medium">
               <span>Total</span>
               <span className="tabular-nums">
-                {formatMoneyMinor(
-                  isDraft ? liveSubtotal : doc.total,
-                  doc.currencyCode
-                )}
+                {formatMoneyMinor(display.total, doc.currencyCode)}
               </span>
             </div>
             <p className="text-muted-foreground text-xs">

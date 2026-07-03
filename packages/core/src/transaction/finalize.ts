@@ -15,18 +15,20 @@ import { computeDocumentTotals, type DocumentTotals } from "./totals";
  *
  * Freezes a fiscal document: bumps its folio, freezes its fiscal lines/totals/
  * tax/identity, sets the payment projection defaults, snapshots the frozen tax
- * context into `metadata.tax`, and writes the `document_finalized` event — all
- * in **one `db.batch()`** so the folio bump and the freeze commit or roll back
- * together. Payment/posting columns may advance later (C5); the frozen totals
- * may not.
+ * context into `metadata.tax`, and writes the `document_finalized` event.
  *
- * D1 has no interactive transactions, so atomicity is the single batch; reads
- * happen before assembly. The folio is assigned **inside** the batch via a
- * subquery against `sequences` (read+assign+increment in one atomic unit), so
- * concurrent finalizes cannot draw a duplicate folio. The freeze UPDATE also
- * requires `status = 'draft'` — if a concurrent finalize wins, the loser's
- * UPDATE matches zero rows, RETURNING is empty, and we throw a conflict. The
- * residual cost is one burned sequence number (the bump runs unconditionally).
+ * **Atomicity:** the batch `[ensureSeq, freezeDoc, bumpSeq]` is the atomic
+ * folio-assignment unit — it commits or rolls back together. The event row is
+ * written *after* the batch commits and the folio is verified, so a losing
+ * concurrent finalize never produces a phantom `document_finalized` event.
+ *
+ * D1 has no interactive transactions. The folio is assigned **inside** the
+ * batch via a subquery against `sequences` (read+assign+increment in one atomic
+ * unit), so concurrent finalizes cannot draw a duplicate folio. The freeze
+ * UPDATE also requires `status = 'draft'` — if a concurrent finalize wins, the
+ * loser's UPDATE matches zero rows, RETURNING is empty, and we throw a
+ * conflict. The residual cost is one burned sequence number (the bump runs
+ * unconditionally in the batch).
  *
  * @see docs/architecture/transaction-core.md §2, §5, §7
  */
@@ -76,21 +78,21 @@ export async function finalizeDocument(
   const seqKey = doc.series ?? doc.type;
 
   // Frozen tax context snapshot (§3) — what an engine / fiscal Base needs.
+  // taxMode is per-line (each line_items row carries its own); the doc snapshot
+  // records the aggregate amounts, not a single mode.
   const metadata = {
     ...(doc.metadata ?? {}),
     tax: {
       currencyCode: doc.currencyCode,
-      taxMode: lines[0]?.taxMode ?? "exclusive",
       taxableBase: totals.taxableBase,
       taxTotal: totals.taxTotal, // excludes withholdings (none in base)
       computedAt: now,
     },
   };
 
-  // 3. ASSEMBLE the atomic batch.
+  // 3. ASSEMBLE the atomic batch — folio assignment + freeze.
   // (a) ensure the sequence row exists; (b) freeze the doc + assign folio via
-  //     an in-batch subquery (race-free); (c) increment the counter; (d) write
-  //     the event row.
+  //     an in-batch subquery (race-free); (c) increment the counter.
   const ensureSeq = db
     .insert(sequences)
     .values({ organizationId: orgId, key: seqKey, next: 1 })
@@ -125,7 +127,25 @@ export async function finalizeDocument(
     .set({ next: sql`next + 1`, updatedAt: now })
     .where(and(eq(sequences.organizationId, orgId), eq(sequences.key, seqKey)));
 
-  const insertEvent = db.insert(activityLog).values({
+  // SEAM marker: a pack (ALW-350) appends critical statements (e.g. the stock
+  // decrement) into this array so they commit or roll back WITH the finalize.
+  const [, frozen] = await db.batch([ensureSeq, freezeDoc, bumpSeq]);
+
+  // 4. Verify the freeze won — empty RETURNING means a concurrent finalize
+  //    beat us (the status='draft' guard didn't match).
+  const folio = frozen[0]?.folio;
+  if (folio == null) {
+    throw new DomainError(
+      `Document ${documentId} was already finalized (or no longer draft)`,
+      "conflict"
+    );
+  }
+
+  // 5. Write the event row AFTER the batch commits and the folio is verified.
+  //    This guarantees no phantom `document_finalized` event for a losing
+  //    concurrent finalize. A crash between batch and event loses the row —
+  //    acceptable, since a missing event is far less harmful than a wrong one.
+  await db.insert(activityLog).values({
     organizationId: orgId,
     kind: "event",
     eventType: "document_finalized",
@@ -141,28 +161,5 @@ export async function finalizeDocument(
     createdAt: now,
   });
 
-  // SEAM marker: a pack (ALW-350) appends critical statements (e.g. the stock
-  // decrement) into this array so they commit or roll back WITH the finalize.
-  // The afterCommit posting seam (C7) is this batch's commit itself — a GL
-  // pack subscribes by appending in-batch statements, not via a post-batch
-  // hook (there is no base consumer; the event row serves timeline + log).
-  const [, frozen] = await db.batch([
-    ensureSeq,
-    freezeDoc,
-    bumpSeq,
-    insertEvent,
-  ]);
-
-  // 4. read the folio the subquery assigned (from the batch result — no
-  //    extra round-trip; the batch committed or we threw).
-  const folio = frozen[0]?.folio;
-  if (folio == null) {
-    // Empty RETURNING means the status='draft' guard didn't match — another
-    // request finalized this document between our read and the batch.
-    throw new DomainError(
-      `Document ${documentId} was already finalized (or no longer draft)`,
-      "conflict"
-    );
-  }
   return { documentId, folio, totals };
 }

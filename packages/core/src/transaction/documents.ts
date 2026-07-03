@@ -8,7 +8,12 @@ import { documents, lineItems } from "@workspace/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { DomainError } from "../errors";
 import { documentFamily } from "./family";
-import { computeLineTax, computeLineTaxableBase } from "./totals";
+import {
+  computeDocumentTotals,
+  computeLineTax,
+  computeLineTaxableBase,
+  type DocumentTotals,
+} from "./totals";
 
 /**
  * Document + line-item reads/writes for Transaction Core. Money values are
@@ -37,7 +42,7 @@ export async function createDocument(
     })
     .returning();
   if (!doc) {
-    throw new Error("Failed to create document");
+    throw new DomainError("Failed to create document", "unprocessable");
   }
   return doc;
 }
@@ -48,6 +53,11 @@ export async function addLineItem(
   input: LineItemInput
 ): Promise<LineItem> {
   // C5: lines may only be added to a draft — a finalized fiscal record is frozen.
+  // NOTE: This SELECT→INSERT gap is a known race on D1 (no interactive
+  // transactions). If a concurrent finalize slips in between the read and the
+  // insert, the orphaned line won't affect the frozen totals (they were
+  // computed from the lines that existed at finalize time). Acceptable for a
+  // starter; ALW-354 will add a conditional INSERT…WHERE EXISTS guard.
   const [doc] = await db
     .select({ status: documents.status })
     .from(documents)
@@ -99,7 +109,7 @@ export async function addLineItem(
     })
     .returning();
   if (!line) {
-    throw new Error("Failed to create line item");
+    throw new DomainError("Failed to create line item", "unprocessable");
   }
   return line;
 }
@@ -107,6 +117,8 @@ export async function addLineItem(
 export interface DocumentWithLines {
   doc: Document;
   lines: LineItem[];
+  /** Computed totals for drafts (frozen values on the doc are used after finalize). */
+  draftTotals?: DocumentTotals;
 }
 
 export async function getDocumentWithLines(
@@ -127,7 +139,12 @@ export async function getDocumentWithLines(
       and(eq(lineItems.documentId, id), eq(lineItems.organizationId, orgId))
     )
     .orderBy(lineItems.createdAt);
-  return { doc, lines };
+  return {
+    doc,
+    lines,
+    draftTotals:
+      doc.status === "draft" ? computeDocumentTotals(lines) : undefined,
+  };
 }
 
 export async function listDocuments(

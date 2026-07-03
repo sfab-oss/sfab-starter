@@ -48,16 +48,6 @@ export function minorFactor(currencyCode: string): number {
   return 10 ** getMinorExponent(currencyCode);
 }
 
-/** Add two minor-unit amounts. */
-export function add(a: MoneyMinor, b: MoneyMinor): MoneyMinor {
-  return a + b;
-}
-
-/** Subtract `b` from `a` (both minor units). */
-export function subtract(a: MoneyMinor, b: MoneyMinor): MoneyMinor {
-  return a - b;
-}
-
 /**
  * Exact sum of minor-unit amounts. Use for the header total: it is the exact Σ
  * of the (already line-rounded) line amounts — never re-round the header.
@@ -70,11 +60,6 @@ export function sum(values: readonly MoneyMinor[]): MoneyMinor {
   return total;
 }
 
-/** Round to the nearest minor unit (half toward +∞). */
-export function roundMinor(value: number): MoneyMinor {
-  return Math.round(value);
-}
-
 /**
  * Apply a basis-point rate to a minor-unit amount, rounded to the nearest unit.
  * Use for tax (traslado) and any proportional charge: `applyRate(base, 1600)`
@@ -83,14 +68,6 @@ export function roundMinor(value: number): MoneyMinor {
  */
 export function applyRate(amount: MoneyMinor, bps: number): MoneyMinor {
   return Math.round((amount * bps) / BPS_PER_UNIT);
-}
-
-/** Apply a basis-point discount; returns the discounted minor-unit amount. */
-export function applyDiscount(
-  amount: MoneyMinor,
-  discountBps: number
-): MoneyMinor {
-  return amount - applyRate(amount, discountBps);
 }
 
 /**

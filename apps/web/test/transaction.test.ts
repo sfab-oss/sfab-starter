@@ -1,6 +1,18 @@
 import { env } from "cloudflare:test";
+import {
+  documentDirectionSchema,
+  documentTypeSchema,
+  fulfillmentModeSchema,
+  taxModeSchema,
+} from "@workspace/contract/transaction";
 import { documentFamily } from "@workspace/core/transaction";
-import { DOCUMENT_FAMILY, DOCUMENT_TYPES } from "@workspace/db/schema";
+import {
+  DOCUMENT_DIRECTIONS,
+  DOCUMENT_FAMILY,
+  DOCUMENT_TYPES,
+  FULFILLMENT_MODES,
+  TAX_MODES,
+} from "@workspace/db/schema";
 import { describe, expect, it } from "vitest";
 
 // AC-8 (C9): `family` is a persisted column with a DB CHECK linked to `type`,
@@ -48,5 +60,25 @@ describe("documentFamily + family CHECK (C9)", () => {
         `type = '${type}' AND family = '${family}'`
       );
     }
+  });
+});
+
+// Contract ↔ schema enum parity: the hand-written Zod enums must match the
+// DB schema's `as const` arrays exactly — no silent drift.
+describe("contract ↔ schema enum parity", () => {
+  it("documentTypeSchema matches DOCUMENT_TYPES", () => {
+    expect(documentTypeSchema.options).toEqual([...DOCUMENT_TYPES]);
+  });
+
+  it("documentDirectionSchema matches DOCUMENT_DIRECTIONS", () => {
+    expect(documentDirectionSchema.options).toEqual([...DOCUMENT_DIRECTIONS]);
+  });
+
+  it("taxModeSchema matches TAX_MODES", () => {
+    expect(taxModeSchema.options).toEqual([...TAX_MODES]);
+  });
+
+  it("fulfillmentModeSchema matches FULFILLMENT_MODES", () => {
+    expect(fulfillmentModeSchema.options).toEqual([...FULFILLMENT_MODES]);
   });
 });
