@@ -12,12 +12,9 @@ overwritten by the next sync.
 - [`ALW-305`](./ALW-305.md) — Port sfab vitest-pool-workers / workerd test harness (ALW-241 pattern)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
+## merged (16)
 
 - [`ALW-394`](./ALW-394.md) — Triage and clear Dependabot alerts
-
-## merged (15)
-
 - [`ALW-355`](./ALW-355.md) — Customer-credit wallet (saldo a favor / anticipos) — complete the base money subgraph
 - [`ALW-354`](./ALW-354.md) — Transaction Core settlement engine — payments, allocations, projections & conservation (base)
 - [`ALW-351`](./ALW-351.md) — Build the on-brand registry gallery — Phase-0 spine first, hero/file surfaces deferred (UI-only)
