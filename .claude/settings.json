@@ -37,7 +37,6 @@
       "Bash(pnpm db:migrate:*)",
       "Bash(pnpm db:migrate:prod:*)",
       "Bash(pnpm db:seed:*)",
-      "Bash(pnpm db:seed:prod:*)",
       "Bash(pnpm db:reset:*)",
       "Bash(pnpm db:list:*)",
       "Bash(pnpm db:studio:*)",

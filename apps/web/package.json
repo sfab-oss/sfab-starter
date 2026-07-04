@@ -20,6 +20,7 @@
     "db:generate": "pnpm --filter @workspace/db db:generate",
     "db:migrate": "wrangler d1 migrations apply sfab-starter-db --local",
     "db:migrate:prod": "wrangler d1 migrations apply sfab-starter-db --remote",
+    "db:seed": "tsx scripts/seed.ts",
     "db:reset": "rm -rf .wrangler/state/v3/d1 && pnpm db:migrate",
     "db:list": "wrangler d1 migrations list sfab-starter-db --local",
     "db:studio": "pnpm --filter @workspace/db db:studio"
@@ -80,7 +81,9 @@
     "@vitest/runner": "^4.1.0",
     "@vitest/snapshot": "^4.1.0",
     "@workspace/tsconfig": "workspace:*",
+    "better-auth": "1.6.19",
     "jsdom": "^27.0.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.7.2",
     "vite": "^7.1.7",
     "vite-tsconfig-paths": "^5.1.4",
