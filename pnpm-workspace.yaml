@@ -10,12 +10,14 @@ packages:
 #   - postcss <8.5.10  → CVE via next (docs), tailwind/vite
 # `hono` is ALSO our direct API dep (bumped in apps/web); the override additionally
 # pulls forward the older copy the better-auth → prisma-adapter tree drags in.
+# Kept identical to the apps/web range so `--frozen-lockfile` sees one effective
+# specifier — a lower override here would diverge from the direct dep and fail CI.
 # Retire a pin once every consumer's own range has moved past it.
 overrides:
   undici: "^7.28.0"
   ws: "^8.21.0"
   postcss: "^8.5.10"
-  hono: "^4.12.25"
+  hono: "^4.12.27"
 
 # Release-age gate — supply-chain hardening (Shai-Hulud class of npm worms,
 # whose compromised versions are live for only hours before takedown). Refuses
