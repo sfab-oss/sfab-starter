@@ -6,6 +6,7 @@ import documentsRoutes from "./documents";
 import { entitiesRoute } from "./entities";
 import { paymentsRoute } from "./payments";
 import transcribeRoutes from "./transcribe";
+import { walletRoute } from "./wallet";
 
 export const orgProtectedRoutes = new Hono<HonoContextWithAuthAndOrg>()
   .use("*", requireActiveOrg)
@@ -13,4 +14,5 @@ export const orgProtectedRoutes = new Hono<HonoContextWithAuthAndOrg>()
   .route("/documents", documentsRoutes)
   .route("/payments", paymentsRoute)
   .route("/entities", entitiesRoute)
+  .route("/wallet", walletRoute)
   .route("/transcribe", transcribeRoutes);

@@ -84,23 +84,37 @@ export function docProjectionUpdate(
     .where(and(eq(documents.id, docId), eq(documents.organizationId, orgId)));
 }
 
-/** Build an entity balance UPDATE statement for the batch. */
+/**
+ * Build an entity balance + credit-balance UPDATE statement for the batch.
+ *
+ * Sets both `balance` (net AR = Σ open fiscal-sales balanceDue − creditBalance)
+ * and `creditBalance` (Σ wallet entries) in a single UPDATE. Every settlement
+ * mutation that touches an entity's financial state includes this statement so
+ * the two columns never drift.
+ */
 export function entityBalanceUpdate(
   entityId: string,
   orgId: string,
   now: string
 ) {
+  const arSubquery = sql`(
+    SELECT COALESCE(SUM(balance_due), 0) FROM documents
+    WHERE entity_id = ${entityId}
+      AND organization_id = ${orgId}
+      AND family = 'fiscal'
+      AND direction = 'sales'
+      AND status = 'finalized'
+  )`;
+  const creditSubquery = sql`(
+    SELECT COALESCE(SUM(amount), 0) FROM customer_credit
+    WHERE entity_id = ${entityId}
+      AND organization_id = ${orgId}
+  )`;
   return db
     .update(entities)
     .set({
-      balance: sql`(
-        SELECT COALESCE(SUM(balance_due), 0) FROM documents
-        WHERE entity_id = ${entityId}
-          AND organization_id = ${orgId}
-          AND family = 'fiscal'
-          AND direction = 'sales'
-          AND status = 'finalized'
-      )`,
+      balance: sql`${arSubquery} - ${creditSubquery}`,
+      creditBalance: creditSubquery,
       updatedAt: now,
     })
     .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
@@ -165,35 +179,41 @@ export async function rebuildDocumentPayment(
 }
 
 /**
- * Recompute an entity's AR balance from all open finalized fiscal-sales docs.
+ * Recompute an entity's `balance` and `creditBalance` projections by executing
+ * the authoritative `entityBalanceUpdate` SQL (both columns in a single UPDATE
+ * — one source of truth for `balance = AR − creditBalance`) and reading the row
+ * back. This is the canonical rebuild; the named wrappers below select from it.
+ *
  * AP bills (direction = 'purchase') are excluded — they never poison a
  * customer's fiado balance (C2).
  */
+export async function rebuildEntityProjections(
+  entityId: string,
+  orgId: string
+): Promise<{ balance: number; creditBalance: number }> {
+  await entityBalanceUpdate(entityId, orgId, new Date().toISOString());
+  const [row] = await db
+    .select({
+      balance: entities.balance,
+      creditBalance: entities.creditBalance,
+    })
+    .from(entities)
+    .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
+  return { balance: row?.balance ?? 0, creditBalance: row?.creditBalance ?? 0 };
+}
+
+/** Rebuild and return the entity's NET balance (AR − creditBalance). */
 export async function rebuildEntityBalance(
   entityId: string,
   orgId: string
 ): Promise<number> {
-  const [row] = await db
-    .select({
-      total: sql<number>`COALESCE(SUM(${documents.balanceDue}), 0)`.as("total"),
-    })
-    .from(documents)
-    .where(
-      and(
-        eq(documents.organizationId, orgId),
-        eq(documents.entityId, entityId),
-        eq(documents.family, "fiscal"),
-        eq(documents.direction, "sales"),
-        eq(documents.status, "finalized")
-      )
-    );
+  return (await rebuildEntityProjections(entityId, orgId)).balance;
+}
 
-  const balance = row?.total ?? 0;
-
-  await db
-    .update(entities)
-    .set({ balance })
-    .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
-
-  return balance;
+/** Rebuild and return the entity's wallet credit balance. */
+export async function rebuildCreditBalance(
+  entityId: string,
+  orgId: string
+): Promise<number> {
+  return (await rebuildEntityProjections(entityId, orgId)).creditBalance;
 }
