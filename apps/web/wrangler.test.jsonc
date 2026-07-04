@@ -1,9 +1,23 @@
+/**
+ * ALW-305: dedicated Wrangler config for the in-workerd test worker
+ * (@cloudflare/vitest-pool-workers). NEVER deployed — production uses
+ * wrangler.jsonc. It exists so the Workers test pool has a worker to run against,
+ * keeping the test-only fixture (TestCounter DO) and its DO migration OUT of the
+ * production wrangler.jsonc and prod migration ledger.
+ *
+ * Read by vitest.config.ts (the `workers` project). `main` is the test entry
+ * (worker-entry.ts), which mounts the Hono API for SELF-based integration tests
+ * and exports the TestCounter DO for `runInDurableObject` tests.
+ *
+ * compatibility_date / flags mirror wrangler.jsonc so tests run under the same
+ * runtime semantics as production.
+ */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "sfab-starter-test",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "./test/worker.ts",
+  "main": "./src/workerd-test/worker-entry.ts",
   "d1_databases": [
     {
       "binding": "DB",
@@ -17,5 +31,9 @@
       "binding": "R2_BUCKET",
       "bucket_name": "sfab-starter-uploads-test"
     }
-  ]
+  ],
+  "durable_objects": {
+    "bindings": [{ "class_name": "TestCounter", "name": "TEST_COUNTER" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["TestCounter"] }]
 }

@@ -9,7 +9,7 @@
     "dev": "vite dev --port 4011",
     "build": "vite build",
     "preview": "pnpm run build && vite preview",
-    "test": "vitest run",
+    "test": "vitest run --project node --project workers",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -69,7 +69,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.13.0",
+    "@cloudflare/vitest-pool-workers": "^0.16.15",
     "@playwright/test": "^1.58.2",
     "@tanstack/devtools-vite": "^0.3.11",
     "@testing-library/dom": "^10.4.0",
