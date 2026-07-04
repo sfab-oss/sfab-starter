@@ -84,11 +84,22 @@ cp apps/web/.dev.vars.example apps/web/.dev.vars
 # Set up the local database
 pnpm db:migrate
 
+# Seed a demo user + organization so you can sign in right away (optional)
+pnpm db:seed
+
 # Run it
 pnpm dev
 ```
 
-Then open http://localhost:4011.
+Then open http://localhost:4011 and sign in with the seeded credentials:
+
+| Field | Value |
+|-------|-------|
+| **Email** | `demo@sfab.dev` |
+| **Password** | `demo1234` |
+
+`pnpm db:seed` is idempotent and **local-only** — safe to re-run, and it never
+touches a remote/production database.
 
 **Prerequisites:** Node 20+ and pnpm 10+.
 

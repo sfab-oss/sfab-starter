@@ -18,7 +18,6 @@
     "db:migrate": "pnpm --filter web db:migrate",
     "db:migrate:prod": "pnpm --filter web db:migrate:prod",
     "db:seed": "pnpm --filter web db:seed",
-    "db:seed:prod": "pnpm --filter web db:seed:prod",
     "db:reset": "pnpm --filter web db:reset",
     "db:list": "pnpm --filter web db:list",
     "prepare": "husky"
