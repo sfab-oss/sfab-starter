@@ -12,11 +12,7 @@ overwritten by the next sync.
 - [`ALW-305`](./ALW-305.md) — Port sfab vitest-pool-workers / workerd test harness (ALW-241 pattern)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
-
-- [`ALW-332`](./ALW-332.md) — Add a working db:seed script for local first-run
-
-## merged (14)
+## merged (15)
 
 - [`ALW-355`](./ALW-355.md) — Customer-credit wallet (saldo a favor / anticipos) — complete the base money subgraph
 - [`ALW-354`](./ALW-354.md) — Transaction Core settlement engine — payments, allocations, projections & conservation (base)
@@ -24,6 +20,7 @@ overwritten by the next sync.
 - [`ALW-347`](./ALW-347.md) — Role-based access control spine (owner/admin/operator) — gate sensitive actions via better-auth
 - [`ALW-335`](./ALW-335.md) — Find and remove unused functions, types, and dead code
 - [`ALW-334`](./ALW-334.md) — Remove unused and stale comments from the codebase
+- [`ALW-332`](./ALW-332.md) — Add a working db:seed script for local first-run
 - [`ALW-330`](./ALW-330.md) — sfab-starter: documentation content + ADR cleanup & re-enumeration (knowledge-layer E1–E4)
 - [`ALW-328`](./ALW-328.md) — Transaction Core architecture + the primitives around it (Tier-1)
 - [`ALW-326`](./ALW-326.md) — Scaffold the knowledge layer + Tier-1 primitive skeleton (ADR-0010 §E/§H)
