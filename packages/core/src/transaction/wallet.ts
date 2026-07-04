@@ -15,7 +15,13 @@ import {
 import { and, eq, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 import { documentFamily } from "./family";
-import { type BatchStmt, recordPayment, runBatch } from "./payments";
+import {
+  type BatchStmt,
+  findPaymentByIdempotencyKey,
+  isIdempotencyKeyConflict,
+  recordPayment,
+  runBatch,
+} from "./payments";
 import { entityBalanceUpdate } from "./projections";
 
 /**
@@ -61,8 +67,8 @@ async function replayIdempotentDeposit(
   if (!existing) {
     return null;
   }
-  const entry = await findCreditEntryByPaymentId(orgId, existing);
-  return { entryId: entry ?? "", paymentId: existing };
+  const entry = await findCreditEntryByPaymentId(orgId, existing.id);
+  return { entryId: entry ?? "", paymentId: existing.id };
 }
 
 /** Handle a batch UNIQUE constraint error from a concurrent deposit race. */
@@ -71,13 +77,10 @@ async function catchDepositRace(
   orgId: string,
   key: string | null | undefined
 ): Promise<DepositCreditResult> {
-  if (key) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes("idempotency_key") && msg.includes("UNIQUE")) {
-      const replay = await replayIdempotentDeposit(orgId, key);
-      if (replay) {
-        return replay;
-      }
+  if (key && isIdempotencyKeyConflict(err)) {
+    const replay = await replayIdempotentDeposit(orgId, key);
+    if (replay) {
+      return replay;
     }
   }
   throw err;
@@ -246,7 +249,7 @@ export async function redeemCredit(
     );
   }
 
-  validateWalletTarget(doc, input.amount);
+  validateWalletTarget(doc, input.amount, input.entityId);
 
   const paymentId = createId("pmt");
   const entryId = createId("cred");
@@ -364,7 +367,7 @@ export async function redeemCreditByReference(
     );
   }
 
-  validateWalletTarget(doc, input.amount);
+  validateWalletTarget(doc, input.amount, input.entityId);
 
   const paymentId = createId("pmt");
   const claimWalkInId = createId("cred");
@@ -534,7 +537,8 @@ export async function getCreditBalance(
 
 function validateWalletTarget(
   doc: typeof documents.$inferSelect,
-  amount: number
+  amount: number,
+  entityId: string
 ): void {
   const family = documentFamily(doc.type);
   if (family !== "fiscal") {
@@ -549,25 +553,22 @@ function validateWalletTarget(
       "unprocessable"
     );
   }
+  // The redeeming entity may only pay its OWN documents. Without this, a
+  // redemption could debit entity A's wallet while `recordPayment` refreshes
+  // only the target doc-owner's `creditBalance` projection, leaving A's cached
+  // balance stale-high and over-redeemable.
+  if (doc.entityId !== entityId) {
+    throw new DomainError(
+      `Wallet redemption may only target the redeeming entity's own documents — "${doc.id}" belongs to a different entity`,
+      "unprocessable"
+    );
+  }
   if (amount > doc.balanceDue) {
     throw new DomainError(
       `Redemption amount ${amount} exceeds document balance due ${doc.balanceDue}`,
       "conflict"
     );
   }
-}
-
-async function findPaymentByIdempotencyKey(
-  orgId: string,
-  key: string
-): Promise<string | null> {
-  const [row] = await db
-    .select({ id: payments.id })
-    .from(payments)
-    .where(
-      and(eq(payments.organizationId, orgId), eq(payments.idempotencyKey, key))
-    );
-  return row?.id ?? null;
 }
 
 async function findCreditEntryByPaymentId(

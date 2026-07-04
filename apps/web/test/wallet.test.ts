@@ -493,6 +493,40 @@ describe("redeemCredit edge cases", () => {
     ).rejects.toThrow("exceeds document balance");
   });
 
+  it("rejects redemption against another entity's document", async () => {
+    // The redeeming entity has ample credit...
+    const payer = await createEntity(orgId, {
+      name: "Payer",
+      type: "customer",
+    });
+    await depositCredit(orgId, { entityId: payer.id, amount: 500 });
+
+    // ...but the invoice belongs to a DIFFERENT entity.
+    const other = await createEntity(orgId, {
+      name: "Other",
+      type: "customer",
+    });
+    const invoice = await seedFinalizedInvoice(orgId, {
+      total: 500,
+      entityId: other.id,
+      entityName: other.name,
+    });
+
+    await expect(
+      redeemCredit(orgId, {
+        entityId: payer.id,
+        documentId: invoice.id,
+        amount: 300,
+      })
+    ).rejects.toThrow("belongs to a different entity");
+
+    // The payer's wallet was not debited — the batch never ran.
+    const balance = await getCreditBalance(payer.id, orgId);
+    expect(balance).toBe(500);
+    const payerLoaded = await getEntity(payer.id, orgId);
+    expect(payerLoaded?.creditBalance).toBe(500);
+  });
+
   it("partial redemption leaves remainder in wallet", async () => {
     const entity = await createEntity(orgId, {
       name: "Partial Customer",

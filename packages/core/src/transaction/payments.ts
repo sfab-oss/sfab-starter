@@ -66,6 +66,36 @@ function validateAllocationTargets(docs: Document[]): void {
 }
 
 /**
+ * Look up a payment by its idempotency key. Shared by the payment replay path
+ * and the wallet-deposit replay path (both key off `payments_org_idem_uniq`).
+ */
+export async function findPaymentByIdempotencyKey(
+  orgId: string,
+  idempotencyKey: string
+): Promise<{ id: string; amount: number } | null> {
+  const [existing] = await db
+    .select({ id: payments.id, amount: payments.amount })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.organizationId, orgId),
+        eq(payments.idempotencyKey, idempotencyKey)
+      )
+    );
+  return existing ?? null;
+}
+
+/**
+ * Does this batch error come from the `payments_org_idem_uniq` UNIQUE
+ * constraint firing (a concurrent first-time request that raced past the
+ * pre-check)? Shared so the constraint-name coupling lives in one place.
+ */
+export function isIdempotencyKeyConflict(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.includes("idempotency_key") && msg.includes("UNIQUE");
+}
+
+/**
  * Fetch the existing payment for an idempotency-key replay, validate the
  * request amount matches, and return the stored payment's touched documents.
  * Called both from the pre-check (happy-path retry) and from the batch catch
@@ -79,15 +109,7 @@ async function replayIdempotentPayment(
   idempotencyKey: string,
   inputAmount: number
 ): Promise<RecordPaymentResult | null> {
-  const [existing] = await db
-    .select({ id: payments.id, amount: payments.amount })
-    .from(payments)
-    .where(
-      and(
-        eq(payments.organizationId, orgId),
-        eq(payments.idempotencyKey, idempotencyKey)
-      )
-    );
+  const existing = await findPaymentByIdempotencyKey(orgId, idempotencyKey);
   if (!existing) {
     return null;
   }
@@ -127,17 +149,14 @@ async function catchIdempotentRace(
   idempotencyKey: string | null | undefined,
   inputAmount: number
 ): Promise<RecordPaymentResult> {
-  if (idempotencyKey) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes("idempotency_key") && msg.includes("UNIQUE")) {
-      const replay = await replayIdempotentPayment(
-        orgId,
-        idempotencyKey,
-        inputAmount
-      );
-      if (replay) {
-        return replay;
-      }
+  if (idempotencyKey && isIdempotencyKeyConflict(err)) {
+    const replay = await replayIdempotentPayment(
+      orgId,
+      idempotencyKey,
+      inputAmount
+    );
+    if (replay) {
+      return replay;
     }
   }
   throw err;

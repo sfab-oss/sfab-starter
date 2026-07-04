@@ -179,39 +179,41 @@ export async function rebuildDocumentPayment(
 }
 
 /**
- * Recompute an entity's balance and creditBalance projections by executing
- * the authoritative `entityBalanceUpdate` SQL and reading the row back.
- * Both columns are set in a single UPDATE — one source of truth for the
- * formula `balance = AR − creditBalance`.
+ * Recompute an entity's `balance` and `creditBalance` projections by executing
+ * the authoritative `entityBalanceUpdate` SQL (both columns in a single UPDATE
+ * — one source of truth for `balance = AR − creditBalance`) and reading the row
+ * back. This is the canonical rebuild; the named wrappers below select from it.
  *
  * AP bills (direction = 'purchase') are excluded — they never poison a
  * customer's fiado balance (C2).
  */
+export async function rebuildEntityProjections(
+  entityId: string,
+  orgId: string
+): Promise<{ balance: number; creditBalance: number }> {
+  await entityBalanceUpdate(entityId, orgId, new Date().toISOString());
+  const [row] = await db
+    .select({
+      balance: entities.balance,
+      creditBalance: entities.creditBalance,
+    })
+    .from(entities)
+    .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
+  return { balance: row?.balance ?? 0, creditBalance: row?.creditBalance ?? 0 };
+}
+
+/** Rebuild and return the entity's NET balance (AR − creditBalance). */
 export async function rebuildEntityBalance(
   entityId: string,
   orgId: string
 ): Promise<number> {
-  await entityBalanceUpdate(entityId, orgId, new Date().toISOString());
-  const [row] = await db
-    .select({ balance: entities.balance })
-    .from(entities)
-    .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
-  return row?.balance ?? 0;
+  return (await rebuildEntityProjections(entityId, orgId)).balance;
 }
 
-/**
- * Recompute an entity's wallet credit balance. Delegates to
- * `entityBalanceUpdate` (which sets both `balance` and `creditBalance` in
- * one UPDATE) and reads the `creditBalance` column back.
- */
+/** Rebuild and return the entity's wallet credit balance. */
 export async function rebuildCreditBalance(
   entityId: string,
   orgId: string
 ): Promise<number> {
-  await entityBalanceUpdate(entityId, orgId, new Date().toISOString());
-  const [row] = await db
-    .select({ creditBalance: entities.creditBalance })
-    .from(entities)
-    .where(and(eq(entities.id, entityId), eq(entities.organizationId, orgId)));
-  return row?.creditBalance ?? 0;
+  return (await rebuildEntityProjections(entityId, orgId)).creditBalance;
 }
