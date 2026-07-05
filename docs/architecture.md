@@ -165,6 +165,12 @@ Workers-runtime code, tested with the workerd test pool. Migrations live in
 `packages/db/drizzle/`. See **ADR-002** (migrations) and **ADR-003** (env +
 singleton).
 
+Tests split by where they must run (ALW-305): a plain `*.test.ts` is a pure unit
+test run in the fast `node` Vitest project, while anything that needs a binding —
+`env.DB`/`SELF`, R2, or a Durable Object — is named `*.workerd.test.ts` and runs
+in-workerd via `@cloudflare/vitest-pool-workers` against `wrangler.test.jsonc`.
+The DO fixture + reference test live in `apps/web/src/workerd-test/`.
+
 ## Where to go next
 
 - **The transaction hub** every commercial flow grafts onto →
