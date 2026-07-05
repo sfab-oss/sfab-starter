@@ -35,8 +35,11 @@ export default defineConfig(async (): Promise<ViteUserConfig> => {
           test: {
             name: "node",
             environment: "node",
-            include: ["test/**/*.test.ts"],
-            exclude: ["test/**/*.workerd.test.ts"],
+            // Cover both trees so a pure unit test can't be silently un-run by
+            // living outside `test/`; `*.workerd.test.ts` always routes to the
+            // `workers` project instead.
+            include: ["{test,src}/**/*.test.ts"],
+            exclude: ["**/*.workerd.test.ts"],
           },
         },
         {
