@@ -1,0 +1,28 @@
+---
+title: Markdown editor
+description: BlockNote WYSIWYG markdown editor — controlled, theme-aware, layout-neutral.
+---
+
+`MarkdownEditor` is the document-editing primitive. It wraps
+[BlockNote](https://www.blocknotejs.org/) (shadcn variant) and stores content as a
+**markdown string**, so it drops into any text / `content` field without a schema
+migration.
+
+- **Controlled** — `value: string` + `onChange: (markdown) => void`. The consumer
+  owns persistence (debounce, autosave, mutations); the editor re-seeds only on an
+  external `value` change, never mid-edit.
+- **Trimmed toolbar** — block-type select, bold / italic / strike / code, and
+  links. The slash menu and side-menu drag handles use BlockNote defaults.
+- **Theme-aware** — follows `next-themes` (`resolvedTheme`); the background is
+  transparent so it blends into the page.
+- **Layout-neutral** — no width or centering assumptions. Wrap it in your own
+  column; the demo below uses `max-w-3xl`.
+
+<ComponentPreview name="markdown-editor" />
+
+## Source
+
+`packages/ui/src/components/brand/markdown-editor.tsx` (+ `markdown-editor.css`).
+Requires a `next-themes` `ThemeProvider` and the `@blocknote/react` /
+`@blocknote/shadcn` packages. BlockNote is client-only — mount it behind a client
+boundary such as TanStack's `<ClientOnly>`.
