@@ -11,11 +11,7 @@ overwritten by the next sync.
 - [`ALW-312`](./ALW-312.md) — Transform sfab-starter into the AI-native ERP golden base (manual, comment-driven)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
-
-- [`ALW-305`](./ALW-305.md) — Port sfab vitest-pool-workers / workerd test harness (ALW-241 pattern)
-
-## merged (16)
+## merged (17)
 
 - [`ALW-394`](./ALW-394.md) — Triage and clear Dependabot alerts
 - [`ALW-355`](./ALW-355.md) — Customer-credit wallet (saldo a favor / anticipos) — complete the base money subgraph
@@ -29,6 +25,7 @@ overwritten by the next sync.
 - [`ALW-328`](./ALW-328.md) — Transaction Core architecture + the primitives around it (Tier-1)
 - [`ALW-326`](./ALW-326.md) — Scaffold the knowledge layer + Tier-1 primitive skeleton (ADR-0010 §E/§H)
 - [`ALW-324`](./ALW-324.md) — Build the capability-pack registry — registry.json, code-bearing packs, ephemeral install skills (ADR-0017)
+- [`ALW-305`](./ALW-305.md) — Port sfab vitest-pool-workers / workerd test harness (ALW-241 pattern)
 - [`ALW-300`](./ALW-300.md) — Add GitHub Actions CI workflow (lint, typecheck, test, build)
 - [`ALW-299`](./ALW-299.md) — Generalize the inventory vertical into the neutral base + expose pack seams (ADR-0010 §E)
 - [`ALW-298`](./ALW-298.md) — Rename project identity from simple-monorepo-starter to sfab-starter
