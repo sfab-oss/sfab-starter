@@ -179,6 +179,22 @@
       ]
     },
     {
+      "name": "markdown-editor",
+      "type": "registry:ui",
+      "title": "Markdown editor",
+      "description": "BlockNote WYSIWYG markdown editor — controlled value/onChange, trimmed formatting toolbar, theme-aware, layout-neutral.",
+      "dependencies": ["@blocknote/react", "@blocknote/shadcn", "next-themes"],
+      "meta": {
+        "sfabKind": "block"
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/components/markdown-editor/markdown-editor-demo.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "record-edit-page",
       "type": "registry:block",
       "title": "Record edit page",

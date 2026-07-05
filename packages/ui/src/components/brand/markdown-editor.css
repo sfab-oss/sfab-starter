@@ -1,0 +1,24 @@
+@import "@blocknote/shadcn/style.css";
+
+/*
+ * Blend the editor into the surrounding page rather than BlockNote's default
+ * card background, so it composes into any container.
+ */
+.bn-container[data-color-scheme="light"],
+.bn-container[data-color-scheme="dark"] {
+  --bn-colors-editor-background: transparent;
+}
+
+/*
+ * Reserve an inline gutter for the side-menu drag handles (two 24px buttons)
+ * so block content never collides with them. This is the editor's OWN inset —
+ * outer width/centering is left to the consumer (layout-neutral).
+ */
+.bn-editor {
+  padding-inline: 3rem;
+}
+@media (min-width: 640px) {
+  .bn-editor {
+    padding-inline: 3.5rem;
+  }
+}

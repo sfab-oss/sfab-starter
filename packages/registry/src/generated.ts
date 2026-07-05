@@ -52,6 +52,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       () => import("../registry/blocks/destructive-confirm/page")
     ),
   },
+  "markdown-editor": {
+    name: "markdown-editor",
+    type: "registry:ui",
+    title: "Markdown editor",
+    description:
+      "BlockNote WYSIWYG markdown editor — controlled value/onChange, trimmed formatting toolbar, theme-aware, layout-neutral.",
+    meta: { sfabKind: "block" },
+    component: lazy(
+      () =>
+        import("../registry/components/markdown-editor/markdown-editor-demo")
+    ),
+  },
   "record-edit-page": {
     name: "record-edit-page",
     type: "registry:block",
