@@ -8,13 +8,11 @@ import {
 import { Hono } from "hono";
 import { z } from "zod";
 import { requirePermission } from "../middleware/auth";
-import { domainErrorHandler } from "../middleware/domain-error";
 import type { HonoContextWithAuthAndOrg } from "../types";
 
 const idSchema = z.object({ id: z.string() });
 
 export const entitiesRoute = new Hono<HonoContextWithAuthAndOrg>()
-  .onError(domainErrorHandler)
   .get("/", async (c) => {
     const orgId = c.get("session").activeOrganizationId;
     const data = await listEntities(orgId);

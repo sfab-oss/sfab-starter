@@ -5,57 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1781842255412,
-      "tag": "0000_low_winter_soldier",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1783033726154,
-      "tag": "0001_cynical_bedlam",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1783034188311,
-      "tag": "0002_sharp_luckman",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1783035843094,
-      "tag": "0003_fixed_black_knight",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1783096383576,
-      "tag": "0004_neat_patch",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1783109504229,
-      "tag": "0005_stiff_maverick",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1783110642073,
-      "tag": "0006_zippy_jean_grey",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "6",
-      "when": 1783120895730,
-      "tag": "0007_organic_firestar",
+      "when": 1783366254804,
+      "tag": "0000_nasty_bushwacker",
       "breakpoints": true
     }
   ]

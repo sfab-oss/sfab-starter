@@ -1,7 +1,5 @@
 import {
   createProductSchema,
-  productSchema,
-  productsListSchema,
   updateProductSchema,
 } from "@workspace/contract/catalog";
 import {
@@ -22,19 +20,16 @@ export const createProductTools = (ctx: AgentToolsContext) => {
     "list-products": tool({
       description: "List all catalog products.",
       inputSchema: z.object({}),
-      outputSchema: productsListSchema,
       execute: async () => getProducts(orgId),
     }),
     "get-product": tool({
       description: "Get details of a specific product by ID.",
       inputSchema: z.object({ id: z.string() }),
-      outputSchema: productSchema,
       execute: async ({ id }) => getProduct(id, orgId),
     }),
     "create-product": tool({
       description: "Create a new catalog product.",
       inputSchema: createProductSchema,
-      outputSchema: productSchema,
       execute: async (input) => {
         await assertCan("catalog:write", ctx);
         const result = await createProduct({ ...input, orgId });
@@ -47,7 +42,6 @@ export const createProductTools = (ctx: AgentToolsContext) => {
         id: z.string(),
         data: updateProductSchema,
       }),
-      outputSchema: productSchema,
       execute: async ({ id, data }) => {
         await assertCan("catalog:write", ctx);
         return updateProduct(id, orgId, data);
@@ -56,8 +50,6 @@ export const createProductTools = (ctx: AgentToolsContext) => {
     "delete-product": tool({
       description: "Delete a product.",
       inputSchema: z.object({ id: z.string() }),
-      // deleteProduct returns the deleted row, or undefined when no row matched.
-      outputSchema: productSchema.optional(),
       execute: async ({ id }) => {
         await assertCan("catalog:write", ctx);
         return deleteProduct(id, orgId);

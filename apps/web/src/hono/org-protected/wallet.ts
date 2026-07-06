@@ -14,11 +14,9 @@ import {
 import { Hono } from "hono";
 import { z } from "zod";
 import { requirePermission } from "../middleware/auth";
-import { domainErrorHandler } from "../middleware/domain-error";
 import type { HonoContextWithAuthAndOrg } from "../types";
 
 const walletRoute = new Hono<HonoContextWithAuthAndOrg>()
-  .onError(domainErrorHandler)
   .get("/entries", async (c) => {
     const orgId = c.get("session").activeOrganizationId;
     const entityId = c.req.query("entityId");

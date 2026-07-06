@@ -1,24 +1,10 @@
 import { z } from "zod";
 
-const selectProductSchema = z.object({
-  id: z.string(),
-  organizationId: z.string(),
-  sku: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  price: z.number().int().nullable(),
-  cost: z.number().int().nullable(),
-  minStockLevel: z.number().nullable(),
-  imageUrl: z.string().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const productSchema = selectProductSchema;
-
-export type Product = z.infer<typeof productSchema>;
-
-export const productsListSchema = z.array(productSchema);
+// ADR-004: `contract` owns **inbound** (input/command) schemas only — hand-written,
+// never derived. The **outbound** product row type is not defined here; it is
+// inferred from the implementation (client via the typed Hono client
+// `InferResponseType`, server via `Awaited<ReturnType>` of the `core` fn) so it
+// can never drift from the DB row.
 
 export const createProductSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),

@@ -5,7 +5,6 @@ import type {
   SortingState,
   Updater,
 } from "@tanstack/react-table";
-import type { Product } from "@workspace/contract/catalog";
 import { paginationQuerySchema } from "@workspace/contract/pagination";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import { DataTable } from "@workspace/ui/components/brand/data-table";
@@ -22,7 +21,7 @@ import { useCallback, useMemo } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { CreateProductDialog } from "@/components/catalog/create-product-dialog";
 import { useSetPageContext } from "@/components/providers/page-context";
-import { useProducts } from "@/hooks/use-products";
+import { type Product, useProducts } from "@/hooks/use-products";
 
 export const Route = createFileRoute("/_protected/catalog/")({
   component: CatalogPage,

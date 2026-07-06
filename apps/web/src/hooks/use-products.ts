@@ -8,13 +8,22 @@ import {
 } from "@tanstack/react-query";
 import type {
   createProductSchema,
-  Product,
   updateProductSchema,
 } from "@workspace/contract/catalog";
 import type { PaginationQuery } from "@workspace/contract/pagination";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
+import type { InferResponseType } from "hono/client";
 import type { z } from "zod";
 import { client } from "@/lib/client";
+
+/**
+ * The outbound product row, inferred from the list endpoint's typed response
+ * (ADR-004: reads are inferred from the implementation, never hand-mirrored).
+ */
+export type Product = InferResponseType<
+  (typeof client.protected.catalog.products)["$get"],
+  200
+>["data"][number];
 
 export const getProductsKey = () => ["products"];
 export const getProductsListKey = (params: PaginationQuery) => [
