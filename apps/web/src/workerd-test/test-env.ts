@@ -8,9 +8,14 @@
  * this module re-exports `env` with the fixture binding typed, keeping the test
  * surface out of the production type graph.
  */
+
 import { env as runtimeEnv } from "cloudflare:workers";
+import type { OrgAgent } from "@workspace/agent/org";
 import type { TestCounter } from "./test-counter-do";
 
 export const env = runtimeEnv as typeof runtimeEnv & {
   TEST_COUNTER: DurableObjectNamespace<TestCounter>;
+  // ALW-398: OrgAgent is bound in wrangler.test.jsonc for the multi-session
+  // backend test; typed here so tests get RPC-method inference on the stub.
+  OrgAgent: DurableObjectNamespace<OrgAgent>;
 };

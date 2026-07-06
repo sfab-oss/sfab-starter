@@ -22,7 +22,7 @@
     "@univerjs/preset-sheets-core": "0.25.1",
     "@univerjs/themes": "0.25.1",
     "@zwight/luckyexcel": "^1.1.6",
-    "ai": "^6.0.39",
+    "ai": "^6.0.202",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
