@@ -18,13 +18,11 @@ import {
 import { Hono } from "hono";
 import { z } from "zod";
 import { requirePermission } from "../middleware/auth";
-import { domainErrorHandler } from "../middleware/domain-error";
 import type { HonoContextWithAuthAndOrg } from "../types";
 
 const documentIdSchema = z.object({ id: z.string() });
 
 const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
-  .onError(domainErrorHandler)
   .get(
     "/",
     zValidator("query", z.object({ type: documentTypeSchema.optional() })),
