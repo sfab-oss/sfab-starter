@@ -573,6 +573,28 @@
       ]
     },
     {
+      "name": "spreadsheet-viewer",
+      "type": "registry:ui",
+      "title": "Spreadsheet viewer",
+      "description": "Read-only .xlsx viewer on Univer (open-source Luckysheet successor) with the client-side LuckyExcel importer — styles, merges, formulas, theme-aware, layout-neutral.",
+      "dependencies": [
+        "@univerjs/core",
+        "@univerjs/preset-sheets-core",
+        "@univerjs/themes",
+        "@zwight/luckyexcel",
+        "next-themes"
+      ],
+      "meta": {
+        "sfabKind": "block"
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/components/spreadsheet-viewer/spreadsheet-viewer-demo.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "today-overview",
       "type": "registry:block",
       "title": "Today overview",

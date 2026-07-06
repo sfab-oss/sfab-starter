@@ -162,6 +162,20 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     meta: { sfabKind: "block", iframeHeight: 720 },
     component: lazy(() => import("../registry/blocks/sign-up/page")),
   },
+  "spreadsheet-viewer": {
+    name: "spreadsheet-viewer",
+    type: "registry:ui",
+    title: "Spreadsheet viewer",
+    description:
+      "Read-only .xlsx viewer on Univer (open-source Luckysheet successor) with the client-side LuckyExcel importer — styles, merges, formulas, theme-aware, layout-neutral.",
+    meta: { sfabKind: "block" },
+    component: lazy(
+      () =>
+        import(
+          "../registry/components/spreadsheet-viewer/spreadsheet-viewer-demo"
+        )
+    ),
+  },
   "today-overview": {
     name: "today-overview",
     type: "registry:block",

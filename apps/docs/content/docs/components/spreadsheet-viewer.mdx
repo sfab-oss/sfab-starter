@@ -1,0 +1,34 @@
+---
+title: Spreadsheet viewer
+description: Read-only .xlsx viewer on Univer with the client-side LuckyExcel importer — theme-aware, layout-neutral.
+---
+
+`SpreadsheetViewer` renders an Excel `.xlsx` read-only, with full fidelity —
+styles, number formats, merges, frozen panes, and formulas (their imported
+values). It's built on [Univer](https://univer.ai/) (the open-source successor to
+Luckysheet) and imports entirely **in the browser**.
+
+- **No server, no license.** Univer's official XLSX import is a commercial,
+  server-bound feature; this component sidesteps it with the open-source
+  [`@zwight/luckyexcel`](https://github.com/zwight/Luckyexcel) bridge, which parses
+  the workbook client-side into Univer's native format. Only Univer's Apache-2.0
+  sheet packages are used — none of the `@univerjs-pro/*` suite.
+- **Flexible source** — `file` accepts a URL string, a `File` / `Blob`, or an
+  `ArrayBuffer` of bytes.
+- **Read-only** — no toolbar, formula bar, or context menu; the workbook is set
+  non-editable. The footer stays for sheet-tab navigation.
+- **Theme-aware** — follows `next-themes` (`resolvedTheme`) for light / dark.
+- **Layout-neutral** — it fills its parent (`h-full`); give it a sized box. The
+  demo below uses a fixed-height frame.
+
+<ComponentPreview name="spreadsheet-viewer" />
+
+Charts, pivot tables, and cell annotations are not imported by the bridge — a
+documented limitation of the client-side path.
+
+## Source
+
+`packages/ui/src/components/brand/spreadsheet-viewer.tsx` (+ `spreadsheet-viewer.css`).
+Depends on `@univerjs/core`, `@univerjs/preset-sheets-core`, `@univerjs/themes`,
+and `@zwight/luckyexcel`. Univer is client-only — mount it behind a client
+boundary such as TanStack's `<ClientOnly>`.

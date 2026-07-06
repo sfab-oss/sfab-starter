@@ -18,6 +18,15 @@ overrides:
   ws: "^8.21.0"
   postcss: "^8.5.10"
   hono: "^4.12.27"
+  # Univer 0.25 (spreadsheet-viewer) needs rxjs >=7 — its core imports operators
+  # from the `rxjs` root, which only exists in 7. The tree also drags rxjs 6 (via
+  # inquirer, pulled by @turbo/gen). Left alone, pnpm fills some @univerjs peers
+  # with 6 and others with 7, splitting @univerjs/core into two peer variants —
+  # two DI containers that break Univer at runtime and double the module graph
+  # (docs build OOMs). Force 7 across the tree so all of Univer shares one core,
+  # and keep inquirer (dev-only scaffolding) on its rxjs 6.
+  rxjs: "^7.8.2"
+  "inquirer>rxjs": "^6.6.7"
 
 # Release-age gate — supply-chain hardening (Shai-Hulud class of npm worms,
 # whose compromised versions are live for only hours before takedown). Refuses
@@ -42,6 +51,7 @@ allowBuilds:
   msw: false
   node-liblzma: false
   prisma: false
+  protobufjs: false # transitive via @univerjs network/rpc; runtime needs no postinstall
   sharp: false
   workerd: false
 
