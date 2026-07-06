@@ -1,0 +1,17 @@
+/*
+ * pdf.js paints each page to a <canvas>; keep it block so it never picks up an
+ * inline-baseline gap, and let the wrapper's rounded corners clip it.
+ */
+.pdf-viewer .react-pdf__Page__canvas {
+  display: block;
+  margin: 0 auto;
+}
+
+/*
+ * The text and annotation layers sit absolutely over the canvas for selection
+ * and links. react-pdf's own CSS positions them; we only make sure selection
+ * highlights read correctly on either theme's page background.
+ */
+.pdf-viewer .react-pdf__Page__textContent {
+  mix-blend-mode: multiply;
+}

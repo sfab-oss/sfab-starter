@@ -64,6 +64,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
         import("../registry/components/markdown-editor/markdown-editor-demo")
     ),
   },
+  "pdf-viewer": {
+    name: "pdf-viewer",
+    type: "registry:ui",
+    title: "PDF viewer",
+    description:
+      "Continuous fit-to-width PDF reader on react-pdf (pdf.js) — scroll, zoom, page X of N, loading/error states, layout-neutral.",
+    meta: { sfabKind: "block" },
+    component: lazy(
+      () => import("../registry/components/pdf-viewer/pdf-viewer-demo")
+    ),
+  },
   "record-edit-page": {
     name: "record-edit-page",
     type: "registry:block",
