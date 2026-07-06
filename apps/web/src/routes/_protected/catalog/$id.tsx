@@ -26,6 +26,7 @@ import {
 } from "@workspace/ui/components/shadcn/card";
 import { Separator } from "@workspace/ui/components/shadcn/separator";
 import {
+  DEFAULT_CURRENCY,
   formatMoneyMinor,
   majorToMinor,
   minorToMajor,
@@ -132,7 +133,7 @@ function ProductPage() {
   const handleUpdate = async (data: ProductFormValues) => {
     await updateProduct.mutateAsync({
       id: productId,
-      data: { ...data, price: majorToMinor(data.price, "USD") },
+      data: { ...data, price: majorToMinor(data.price, DEFAULT_CURRENCY) },
     });
     setIsEditing(false);
   };
@@ -221,7 +222,7 @@ function ProductPage() {
             </CardHeader>
             <CardContent>
               <div className="font-bold text-2xl">
-                {formatMoneyMinor(product.price ?? 0, "USD")}
+                {formatMoneyMinor(product.price ?? 0, DEFAULT_CURRENCY)}
               </div>
               <p className="text-muted-foreground text-xs">Per unit</p>
             </CardContent>
@@ -239,7 +240,7 @@ function ProductPage() {
                 defaultValues={{
                   name: product.name,
                   sku: product.sku,
-                  price: minorToMajor(product.price ?? 0, "USD"),
+                  price: minorToMajor(product.price ?? 0, DEFAULT_CURRENCY),
                   description: product.description || "",
                   minStockLevel: product.minStockLevel || 5,
                   imageUrl: product.imageUrl || null,

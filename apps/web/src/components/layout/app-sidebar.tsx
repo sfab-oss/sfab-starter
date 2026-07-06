@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@tanstack/react-router";
-import { LogoAlwurtsMonochrome } from "@workspace/ui/components/icons/logo-monochrome";
+import { LogoMark } from "@workspace/ui/components/icons/logo-monochrome";
 import {
   Sidebar,
   SidebarContent,
@@ -65,14 +65,14 @@ export function AppSidebar() {
           <SidebarMenuItem className="flex items-center gap-2">
             {/* Logo Area */}
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <LogoAlwurtsMonochrome className="h-5 w-5" />
+              <LogoMark className="h-5 w-5" />
             </div>
 
             {/* App Title (Visible when expanded) */}
             <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-              <span className="block truncate font-semibold">TanStack</span>
+              <span className="block truncate font-semibold">Acme Inc.</span>
               <span className="block truncate text-muted-foreground text-xs">
-                Start App
+                Starter
               </span>
             </div>
 

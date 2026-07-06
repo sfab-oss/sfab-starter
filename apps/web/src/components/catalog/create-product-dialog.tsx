@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/shadcn/dialog";
-import { majorToMinor } from "@workspace/ui/lib/money";
+import { DEFAULT_CURRENCY, majorToMinor } from "@workspace/ui/lib/money";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useCreateProduct } from "@/hooks/use-products";
@@ -22,7 +22,7 @@ export function CreateProductDialog() {
   const onSubmit = async (data: ProductFormValues) => {
     await createProduct.mutateAsync({
       ...data,
-      price: majorToMinor(data.price, "USD"),
+      price: majorToMinor(data.price, DEFAULT_CURRENCY),
     });
     setOpen(false);
   };

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   ShellContent,
@@ -10,151 +10,73 @@ import {
 } from "@workspace/ui/components/brand/shell";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/shadcn/card";
-import { Activity, CreditCard, DollarSign, User, Users } from "lucide-react";
+import { FileText, Package, Settings } from "lucide-react";
 
 export const Route = createFileRoute("/_protected/")({
-  component: DashboardPage,
+  component: TodayPage,
 });
 
-function DashboardPage() {
+/**
+ * Neutral landing for the starter. Deliberately ships no fabricated metrics —
+ * it points the operator at the real sections instead. Replace this with a
+ * data-backed "Today" summary once a downstream app has flows to summarize.
+ */
+const QUICK_LINKS = [
+  {
+    to: "/catalog",
+    title: "Catalog",
+    description: "Manage products and stock.",
+    icon: Package,
+  },
+  {
+    to: "/documents",
+    title: "Documents",
+    description: "Browse and review documents.",
+    icon: FileText,
+  },
+  {
+    to: "/settings",
+    title: "Settings",
+    description: "Manage your organization and members.",
+    icon: Settings,
+  },
+] as const;
+
+function TodayPage() {
   return (
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
-        <AppBreadcrumbs items={[{ title: "Dashboard" }]} />
-        <ShellHeaderTitle>Dashboard</ShellHeaderTitle>
+        <AppBreadcrumbs items={[{ title: "Today" }]} />
+        <ShellHeaderTitle>Today</ShellHeaderTitle>
         <ShellHeaderActions />
       </ShellHeader>
 
       <ShellContent>
         <div className="@container flex-1 space-y-6 overflow-y-auto p-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="font-medium text-sm">
-                  Total Revenue
-                </CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="font-bold text-2xl">$45,231.89</div>
-                <p className="text-muted-foreground text-xs">
-                  +20.1% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="font-medium text-sm">
-                  Subscriptions
-                </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="font-bold text-2xl">+2350</div>
-                <p className="text-muted-foreground text-xs">
-                  +180.1% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="font-medium text-sm">Sales</CardTitle>
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="font-bold text-2xl">+12,234</div>
-                <p className="text-muted-foreground text-xs">
-                  +19% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="font-medium text-sm">
-                  Active Now
-                </CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="font-bold text-2xl">+573</div>
-                <p className="text-muted-foreground text-xs">
-                  +201 since last hour
-                </p>
-              </CardContent>
-            </Card>
+          <div className="space-y-1">
+            <h2 className="font-semibold text-2xl tracking-tight">Welcome</h2>
+            <p className="text-muted-foreground">
+              Jump into a section to get started.
+            </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="col-span-4">
-              <CardHeader>
-                <CardTitle>Overview</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex h-[200px] w-full items-center justify-center text-muted-foreground">
-                  <p>Chart placeholder</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="col-span-3">
-              <CardHeader>
-                <CardTitle>Recent Sales</CardTitle>
-                <CardDescription>
-                  You made 265 sales this month.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-8">
-                  <div className="flex items-center">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div className="ml-4 space-y-1">
-                      <p className="font-medium text-sm leading-none">
-                        Olivia Martin
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        olivia.martin@email.com
-                      </p>
-                    </div>
-                    <div className="ml-auto font-medium">+$1,999.00</div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div className="ml-4 space-y-1">
-                      <p className="font-medium text-sm leading-none">
-                        Jackson Lee
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        jackson.lee@email.com
-                      </p>
-                    </div>
-                    <div className="ml-auto font-medium">+$39.00</div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div className="ml-4 space-y-1">
-                      <p className="font-medium text-sm leading-none">
-                        Isabella Nguyen
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        isabella.nguyen@email.com
-                      </p>
-                    </div>
-                    <div className="ml-auto font-medium">+$299.00</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid @2xl:grid-cols-3 @md:grid-cols-2 gap-4">
+            {QUICK_LINKS.map(({ to, title, description, icon: Icon }) => (
+              <Link className="group" key={to} to={to}>
+                <Card className="h-full transition-colors group-hover:border-primary/50">
+                  <CardHeader>
+                    <Icon className="mb-2 h-5 w-5 text-muted-foreground" />
+                    <CardTitle className="text-base">{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
+            ))}
           </div>
         </div>
       </ShellContent>

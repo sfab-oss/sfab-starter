@@ -16,7 +16,7 @@ import {
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import { Button } from "@workspace/ui/components/shadcn/button";
-import { formatMoneyMinor } from "@workspace/ui/lib/money";
+import { DEFAULT_CURRENCY, formatMoneyMinor } from "@workspace/ui/lib/money";
 import { ArrowUpDown } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useDebouncedCallback } from "use-debounce";
@@ -155,7 +155,7 @@ function CatalogPage() {
         const price = (row.getValue("price") as number | null) ?? 0;
         return (
           <div className="text-right font-medium">
-            {formatMoneyMinor(price, "USD")}
+            {formatMoneyMinor(price, DEFAULT_CURRENCY)}
           </div>
         );
       },

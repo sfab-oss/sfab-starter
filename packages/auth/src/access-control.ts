@@ -161,7 +161,7 @@ export function hasRoleRank(
  * copy-only rename; the stored value remains `member`.
  */
 export const ROLE_LABELS: Record<RoleName, string> = {
-  owner: "Dueño",
-  admin: "Administrador",
-  member: "Operador",
+  owner: "Owner",
+  admin: "Administrator",
+  member: "Operator",
 };
