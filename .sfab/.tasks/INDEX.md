@@ -14,12 +14,9 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
+## merged (19)
 
 - [`ALW-398`](./ALW-398.md) — Org-agent (Think) backend modernization — upgrade, multi-session backend & tool audit
-
-## merged (18)
-
 - [`ALW-394`](./ALW-394.md) — Triage and clear Dependabot alerts
 - [`ALW-355`](./ALW-355.md) — Customer-credit wallet (saldo a favor / anticipos) — complete the base money subgraph
 - [`ALW-354`](./ALW-354.md) — Transaction Core settlement engine — payments, allocations, projections & conservation (base)
