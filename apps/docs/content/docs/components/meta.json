@@ -1,4 +1,4 @@
 {
   "title": "Components",
-  "pages": ["shell", "resource-table", "markdown-editor"]
+  "pages": ["shell", "resource-table", "markdown-editor", "pdf-viewer"]
 }

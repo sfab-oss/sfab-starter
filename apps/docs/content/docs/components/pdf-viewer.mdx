@@ -1,0 +1,31 @@
+---
+title: PDF viewer
+description: Continuous fit-to-width PDF reader on react-pdf (pdf.js) — scroll, zoom, layout-neutral.
+---
+
+`PdfViewer` renders a PDF as a continuous, scrollable column of pages. It wraps
+[react-pdf](https://github.com/wojtekmaj/react-pdf) (pdf.js), so it reads any
+standard document without a server round-trip.
+
+- **Fit-to-width** — pages size to the container automatically and reflow when it
+  resizes. Zoom in / out from the toolbar scales past the width, adding horizontal
+  scroll only when you ask for it.
+- **Follows your scroll** — the toolbar tracks `page X of N` as you move through
+  the document.
+- **Flexible source** — `file` accepts a URL string, a `File` / `Blob`, or an
+  `ArrayBuffer` of bytes.
+- **Handles loading & errors** — a spinner while pdf.js parses, an inline message
+  if the document can't be read.
+- **Layout-neutral** — it fills its parent (`h-full`); give it a sized box. The
+  demo below uses a fixed-height frame.
+
+<ComponentPreview name="pdf-viewer" />
+
+## Source
+
+`packages/ui/src/components/brand/pdf-viewer.tsx` (+ `pdf-viewer.css`). Depends on
+`react-pdf` and a pinned `pdfjs-dist` (matched to react-pdf's bundled version so
+the worker and API never skew). The worker is bundled locally via
+`new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url)` — no CDN. pdf.js
+is client-only — mount it behind a client boundary such as TanStack's
+`<ClientOnly>`.

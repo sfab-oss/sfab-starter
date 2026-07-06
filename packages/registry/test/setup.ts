@@ -36,3 +36,27 @@ if (!globalThis.ResizeObserver) {
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => undefined;
 }
+
+// pdf.js (react-pdf) constructs a `DOMMatrix` at module load and uses it while
+// painting to canvas — neither of which jsdom implements. A no-op identity matrix
+// lets the viewer import and mount; real rendering only happens in a browser.
+if (!globalThis.DOMMatrix) {
+  globalThis.DOMMatrix = class {
+    a = 1;
+    b = 0;
+    c = 0;
+    d = 1;
+    e = 0;
+    f = 0;
+    multiplySelf() {
+      return this;
+    }
+    scaleSelf() {
+      return this;
+    }
+    translateSelf() {
+      return this;
+    }
+    // biome-ignore lint/suspicious/noExplicitAny: minimal jsdom stub, not the real DOMMatrix
+  } as any;
+}
