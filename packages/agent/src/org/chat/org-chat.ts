@@ -112,8 +112,11 @@ export class OrgChat extends Think<Cloudflare.Env> {
       })
       .onCompaction(
         createCompactFunction({
+          // Side inference (outside the turn) resolves through `resolveModel()`
+          // per Think 0.12 — it returns our explicit LanguageModel as-is, and
+          // stays correct if `getModel()` ever returns a model-id string.
           summarize: (prompt) =>
-            generateText({ model: this.getModel(), prompt }).then(
+            generateText({ model: this.resolveModel(), prompt }).then(
               (r) => r.text
             ),
         })
@@ -257,10 +260,10 @@ export class OrgChat extends Think<Cloudflare.Env> {
     const displayTools = getOrgAgentDisplayTools(toolsCtx);
 
     return {
-      codemode: createExecuteTool({
-        tools: erpTools,
-        loader: this.env.LOADER,
-      }),
+      // 0.9+ codemode: `createExecuteTool(this, ...)` infers ctx/env.LOADER and
+      // the workspace `state.*` connector from the agent (our SharedWorkspace),
+      // and exposes the ERP tools as the codemode `tools.*` connector.
+      codemode: createExecuteTool(this, { tools: erpTools }),
       ...displayTools,
     };
   }

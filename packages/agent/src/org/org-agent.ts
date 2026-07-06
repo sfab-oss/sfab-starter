@@ -1,4 +1,4 @@
-import { Workspace } from "@cloudflare/shell";
+import { Workspace, type WorkspaceChangeEvent } from "@cloudflare/shell";
 import { Agent, callable } from "agents";
 import type { ChatSummary, OrgMemorySnapshot } from "../types";
 import { OrgChat } from "./chat";
@@ -14,6 +14,7 @@ export class OrgAgent extends Agent<Cloudflare.Env> {
   workspace = new Workspace({
     sql: this.ctx.storage.sql,
     name: () => this.name,
+    onChange: (event) => this.broadcastWorkspaceChange(event),
   });
 
   override onStart(): void {
@@ -31,22 +32,28 @@ export class OrgAgent extends Agent<Cloudflare.Env> {
     )`;
   }
 
-  override async onBeforeSubAgent(
+  override onBeforeSubAgent(
     _req: Request,
     { className, name }: { className: string; name: string }
-  ): Promise<Request | Response | undefined> {
-    if (this.hasSubAgent(className, name)) {
-      return undefined;
+  ): Promise<Response | undefined> {
+    // Existence is registry-owned: a chat exists iff it is a registered
+    // sub-agent (spawned by `createChat`). Gate unknown facets with a 404 —
+    // this hook never creates. Mirrors the examples/assistant reference; the
+    // client creates a chat explicitly before connecting to its facet.
+    if (!this.hasSubAgent(className, name)) {
+      return Promise.resolve(
+        new Response(`${className} "${name}" not found`, { status: 404 })
+      );
     }
-    if (className === OrgChat.name && name === "default") {
-      const now = Date.now();
-      await this.subAgent(OrgChat, "default");
-      this
-        .sql`INSERT OR IGNORE INTO chat_meta (id, title, created_at, updated_at)
-        VALUES ('default', 'Default chat', ${now}, ${now})`;
-      return undefined;
-    }
-    return new Response(`${className} "${name}" not found`, { status: 404 });
+    return Promise.resolve(undefined);
+  }
+
+  private broadcastWorkspaceChange(event: WorkspaceChangeEvent): void {
+    // Fan a lightweight file-change signal to every client connected to this
+    // OrgAgent (all chat tabs) so a workspace-backed UI can refresh live across
+    // chats/tabs. Best-effort `broadcast` (not `setState`) — file churn should
+    // not trigger heavier state re-broadcasts. Does not notify sibling facets.
+    this.broadcast(JSON.stringify({ type: "workspace-change", event }));
   }
 
   touchChat(chatId: string): Promise<void> {
@@ -131,16 +138,11 @@ export class OrgAgent extends Agent<Cloudflare.Env> {
 
   @callable()
   async deleteChat(id: string): Promise<void> {
+    // Registry is authoritative: drop the facet first, then its decoration row.
+    // No re-seed — an org with zero chats is a valid state; the client creates
+    // the next chat on demand (draft → createChat).
     await this.deleteSubAgent(OrgChat, id);
     this.sql`DELETE FROM chat_meta WHERE id = ${id}`;
-
-    if (this.listSubAgents(OrgChat).length === 0) {
-      const now = Date.now();
-      await this.subAgent(OrgChat, "default");
-      this
-        .sql`INSERT OR IGNORE INTO chat_meta (id, title, created_at, updated_at)
-        VALUES ('default', 'Default chat', ${now}, ${now})`;
-    }
   }
 
   readFile(path: string) {
