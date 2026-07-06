@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { LogoAlwurtsMonochrome } from "@workspace/ui/components/icons/logo-monochrome";
+import { LogoMark } from "@workspace/ui/components/icons/logo-monochrome";
 import { CreateOrganizationForm } from "@/components/organization/create-organization-form";
 
 export const Route = createFileRoute("/onboarding")({
@@ -12,10 +12,10 @@ function OnboardingPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="space-y-4 text-center">
           <div className="flex justify-center">
-            <LogoAlwurtsMonochrome className="size-12" />
+            <LogoMark className="size-12" />
           </div>
           <div className="space-y-2">
-            <h1 className="font-bold text-3xl">Welcome to TanStack App</h1>
+            <h1 className="font-bold text-3xl">Welcome</h1>
             <p className="text-lg text-muted-foreground">
               Let's create your organization to get started
             </p>

@@ -20,6 +20,6 @@ export async function assertCan(
     organizationId: ctx.organizationId,
   });
   if (!can(action, { role })) {
-    throw new Error("No tienes permisos para realizar esta acción.");
+    throw new Error("You don't have permission to perform this action.");
   }
 }

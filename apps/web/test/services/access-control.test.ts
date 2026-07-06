@@ -67,9 +67,9 @@ describe("role rank", () => {
 });
 
 describe("role labels", () => {
-  it("renames member to Operador in UI copy only", () => {
-    expect(ROLE_LABELS.member).toBe("Operador");
-    expect(ROLE_LABELS.admin).toBe("Administrador");
-    expect(ROLE_LABELS.owner).toBe("Dueño");
+  it("renames member to Operator in UI copy only", () => {
+    expect(ROLE_LABELS.member).toBe("Operator");
+    expect(ROLE_LABELS.admin).toBe("Administrator");
+    expect(ROLE_LABELS.owner).toBe("Owner");
   });
 });

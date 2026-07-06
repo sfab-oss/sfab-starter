@@ -18,6 +18,14 @@ export const CURRENCY_MINOR_EXPONENT: Record<string, number> = {
 
 const DEFAULT_MINOR_EXPONENT = 2;
 
+/**
+ * The base's default display currency, kept in one seam so a downstream app can
+ * swap it (or thread a per-org currency) without hunting call sites. Transaction
+ * documents carry their own `currencyCode`; this is only the fallback for
+ * surfaces (e.g. catalog) that render an amount with no currency of its own yet.
+ */
+export const DEFAULT_CURRENCY = "USD";
+
 export function getMinorExponent(currencyCode: string): number {
   return (
     CURRENCY_MINOR_EXPONENT[currencyCode.toUpperCase()] ??
@@ -47,7 +55,7 @@ export function formatMoneyMinor(
   currencyCode: string,
   options?: { locale?: string }
 ): string {
-  const locale = options?.locale ?? "es-MX";
+  const locale = options?.locale ?? "en-US";
   const major = minorToMajor(amountMinor, currencyCode);
   return new Intl.NumberFormat(locale, {
     style: "currency",
