@@ -71,6 +71,6 @@ export const sendMail = async <T extends TemplateId>(
     console.log("📨 Email sent to:", to, "with template:", templateId);
   } catch (error) {
     console.error("Failed to send email:", error);
-    throw new Error("Failed to send email");
+    throw new Error("Failed to send email", { cause: error });
   }
 };

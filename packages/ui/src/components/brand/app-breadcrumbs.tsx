@@ -15,7 +15,7 @@ export interface AppBreadcrumbItem {
   href?: string;
 }
 
-interface AppBreadcrumbsProps {
+export interface AppBreadcrumbsProps {
   items?: AppBreadcrumbItem[];
   showHome?: boolean;
   linkComponent?: React.ComponentType<{

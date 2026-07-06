@@ -96,7 +96,7 @@ export function MarkdownEditor({
 
   return (
     <BlockNoteView
-      className={cn(className)}
+      className={className}
       editable={!readOnly}
       editor={editor}
       formattingToolbar={false}

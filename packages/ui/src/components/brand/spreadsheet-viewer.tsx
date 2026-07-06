@@ -15,7 +15,7 @@ import "@univerjs/preset-sheets-core/lib/index.css";
 import "./spreadsheet-viewer.css";
 
 /** The spreadsheet source: a URL string, a File/Blob, or an ArrayBuffer of bytes. */
-export type SpreadsheetSource = File | Blob | ArrayBuffer | string;
+export type SpreadsheetSource = string | File | Blob | ArrayBuffer;
 
 export interface SpreadsheetViewerProps {
   /** The `.xlsx` to render — a URL, a File/Blob, or an ArrayBuffer of bytes. */

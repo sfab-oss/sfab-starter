@@ -56,7 +56,8 @@ export const createProductTools = (ctx: AgentToolsContext) => {
     "delete-product": tool({
       description: "Delete a product.",
       inputSchema: z.object({ id: z.string() }),
-      outputSchema: z.any(),
+      // deleteProduct returns the deleted row, or undefined when no row matched.
+      outputSchema: productSchema.optional(),
       execute: async ({ id }) => {
         await assertCan("catalog:write", ctx);
         return deleteProduct(id, orgId);
