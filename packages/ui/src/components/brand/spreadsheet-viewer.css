@@ -1,0 +1,10 @@
+/*
+ * Univer injects its own app root into our container; make sure it fills the box
+ * so the sheet uses the full height the consumer gives us. The preset's own CSS
+ * (imported in the component) handles everything else — grid, tabs, theming.
+ */
+.spreadsheet-viewer .univer-container,
+.spreadsheet-viewer [data-u-comp="app-container"] {
+  height: 100%;
+  width: 100%;
+}
