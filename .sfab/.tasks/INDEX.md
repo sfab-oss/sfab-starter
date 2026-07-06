@@ -6,7 +6,7 @@ overwritten by the next sync.
 ## draft (6)
 
 - [`ALW-400`](./ALW-400.md) — Role-based authorization for agent tools & the shared workspace (design + implement)
-- [`ALW-398`](./ALW-398.md) — Org-agent (Think) modernization sweep — upgrade, multi-session, filesystem, tools & agent UX
+- [`ALW-398`](./ALW-398.md) — Org-agent (Think) backend modernization — upgrade, multi-session backend & tool audit
 - [`ALW-350`](./ALW-350.md) — Build the first capability pack (POS) + complete the pack-install mechanism (ADR-0017)
 - [`ALW-348`](./ALW-348.md) — Codemode tool approvals: adopt the supported durable-approval pattern (revisit needsApproval)
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
