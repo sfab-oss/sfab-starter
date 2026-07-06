@@ -21,6 +21,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const mimeTypeRef = useRef<string>("");
 
   const isRecording = state === "recording";
   const isProcessing = state === "processing";
@@ -44,7 +45,6 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
       setError(null);
       setState("processing");
 
-      // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -56,30 +56,28 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
       streamRef.current = stream;
       chunksRef.current = [];
 
-      // Determine supported audio format
+      // Resolve the format once and reuse it when we assemble the blob, so
+      // start and stop can't disagree on the mime type.
       const mimeType = getSupportedMimeType();
+      mimeTypeRef.current = mimeType;
 
-      // Create MediaRecorder
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
 
-      // Handle data available
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
 
-      // Handle recording stop
       mediaRecorder.onstop = () => {
         setState("idle");
       };
 
-      // Start recording
-      mediaRecorder.start(100); // Collect data every 100ms
+      // Collect data in 100ms chunks so a stop always has buffered audio.
+      mediaRecorder.start(100);
       setState("recording");
     } catch (err) {
-      console.error("Failed to start recording:", err);
       setState("error");
 
       if (err instanceof Error) {
@@ -112,23 +110,16 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
       // Handle the stop event
       const handleStop = () => {
         mediaRecorder.removeEventListener("stop", handleStop);
-
-        // Create blob from collected chunks
-        const mimeType = getSupportedMimeType();
-        const blob = new Blob(chunksRef.current, { type: mimeType });
-
-        // Cleanup
+        const blob = new Blob(chunksRef.current, {
+          type: mimeTypeRef.current,
+        });
         cleanup();
-
         resolve(blob);
       };
 
       mediaRecorder.addEventListener("stop", handleStop);
-
-      // Stop recording
       mediaRecorder.stop();
 
-      // Stop all tracks
       if (streamRef.current) {
         for (const track of streamRef.current.getTracks()) {
           track.stop();

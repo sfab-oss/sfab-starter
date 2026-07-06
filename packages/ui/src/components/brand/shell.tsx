@@ -66,7 +66,7 @@ export function ShellFooter({
   ...props
 }: React.ComponentProps<"div">) {
   return (
-    <div className={cn(className)} data-slot="shell-footer" {...props}>
+    <div className={className} data-slot="shell-footer" {...props}>
       {children}
     </div>
   );

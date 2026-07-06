@@ -54,14 +54,16 @@ export class OrgChat extends Think<Cloudflare.Env> {
   override workspace: WorkspaceFsLike = new SharedWorkspace(this);
 
   private organizationId!: string;
-  private resolvedChatModel: LanguageModel | null = null;
-  private resolvedModelId: string | null = null;
-  private chatModelError: string | null = null;
+  private resolvedChatModel!: LanguageModel;
+  private resolvedModelId!: string;
   private lastTurnUsage: LanguageModelUsage | undefined;
 
   override onStart(): void {
     this.organizationId = this.requireOrganizationId();
-    this.refreshChatModel();
+    // The chat model is a constant gateway resolution — resolve it once here
+    // rather than re-resolving every turn.
+    this.resolvedChatModel = resolveOrgChatModel();
+    this.resolvedModelId = getOrgChatModelId();
   }
 
   private getParent(): Promise<OrgAgentParent> {
@@ -74,12 +76,6 @@ export class OrgChat extends Think<Cloudflare.Env> {
       throw new Error(`OrgChat ${this.name}: missing parent OrgAgent name`);
     }
     return organizationId;
-  }
-
-  private refreshChatModel(): void {
-    this.resolvedChatModel = resolveOrgChatModel();
-    this.resolvedModelId = getOrgChatModelId();
-    this.chatModelError = null;
   }
 
   override async onConnect(
@@ -101,9 +97,6 @@ export class OrgChat extends Think<Cloudflare.Env> {
   }
 
   override getModel(): LanguageModel {
-    if (!this.resolvedChatModel) {
-      throw new Error(this.chatModelError ?? "Chat model unavailable");
-    }
     return this.resolvedChatModel;
   }
 
@@ -217,11 +210,6 @@ export class OrgChat extends Think<Cloudflare.Env> {
   }
 
   override async beforeTurn(ctx: TurnContext) {
-    this.refreshChatModel();
-    if (!this.resolvedChatModel) {
-      throw new Error(this.chatModelError ?? "Chat model unavailable");
-    }
-
     const backstop = getMaxContextTokens();
     this.session.compactAfter(backstop);
 
