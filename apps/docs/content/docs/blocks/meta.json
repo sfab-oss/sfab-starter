@@ -15,6 +15,9 @@
     "coming-soon-page",
     "chat-page",
     "command-palette",
-    "settings-page"
+    "settings-page",
+    "markdown-viewer-page",
+    "pdf-viewer-page",
+    "spreadsheet-viewer-page"
   ]
 }

@@ -195,6 +195,30 @@
       ]
     },
     {
+      "name": "markdown-viewer-page",
+      "type": "registry:block",
+      "title": "Markdown viewer page",
+      "description": "Documents route — a read-only markdown document on a full shell page, with header actions.",
+      "registryDependencies": ["button", "dialog", "sidebar"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 820
+      },
+      "docs": "Swap `SAMPLE_MARKDOWN` for the document you load (a store record, a File, or\nan API response). The same editor authors and displays markdown — drop the\n`readOnly` prop to make the page editable.",
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/markdown-viewer-page/page.tsx",
+          "type": "registry:page",
+          "target": "src/features/documents/markdown-viewer-page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/markdown-viewer-page/lib/sample-markdown.ts",
+          "type": "registry:lib",
+          "target": "src/features/documents/lib/sample-markdown.ts"
+        }
+      ]
+    },
+    {
       "name": "pdf-viewer",
       "type": "registry:ui",
       "title": "PDF viewer",
@@ -207,6 +231,30 @@
         {
           "path": "packages/registry/registry/components/pdf-viewer/pdf-viewer-demo.tsx",
           "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "pdf-viewer-page",
+      "type": "registry:block",
+      "title": "PDF viewer page",
+      "description": "Documents route — a continuous, fit-to-width PDF reader on a full shell page, with header actions.",
+      "registryDependencies": ["button", "dialog", "sidebar"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 820
+      },
+      "docs": "Swap `SAMPLE_PDF` for the document you load — the viewer accepts a URL, a\nFile, or raw bytes, so point it at your document store or an upload.",
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/pdf-viewer-page/page.tsx",
+          "type": "registry:page",
+          "target": "src/features/documents/pdf-viewer-page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/pdf-viewer-page/lib/sample-pdf.ts",
+          "type": "registry:lib",
+          "target": "src/features/documents/lib/sample-pdf.ts"
         }
       ]
     },
@@ -591,6 +639,30 @@
         {
           "path": "packages/registry/registry/components/spreadsheet-viewer/spreadsheet-viewer-demo.tsx",
           "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "spreadsheet-viewer-page",
+      "type": "registry:block",
+      "title": "Spreadsheet viewer page",
+      "description": "Documents route — a read-only .xlsx spreadsheet on a full shell page, with header actions.",
+      "registryDependencies": ["button", "dialog", "sidebar"],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 820
+      },
+      "docs": "Swap `SAMPLE_WORKBOOK` for the workbook you load — the viewer accepts a URL,\na File, or raw bytes, so point it at your document store or an upload.",
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/spreadsheet-viewer-page/page.tsx",
+          "type": "registry:page",
+          "target": "src/features/documents/spreadsheet-viewer-page.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/spreadsheet-viewer-page/lib/sample-workbook.ts",
+          "type": "registry:lib",
+          "target": "src/features/documents/lib/sample-workbook.ts"
         }
       ]
     },

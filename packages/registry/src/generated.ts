@@ -64,6 +64,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
         import("../registry/components/markdown-editor/markdown-editor-demo")
     ),
   },
+  "markdown-viewer-page": {
+    name: "markdown-viewer-page",
+    type: "registry:block",
+    title: "Markdown viewer page",
+    description:
+      "Documents route — a read-only markdown document on a full shell page, with header actions.",
+    meta: { sfabKind: "block", iframeHeight: 820 },
+    component: lazy(
+      () => import("../registry/blocks/markdown-viewer-page/page")
+    ),
+  },
   "pdf-viewer": {
     name: "pdf-viewer",
     type: "registry:ui",
@@ -74,6 +85,15 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     component: lazy(
       () => import("../registry/components/pdf-viewer/pdf-viewer-demo")
     ),
+  },
+  "pdf-viewer-page": {
+    name: "pdf-viewer-page",
+    type: "registry:block",
+    title: "PDF viewer page",
+    description:
+      "Documents route — a continuous, fit-to-width PDF reader on a full shell page, with header actions.",
+    meta: { sfabKind: "block", iframeHeight: 820 },
+    component: lazy(() => import("../registry/blocks/pdf-viewer-page/page")),
   },
   "record-edit-page": {
     name: "record-edit-page",
@@ -174,6 +194,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
         import(
           "../registry/components/spreadsheet-viewer/spreadsheet-viewer-demo"
         )
+    ),
+  },
+  "spreadsheet-viewer-page": {
+    name: "spreadsheet-viewer-page",
+    type: "registry:block",
+    title: "Spreadsheet viewer page",
+    description:
+      "Documents route — a read-only .xlsx spreadsheet on a full shell page, with header actions.",
+    meta: { sfabKind: "block", iframeHeight: 820 },
+    component: lazy(
+      () => import("../registry/blocks/spreadsheet-viewer-page/page")
     ),
   },
   "today-overview": {
