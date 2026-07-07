@@ -230,6 +230,34 @@ describe("OrgAgent shared workspace (in workerd)", () => {
     expect(Array.from(read as Uint8Array)).toEqual(Array.from(bytes));
   });
 
+  it("exposes a read-only listing + file read for the client viewer", async () => {
+    const stub = env.OrgAgent.get(env.OrgAgent.idFromName("ws-rpc"));
+    const { rootNames, docContent } = await runInDurableObject(
+      stub,
+      async (o: OrgAgent) => {
+        await o.writeFile("/report.md", "# Quarter\n\nrevenue up");
+        await o.writeFile("/docs/spec.txt", "spec body");
+        // These are the two `@callable()` methods the browser reaches.
+        const root = await o.listWorkspace("/");
+        const docContent = await o.readWorkspaceFile("/report.md");
+        return { rootNames: root.map((f) => f.name), docContent };
+      }
+    );
+
+    // Root listing surfaces the top-level file and the nested dir.
+    expect(rootNames).toContain("report.md");
+    expect(rootNames).toContain("docs");
+    expect(docContent).toBe("# Quarter\n\nrevenue up");
+  });
+
+  it("returns null from the read RPC for a missing file", async () => {
+    const stub = env.OrgAgent.get(env.OrgAgent.idFromName("ws-rpc-missing"));
+    const read = await runInDurableObject(stub, (o: OrgAgent) =>
+      o.readWorkspaceFile("/nope.txt")
+    );
+    expect(read).toBeNull();
+  });
+
   it("broadcasts a workspace-change signal on write (onChange → broadcast)", async () => {
     const stub = env.OrgAgent.get(env.OrgAgent.idFromName("ws-onchange"));
     const captured = await runInDurableObject(stub, async (o: OrgAgent) => {

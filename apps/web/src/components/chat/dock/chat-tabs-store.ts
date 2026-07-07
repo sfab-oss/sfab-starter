@@ -39,10 +39,14 @@ interface ChatTabsState {
   clearPending: (organizationId: string, tabKey: string) => void;
   clearSendError: (organizationId: string, tabKey: string) => void;
   closeBody: () => void;
+  closeFilesPanel: () => void;
   closeTab: (organizationId: string, tabKey: string) => void;
   focusTab: (organizationId: string, tabKey: string) => void;
   isBodyOpen: boolean;
+  /** Whether the workspace file viewer is open in the expanded window. */
+  isFilesPanelOpen: boolean;
   openBody: () => void;
+  openFilesPanel: () => void;
   openDraftTab: (organizationId: string) => void;
   openTab: (organizationId: string, chatId: string, title: string) => void;
   reconcileChats: (organizationId: string, chats: ChatSummary[]) => void;
@@ -88,15 +92,60 @@ function makeTabKey(): string {
   return crypto.randomUUID();
 }
 
+/**
+ * Remove every unsent draft tab (`chatId === null`), fixing focus if the
+ * focused tab was one of them. Returns the same object when nothing changed so
+ * callers can cheaply skip a no-op update.
+ */
+function dropDrafts(proj: OrganizationTabsState): OrganizationTabsState {
+  const tabs = proj.tabs.filter((t) => t.chatId !== null);
+  if (tabs.length === proj.tabs.length) {
+    return proj;
+  }
+  const tabKeys = new Set(tabs.map((t) => t.tabKey));
+  const focusedTabId =
+    proj.focusedTabId && tabKeys.has(proj.focusedTabId)
+      ? proj.focusedTabId
+      : null;
+  return { focusedTabId, tabs };
+}
+
+/** Drop every draft except the one identified by `keepTabKey`. */
+function dropDraftsExcept(
+  proj: OrganizationTabsState,
+  keepTabKey: string
+): TabEntry[] {
+  return proj.tabs.filter((t) => t.chatId !== null || t.tabKey === keepTabKey);
+}
+
 export const useChatTabsStore = create<ChatTabsState>()(
   persist(
     (set) => ({
       byOrganization: {},
       chatsByOrganization: {},
       isBodyOpen: false,
+      isFilesPanelOpen: false,
 
       openBody: () => set({ isBodyOpen: true }),
-      closeBody: () => set({ isBodyOpen: false }),
+      // Minimizing discards any unsent drafts — a draft only earns a pill once
+      // its first message promotes it into a real chat (see `upgradeTab`) — and
+      // closes the file viewer so it starts closed on the next expand.
+      closeBody: () =>
+        set((state) => ({
+          isBodyOpen: false,
+          isFilesPanelOpen: false,
+          byOrganization: Object.fromEntries(
+            Object.entries(state.byOrganization).map(
+              ([organizationId, proj]) =>
+                dropDrafts(proj) === proj
+                  ? [organizationId, proj]
+                  : [organizationId, dropDrafts(proj)]
+            )
+          ),
+        })),
+
+      openFilesPanel: () => set({ isFilesPanelOpen: true }),
+      closeFilesPanel: () => set({ isFilesPanelOpen: false }),
 
       openDraftTab: (organizationId) =>
         set((state) => {
@@ -134,9 +183,10 @@ export const useChatTabsStore = create<ChatTabsState>()(
           const proj = getOrganization(state, organizationId);
           const existing = proj.tabs.find((t) => t.chatId === chatId);
           if (existing) {
+            // Focusing a real chat discards any unsent draft.
             return setOrganization(state, organizationId, {
-              ...proj,
               focusedTabId: existing.tabKey,
+              tabs: dropDraftsExcept(proj, existing.tabKey),
             });
           }
           const entry: TabEntry = {
@@ -149,7 +199,7 @@ export const useChatTabsStore = create<ChatTabsState>()(
           };
           return setOrganization(state, organizationId, {
             focusedTabId: entry.tabKey,
-            tabs: [...proj.tabs, entry],
+            tabs: [...proj.tabs.filter((t) => t.chatId !== null), entry],
           });
         }),
 
@@ -241,12 +291,16 @@ export const useChatTabsStore = create<ChatTabsState>()(
       focusTab: (organizationId, tabKey) =>
         set((state) => {
           const proj = getOrganization(state, organizationId);
-          if (proj.focusedTabId === tabKey) {
+          // Focusing another tab discards any unsent draft (unless the draft
+          // itself is the one being focused).
+          const tabs = dropDraftsExcept(proj, tabKey);
+          const tabsChanged = tabs.length !== proj.tabs.length;
+          if (proj.focusedTabId === tabKey && !tabsChanged) {
             return {};
           }
           return setOrganization(state, organizationId, {
-            ...proj,
             focusedTabId: tabKey,
+            tabs,
           });
         }),
 
@@ -272,7 +326,12 @@ export const useChatTabsStore = create<ChatTabsState>()(
           const tabs = proj.tabs.map((t) =>
             t.tabKey === tabKey ? { ...t, size } : t
           );
-          return setOrganization(state, organizationId, { ...proj, tabs });
+          // Every resize starts with the file viewer closed (closed-by-default
+          // on expand; irrelevant but harmless when collapsing).
+          return {
+            isFilesPanelOpen: false,
+            ...setOrganization(state, organizationId, { ...proj, tabs }),
+          };
         }),
 
       reconcileChats: (organizationId, chats) =>

@@ -45,6 +45,8 @@ import {
   HistoryListRow,
 } from "@/components/chat/history/history-list-row";
 import { ChatHistoryError } from "@/components/chat/placeholders";
+import { ChatSidePanel } from "@/components/chat/side-panel/chat-side-panel";
+import { MobileFilesSheet } from "@/components/chat/side-panel/mobile-files-sheet";
 import { ChatErrorBoundary } from "@/components/chat/window/chat-error-boundary";
 import { ChatWindow } from "@/components/chat/window/chat-window";
 
@@ -69,16 +71,44 @@ function DockBody() {
   const bodyState = useDockBodyState(organizationId);
   const tabs = useTabs(organizationId);
   const focusedTabId = useFocusedTabId(organizationId);
+  const isMobile = useIsMobile();
+  const isFilesPanelOpen = useChatTabsStore((s) => s.isFilesPanelOpen);
+  const closeFilesPanel = useChatTabsStore((s) => s.closeFilesPanel);
   const isHidden = bodyState === "none";
+  // Files viewer: a side panel on desktop when expanded, a bottom sheet on
+  // mobile. Both are driven by the same `isFilesPanelOpen` flag.
+  const showDesktopPanel =
+    !isMobile && bodyState === "fullscreen" && isFilesPanelOpen;
 
   return (
-    <DockBodyShell hidden={isHidden} state={bodyState}>
-      {tabs.map((t) => (
-        <PanelSlot hidden={focusedTabId !== t.tabKey} key={t.tabKey}>
-          <ChatWindow tabKey={t.tabKey} />
-        </PanelSlot>
-      ))}
-    </DockBodyShell>
+    <>
+      <DockBodyShell hidden={isHidden} state={bodyState}>
+        {/* Conversation column — a stable element so switching tabs or toggling
+            the file panel never remounts the live chat connections. */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          {tabs.map((t) => (
+            <PanelSlot hidden={focusedTabId !== t.tabKey} key={t.tabKey}>
+              <ChatWindow tabKey={t.tabKey} />
+            </PanelSlot>
+          ))}
+        </div>
+        {showDesktopPanel ? (
+          <div className="h-full w-[38%] min-w-[320px] max-w-[560px] shrink-0 border-l">
+            <ChatSidePanel onClosePanel={closeFilesPanel} />
+          </div>
+        ) : null}
+      </DockBodyShell>
+      {isMobile ? (
+        <MobileFilesSheet
+          onOpenChange={(open) => {
+            if (!open) {
+              closeFilesPanel();
+            }
+          }}
+          open={isFilesPanelOpen}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -115,7 +145,7 @@ function DockBodyShell({
   return (
     <div
       className={cn(
-        "absolute z-30 flex flex-col overflow-hidden bg-background",
+        "absolute z-30 flex overflow-hidden bg-background",
         isMobile && state === "fullscreen" ? null : "rounded-xl",
         state === "popup" ? popupClass : fullscreenClass
       )}
@@ -126,6 +156,8 @@ function DockBodyShell({
   );
 }
 
+const MAX_VISIBLE_PILLS = 4;
+
 function DockBar() {
   const { organizationId } = useChatOrgConnection();
   const tabs = useTabs(organizationId);
@@ -135,11 +167,25 @@ function DockBar() {
     return null;
   }
 
+  // Drafts have no pill — they show only as the focused window until the first
+  // message promotes them into a real chat. Cap the pill row and collapse the
+  // oldest tabs into a "+N" menu so it never overflows the footer width.
+  const pillTabs = tabs.filter((t) => t.chatId !== null);
+  const overflow =
+    pillTabs.length > MAX_VISIBLE_PILLS
+      ? pillTabs.slice(0, pillTabs.length - MAX_VISIBLE_PILLS)
+      : [];
+  const visible =
+    pillTabs.length > MAX_VISIBLE_PILLS
+      ? pillTabs.slice(pillTabs.length - MAX_VISIBLE_PILLS)
+      : pillTabs;
+
   return (
     <div className="flex h-10 shrink-0 items-center gap-1 bg-transparent px-2">
       <div className="flex min-w-0 flex-1 overflow-x-auto">
         <div className="ml-auto flex items-center gap-1">
-          {tabs.map((t) => (
+          {overflow.length > 0 ? <OverflowMenu tabs={overflow} /> : null}
+          {visible.map((t) => (
             <ChatTab key={t.tabKey} tab={t} />
           ))}
         </div>
@@ -217,6 +263,59 @@ function ChatTab({ tab }: { tab: TabEntry }) {
         <XIcon className="size-3" />
       </button>
     </div>
+  );
+}
+
+function OverflowMenu({ tabs }: { tabs: TabEntry[] }) {
+  const { organizationId } = useChatOrgConnection();
+  const focusedTabId = useFocusedTabId(organizationId);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          aria-label={`${tabs.length} more chats`}
+          className="h-7 shrink-0 rounded-md px-2 text-muted-foreground text-xs"
+          size="sm"
+          variant="ghost"
+        >
+          +{tabs.length}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56" side="top">
+        {tabs.map((tab) => (
+          <DropdownMenuItem
+            className="group flex items-center gap-2"
+            key={tab.tabKey}
+            onSelect={() => {
+              const store = useChatTabsStore.getState();
+              store.focusTab(organizationId, tab.tabKey);
+              store.openBody();
+            }}
+          >
+            <BotIcon className="size-3.5 shrink-0 text-muted-foreground" />
+            <span className="min-w-0 flex-1 truncate">{tab.title}</span>
+            <button
+              aria-label={`Close ${tab.title}`}
+              className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                useChatTabsStore
+                  .getState()
+                  .closeTab(organizationId, tab.tabKey);
+              }}
+              type="button"
+            >
+              <XIcon className="size-3" />
+            </button>
+            {focusedTabId === tab.tabKey ? (
+              <span className="size-1.5 shrink-0 rounded-full bg-primary" />
+            ) : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

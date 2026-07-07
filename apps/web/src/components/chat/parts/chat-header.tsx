@@ -17,10 +17,12 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/shadcn/tooltip";
 import { useIsMobile } from "@workspace/ui/hooks/use-mobile";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   BotIcon,
   BrainIcon,
   ClipboardCopyIcon,
+  FolderTreeIcon,
   Maximize2Icon,
   Minimize2Icon,
   MinusIcon,
@@ -85,6 +87,16 @@ export function ChatHeader() {
     }
   }, [isMobile, organizationId, focusedTabId]);
 
+  const isFilesPanelOpen = useChatTabsStore((s) => s.isFilesPanelOpen);
+  const handleToggleFiles = useCallback(() => {
+    const store = useChatTabsStore.getState();
+    if (store.isFilesPanelOpen) {
+      store.closeFilesPanel();
+    } else {
+      store.openFilesPanel();
+    }
+  }, []);
+
   const handleMinimize = useCallback(() => {
     useChatTabsStore.getState().closeBody();
   }, []);
@@ -136,6 +148,28 @@ export function ChatHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
           <MemoryDialog onOpenChange={setMemoryOpen} open={memoryOpen} />
+          {bodyState === "fullscreen" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  aria-label={isFilesPanelOpen ? "Hide files" : "Show files"}
+                  aria-pressed={isFilesPanelOpen}
+                  className={cn(
+                    "size-7",
+                    isFilesPanelOpen && "text-foreground"
+                  )}
+                  onClick={handleToggleFiles}
+                  size="icon"
+                  variant="ghost"
+                >
+                  <FolderTreeIcon className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {isFilesPanelOpen ? "Hide files" : "Files"}
+              </TooltipContent>
+            </Tooltip>
+          )}
           {!isMobile && (
             <SizeToggleButton
               bodyState={bodyState}
