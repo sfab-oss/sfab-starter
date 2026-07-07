@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".agents/hooks/warn-gh-pr-create.mjs"
+      }
+    ]
+  }
+}
