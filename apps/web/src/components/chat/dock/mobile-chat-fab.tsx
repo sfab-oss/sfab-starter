@@ -1,23 +1,25 @@
 "use client";
 
 import type { ChatSummary } from "@workspace/agent/types";
+import { Button } from "@workspace/ui/components/shadcn/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@workspace/ui/components/shadcn/sheet";
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@workspace/ui/components/shadcn/drawer";
 import { useIsMobile } from "@workspace/ui/hooks/use-mobile";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   BotIcon,
   HistoryIcon,
   MessagesSquareIcon,
-  PlusIcon,
+  SparklesIcon,
   Trash2Icon,
   XIcon,
 } from "lucide-react";
-import { type MouseEvent, useEffect, useState } from "react";
+import { type MouseEvent, useState } from "react";
 import { useChatOrgConnection } from "@/components/chat/connection/chat-org-connection";
 import {
   type TabEntry,
@@ -36,250 +38,208 @@ import {
 } from "@/components/chat/history/history-list-row";
 import { ChatHistoryError } from "@/components/chat/placeholders";
 
+/**
+ * Mobile launcher — a slim footer bar (replacing the old floating FAB) shown
+ * whenever the chat body is closed. Surfaces the most-recent chat for one-tap
+ * reopen plus an Ask button, with the rest of the open chats and full history
+ * tucked into drawers. When a chat is open, the fullscreen chat body covers
+ * this bar.
+ */
 export function MobileChatFab() {
   const isMobile = useIsMobile();
   const isBodyOpen = useChatTabsStore((s) => s.isBodyOpen);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-
-  useEffect(() => {
-    if (isBodyOpen) {
-      setIsExpanded(false);
-    }
-  }, [isBodyOpen]);
-
-  useEffect(() => {
-    if (!isExpanded) {
-      return;
-    }
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsExpanded(false);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [isExpanded]);
 
   if (!isMobile || isBodyOpen) {
     return null;
   }
+  return <LauncherRow />;
+}
+
+function LauncherRow() {
+  const { organizationId } = useChatOrgConnection();
+  const tabs = useTabs(organizationId);
+  // Drafts have no pill; the launcher only surfaces real, sent chats.
+  const openChats = tabs.filter((t) => t.chatId !== null);
+  const recent = openChats.at(-1) ?? null;
+  const hasOthers = openChats.length > 1;
+
+  const openRecent = () => {
+    if (!recent) {
+      return;
+    }
+    const store = useChatTabsStore.getState();
+    store.focusTab(organizationId, recent.tabKey);
+    store.openBody();
+  };
+
+  const ask = () => {
+    useChatTabsStore.getState().openDraftTab(organizationId);
+  };
 
   return (
-    <>
-      {isExpanded && (
-        <button
-          aria-label="Close chat menu"
-          className="fixed inset-0 z-30 bg-transparent"
-          onClick={() => setIsExpanded(false)}
-          type="button"
-        />
+    <div className="flex w-full items-center gap-2 px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
+      {hasOthers ? <MobileChatsButton count={openChats.length} /> : null}
+      {recent ? (
+        <>
+          <button
+            className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border bg-background px-4 text-left text-sm shadow-sm"
+            onClick={openRecent}
+            type="button"
+          >
+            <BotIcon className="size-4 shrink-0 text-muted-foreground" />
+            <span className="truncate">{recent.title}</span>
+          </button>
+          <Button
+            aria-label="Ask the assistant"
+            className="size-10 shrink-0 rounded-full"
+            onClick={ask}
+            size="icon"
+          >
+            <SparklesIcon className="size-4" />
+          </Button>
+        </>
+      ) : (
+        <Button className="h-10 flex-1 gap-2 rounded-full" onClick={ask}>
+          <SparklesIcon className="size-4" />
+          Ask the assistant
+        </Button>
       )}
-      <FabStack
-        isExpanded={isExpanded}
-        onCollapse={() => setIsExpanded(false)}
-        onOpenHistory={() => {
-          setIsExpanded(false);
-          setIsHistoryOpen(true);
-        }}
-        onToggle={() => setIsExpanded((value) => !value)}
-      />
-      <HistorySheet onOpenChange={setIsHistoryOpen} open={isHistoryOpen} />
-    </>
+      <MobileHistoryButton />
+    </div>
   );
 }
 
-function FabStack({
-  isExpanded,
-  onCollapse,
-  onOpenHistory,
-  onToggle,
-}: {
-  isExpanded: boolean;
-  onCollapse: () => void;
-  onOpenHistory: () => void;
-  onToggle: () => void;
-}) {
+function MobileChatsButton({ count }: { count: number }) {
+  const [open, setOpen] = useState(false);
   const { organizationId } = useChatOrgConnection();
   const tabs = useTabs(organizationId);
   const focusedTabId = useFocusedTabId(organizationId);
+  const openChats = tabs.filter((t) => t.chatId !== null);
 
-  const handlePickTab = (tabKey: string) => {
+  const pick = (tabKey: string) => {
     const store = useChatTabsStore.getState();
     store.focusTab(organizationId, tabKey);
     store.openBody();
-    onCollapse();
-  };
-
-  const handleNewChat = () => {
-    useChatTabsStore.getState().openDraftTab(organizationId);
-    onCollapse();
+    setOpen(false);
   };
 
   return (
-    <div className="fixed right-4 bottom-4 z-40 flex flex-col items-end gap-2">
-      {isExpanded && (
-        <div className="flex flex-col items-end gap-2">
-          {tabs.map((tab) => (
-            <TabBubble
+    <Drawer onOpenChange={setOpen} open={open}>
+      <DrawerTrigger asChild>
+        <button
+          aria-label={`Open chats (${count})`}
+          className="relative flex size-10 shrink-0 items-center justify-center rounded-full border bg-background shadow-sm"
+          type="button"
+        >
+          <MessagesSquareIcon className="size-4" />
+          <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary font-medium text-[10px] text-primary-foreground">
+            {count > 9 ? "9+" : count}
+          </span>
+        </button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Open chats</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex max-h-[60vh] flex-col gap-1 overflow-y-auto px-2 pb-6">
+          {[...openChats].reverse().map((tab) => (
+            <MobileChatRow
               isFocused={tab.tabKey === focusedTabId}
               key={tab.tabKey}
-              onPick={() => handlePickTab(tab.tabKey)}
-              organizationId={organizationId}
+              onClose={() =>
+                useChatTabsStore.getState().closeTab(organizationId, tab.tabKey)
+              }
+              onPick={() => pick(tab.tabKey)}
               tab={tab}
             />
           ))}
-          <SecondaryBubble
-            label="New chat"
-            onClick={handleNewChat}
-            tone="accent"
-          >
-            <PlusIcon className="size-5" />
-          </SecondaryBubble>
-          <SecondaryBubble label="History" onClick={onOpenHistory}>
-            <HistoryIcon className="size-5" />
-          </SecondaryBubble>
         </div>
-      )}
-      <PrimaryFab
-        isExpanded={isExpanded}
-        onClick={onToggle}
-        tabCount={tabs.length}
-      />
-    </div>
+      </DrawerContent>
+    </Drawer>
   );
 }
 
-function PrimaryFab({
-  isExpanded,
-  onClick,
-  tabCount,
-}: {
-  isExpanded: boolean;
-  onClick: () => void;
-  tabCount: number;
-}) {
-  return (
-    <button
-      aria-expanded={isExpanded}
-      aria-label={isExpanded ? "Close chat menu" : "Open chat menu"}
-      className="relative flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95"
-      onClick={onClick}
-      type="button"
-    >
-      {isExpanded ? (
-        <XIcon className="size-6" />
-      ) : (
-        <MessagesSquareIcon className="size-6" />
-      )}
-      {tabCount > 0 && !isExpanded && (
-        <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-destructive font-medium text-[10px] text-destructive-foreground">
-          {tabCount > 9 ? "9+" : tabCount}
-        </span>
-      )}
-    </button>
-  );
-}
-
-function TabBubble({
+function MobileChatRow({
   isFocused,
+  onClose,
   onPick,
-  organizationId,
   tab,
 }: {
   isFocused: boolean;
+  onClose: () => void;
   onPick: () => void;
-  organizationId: string;
   tab: TabEntry;
 }) {
-  const handleClose = (event: MouseEvent) => {
-    event.stopPropagation();
-    useChatTabsStore.getState().closeTab(organizationId, tab.tabKey);
-  };
-
   return (
-    <div className="flex items-center gap-2">
-      <span
-        className={cn(
-          "max-w-[180px] truncate rounded-full px-3 py-1.5 text-sm shadow-md",
-          isFocused
-            ? "bg-foreground text-background"
-            : "bg-background text-foreground"
-        )}
-      >
-        {tab.title}
-      </span>
-      <div className="relative">
-        <button
-          aria-label={`Open ${tab.title}`}
-          className={cn(
-            "flex size-11 items-center justify-center rounded-full shadow-md transition-transform active:scale-95",
-            isFocused
-              ? "bg-foreground text-background"
-              : "bg-background text-foreground"
-          )}
-          onClick={onPick}
-          type="button"
-        >
-          <BotIcon className="size-5" />
-        </button>
-        <button
-          aria-label={`Close ${tab.title}`}
-          className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
-          onClick={handleClose}
-          type="button"
-        >
-          <XIcon className="size-3" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function SecondaryBubble({
-  children,
-  label,
-  onClick,
-  tone = "neutral",
-}: {
-  children: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  tone?: "neutral" | "accent";
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="rounded-full bg-background px-3 py-1.5 text-foreground text-sm shadow-md">
-        {label}
-      </span>
+    <div
+      className={cn(
+        "flex items-center gap-1 rounded-lg pr-1",
+        isFocused ? "bg-muted" : ""
+      )}
+    >
       <button
-        aria-label={label}
-        className={cn(
-          "flex size-11 items-center justify-center rounded-full shadow-md transition-transform active:scale-95",
-          tone === "accent"
-            ? "bg-primary text-primary-foreground"
-            : "bg-background text-foreground"
-        )}
-        onClick={onClick}
+        className="flex min-h-11 min-w-0 flex-1 items-center gap-2 px-3 text-left"
+        onClick={onPick}
         type="button"
       >
-        {children}
+        <BotIcon className="size-4 shrink-0 text-muted-foreground" />
+        <span className="truncate text-sm">{tab.title}</span>
+      </button>
+      <button
+        aria-label={`Close ${tab.title}`}
+        className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-destructive"
+        onClick={onClose}
+        type="button"
+      >
+        <XIcon className="size-4" />
       </button>
     </div>
   );
 }
 
-function HistorySheetBody({
-  chats,
-  historyLoadState,
-  onDelete,
-  onPickChat,
-}: {
-  chats: ChatSummary[];
-  historyLoadState: "loading" | "ready" | "error";
-  onDelete: (chatId: string, event: MouseEvent) => void;
-  onPickChat: (chat: ChatSummary) => void;
-}) {
+function MobileHistoryButton() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Drawer onOpenChange={setOpen} open={open}>
+      <DrawerTrigger asChild>
+        <button
+          aria-label="Chat history"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-background shadow-sm"
+          type="button"
+        >
+          <HistoryIcon className="size-4" />
+        </button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Chat history</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex-1 overflow-y-auto px-4 pb-6">
+          <HistorySheetSectionLabel />
+          <MobileHistoryBody onSelected={() => setOpen(false)} />
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+function MobileHistoryBody({ onSelected }: { onSelected: () => void }) {
+  const { organizationId, deleteChat, historyLoadState } =
+    useChatOrgConnection();
+  const chats = useOrgChatHistory();
+
+  const handlePickChat = (chat: ChatSummary) => {
+    openOrgChatTab(organizationId, chat);
+    onSelected();
+  };
+
+  const handleDelete = (chatId: string, event: MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    deleteChat(chatId);
+  };
+
   if (historyLoadState === "error") {
     return <ChatHistoryError />;
   }
@@ -298,8 +258,8 @@ function HistorySheetBody({
           key={chat.id}
         >
           <button
-            className="flex min-w-0 flex-1 text-left"
-            onClick={() => onPickChat(chat)}
+            className="flex min-h-11 min-w-0 flex-1 text-left"
+            onClick={() => handlePickChat(chat)}
             type="button"
           >
             <HistoryListRow
@@ -312,8 +272,8 @@ function HistorySheetBody({
           </button>
           <button
             aria-label={`Delete ${chat.title}`}
-            className="shrink-0 rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            onClick={(event) => onDelete(chat.id, event)}
+            className="flex size-11 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            onClick={(event) => handleDelete(chat.id, event)}
             type="button"
           >
             <Trash2Icon className="size-4" />
@@ -321,47 +281,5 @@ function HistorySheetBody({
         </li>
       ))}
     </ul>
-  );
-}
-
-function HistorySheet({
-  onOpenChange,
-  open,
-}: {
-  onOpenChange: (open: boolean) => void;
-  open: boolean;
-}) {
-  const { organizationId, deleteChat, historyLoadState } =
-    useChatOrgConnection();
-  const chats = useOrgChatHistory();
-
-  const handlePickChat = (chat: ChatSummary) => {
-    openOrgChatTab(organizationId, chat);
-    onOpenChange(false);
-  };
-
-  const handleDelete = (chatId: string, event: MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    deleteChat(chatId);
-  };
-
-  return (
-    <Sheet onOpenChange={onOpenChange} open={open}>
-      <SheetContent className="max-h-[80vh] rounded-t-2xl" side="bottom">
-        <SheetHeader>
-          <SheetTitle>History</SheetTitle>
-        </SheetHeader>
-        <div className="flex-1 overflow-y-auto px-4 pb-6">
-          <HistorySheetSectionLabel />
-          <HistorySheetBody
-            chats={chats}
-            historyLoadState={historyLoadState}
-            onDelete={handleDelete}
-            onPickChat={handlePickChat}
-          />
-        </div>
-      </SheetContent>
-    </Sheet>
   );
 }

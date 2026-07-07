@@ -1,6 +1,10 @@
 "use client";
 
-import type { ChatSummary, OrgMemorySnapshot } from "@workspace/agent/types";
+import type {
+  ChatSummary,
+  OrgMemorySnapshot,
+  WorkspaceFileInfo,
+} from "@workspace/agent/types";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { useAgent } from "agents/react";
 import {
@@ -21,7 +25,13 @@ interface ChatOrgConnectionValue {
   deleteChat: (chatId: string) => Promise<void>;
   getOrgMemory: () => Promise<OrgMemorySnapshot>;
   historyLoadState: ChatHistoryLoadState;
+  /** Read-only workspace listing for the file viewer (defaults to root). */
+  listWorkspace: (path?: string) => Promise<WorkspaceFileInfo[]>;
   organizationId: string;
+  /** Read a workspace file's text contents (null when absent/binary). */
+  readWorkspaceFile: (path: string) => Promise<string | null>;
+  /** Bumps whenever the org workspace changes, so viewers can refetch live. */
+  workspaceVersion: number;
 }
 
 const ChatOrgConnectionContext = createContext<ChatOrgConnectionValue | null>(
@@ -47,9 +57,28 @@ export function ChatOrgConnection({
   organizationId,
   children,
 }: ChatOrgConnectionProps) {
+  const [workspaceVersion, setWorkspaceVersion] = useState(0);
+
   const orgAgent = useAgent({
     agent: "OrgAgent",
     name: organizationId,
+    onMessage: (event) => {
+      // The OrgAgent broadcasts `{ type: "workspace-change", event }` whenever a
+      // file is created/updated/deleted (see OrgAgent.broadcastWorkspaceChange).
+      // Bump a version counter so open file viewers refetch. Ignore anything
+      // that isn't our JSON signal (the agent framework sends other frames too).
+      if (typeof event.data !== "string") {
+        return;
+      }
+      try {
+        const parsed = JSON.parse(event.data) as { type?: string };
+        if (parsed.type === "workspace-change") {
+          setWorkspaceVersion((v) => v + 1);
+        }
+      } catch {
+        // Non-JSON frame — not a workspace-change signal.
+      }
+    },
   });
 
   const reconcileChats = useChatTabsStore((s) => s.reconcileChats);
@@ -126,15 +155,48 @@ export function ChatOrgConnection({
     return snapshot ?? { content: null, updatedAt: null };
   }, [orgAgent]);
 
+  const listWorkspace = useCallback(
+    async (path = "/"): Promise<WorkspaceFileInfo[]> => {
+      await orgAgent.ready;
+      const entries = (await orgAgent.call("listWorkspace", [path])) as
+        | WorkspaceFileInfo[]
+        | null;
+      return Array.isArray(entries) ? entries : [];
+    },
+    [orgAgent]
+  );
+
+  const readWorkspaceFile = useCallback(
+    async (path: string): Promise<string | null> => {
+      await orgAgent.ready;
+      return (await orgAgent.call("readWorkspaceFile", [path])) as
+        | string
+        | null;
+    },
+    [orgAgent]
+  );
+
   const value = useMemo<ChatOrgConnectionValue>(
     () => ({
       createChat,
       deleteChat,
       getOrgMemory,
       historyLoadState,
+      listWorkspace,
       organizationId,
+      readWorkspaceFile,
+      workspaceVersion,
     }),
-    [createChat, deleteChat, getOrgMemory, historyLoadState, organizationId]
+    [
+      createChat,
+      deleteChat,
+      getOrgMemory,
+      historyLoadState,
+      listWorkspace,
+      organizationId,
+      readWorkspaceFile,
+      workspaceVersion,
+    ]
   );
 
   return (

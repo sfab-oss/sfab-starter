@@ -1,4 +1,8 @@
-import { Workspace, type WorkspaceChangeEvent } from "@cloudflare/shell";
+import {
+  type FileInfo,
+  Workspace,
+  type WorkspaceChangeEvent,
+} from "@cloudflare/shell";
 import { Agent, callable } from "agents";
 import type { ChatSummary, OrgMemorySnapshot } from "../types";
 import { OrgChat } from "./chat";
@@ -143,6 +147,23 @@ export class OrgAgent extends Agent<Cloudflare.Env> {
     // the next chat on demand (draft → createChat).
     await this.deleteSubAgent(OrgChat, id);
     this.sql`DELETE FROM chat_meta WHERE id = ${id}`;
+  }
+
+  // --- Read-only workspace surface for the client file viewer ---------------
+  // The generic fs methods below are internal (used by codemode tools + the
+  // SharedWorkspace proxy) and intentionally NOT `@callable()`. These two thin
+  // wrappers are the only workspace methods the browser can reach: read-only,
+  // org-gated (the `/agents/org-agent/:id` route is scoped to the caller's
+  // active org), and returning already-serializable values.
+
+  @callable()
+  listWorkspace(path = "/"): Promise<FileInfo[]> {
+    return this.workspace.readDir(path);
+  }
+
+  @callable()
+  readWorkspaceFile(path: string): Promise<string | null> {
+    return this.workspace.readFile(path);
   }
 
   readFile(path: string) {
