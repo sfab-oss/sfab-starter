@@ -38,6 +38,88 @@
       ]
     },
     {
+      "name": "chat-dock",
+      "type": "registry:block",
+      "title": "Chat dock",
+      "description": "Bottom-docked assistant widget — a launcher that opens a compact chat window and expands into a large view with the workspace file viewer.",
+      "registryDependencies": [
+        "button",
+        "collapsible",
+        "drawer",
+        "dropdown-menu",
+        "popover",
+        "resizable",
+        "sheet",
+        "sidebar"
+      ],
+      "meta": {
+        "sfabKind": "block",
+        "iframeHeight": 900
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/page.tsx",
+          "type": "registry:page",
+          "target": "src/routes/assistant-dock.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/components/chat-dock.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant-dock/components/chat-dock.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/components/chat-history-panel.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant-dock/components/chat-history-panel.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/components/chat-input.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant-dock/components/chat-input.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/components/chat-message-parts.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant-dock/components/chat-message-parts.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/components/chat-side-panel.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant-dock/components/chat-side-panel.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/components/file-explorer-tree.tsx",
+          "type": "registry:component",
+          "target": "src/features/assistant-dock/components/file-explorer-tree.tsx"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/hooks/use-chat-dock.ts",
+          "type": "registry:hook",
+          "target": "src/features/assistant-dock/hooks/use-chat-dock.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/hooks/use-chat-side-panel.ts",
+          "type": "registry:hook",
+          "target": "src/features/assistant-dock/hooks/use-chat-side-panel.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/lib/mock-chat-messages.ts",
+          "type": "registry:lib",
+          "target": "src/features/assistant-dock/lib/mock-chat-messages.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/lib/mock-chats.ts",
+          "type": "registry:lib",
+          "target": "src/features/assistant-dock/lib/mock-chats.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/lib/mock-workspace-tree.ts",
+          "type": "registry:lib",
+          "target": "src/features/assistant-dock/lib/mock-workspace-tree.ts"
+        }
+      ]
+    },
+    {
       "name": "chat-page",
       "type": "registry:block",
       "title": "Chat page",

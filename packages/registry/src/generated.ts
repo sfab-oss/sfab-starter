@@ -12,6 +12,15 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     meta: { sfabKind: "block", iframeHeight: 720 },
     component: lazy(() => import("../registry/blocks/accept-invite/page")),
   },
+  "chat-dock": {
+    name: "chat-dock",
+    type: "registry:block",
+    title: "Chat dock",
+    description:
+      "Bottom-docked assistant widget — a launcher that opens a compact chat window and expands into a large view with the workspace file viewer.",
+    meta: { sfabKind: "block", iframeHeight: 900 },
+    component: lazy(() => import("../registry/blocks/chat-dock/page")),
+  },
   "chat-page": {
     name: "chat-page",
     type: "registry:block",

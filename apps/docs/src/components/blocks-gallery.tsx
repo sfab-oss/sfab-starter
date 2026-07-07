@@ -17,6 +17,7 @@ const BLOCK_ORDER = [
   "type-to-confirm",
   "coming-soon-page",
   "chat-page",
+  "chat-dock",
   "command-palette",
   "settings-page",
 ];
