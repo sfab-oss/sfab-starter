@@ -1,5 +1,5 @@
 import { Button } from "@workspace/ui/components/shadcn/button";
-import { RefreshCcwIcon } from "lucide-react";
+import { AlertCircleIcon, RefreshCcwIcon, XIcon } from "lucide-react";
 import { useChatConnection } from "@/components/chat/window/chat-window";
 
 function getErrorMessage(error: unknown): string | null {
@@ -15,50 +15,68 @@ function getErrorMessage(error: unknown): string | null {
   return null;
 }
 
+/**
+ * Inline, non-destructive turn-error banner. The conversation stays visible
+ * (unlike a full-screen takeover) and the composer keeps working. Retry follows
+ * the Think reference client: `clearError()` then `regenerate()` re-runs the
+ * last turn against the server-authoritative Session tree — we deliberately do
+ * NOT hand-pop messages with `setMessages`, which on Think only edits the local
+ * view and leaves the errored turn in the persisted transcript.
+ */
 export function ChatErrorMessage({ error }: { error?: unknown }) {
   const { helpers } = useChatConnection();
   const message = getErrorMessage(error);
+  const isBusy =
+    helpers.status === "streaming" || helpers.status === "submitted";
+
+  const handleRetry = () => {
+    helpers.clearError();
+    if (!isBusy) {
+      helpers.regenerate();
+    }
+  };
 
   return (
-    <div className="mx-auto flex w-full flex-col items-center gap-4 rounded-lg px-6 py-8 shadow-xs md:max-w-2xl">
-      <div className="flex items-center gap-2">
-        <svg
-          aria-label="Error icon"
-          className="h-5 w-5"
-          fill="currentColor"
-          role="img"
-          viewBox="0 0 20 20"
-        >
-          <path
-            clipRule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-            fillRule="evenodd"
-          />
-        </svg>
-        <p className="font-medium">Something went wrong</p>
+    <output className="mx-auto flex w-full justify-center" role="alert">
+      <div className="flex w-full max-w-md items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-destructive text-sm">
+        <AlertCircleIcon
+          aria-hidden="true"
+          className="mt-0.5 size-4 shrink-0"
+        />
+        <div className="flex flex-1 flex-col gap-1.5">
+          <span className="font-medium">Something went wrong</span>
+          {message ? (
+            <span className="break-words text-destructive/80 text-xs">
+              {message}
+            </span>
+          ) : (
+            <span className="text-destructive/80 text-xs">
+              The response couldn't be completed. Try again.
+            </span>
+          )}
+          <div className="flex gap-1.5">
+            <Button
+              className="h-7 gap-1.5 px-2 text-xs"
+              disabled={isBusy}
+              onClick={handleRetry}
+              size="sm"
+              variant="outline"
+            >
+              <RefreshCcwIcon className="size-3" />
+              Retry
+            </Button>
+            <Button
+              className="h-7 gap-1.5 px-2 text-muted-foreground text-xs"
+              onClick={() => helpers.clearError()}
+              size="sm"
+              variant="ghost"
+            >
+              <XIcon className="size-3" />
+              Dismiss
+            </Button>
+          </div>
+        </div>
       </div>
-      {message ? (
-        <pre className="w-full overflow-x-auto rounded-md bg-muted p-3 text-left text-xs">
-          {message}
-        </pre>
-      ) : (
-        <p className="text-center text-sm">
-          An error occurred while processing your request. Please try again.
-        </p>
-      )}
-      <Button
-        onClick={() => {
-          // Pop the failed assistant turn and let `useAgentChat` reconnect
-          // its WebSocket on its own. Reloading the page would drop the WS,
-          // re-run the protected route loader, and refetch project data —
-          // overkill for a single failed turn.
-          helpers.setMessages((messages) => messages.slice(0, -1));
-        }}
-        variant="outline"
-      >
-        <RefreshCcwIcon className="mr-2 h-4 w-4" />
-        Try again
-      </Button>
-    </div>
+    </output>
   );
 }

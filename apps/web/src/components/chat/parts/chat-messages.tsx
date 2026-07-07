@@ -31,6 +31,7 @@ const PENDING_MESSAGE_ID = "__pending__";
 
 interface ChatMessagesProps {
   helpers: ChatHelpers | null;
+  isHydrating?: boolean;
   onRetry: () => void;
   pending: OutgoingMessage | null;
   sendError: string | null;
@@ -193,6 +194,7 @@ function pendingMessageView(pending: OutgoingMessage): OrgChatMessage {
 
 function ChatMessagesInternal({
   helpers,
+  isHydrating,
   onRetry,
   pending,
   sendError,
@@ -217,20 +219,19 @@ function ChatMessagesInternal({
     );
   }
 
-  const { status, messages, error, isRecovering } = helpers;
-  const isLoading =
-    status === "streaming" || status === "submitted" || isRecovering;
+  const { status, messages, error, isStreaming, isRecovering } = helpers;
+  // `isStreaming` is the hook's universal indicator — true for a client stream
+  // (`status === "streaming"`) OR a server-initiated one (auto-continuation,
+  // another tab). `isRecovering` covers a durable turn resuming after a
+  // deploy/eviction. Together they are the full "busy" window.
+  const isLoading = isStreaming || isRecovering || status === "submitted";
+  const hasTurnError = status === "error" || Boolean(error);
 
-  if (status === "error" || error) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-4">
-        <ChatErrorMessage error={error} />
-      </div>
-    );
-  }
-
-  if (messages.length === 0 && !pending) {
-    return <ConversationEmptyState />;
+  if (messages.length === 0 && !pending && !hasTurnError) {
+    // While the socket is still connecting, the on-connect transcript broadcast
+    // hasn't arrived — show the skeleton so a reload of a chat-with-history
+    // doesn't flash the empty state before its messages load.
+    return isHydrating ? <MessagesAreaSkeleton /> : <ConversationEmptyState />;
   }
 
   const hasUserInMessages = messages.some((m) => m.role === "user");
@@ -253,6 +254,7 @@ function ChatMessagesInternal({
             message={message}
           />
         ))}
+        {hasTurnError && <ChatErrorMessage error={error} />}
         {showErrorPill && (
           <PendingSendErrorPill error={sendError} onRetry={onRetry} />
         )}

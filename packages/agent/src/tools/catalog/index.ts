@@ -1,2 +1,6 @@
 export { createDocumentTools } from "./documents";
-export { createProductTools } from "./products";
+export {
+  createProductReadTools,
+  createProductTools,
+  createProductWriteTools,
+} from "./products";

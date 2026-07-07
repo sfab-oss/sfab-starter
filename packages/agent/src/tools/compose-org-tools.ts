@@ -1,6 +1,10 @@
 import type { ToolSet } from "ai";
 import type { AgentToolsContext } from "../types";
-import { createDocumentTools, createProductTools } from "./catalog";
+import {
+  createDocumentTools,
+  createProductReadTools,
+  createProductTools,
+} from "./catalog";
 import { createDisplayTools } from "./display";
 
 /**
@@ -27,3 +31,17 @@ export const getOrgAgentTools = (ctx: AgentToolsContext): ToolSet => ({
 
 export const getOrgAgentDisplayTools = (ctx: AgentToolsContext): ToolSet =>
   createDisplayTools(ctx);
+
+/**
+ * Read-only reach for delegated sub-agents (see `OrgSubAgent`): list/get
+ * catalog products and list documents. No write tools, so no RBAC/`userId` is
+ * needed — the composition takes only the `organizationId`, which the sub-agent
+ * derives from its trusted parent path. Money/document mutations remain off the
+ * agent entirely (guard.ts invariant), so a sub-agent can never author state.
+ */
+export const getOrgAgentReadOnlyTools = (
+  ctx: Pick<AgentToolsContext, "organizationId">
+): ToolSet => ({
+  ...createProductReadTools(ctx),
+  ...createDocumentTools(ctx),
+});

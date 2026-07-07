@@ -14,7 +14,11 @@ import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
 import { assertCan } from "../guard";
 
-export const createProductTools = (ctx: AgentToolsContext) => {
+// Read-only product tools. They need only `organizationId`, so they can be
+// composed for surfaces without an acting user (e.g. a delegated sub-agent).
+export const createProductReadTools = (
+  ctx: Pick<AgentToolsContext, "organizationId">
+) => {
   const orgId = ctx.organizationId;
   return {
     "list-products": tool({
@@ -27,6 +31,14 @@ export const createProductTools = (ctx: AgentToolsContext) => {
       inputSchema: z.object({ id: z.string() }),
       execute: async ({ id }) => getProduct(id, orgId),
     }),
+  };
+};
+
+// Mutating product tools. Every one is RBAC-gated (`assertCan`), so they
+// require the full context including the acting `userId`.
+export const createProductWriteTools = (ctx: AgentToolsContext) => {
+  const orgId = ctx.organizationId;
+  return {
     "create-product": tool({
       description: "Create a new catalog product.",
       inputSchema: createProductSchema,
@@ -57,3 +69,8 @@ export const createProductTools = (ctx: AgentToolsContext) => {
     }),
   };
 };
+
+export const createProductTools = (ctx: AgentToolsContext) => ({
+  ...createProductReadTools(ctx),
+  ...createProductWriteTools(ctx),
+});

@@ -16,10 +16,13 @@ export function ChatHistoryError() {
   );
 }
 
-export function ChatInputPlaceholder() {
+export function ChatInputPlaceholder({ note }: { note?: string }) {
   return (
     <div className="relative bottom-0 z-10 w-full bg-background pt-2">
       <div className="mx-auto w-full p-2 @[500px]:px-4 @[500px]:pb-4 md:max-w-3xl @[500px]:md:pb-6">
+        {note ? (
+          <p className="mb-1.5 px-1 text-muted-foreground text-xs">{note}</p>
+        ) : null}
         <PromptInputProvider>
           <PromptInputBody>
             <PromptInputTextarea disabled placeholder="Type a message..." />

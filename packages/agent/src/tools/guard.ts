@@ -1,5 +1,6 @@
 import { type Action, can } from "@workspace/auth/access-control";
 import { getActiveMemberRole } from "@workspace/core/auth";
+import { PERMISSION_DENIED_MESSAGE } from "../constants";
 import type { AgentToolsContext } from "../types";
 
 /**
@@ -20,6 +21,6 @@ export async function assertCan(
     organizationId: ctx.organizationId,
   });
   if (!can(action, { role })) {
-    throw new Error("You don't have permission to perform this action.");
+    throw new Error(PERMISSION_DENIED_MESSAGE);
   }
 }

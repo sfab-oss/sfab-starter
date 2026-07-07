@@ -7,7 +7,11 @@ import { logger } from "hono/logger";
 import { app as honoApp } from "./hono";
 
 export { OrgAgent } from "@workspace/agent/org";
-export { OrgChat } from "@workspace/agent/org/chat";
+// OrgChat and OrgSubAgent are facets (sub-agents) of OrgAgent, resolved by the
+// framework via these named worker exports — they need no wrangler binding or
+// migration (they share OrgAgent's storage). OrgSubAgent is a facet under
+// OrgChat, spawned by the `delegate` agent tool.
+export { OrgChat, OrgSubAgent } from "@workspace/agent/org/chat";
 
 const app = new Hono()
   .use("*", logger())

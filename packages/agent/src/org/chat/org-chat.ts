@@ -13,6 +13,7 @@ import {
   callable,
   getCurrentAgent,
 } from "agents";
+import { agentTool } from "agents/agent-tools";
 import type { ChatResponseResult } from "agents/chat";
 import { createCompactFunction } from "agents/experimental/memory/utils";
 import {
@@ -21,6 +22,7 @@ import {
   type LanguageModelUsage,
   type ToolSet,
 } from "ai";
+import { z } from "zod";
 import { buildOrgContext } from "../../context/assemble";
 import {
   buildPageContextSection,
@@ -28,7 +30,6 @@ import {
 } from "../../context/page-context";
 import {
   getCompactionLimit,
-  getMaxContextTokens,
   getOrgChatModelId,
   resolveOrgChatModel,
 } from "../../inference/chat-models";
@@ -39,9 +40,8 @@ import {
 import { resolveTurnUserId } from "../bootstrap";
 import { OrgAgent } from "../org-agent";
 import { OrgMemoryProvider } from "./org-memory-provider";
+import { OrgSubAgent } from "./org-sub-agent";
 import { SharedWorkspace } from "./shared-workspace";
-
-const DEFAULT_COMPACTION_BACKSTOP = 200_000;
 
 type OrgAgentParent = Pick<
   OrgAgent,
@@ -101,34 +101,43 @@ export class OrgChat extends Think<Cloudflare.Env> {
   }
 
   override configureSession(session: Session): Session {
-    return session
-      .withContext("org_memory", {
-        description:
-          "Shared, persistent facts about this organization — conventions, " +
-          "policies, recurring issues. Visible to every chat. Use `set_context` " +
-          "to update when you learn something worth remembering.",
-        maxTokens: 2000,
-        provider: new OrgMemoryProvider(() => this.getParent()),
-      })
-      .onCompaction(
-        createCompactFunction({
-          // Side inference (outside the turn) resolves through `resolveModel()`
-          // per Think 0.12 — it returns our explicit LanguageModel as-is, and
-          // stays correct if `getModel()` ever returns a model-id string.
-          summarize: (prompt) =>
-            generateText({ model: this.resolveModel(), prompt }).then(
-              (r) => r.text
-            ),
+    return (
+      session
+        .withContext("org_memory", {
+          description:
+            "Shared, persistent facts about this organization — conventions, " +
+            "policies, recurring issues. Visible to every chat. Use `set_context` " +
+            "to update when you learn something worth remembering.",
+          maxTokens: 2000,
+          provider: new OrgMemoryProvider(() => this.getParent()),
         })
-      )
-      .onCompactionError((error) => {
-        const orgId = this.parentPath.at(-1)?.name ?? "?";
-        console.error(
-          `[OrgChat ${orgId}/${this.name}] auto-compaction failed:`,
-          error
-        );
-      })
-      .compactAfter(DEFAULT_COMPACTION_BACKSTOP);
+        .onCompaction(
+          createCompactFunction({
+            // Side inference (outside the turn) resolves through `resolveModel()`
+            // per Think 0.12 — it returns our explicit LanguageModel as-is, and
+            // stays correct if `getModel()` ever returns a model-id string.
+            summarize: (prompt) =>
+              generateText({ model: this.resolveModel(), prompt }).then(
+                (r) => r.text
+              ),
+          })
+        )
+        .onCompactionError((error) => {
+          const orgId = this.parentPath.at(-1)?.name ?? "?";
+          console.error(
+            `[OrgChat ${orgId}/${this.name}] auto-compaction failed:`,
+            error
+          );
+        })
+        // Primary trigger: Think's heuristic auto-compacts *before* a turn is
+        // assembled once its token estimate crosses this budget, giving real
+        // headroom below the model ceiling (unlike pinning it to the full window).
+        // The budget is per-model — the chat model is fixed per instance, so this
+        // one-time set is correct. `maybeCompactByUsage` layers a stricter
+        // real-usage trigger on top for tool-heavy histories the estimate
+        // under-counts.
+        .compactAfter(getCompactionLimit(this.resolvedModelId))
+    );
   }
 
   override onChatError(error: unknown): unknown {
@@ -184,7 +193,7 @@ export class OrgChat extends Think<Cloudflare.Env> {
   }
 
   private async maybeCompactByUsage(inputTokens: number): Promise<void> {
-    const limit = getCompactionLimit();
+    const limit = getCompactionLimit(this.resolvedModelId);
     if (!limit || inputTokens <= limit) {
       return;
     }
@@ -213,9 +222,6 @@ export class OrgChat extends Think<Cloudflare.Env> {
   }
 
   override async beforeTurn(ctx: TurnContext) {
-    const backstop = getMaxContextTokens();
-    this.session.compactAfter(backstop);
-
     const parent = await this.getParent();
     const organizationId = this.requireOrganizationId();
     const { header } = await buildOrgContext(organizationId);
@@ -264,6 +270,24 @@ export class OrgChat extends Think<Cloudflare.Env> {
       // the workspace `state.*` connector from the agent (our SharedWorkspace),
       // and exposes the ERP tools as the codemode `tools.*` connector.
       codemode: createExecuteTool(this, { tools: erpTools }),
+      // Delegation: `agentTool(OrgSubAgent, …)` spawns a focused sub-agent as a
+      // child facet with its OWN context window (heavy work stays out of this
+      // chat's tokens), a resumable stream, and read-only org reach. It's
+      // recovery-aware (stable runId from the tool-call id) and returns a
+      // concise summary. See `OrgSubAgent`.
+      delegate: agentTool(OrgSubAgent, {
+        description:
+          "Delegate ONE self-contained research or analysis task to a focused sub-agent that works in its own context window with read-only access to org data (catalog products, documents) and a code sandbox. Use this for multi-step data gathering or analysis that would otherwise clutter this conversation. The sub-agent cannot see this conversation and cannot modify any data — give it a complete, standalone task description. Returns the sub-agent's result summary.",
+        inputSchema: z.object({
+          task: z
+            .string()
+            .min(10)
+            .describe(
+              "A complete, standalone description of the task, including every detail the sub-agent needs. It does not see this conversation."
+            ),
+        }),
+        displayName: "Sub-agent",
+      }),
       ...displayTools,
     };
   }

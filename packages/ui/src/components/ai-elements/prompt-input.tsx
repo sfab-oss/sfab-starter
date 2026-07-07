@@ -1032,6 +1032,13 @@ export const PromptInputActionMenuItem = ({
 
 export type PromptInputSubmitProps = ComponentProps<typeof InputGroupButton> & {
   status?: ChatStatus;
+  /**
+   * When provided, the button acts as a real "stop" control while a turn is
+   * in flight (`submitted`/`streaming`): it renders as `type="button"` and
+   * calls `onStop` instead of submitting the form. Without it the streaming
+   * icon is cosmetic only.
+   */
+  onStop?: () => void;
 };
 
 export const PromptInputSubmit = ({
@@ -1039,6 +1046,7 @@ export const PromptInputSubmit = ({
   variant = "default",
   size = "icon-sm",
   status,
+  onStop,
   children,
   ...props
 }: PromptInputSubmitProps) => {
@@ -1052,14 +1060,25 @@ export const PromptInputSubmit = ({
     Icon = <XIcon className="size-4" />;
   }
 
+  const isInFlight = status === "submitted" || status === "streaming";
+  const actAsStop = isInFlight && onStop !== undefined;
+
   return (
     <InputGroupButton
-      aria-label="Submit"
-      className={cn(className)}
       size={size}
-      type="submit"
       variant={variant}
       {...props}
+      aria-label={actAsStop ? "Stop" : "Submit"}
+      className={cn(className)}
+      onClick={
+        actAsStop
+          ? (event) => {
+              event.preventDefault();
+              onStop();
+            }
+          : props.onClick
+      }
+      type={actAsStop ? "button" : "submit"}
     >
       {children ?? Icon}
     </InputGroupButton>
