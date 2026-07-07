@@ -1,4 +1,4 @@
-import type { useAgentChat } from "@cloudflare/ai-chat/react";
+import type { useAgentChat } from "@cloudflare/think/react";
 import type { ChatSummary } from "@workspace/agent/types";
 import type { AIDataPart, AIMetadata } from "@workspace/contract/ai";
 import type { UIMessage } from "ai";
@@ -28,12 +28,29 @@ export interface TabEntry {
   title: string;
 }
 
+/** Which view the expanded-window side panel (the "Inspector") is showing. */
+export type InspectorTab = "files" | "runs";
+
+/**
+ * A delegated sub-agent run opened for full-transcript inspection in the panel.
+ * `chatId` + `runId` address the child facet
+ * (`sub:[{OrgChat, chatId}, {OrgSubAgent, runId}]`); `title` labels the header.
+ * (ALW-401 — sub-agent drill-in.)
+ */
+export interface ActiveSubAgentRun {
+  chatId: string;
+  runId: string;
+  title: string;
+  toolCallId: string;
+}
+
 interface OrganizationTabsState {
   focusedTabId: string | null;
   tabs: TabEntry[];
 }
 
 interface ChatTabsState {
+  activeSubAgentRun: ActiveSubAgentRun | null;
   byOrganization: Record<string, OrganizationTabsState>;
   chatsByOrganization: Record<string, ChatSummary[]>;
   clearPending: (organizationId: string, tabKey: string) => void;
@@ -42,11 +59,23 @@ interface ChatTabsState {
   closeFilesPanel: () => void;
   closeTab: (organizationId: string, tabKey: string) => void;
   focusTab: (organizationId: string, tabKey: string) => void;
+  /** Which view the expanded-window side panel is showing. */
+  inspectorTab: InspectorTab;
   isBodyOpen: boolean;
-  /** Whether the workspace file viewer is open in the expanded window. */
+  /** Whether the expanded-window side panel (files/runs inspector) is open. */
   isFilesPanelOpen: boolean;
   openBody: () => void;
   openFilesPanel: () => void;
+  /**
+   * Open a delegated sub-agent's full transcript in the panel: expands the
+   * owning tab, opens the panel, switches it to the Runs tab, and selects `run`.
+   */
+  openSubAgentRun: (
+    organizationId: string,
+    tabKey: string,
+    run: ActiveSubAgentRun
+  ) => void;
+  setInspectorTab: (tab: InspectorTab) => void;
   openDraftTab: (organizationId: string) => void;
   openTab: (organizationId: string, chatId: string, title: string) => void;
   reconcileChats: (organizationId: string, chats: ChatSummary[]) => void;
@@ -121,8 +150,10 @@ function dropDraftsExcept(
 export const useChatTabsStore = create<ChatTabsState>()(
   persist(
     (set) => ({
+      activeSubAgentRun: null,
       byOrganization: {},
       chatsByOrganization: {},
+      inspectorTab: "files",
       isBodyOpen: false,
       isFilesPanelOpen: false,
 
@@ -134,6 +165,8 @@ export const useChatTabsStore = create<ChatTabsState>()(
         set((state) => ({
           isBodyOpen: false,
           isFilesPanelOpen: false,
+          inspectorTab: "files",
+          activeSubAgentRun: null,
           byOrganization: Object.fromEntries(
             Object.entries(state.byOrganization).map(
               ([organizationId, proj]) =>
@@ -146,6 +179,31 @@ export const useChatTabsStore = create<ChatTabsState>()(
 
       openFilesPanel: () => set({ isFilesPanelOpen: true }),
       closeFilesPanel: () => set({ isFilesPanelOpen: false }),
+
+      setInspectorTab: (tab) => set({ inspectorTab: tab }),
+
+      // Drill into a sub-agent: force the owning tab to fullscreen (the only
+      // size with a side panel), open the panel, switch to Runs, and select the
+      // run — all in one atomic update so `setTabSize`'s panel-reset can't race
+      // it closed.
+      openSubAgentRun: (organizationId, tabKey, run) =>
+        set((state) => {
+          const proj = getOrganization(state, organizationId);
+          const tabs = proj.tabs.map((t) =>
+            t.tabKey === tabKey ? { ...t, size: "fullscreen" as TabSize } : t
+          );
+          return {
+            isBodyOpen: true,
+            isFilesPanelOpen: true,
+            inspectorTab: "runs",
+            activeSubAgentRun: run,
+            ...setOrganization(state, organizationId, {
+              ...proj,
+              focusedTabId: tabKey,
+              tabs,
+            }),
+          };
+        }),
 
       openDraftTab: (organizationId) =>
         set((state) => {

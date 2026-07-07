@@ -62,6 +62,7 @@ function toOutgoingPageContext(
 
 interface ChatInputInnerProps {
   disabled: boolean;
+  onStop?: () => void;
   onSubmit: (message: OutgoingMessage) => Promise<unknown>;
   placeholder: string;
   status: ChatStatus;
@@ -69,6 +70,7 @@ interface ChatInputInnerProps {
 
 function ChatInputInner({
   disabled,
+  onStop,
   onSubmit,
   placeholder,
   status,
@@ -178,7 +180,11 @@ function ChatInputInner({
           </PromptInputTools>
           <PromptInputTools className="gap-2">
             <ChatVoiceButton controller={controller} />
-            <PromptInputSubmit disabled={disabled} status={status} />
+            <PromptInputSubmit
+              disabled={disabled}
+              onStop={onStop}
+              status={status}
+            />
           </PromptInputTools>
         </PromptInputFooter>
       </PromptInput>
@@ -188,11 +194,13 @@ function ChatInputInner({
 
 export function ChatInput({
   disabled = false,
+  onStop,
   onSubmit,
   placeholder = "Ask anything about your organization...",
   status,
 }: {
   disabled?: boolean;
+  onStop?: () => void;
   onSubmit: (message: OutgoingMessage) => Promise<unknown>;
   placeholder?: string;
   status: ChatStatus;
@@ -203,6 +211,7 @@ export function ChatInput({
         <PromptInputProvider>
           <ChatInputInner
             disabled={disabled}
+            onStop={onStop}
             onSubmit={onSubmit}
             placeholder={placeholder}
             status={status}

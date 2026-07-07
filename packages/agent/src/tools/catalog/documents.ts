@@ -10,7 +10,9 @@ import type { AgentToolsContext } from "../../types";
 // Read-only document access for the agent. Money/document MUTATIONS stay off the
 // agent by convention (guard.ts) — finalize/recordPayment are user-gated in the
 // UI; the agent reasons over the resulting state, never authors it.
-export const createDocumentTools = (ctx: AgentToolsContext) => {
+export const createDocumentTools = (
+  ctx: Pick<AgentToolsContext, "organizationId">
+) => {
   const orgId = ctx.organizationId;
   return {
     "list-documents": tool({

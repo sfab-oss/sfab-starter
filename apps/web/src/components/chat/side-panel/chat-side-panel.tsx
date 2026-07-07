@@ -7,24 +7,31 @@ import {
   ResizablePanelGroup,
 } from "@workspace/ui/components/shadcn/resizable";
 import { useIsMobile } from "@workspace/ui/hooks/use-mobile";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   ChevronLeftIcon,
   FileIcon,
   Loader2Icon,
   PanelRightCloseIcon,
 } from "lucide-react";
+import { useChatTabsStore } from "@/components/chat/dock/chat-tabs-store";
 import { FileExplorerTree } from "./file-explorer-tree";
+import { SubAgentRunView } from "./sub-agent-run-view";
 import { isTextFile, useWorkspaceTree } from "./use-workspace-tree";
 
 /**
- * Read-only workspace file viewer for the expanded chat window. Files-only (no
- * browser/terminal tabs — those have no backend yet). On desktop it's a
- * resizable content/tree split; on mobile the tree fills and tapping a file
- * pushes its content with a back affordance.
+ * The expanded chat window's side panel ("Inspector"): a read-only workspace
+ * **Files** viewer and a **Runs** tab that shows a delegated sub-agent's full
+ * transcript (see `SubAgentRunView`). On desktop Files is a resizable
+ * content/tree split; on mobile the tree fills and tapping a file pushes its
+ * content with a back affordance. (ALW-401)
  */
 export function ChatSidePanel({ onClosePanel }: { onClosePanel: () => void }) {
   const tree = useWorkspaceTree();
   const isMobile = useIsMobile();
+  const inspectorTab = useChatTabsStore((s) => s.inspectorTab);
+  const setInspectorTab = useChatTabsStore((s) => s.setInspectorTab);
+  const activeRun = useChatTabsStore((s) => s.activeSubAgentRun);
 
   return (
     <div
@@ -32,7 +39,18 @@ export function ChatSidePanel({ onClosePanel }: { onClosePanel: () => void }) {
       data-slot="chat-side-panel"
     >
       <div className="flex h-10 shrink-0 items-center gap-1 border-b bg-background px-2">
-        <span className="px-1 font-medium text-sm">Files</span>
+        <InspectorTabButton
+          active={inspectorTab === "files"}
+          onClick={() => setInspectorTab("files")}
+        >
+          Files
+        </InspectorTabButton>
+        <InspectorTabButton
+          active={inspectorTab === "runs"}
+          onClick={() => setInspectorTab("runs")}
+        >
+          Runs
+        </InspectorTabButton>
         <Button
           className="ml-auto size-7"
           onClick={onClosePanel}
@@ -41,15 +59,54 @@ export function ChatSidePanel({ onClosePanel }: { onClosePanel: () => void }) {
           variant="ghost"
         >
           <PanelRightCloseIcon className="size-3.5" />
-          <span className="sr-only">Close files panel</span>
+          <span className="sr-only">Close panel</span>
         </Button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-hidden">
-        {isMobile ? <MobileFiles tree={tree} /> : <DesktopFiles tree={tree} />}
+        {inspectorTab === "runs" ? (
+          <SubAgentRunView run={activeRun} />
+        ) : (
+          <FilesBody isMobile={isMobile} tree={tree} />
+        )}
       </div>
     </div>
   );
+}
+
+function InspectorTabButton({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={cn(
+        "rounded-md px-2 py-1 font-medium text-sm transition-colors",
+        active
+          ? "bg-muted text-foreground"
+          : "text-muted-foreground hover:text-foreground"
+      )}
+      onClick={onClick}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
+
+function FilesBody({
+  isMobile,
+  tree,
+}: {
+  isMobile: boolean;
+  tree: ReturnType<typeof useWorkspaceTree>;
+}) {
+  return isMobile ? <MobileFiles tree={tree} /> : <DesktopFiles tree={tree} />;
 }
 
 function DesktopFiles({ tree }: { tree: ReturnType<typeof useWorkspaceTree> }) {

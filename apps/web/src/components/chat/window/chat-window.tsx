@@ -1,6 +1,17 @@
-import { useAgentChat } from "@cloudflare/ai-chat/react";
-import { useAgent } from "agents/react";
-import type { ChatStatus } from "ai";
+// ALW-401 AC-5 — the chat hook is `@cloudflare/think/react`, not the generic
+// `@cloudflare/ai-chat/react` re-export. OrgChat *is* a Think agent, so we use
+// the Think-tuned `useAgentChat`: it forces `syncMessagesToServer: false`
+// (Think's Session tree is server-authoritative — the client never pushes a
+// transcript; `setMessages` is local-only) and adds connection/streaming
+// signals (`isRecovering`, `connectionError`, `isServerStreaming`). It's a
+// per-connection hook — one per chat tab — so it composes cleanly with our
+// multi-session, single-shared-workspace model (the workspace is owned by the
+// parent OrgAgent and reached via the separate org connection, not this hook).
+import { useAgentChat } from "@cloudflare/think/react";
+import type { AIDataPart } from "@workspace/contract/ai";
+import type { AgentToolRunState } from "agents/agent-tools";
+import { useAgent, useAgentToolEvents } from "agents/react";
+import type { ChatStatus, UIMessagePart, UITools } from "ai";
 import {
   createContext,
   type MutableRefObject,
@@ -30,9 +41,18 @@ import {
 } from "@/components/chat/parts/chat-messages";
 import { ChatInputPlaceholder } from "@/components/chat/placeholders";
 
+/**
+ * Real WebSocket connection state, driven by the `useAgent` socket lifecycle
+ * (`onOpen`/`onClose`/`onConnectionError`) rather than React mount lifecycle.
+ * `"connecting"` covers both the first connect and an auto-reconnect after a
+ * transient drop; `"disconnected"` is a terminal close that won't reconnect.
+ */
+export type ChatConnectionStatus = "connecting" | "connected" | "disconnected";
+
 interface ChatWindowValue {
   chatId: string | null;
   compact?: () => Promise<{ compacted: boolean }>;
+  connectionStatus: ChatConnectionStatus;
   isConnected: boolean;
   messages: OrgChatMessage[];
   onRetry: () => void;
@@ -52,11 +72,28 @@ export function useChatWindow() {
   return ctx;
 }
 
+/**
+ * A part of a delegated sub-agent's transcript, typed with our data-part union
+ * so `<MessagePart>` can render a child run's parts exactly like a top-level
+ * message (text, reasoning, and its own read-only tool cards). (ALW-401)
+ */
+export type SubAgentPart = UIMessagePart<AIDataPart, UITools>;
+export type SubAgentRun = AgentToolRunState<SubAgentPart>;
+
 interface ChatConnectionValue {
   helpers: ChatHelpers;
+  /**
+   * Live sub-agent runs spawned by a `delegate` tool call in this chat, keyed by
+   * the tool-call id, folded from the parent socket's `agent-tool-event` stream
+   * (`useAgentToolEvents`) — no extra connection. Drives the inline `DelegateRun`
+   * card; replay-durable across reconnect. Empty until the child starts.
+   */
+  getSubAgentRuns: (toolCallId: string) => SubAgentRun[];
 }
 
-const ChatConnectionContext = createContext<ChatConnectionValue | null>(null);
+export const ChatConnectionContext = createContext<ChatConnectionValue | null>(
+  null
+);
 
 export function useChatConnection() {
   const ctx = useContext(ChatConnectionContext);
@@ -108,12 +145,9 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
   const { organizationId, createChat } = useChatOrgConnection();
   const { chatId, pending, sendError } = tab;
 
-  const skipInitialFetchRef = useRef(false);
-  if (chatId !== null && pending !== null && !skipInitialFetchRef.current) {
-    skipInitialFetchRef.current = true;
-  }
-
-  const [isConnected, setIsConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] =
+    useState<ChatConnectionStatus>("connecting");
+  const isConnected = connectionStatus === "connected";
   const [helperStatus, setHelperStatus] = useState<ChatStatus>("ready");
   const [helperMessages, setHelperMessages] = useState<OrgChatMessage[]>([]);
   const helpersRef = useRef<ChatHelpers | null>(null);
@@ -130,7 +164,10 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
     (m: OrgChatMessage[]) => setHelperMessages(m),
     []
   );
-  const handleIsConnected = useCallback((c: boolean) => setIsConnected(c), []);
+  const handleConnectionStatus = useCallback(
+    (s: ChatConnectionStatus) => setConnectionStatus(s),
+    []
+  );
 
   const handleSendError = useCallback(
     (err: string) => {
@@ -142,6 +179,12 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
   const handleClearPending = useCallback(() => {
     useChatTabsStore.getState().clearPending(organizationId, tabKey);
   }, [organizationId, tabKey]);
+
+  // Cancel an in-flight streaming turn (the composer shows a stop icon while
+  // streaming; the reference client wires it to `helpers.stop()`).
+  const handleStop = useCallback(() => {
+    helpersRef.current?.stop();
+  }, []);
 
   const runDraftCreate = useCallback(
     async (message: OutgoingMessage) => {
@@ -224,6 +267,7 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
   const value: ChatWindowValue = {
     chatId,
     compact: isConnected ? compact : undefined,
+    connectionStatus,
     isConnected,
     messages: helperMessages,
     onRetry: handleRetry,
@@ -251,22 +295,28 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
               compactRef={compactRef}
               helpersRef={helpersRef}
               onClearPending={handleClearPending}
-              onIsConnected={handleIsConnected}
+              onConnectionStatus={handleConnectionStatus}
               onMessages={handleMessages}
               onRetry={handleRetry}
               onSendError={handleSendError}
               onStatus={handleStatus}
               pending={pending}
               sendError={sendError}
-              skipInitialFetch={skipInitialFetchRef.current}
             />
           )}
         </Suspense>
         {showInputPlaceholder ? (
-          <ChatInputPlaceholder />
+          <ChatInputPlaceholder
+            note={
+              connectionStatus === "disconnected"
+                ? "Connection lost — reload the page to reconnect."
+                : "Connecting…"
+            }
+          />
         ) : (
           <ChatInput
             disabled={composerDisabled}
+            onStop={handleStop}
             onSubmit={async (message) => {
               await handleSubmit(message);
             }}
@@ -284,14 +334,13 @@ interface ChatConnectionProps {
   compactRef: MutableRefObject<(() => Promise<{ compacted: boolean }>) | null>;
   helpersRef: MutableRefObject<ChatHelpers | null>;
   onClearPending: () => void;
-  onIsConnected: (c: boolean) => void;
+  onConnectionStatus: (s: ChatConnectionStatus) => void;
   onMessages: (m: OrgChatMessage[]) => void;
   onRetry: () => void;
   onSendError: (err: string) => void;
   onStatus: (s: ChatStatus) => void;
   pending: OutgoingMessage | null;
   sendError: string | null;
-  skipInitialFetch: boolean;
 }
 
 function ChatConnection({
@@ -299,21 +348,35 @@ function ChatConnection({
   compactRef,
   helpersRef,
   onClearPending,
-  onIsConnected,
+  onConnectionStatus,
   onMessages,
   onRetry,
   onSendError,
   onStatus,
   pending,
   sendError,
-  skipInitialFetch,
 }: ChatConnectionProps) {
   const { organizationId } = useChatOrgConnection();
+
+  // Real WebSocket lifecycle → connection status. `onClose` maps to
+  // "connecting" (the agents client auto-reconnects on a transient drop); a
+  // terminal close that won't reconnect surfaces via `chatAgent.connectionError`
+  // below.
+  const handleSocketOpen = useCallback(
+    () => onConnectionStatus("connected"),
+    [onConnectionStatus]
+  );
+  const handleSocketClose = useCallback(
+    () => onConnectionStatus("connecting"),
+    [onConnectionStatus]
+  );
 
   const chatAgent = useAgent({
     agent: "OrgAgent",
     name: organizationId,
     sub: [{ agent: "OrgChat", name: chatId }],
+    onOpen: handleSocketOpen,
+    onClose: handleSocketClose,
   });
 
   compactRef.current = () =>
@@ -321,10 +384,25 @@ function ChatConnection({
 
   const helpers = useAgentChat<unknown, OrgChatMessage>({
     agent: chatAgent,
-    getInitialMessages: skipInitialFetch ? null : undefined,
+    // `null` disables the hook's HTTP `/get-messages` fetch — Think hydrates the
+    // transcript over the WebSocket on connect (`cf_agent_chat_messages`), so an
+    // HTTP fetch would be a redundant round-trip. It's also the resume-safe path:
+    // the server *withholds* that broadcast while a turn is resuming so it can't
+    // clobber the assistant message the client is rebuilding from the resume
+    // stream. This matches the Think reference client. (ALW-401)
+    getInitialMessages: null,
+    // Coalesce streaming token updates (matches the Think reference client) so
+    // a fast stream doesn't re-render the message list on every delta.
+    experimental_throttle: 100,
   });
 
   helpersRef.current = helpers;
+
+  // Fold the parent socket's `agent-tool-event` frames into per-run state for
+  // the inline sub-agent card. Reuses this same WebSocket — no child connection.
+  const subAgentEvents = useAgentToolEvents<SubAgentPart>({ agent: chatAgent });
+  const getSubAgentRuns = (toolCallId: string) =>
+    subAgentEvents.getRunsForToolCall(toolCallId);
 
   useEffect(() => {
     onStatus(helpers.status);
@@ -334,10 +412,22 @@ function ChatConnection({
     onMessages(helpers.messages);
   }, [helpers.messages, onMessages]);
 
+  // Reconcile from the hook's reactive fields: `identified` covers the
+  // already-open case (a tab switch can remount this view without re-firing
+  // `onOpen`), and a non-null `connectionError` is a terminal disconnect.
+  const { connectionError, identified } = chatAgent;
+  // Before the socket is identified we haven't received the on-connect
+  // transcript broadcast yet — show the skeleton (not an empty state) so a
+  // reload of a chat-with-history doesn't flash "no messages" first. Now that
+  // `getInitialMessages` is `null` there's no Suspense fallback to cover this.
+  const isHydrating = !(identified || connectionError);
   useEffect(() => {
-    onIsConnected(true);
-    return () => onIsConnected(false);
-  }, [onIsConnected]);
+    if (connectionError) {
+      onConnectionStatus("disconnected");
+    } else if (identified) {
+      onConnectionStatus("connected");
+    }
+  }, [connectionError, identified, onConnectionStatus]);
 
   // Dedup pending sends by object identity; survives strict-mode remount.
   const lastSentRef = useRef<OutgoingMessage | null>(null);
@@ -369,9 +459,10 @@ function ChatConnection({
   ]);
 
   return (
-    <ChatConnectionContext.Provider value={{ helpers }}>
+    <ChatConnectionContext.Provider value={{ helpers, getSubAgentRuns }}>
       <ChatMessages
         helpers={helpers}
+        isHydrating={isHydrating}
         onRetry={onRetry}
         pending={pending}
         sendError={sendError}
