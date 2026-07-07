@@ -85,6 +85,9 @@ export function useChatDock() {
   }, [draft]);
 
   const closeTab = useCallback((id: string) => {
+    // Closing the focused draft must also drop the draft itself, otherwise
+    // newChat() would reuse the stale draft on the next "Ask the assistant".
+    setDraft((current) => (current && current.id === id ? null : current));
     setOpenIds((current) => current.filter((tabId) => tabId !== id));
     setFocusedId((current) => (current === id ? null : current));
   }, []);
