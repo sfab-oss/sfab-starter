@@ -37,10 +37,12 @@ function readStdin() {
   });
 }
 
-// Match `gh pr create` only in command position (start, or after a shell
-// separator), so an incidental mention in a commit message, a quoted string,
-// or `gh pr view` never trips it.
-const GH_PR_CREATE = /(^|[;&|(`])\s*gh\s+pr\s+create\b/;
+// Match `gh pr create` only in command position — line start (the `m` flag
+// makes `^` match after each newline) or right after a shell separator,
+// including a bare newline — so an incidental mention in a commit message, a
+// quoted string, or `gh pr view` never trips it, while a multi-line Bash call
+// with `gh pr create` on its own line still does.
+const GH_PR_CREATE = /(^|[;&|(`\n])\s*gh\s+pr\s+create\b/m;
 
 async function main() {
   const raw = await readStdin();
@@ -52,11 +54,8 @@ async function main() {
     process.exit(0);
   }
 
-  const isClaude = payload && typeof payload.tool_input === "object";
-  const command =
-    (payload && payload.tool_input && payload.tool_input.command) ||
-    (payload && payload.command) ||
-    "";
+  const isClaude = typeof payload?.tool_input === "object";
+  const command = payload?.tool_input?.command || payload?.command || "";
 
   if (typeof command !== "string" || !GH_PR_CREATE.test(command)) {
     // Not a PR-create command: emit nothing, proceed normally.
@@ -64,9 +63,10 @@ async function main() {
   }
 
   if (isClaude) {
+    // Intent is fully expressed by permissionDecision: "allow"; no top-level
+    // `continue` (default) so the payload stays minimal.
     process.stdout.write(
       JSON.stringify({
-        continue: true,
         systemMessage: REMINDER,
         hookSpecificOutput: {
           hookEventName: "PreToolUse",

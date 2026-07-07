@@ -68,7 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".agents/hooks/warn-gh-pr-create.sh"
+            "command": ".agents/hooks/warn-gh-pr-create.mjs"
           }
         ]
       }
