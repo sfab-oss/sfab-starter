@@ -43,6 +43,12 @@ describe("computeLineTaxableBase", () => {
     ).toBe(0);
   });
 
+  it("keeps the negative sign for credit-note lines", () => {
+    expect(
+      computeLineTaxableBase({ unitPrice: 1000, quantity: -2, discount: -200 })
+    ).toBe(-1800);
+  });
+
   it("returns the net for inclusive lines", () => {
     // 1160 incl. 16% → net = round(1160 / 1.16) = 1000
     expect(
@@ -152,6 +158,24 @@ describe("computeDocumentTotals — exclusive lines", () => {
     expect(totals.taxTotal).toBe(320);
     expect(totals.total).toBe(2320);
     expect(totals.taxableBase).toBe(2000);
+  });
+
+  it("preserves sign for credit-note lines (neg qty + neg discount)", () => {
+    const totals = computeDocumentTotals([
+      mockLine({
+        unitPrice: 1000,
+        quantity: -2,
+        discount: -200,
+        taxRate: 1600,
+        taxMode: "exclusive",
+      }),
+    ]);
+    // Exact negative of qty 2 / price 1000 / discount 200 / 16% tax
+    expect(totals.subtotal).toBe(-2000);
+    expect(totals.discountTotal).toBe(-200);
+    expect(totals.taxableBase).toBe(-1800);
+    expect(totals.taxTotal).toBe(-288);
+    expect(totals.total).toBe(-2088);
   });
 });
 

@@ -34,6 +34,8 @@ export const fulfillmentModeSchema = z.enum([
 export const lineItemInputSchema = z.object({
   productId: z.string().optional(),
   description: z.string().min(1),
+  // Public API: positive quantities only. Credit-note reverse sign is applied
+  // in core (successor copy + draft normalize), not at the contract boundary.
   quantity: z.coerce.number().int().min(1).default(1),
   unitPrice: z.number().int().min(0).default(0), // minor units
   discount: z.number().int().min(0).optional(), // minor units
@@ -42,6 +44,25 @@ export const lineItemInputSchema = z.object({
   taxMode: taxModeSchema.optional(),
   fulfillmentMode: fulfillmentModeSchema.optional(),
 });
+
+export const updateLineItemSchema = z.object({
+  productId: z.string().nullable().optional(),
+  description: z.string().min(1).optional(),
+  quantity: z.coerce.number().int().min(1).optional(),
+  unitPrice: z.number().int().min(0).optional(),
+  discount: z.number().int().min(0).optional(),
+  taxRate: z.number().int().min(0).max(10_000).optional(),
+  taxCode: z.string().nullable().optional(),
+  taxMode: taxModeSchema.optional(),
+  fulfillmentMode: fulfillmentModeSchema.optional(),
+});
+
+/** v1 types offered by the hub New-document menu (credit notes are successors only). */
+export const createableDocumentTypeSchema = z.enum([
+  "quote",
+  "invoice",
+  "bill",
+]);
 
 export const createDocumentSchema = z.object({
   type: documentTypeSchema,
@@ -52,8 +73,38 @@ export const createDocumentSchema = z.object({
   series: z.string().optional(),
 });
 
+/** Successor types createable from an existing document (immutable progression). */
+export const successorDocumentTypeSchema = z.enum(["invoice", "credit_note"]);
+
+export const createSuccessorSchema = z.object({
+  type: successorDocumentTypeSchema,
+});
+
+export const listDocumentsQuerySchema = paginationQuerySchema.extend({
+  type: documentTypeSchema.optional(),
+  direction: documentDirectionSchema.optional(),
+  status: z
+    .enum([
+      "draft",
+      "sent",
+      "accepted",
+      "converted",
+      "finalized",
+      "received",
+      "voided",
+    ])
+    .optional(),
+  entityId: z.string().optional(),
+});
+
 export type LineItemInput = z.infer<typeof lineItemInputSchema>;
+export type UpdateLineItemInput = z.infer<typeof updateLineItemSchema>;
 export type CreateDocumentInput = z.infer<typeof createDocumentSchema>;
+export type CreateSuccessorInput = z.infer<typeof createSuccessorSchema>;
+export type ListDocumentsQuery = z.infer<typeof listDocumentsQuerySchema>;
+export type CreateableDocumentType = z.infer<
+  typeof createableDocumentTypeSchema
+>;
 
 // --- Settlement (§4) ----------------------------------------------------------
 

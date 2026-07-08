@@ -3,7 +3,6 @@ import {
   applyCreditNoteDisposition,
   createDocument,
   createEntity,
-  finalizeDocument,
   getDocumentWithLines,
   getEntity,
   rebuildDocumentPayment,
@@ -32,6 +31,7 @@ import {
 } from "@workspace/db/schema";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  seedFinalizedCreditNote,
   seedFinalizedInvoice,
   seedOrganization,
   seedUser,
@@ -370,20 +370,12 @@ describe("allocation UPSERT (AC-5)", () => {
 // ---------------------------------------------------------------------------
 
 describe("credit-note disposition (AC-6)", () => {
-  async function seedCreditNote(total: number, entityId?: string) {
-    const cn = await createDocument(orgId, {
-      type: "credit_note",
-      direction: "sales",
+  function seedCreditNote(total: number, entityId?: string) {
+    return seedFinalizedCreditNote(orgId, {
+      total,
       entityId,
       entityName: entityId ? "CN Customer" : undefined,
-    });
-    await addLineItem(orgId, cn.id, {
-      description: "Return",
-      quantity: -1, // negative to produce a negative total
-      unitPrice: total,
-    });
-    await finalizeDocument(cn.id, orgId);
-    return cn;
+    }).then((r) => r.creditNote);
   }
 
   it("store_credit deposits to the wallet (ALW-355)", async () => {
@@ -469,19 +461,12 @@ describe("credit-note disposition (AC-6)", () => {
       entityName: entityB.name,
     });
 
-    // Credit note for entity A.
-    const cn = await createDocument(orgId, {
-      type: "credit_note",
-      direction: "sales",
+    // Credit note for entity A (successor of an A invoice).
+    const { creditNote: cn } = await seedFinalizedCreditNote(orgId, {
+      total: 200,
       entityId: entityA.id,
       entityName: entityA.name,
     });
-    await addLineItem(orgId, cn.id, {
-      description: "Return",
-      quantity: -1,
-      unitPrice: 200,
-    });
-    await finalizeDocument(cn.id, orgId);
 
     await expect(
       applyCreditNoteDisposition(cn.id, orgId, "apply_to_document", {
@@ -592,16 +577,9 @@ describe("sale_completed event (AC-7)", () => {
   });
 
   it("does NOT fire when a credit note is settled via cash_refund (B1 regression)", async () => {
-    const cn = await createDocument(orgId, {
-      type: "credit_note",
-      direction: "sales",
+    const { creditNote: cn } = await seedFinalizedCreditNote(orgId, {
+      total: 200,
     });
-    await addLineItem(orgId, cn.id, {
-      description: "Return",
-      quantity: -1,
-      unitPrice: 200,
-    });
-    await finalizeDocument(cn.id, orgId);
 
     await applyCreditNoteDisposition(cn.id, orgId, "cash_refund");
 
@@ -712,16 +690,9 @@ describe("entity balance + credit-limit (F1, F2, F4, F6)", () => {
   });
 
   it("finalized credit note has paymentStatus 'paid' (F6)", async () => {
-    const cn = await createDocument(orgId, {
-      type: "credit_note",
-      direction: "sales",
+    const { creditNote: cn } = await seedFinalizedCreditNote(orgId, {
+      total: 200,
     });
-    await addLineItem(orgId, cn.id, {
-      description: "Return",
-      quantity: -1,
-      unitPrice: 200,
-    });
-    await finalizeDocument(cn.id, orgId);
 
     const loaded = await getDocumentWithLines(cn.id, orgId);
     expect(loaded?.doc.paymentStatus).toBe("paid");

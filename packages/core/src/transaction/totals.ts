@@ -33,8 +33,12 @@ export function computeLineTaxableBase(line: {
   taxMode?: TaxMode | null;
   taxRate?: number | null;
 }): MoneyMinor {
-  const gross = Math.max(0, line.unitPrice * line.quantity - line.discount);
-  if (line.taxMode === "inclusive" && line.taxRate != null && gross > 0) {
+  // Signed lines (credit notes): keep the sign. Positive lines: floor at 0 so
+  // an over-discount cannot invent a negative base.
+  const raw = line.unitPrice * line.quantity - line.discount;
+  const gross =
+    line.unitPrice * line.quantity >= 0 ? Math.max(0, raw) : Math.min(0, raw);
+  if (line.taxMode === "inclusive" && line.taxRate != null && gross !== 0) {
     return Math.round(gross / (1 + line.taxRate / 10_000));
   }
   return gross;
@@ -55,11 +59,13 @@ export function computeLineTax(line: {
   taxMode: TaxMode;
 }): MoneyMinor {
   const base = computeLineTaxableBase(line);
-  if (base <= 0) {
+  if (base === 0) {
     return 0;
   }
   if (line.taxMode === "inclusive") {
-    const gross = Math.max(0, line.unitPrice * line.quantity - line.discount);
+    const raw = line.unitPrice * line.quantity - line.discount;
+    const gross =
+      line.unitPrice * line.quantity >= 0 ? Math.max(0, raw) : Math.min(0, raw);
     return gross - base;
   }
   return applyRate(base, line.taxRate);

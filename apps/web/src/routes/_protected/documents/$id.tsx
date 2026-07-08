@@ -1,12 +1,22 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   ShellHeader,
+  ShellHeaderActions,
   ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { Button } from "@workspace/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/shadcn/dialog";
 import { Input } from "@workspace/ui/components/shadcn/input";
 import {
   Select,
@@ -15,33 +25,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/shadcn/select";
-import { formatMoneyMinor } from "@workspace/ui/lib/money";
+import {
+  formatMoneyMinor,
+  majorToMinor,
+  minorToMajor,
+} from "@workspace/ui/lib/money";
 import { format } from "date-fns";
+import { Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import {
+  bpsToPercent,
+  DocumentTypeBadge,
+  documentFolioLabel,
+  documentTypeLabel,
+  percentToBps,
+} from "@/components/documents/document-type";
 import { useSetPageContext } from "@/components/providers/page-context";
 import {
+  useAcceptDocument,
   useActivity,
   useAddLineItem,
+  useApplyDisposition,
+  useCreateSuccessor,
   useDocument,
   useFinalizeDocument,
   useRecordPayment,
+  useRemoveLineItem,
+  useUpdateLineItem,
 } from "@/hooks/use-documents";
+import { useProducts } from "@/hooks/use-products";
 
 export const Route = createFileRoute("/_protected/documents/$id")({
   component: DocumentPage,
 });
-
-function paymentBadgeVariant(
-  status: string
-): "default" | "secondary" | "outline" {
-  if (status === "paid") {
-    return "default";
-  }
-  if (status === "partial") {
-    return "secondary";
-  }
-  return "outline";
-}
 
 function DocumentEntityLabel({
   entityId,
@@ -64,14 +80,25 @@ function DocumentEntityLabel({
   return <>{entityName ?? "Walk-in"}</>;
 }
 
-function RecordPaymentForm({ docId }: { docId: string }) {
+function RecordPaymentForm({
+  docId,
+  balanceDue,
+  currencyCode,
+}: {
+  docId: string;
+  balanceDue: number;
+  currencyCode: string;
+}) {
   const recordPayment = useRecordPayment();
   const [method, setMethod] = useState("cash");
-  const [amount, setAmount] = useState(0);
+  const [amountMajor, setAmountMajor] = useState(
+    minorToMajor(balanceDue, currencyCode)
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (amount <= 0) {
+    const amount = majorToMinor(amountMajor, currencyCode);
+    if (amount <= 0 || amount > balanceDue) {
       return;
     }
     await recordPayment.mutateAsync({
@@ -81,15 +108,18 @@ function RecordPaymentForm({ docId }: { docId: string }) {
         allocations: [{ documentId: docId, amount }],
       },
     });
-    setAmount(0);
   };
 
   return (
     <form className="space-y-2 rounded-lg border p-4" onSubmit={handleSubmit}>
       <h3 className="font-medium text-sm">Record payment</h3>
-      <div className="flex gap-2">
+      <p className="text-muted-foreground text-xs">
+        Balance due {formatMoneyMinor(balanceDue, currencyCode)}. Amount cannot
+        exceed balance due.
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Select onValueChange={setMethod} value={method}>
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-full sm:w-32">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -100,13 +130,21 @@ function RecordPaymentForm({ docId }: { docId: string }) {
         </Select>
         <Input
           className="flex-1"
+          max={minorToMajor(balanceDue, currencyCode)}
           min={0}
-          onChange={(e) => setAmount(Number(e.target.value) || 0)}
-          placeholder="Amount (minor)"
+          onChange={(e) => setAmountMajor(Number(e.target.value) || 0)}
+          step="0.01"
           type="number"
-          value={amount}
+          value={amountMajor}
         />
-        <Button disabled={recordPayment.isPending || amount <= 0} type="submit">
+        <Button
+          disabled={
+            recordPayment.isPending ||
+            amountMajor <= 0 ||
+            majorToMinor(amountMajor, currencyCode) > balanceDue
+          }
+          type="submit"
+        >
           Pay
         </Button>
       </div>
@@ -114,20 +152,318 @@ function RecordPaymentForm({ docId }: { docId: string }) {
   );
 }
 
+function DraftLineEditor({
+  docId,
+  currencyCode,
+}: {
+  docId: string;
+  currencyCode: string;
+}) {
+  const addLineItem = useAddLineItem();
+  const updateLineItem = useUpdateLineItem();
+  const removeLineItem = useRemoveLineItem();
+  const { data: productsResp } = useProducts({
+    page: 1,
+    pageSize: 50,
+    sortOrder: "asc",
+  });
+  const { data } = useDocument(docId);
+  const lines = data?.lines ?? [];
+
+  const [draft, setDraft] = useState({
+    productId: "",
+    description: "",
+    quantity: 1,
+    unitPriceMajor: 0,
+    taxPercent: 0,
+  });
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!draft.description.trim()) {
+      return;
+    }
+    await addLineItem.mutateAsync({
+      id: docId,
+      data: {
+        productId: draft.productId || undefined,
+        description: draft.description,
+        quantity: draft.quantity,
+        unitPrice: majorToMinor(draft.unitPriceMajor, currencyCode),
+        taxRate: percentToBps(draft.taxPercent),
+      },
+    });
+    setDraft({
+      productId: "",
+      description: "",
+      quantity: 1,
+      unitPriceMajor: 0,
+      taxPercent: 0,
+    });
+  };
+
+  const pickProduct = (productId: string) => {
+    const product = productsResp?.data.find((p) => p.id === productId);
+    if (!product) {
+      setDraft((s) => ({ ...s, productId: "" }));
+      return;
+    }
+    setDraft((s) => ({
+      ...s,
+      productId,
+      description: product.name,
+      unitPriceMajor: minorToMajor(product.price ?? 0, currencyCode),
+    }));
+  };
+
+  return (
+    <div className="space-y-3">
+      <h3 className="font-medium text-sm">Line items</h3>
+      <div className="divide-y rounded-lg border">
+        {lines.map((line) => (
+          <div
+            className="grid grid-cols-1 gap-2 px-3 py-2 sm:grid-cols-[1fr_5rem_7rem_5rem_auto] sm:items-center"
+            key={line.id}
+          >
+            <Input
+              defaultValue={line.description}
+              onBlur={(e) => {
+                const description = e.target.value.trim();
+                if (description && description !== line.description) {
+                  updateLineItem.mutate({
+                    id: docId,
+                    lineId: line.id,
+                    data: { description },
+                  });
+                }
+              }}
+            />
+            <Input
+              defaultValue={Math.abs(line.quantity)}
+              min={1}
+              onBlur={(e) => {
+                const quantity = Math.abs(Number(e.target.value) || 1);
+                if (quantity !== Math.abs(line.quantity)) {
+                  updateLineItem.mutate({
+                    id: docId,
+                    lineId: line.id,
+                    data: { quantity },
+                  });
+                }
+              }}
+              type="number"
+            />
+            <Input
+              defaultValue={minorToMajor(line.unitPrice, currencyCode)}
+              min={0}
+              onBlur={(e) => {
+                const unitPrice = majorToMinor(
+                  Number(e.target.value) || 0,
+                  currencyCode
+                );
+                if (unitPrice !== line.unitPrice) {
+                  updateLineItem.mutate({
+                    id: docId,
+                    lineId: line.id,
+                    data: { unitPrice },
+                  });
+                }
+              }}
+              step="0.01"
+              type="number"
+            />
+            <Input
+              defaultValue={bpsToPercent(line.taxRate)}
+              min={0}
+              onBlur={(e) => {
+                const taxRate = percentToBps(Number(e.target.value) || 0);
+                if (taxRate !== line.taxRate) {
+                  updateLineItem.mutate({
+                    id: docId,
+                    lineId: line.id,
+                    data: { taxRate },
+                  });
+                }
+              }}
+              step="0.01"
+              type="number"
+            />
+            <Button
+              aria-label="Remove line"
+              onClick={() =>
+                removeLineItem.mutate({ id: docId, lineId: line.id })
+              }
+              size="icon"
+              variant="ghost"
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        ))}
+        {lines.length === 0 && (
+          <div className="px-4 py-6 text-center text-muted-foreground text-xs">
+            No lines yet.
+          </div>
+        )}
+      </div>
+
+      <form
+        className="grid grid-cols-1 gap-2 rounded-lg border p-3 sm:grid-cols-[8rem_1fr_5rem_7rem_5rem_auto]"
+        onSubmit={handleAdd}
+      >
+        <Select
+          onValueChange={pickProduct}
+          value={draft.productId || undefined}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Product" />
+          </SelectTrigger>
+          <SelectContent>
+            {(productsResp?.data ?? []).map((product) => (
+              <SelectItem key={product.id} value={product.id}>
+                {product.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          onChange={(e) =>
+            setDraft((s) => ({ ...s, description: e.target.value }))
+          }
+          placeholder="Description"
+          value={draft.description}
+        />
+        <Input
+          min={1}
+          onChange={(e) =>
+            setDraft((s) => ({
+              ...s,
+              quantity: Number(e.target.value) || 1,
+            }))
+          }
+          type="number"
+          value={draft.quantity}
+        />
+        <Input
+          min={0}
+          onChange={(e) =>
+            setDraft((s) => ({
+              ...s,
+              unitPriceMajor: Number(e.target.value) || 0,
+            }))
+          }
+          placeholder="Price"
+          step="0.01"
+          type="number"
+          value={draft.unitPriceMajor}
+        />
+        <Input
+          min={0}
+          onChange={(e) =>
+            setDraft((s) => ({
+              ...s,
+              taxPercent: Number(e.target.value) || 0,
+            }))
+          }
+          placeholder="Tax %"
+          step="0.01"
+          type="number"
+          value={draft.taxPercent}
+        />
+        <Button disabled={addLineItem.isPending} type="submit">
+          <Plus className="size-4" />
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+function DocumentHeaderActions({
+  id,
+  doc,
+  lineCount,
+  onCreateCreditNote,
+}: {
+  id: string;
+  doc: NonNullable<ReturnType<typeof useDocument>["data"]>["doc"];
+  lineCount: number;
+  onCreateCreditNote: () => void;
+}) {
+  const navigate = useNavigate();
+  const finalize = useFinalizeDocument();
+  const accept = useAcceptDocument();
+  const createSuccessor = useCreateSuccessor();
+  const isDraft = doc.status === "draft";
+  const isQuote = doc.type === "quote";
+
+  const handleConvert = async () => {
+    const result = await createSuccessor.mutateAsync({
+      id,
+      data: { type: "invoice" },
+    });
+    navigate({ to: "/documents/$id", params: { id: result.doc.id } });
+  };
+
+  return (
+    <ShellHeaderActions>
+      {isDraft && isQuote && (
+        <Button
+          disabled={accept.isPending || lineCount === 0}
+          onClick={() => accept.mutate(id)}
+          size="sm"
+        >
+          Accept quote
+        </Button>
+      )}
+      {isDraft && !isQuote && (
+        <Button
+          disabled={finalize.isPending || lineCount === 0}
+          onClick={() => finalize.mutate(id)}
+          size="sm"
+        >
+          Finalize
+        </Button>
+      )}
+      {doc.status === "accepted" && isQuote && (
+        <Button
+          disabled={createSuccessor.isPending}
+          onClick={handleConvert}
+          size="sm"
+        >
+          Convert to invoice
+        </Button>
+      )}
+      {doc.status === "finalized" && doc.type === "invoice" && (
+        <Button onClick={onCreateCreditNote} size="sm" variant="outline">
+          Create credit note
+        </Button>
+      )}
+    </ShellHeaderActions>
+  );
+}
+
 function DocumentPage() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const { data } = useDocument(id);
   const { data: activityResp } = useActivity(id);
-  const addLineItem = useAddLineItem();
-  const finalize = useFinalizeDocument();
+  const createSuccessor = useCreateSuccessor();
+  const applyDisposition = useApplyDisposition();
 
   const doc = data?.doc;
   const lines = data?.lines ?? [];
 
+  const [creditOpen, setCreditOpen] = useState(false);
+  const [disposition, setDisposition] = useState<
+    "cash_refund" | "store_credit" | "apply_to_document"
+  >("store_credit");
+
   useSetPageContext(
     useMemo(
       () => ({
-        title: doc ? `${doc.type} ${doc.folio ?? ""}` : "Document",
+        title: doc
+          ? `${documentTypeLabel(doc.type)} ${doc.folio ?? ""}`
+          : "Document",
         description: doc?.entityName ?? undefined,
         entityType: "document",
         entityId: id,
@@ -135,34 +471,6 @@ function DocumentPage() {
       [doc, id]
     )
   );
-
-  const [line, setLine] = useState({
-    description: "",
-    quantity: 1,
-    unitPrice: 0,
-    taxRate: 0,
-  });
-
-  const handleAddLine = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!line.description) {
-      return;
-    }
-    await addLineItem.mutateAsync({
-      id,
-      data: {
-        description: line.description,
-        quantity: line.quantity,
-        unitPrice: line.unitPrice,
-        taxRate: line.taxRate || undefined,
-      },
-    });
-    setLine({ description: "", quantity: 1, unitPrice: 0, taxRate: 0 });
-  };
-
-  const handleFinalize = async () => {
-    await finalize.mutateAsync(id);
-  };
 
   if (!doc) {
     return (
@@ -175,9 +483,10 @@ function DocumentPage() {
   }
 
   const isDraft = doc.status === "draft";
+  const isCreditNote = doc.type === "credit_note";
+  const isFiscalPayable =
+    doc.type === "invoice" || doc.type === "bill" || doc.type === "credit_note";
   const draftTotals = data?.draftTotals;
-
-  // For drafts: show computed live totals; for finalized docs: show frozen values.
   const display = isDraft
     ? {
         subtotal: draftTotals?.subtotal ?? 0,
@@ -186,6 +495,26 @@ function DocumentPage() {
       }
     : { subtotal: doc.subtotal, taxTotal: doc.taxTotal, total: doc.total };
 
+  const handleCreateCreditNote = async () => {
+    const result = await createSuccessor.mutateAsync({
+      id,
+      data: { type: "credit_note" },
+    });
+    setCreditOpen(false);
+    navigate({ to: "/documents/$id", params: { id: result.doc.id } });
+  };
+
+  const handleApplyDisposition = async () => {
+    await applyDisposition.mutateAsync({
+      id,
+      disposition,
+      ...(disposition === "apply_to_document" &&
+        doc.sourceDocumentId && {
+          targetDocumentId: doc.sourceDocumentId,
+        }),
+    });
+  };
+
   return (
     <ShellPage>
       <ShellHeader>
@@ -193,8 +522,16 @@ function DocumentPage() {
         <AppBreadcrumbs
           items={[
             { title: "Documents", href: "/documents" },
-            { title: `${doc.type} ${doc.folio ?? ""}`.trim() },
+            {
+              title: `${documentTypeLabel(doc.type)} ${documentFolioLabel(doc)}`,
+            },
           ]}
+        />
+        <DocumentHeaderActions
+          doc={doc}
+          id={id}
+          lineCount={lines.length}
+          onCreateCreditNote={() => setCreditOpen(true)}
         />
       </ShellHeader>
 
@@ -202,10 +539,11 @@ function DocumentPage() {
         <div className="space-y-6 lg:col-span-2">
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-semibold text-lg capitalize">
-                  {doc.type.replace("_", " ")}
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-semibold text-lg">
+                  {documentTypeLabel(doc.type)}
                 </h2>
+                <DocumentTypeBadge type={doc.type} />
                 <Badge variant={isDraft ? "secondary" : "default"}>
                   {doc.status}
                 </Badge>
@@ -215,154 +553,146 @@ function DocumentPage() {
                   entityId={doc.entityId}
                   entityName={doc.entityName}
                 />{" "}
-                ·{" "}
-                {doc.folio !== null
-                  ? `Folio #${doc.series ?? doc.type}-${doc.folio}`
-                  : "No folio (draft)"}
+                · {documentFolioLabel(doc)}
               </p>
-            </div>
-            {isDraft && (
-              <Button
-                disabled={finalize.isPending || lines.length === 0}
-                onClick={handleFinalize}
-              >
-                Finalize
-              </Button>
-            )}
-          </div>
-
-          <div>
-            <h3 className="mb-2 font-medium text-sm">Line items</h3>
-            <div className="divide-y rounded-lg border">
-              {lines.map((l) => (
-                <div
-                  className="flex items-center gap-3 px-4 py-2 text-sm"
-                  key={l.id}
-                >
-                  <span className="min-w-0 flex-1 truncate">
-                    {l.description}
-                  </span>
-                  <span className="text-muted-foreground tabular-nums">
-                    {l.quantity} ×{" "}
-                    {formatMoneyMinor(l.unitPrice, doc.currencyCode)}
-                  </span>
-                  <span className="w-24 text-right font-medium tabular-nums">
-                    {formatMoneyMinor(
-                      l.unitPrice * l.quantity,
-                      doc.currencyCode
-                    )}
-                  </span>
-                </div>
-              ))}
-              {lines.length === 0 && (
-                <div className="px-4 py-6 text-center text-muted-foreground text-xs">
-                  No lines yet.
-                </div>
+              {doc.sourceDocumentId && (
+                <p className="mt-1 text-muted-foreground text-xs">
+                  {isCreditNote ? "Credit for" : "Converted from"}{" "}
+                  <Link
+                    className="hover:text-primary hover:underline"
+                    params={{ id: doc.sourceDocumentId }}
+                    to="/documents/$id"
+                  >
+                    source document
+                  </Link>
+                </p>
               )}
             </div>
           </div>
 
-          {isDraft && (
-            <form
-              className="grid grid-cols-1 gap-2 rounded-lg border p-4 sm:grid-cols-[1fr_auto_auto_auto_auto]"
-              onSubmit={handleAddLine}
-            >
-              <Input
-                onChange={(e) =>
-                  setLine((s) => ({ ...s, description: e.target.value }))
-                }
-                placeholder="Description"
-                value={line.description}
-              />
-              <Input
-                className="w-20"
-                min={1}
-                onChange={(e) =>
-                  setLine((s) => ({
-                    ...s,
-                    quantity: Number(e.target.value) || 1,
-                  }))
-                }
-                placeholder="Qty"
-                type="number"
-                value={line.quantity}
-              />
-              <Input
-                className="w-28"
-                min={0}
-                onChange={(e) =>
-                  setLine((s) => ({
-                    ...s,
-                    unitPrice: Number(e.target.value) || 0,
-                  }))
-                }
-                placeholder="Unit price (minor)"
-                type="number"
-                value={line.unitPrice}
-              />
-              <Input
-                className="w-24"
-                min={0}
-                onChange={(e) =>
-                  setLine((s) => ({
-                    ...s,
-                    taxRate: Number(e.target.value) || 0,
-                  }))
-                }
-                placeholder="Tax (bps)"
-                type="number"
-                value={line.taxRate}
-              />
-              <Button type="submit">Add</Button>
-            </form>
+          {isDraft ? (
+            <DraftLineEditor currencyCode={doc.currencyCode} docId={id} />
+          ) : (
+            <div>
+              <h3 className="mb-2 font-medium text-sm">Line items</h3>
+              <div className="divide-y rounded-lg border">
+                {lines.map((line) => (
+                  <div
+                    className="flex items-center gap-3 px-4 py-2 text-sm"
+                    key={line.id}
+                  >
+                    <span className="min-w-0 flex-1 truncate">
+                      {line.description}
+                    </span>
+                    <span className="text-muted-foreground tabular-nums">
+                      {line.quantity} ×{" "}
+                      {formatMoneyMinor(line.unitPrice, doc.currencyCode)}
+                      {line.taxRate > 0
+                        ? ` · ${bpsToPercent(line.taxRate)}% tax`
+                        : ""}
+                    </span>
+                    <span className="w-24 text-right font-medium tabular-nums">
+                      {formatMoneyMinor(
+                        line.unitPrice * line.quantity,
+                        doc.currencyCode
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 
         <div className="space-y-4">
-          <div className="space-y-2 rounded-lg border p-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="tabular-nums">
-                {formatMoneyMinor(display.subtotal, doc.currencyCode)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Tax</span>
-              <span className="tabular-nums">
-                {formatMoneyMinor(display.taxTotal, doc.currencyCode)}
-              </span>
-            </div>
-            <div className="flex justify-between border-t pt-2 font-medium">
-              <span>Total</span>
-              <span className="tabular-nums">
-                {formatMoneyMinor(display.total, doc.currencyCode)}
-              </span>
-            </div>
-            {!isDraft && (
-              <>
-                <div className="flex justify-between border-t pt-2">
-                  <span className="text-muted-foreground">Paid</span>
-                  <span className="tabular-nums">
-                    {formatMoneyMinor(doc.amountPaid, doc.currencyCode)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Balance</span>
-                  <span className="font-medium tabular-nums">
-                    {formatMoneyMinor(doc.balanceDue, doc.currencyCode)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Payment</span>
-                  <Badge variant={paymentBadgeVariant(doc.paymentStatus)}>
-                    {doc.paymentStatus}
-                  </Badge>
-                </div>
-              </>
-            )}
+          <div className="rounded-lg border p-4">
+            <h3 className="mb-3 font-medium text-sm">Totals</h3>
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Subtotal</dt>
+                <dd className="tabular-nums">
+                  {formatMoneyMinor(display.subtotal, doc.currencyCode)}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Tax</dt>
+                <dd className="tabular-nums">
+                  {formatMoneyMinor(display.taxTotal, doc.currencyCode)}
+                </dd>
+              </div>
+              <div className="flex justify-between font-medium">
+                <dt>Total</dt>
+                <dd className="tabular-nums">
+                  {formatMoneyMinor(display.total, doc.currencyCode)}
+                </dd>
+              </div>
+              {!isDraft && isFiscalPayable && (
+                <>
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Paid</dt>
+                    <dd className="tabular-nums">
+                      {formatMoneyMinor(doc.amountPaid, doc.currencyCode)}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Balance due</dt>
+                    <dd className="tabular-nums">
+                      {formatMoneyMinor(doc.balanceDue, doc.currencyCode)}
+                    </dd>
+                  </div>
+                </>
+              )}
+            </dl>
           </div>
 
-          {!isDraft && doc.balanceDue > 0 && <RecordPaymentForm docId={id} />}
+          {doc.status === "finalized" &&
+            (doc.type === "invoice" || doc.type === "bill") &&
+            doc.balanceDue > 0 && (
+              <RecordPaymentForm
+                balanceDue={doc.balanceDue}
+                currencyCode={doc.currencyCode}
+                docId={id}
+              />
+            )}
+
+          {isCreditNote &&
+            doc.status === "finalized" &&
+            doc.balanceDue !== 0 && (
+              <div className="space-y-2 rounded-lg border p-4">
+                <h3 className="font-medium text-sm">Disposition</h3>
+                <Select
+                  onValueChange={(v) =>
+                    setDisposition(
+                      v as "cash_refund" | "store_credit" | "apply_to_document"
+                    )
+                  }
+                  value={disposition}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="store_credit">Store credit</SelectItem>
+                    <SelectItem value="cash_refund">Cash refund</SelectItem>
+                    <SelectItem value="apply_to_document">
+                      Apply to source invoice
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  className="w-full"
+                  disabled={applyDisposition.isPending}
+                  onClick={handleApplyDisposition}
+                >
+                  Apply disposition
+                </Button>
+              </div>
+            )}
+
+          <div className="rounded-lg border p-4 text-muted-foreground text-xs">
+            Created {format(new Date(doc.createdAt), "MMM d, yyyy h:mm a")}
+            {!isDraft && " · Lines and totals are frozen"}
+          </div>
 
           <div>
             <h3 className="mb-2 font-medium text-sm">Activity</h3>
@@ -384,6 +714,27 @@ function DocumentPage() {
           </div>
         </div>
       </div>
+
+      <Dialog onOpenChange={setCreditOpen} open={creditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create credit note</DialogTitle>
+            <DialogDescription>
+              Creates a draft credit note with copied (reversed) lines from this
+              invoice. Choose disposition after you finalize it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody />
+          <DialogFooter>
+            <Button
+              disabled={createSuccessor.isPending}
+              onClick={handleCreateCreditNote}
+            >
+              Create draft credit note
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ShellPage>
   );
 }
