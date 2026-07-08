@@ -126,6 +126,15 @@ describe("transaction-core read tools (AC-1)", () => {
     expect(none.length).toBe(0);
   });
 
+  it("list-payments caps returned rows at the requested limit", async () => {
+    const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
+    // The org has >1 payment (the recorded payment + the wallet deposit).
+    const all = await run<unknown[]>(tools, "list-payments", {});
+    expect(all.length).toBeGreaterThan(1);
+    const capped = await run<unknown[]>(tools, "list-payments", { limit: 1 });
+    expect(capped.length).toBe(1);
+  });
+
   it("get-payment returns the payment with its allocations", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const result = await run<{
@@ -156,6 +165,14 @@ describe("transaction-core read tools (AC-1)", () => {
     expect(doc?.doc.amountPaid).toBe(400);
     expect(doc?.doc.paymentStatus).toBe("partial");
     expect(doc?.lines.length).toBeGreaterThan(0);
+  });
+
+  it("get-document is null for another org's document id", async () => {
+    const otherTools = getOrgAgentReadOnlyTools({ organizationId: otherOrgId });
+    const leaked = await run<unknown>(otherTools, "get-document", {
+      id: invoiceId,
+    });
+    expect(leaked).toBeNull();
   });
 });
 

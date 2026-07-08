@@ -31,8 +31,17 @@ export const createWalletReadTools = (
           .string()
           .optional()
           .describe("Filter to ledger entries for a single entity (customer)."),
+        limit: z
+          .number()
+          .int()
+          .positive()
+          .max(200)
+          .optional()
+          .describe("Max rows to return (default 50)."),
       }),
-      execute: async ({ entityId }) => listCreditEntries(orgId, { entityId }),
+      // Cap the rows handed back to the model (context safety); read stays org-scoped.
+      execute: async ({ entityId, limit }) =>
+        (await listCreditEntries(orgId, { entityId })).slice(0, limit ?? 50),
     }),
   };
 };

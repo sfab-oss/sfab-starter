@@ -15,8 +15,18 @@ export const createEntityReadTools = (
     "list-entities": tool({
       description:
         "List entities (customers / counterparties) with their cached AR balance, credit balance, and optional credit limit.",
-      inputSchema: z.object({}),
-      execute: async () => listEntities(orgId),
+      inputSchema: z.object({
+        limit: z
+          .number()
+          .int()
+          .positive()
+          .max(200)
+          .optional()
+          .describe("Max rows to return (default 50)."),
+      }),
+      // Cap the rows handed back to the model (context safety); read stays org-scoped.
+      execute: async ({ limit }) =>
+        (await listEntities(orgId)).slice(0, limit ?? 50),
     }),
     "get-entity": tool({
       description:

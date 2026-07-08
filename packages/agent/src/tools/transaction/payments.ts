@@ -24,8 +24,18 @@ export const createPaymentReadTools = (
           .string()
           .optional()
           .describe("Filter to payments for a single entity (customer)."),
+        limit: z
+          .number()
+          .int()
+          .positive()
+          .max(200)
+          .optional()
+          .describe("Max rows to return (default 50)."),
       }),
-      execute: async ({ entityId }) => listPayments(orgId, { entityId }),
+      // Cap the rows handed back to the model so a large ledger can't blow the
+      // agent's context in one call. The DB read stays org-scoped either way.
+      execute: async ({ entityId, limit }) =>
+        (await listPayments(orgId, { entityId })).slice(0, limit ?? 50),
     }),
     "get-payment": tool({
       description:
