@@ -12,12 +12,9 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
+## merged (23)
 
 - [`ALW-419`](./ALW-419.md) — Dogfood UX polish: shell chrome, settings layout, dialog padding, mobile nav/chat
-
-## merged (22)
-
 - [`ALW-411`](./ALW-411.md) — Org-agent inference: Cloudflare AI Gateway + env-driven pluggable provider registry (Vercel / Workers AI / GLM)
 - [`ALW-402`](./ALW-402.md) — Org-agent: broaden read-only tool reach (transaction core / people / settings)
 - [`ALW-398`](./ALW-398.md) — Org-agent (Think) backend modernization — upgrade, multi-session backend & tool audit
