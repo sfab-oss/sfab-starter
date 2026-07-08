@@ -257,7 +257,7 @@ function CatalogPage() {
           </div>
         ) : (
           <ResourceTable
-            className="min-h-0 flex-1 p-6"
+            className="min-h-0 flex-1"
             collectionEmpty={collectionEmpty}
             columnFilters={columnFilters}
             columns={columns}
