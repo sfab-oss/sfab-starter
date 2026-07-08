@@ -25,7 +25,7 @@ Set `ORG_CHAT_PROVIDER` (unset ⇒ `vercel-gateway`), then the matching key.
 `ORG_CHAT_MODEL` optionally overrides the model id.
 
 | `ORG_CHAT_PROVIDER` | Key env var | Default model | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `vercel-gateway` (default) | `AI_GATEWAY_API_KEY` | `google/gemini-3-flash` | Vercel AI Gateway; unchanged behaviour |
 | `zai-coding-plan` | `ZAI_API_KEY` | `glm-5.2` | z.ai GLM coding plan (OpenAI-compatible) |
 | `workers-ai` | `WORKERS_AI_API_TOKEN` + `CF_ACCOUNT_ID` | `@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Cloudflare Workers AI via its OpenAI-compatible endpoint — **no `env.AI` binding**, so it runs under plain `wrangler dev` |
@@ -38,7 +38,7 @@ Adding a model or provider is a data edit: extend `OrgChatProvider`,
 Set **all three** to route the `openai-compatible` providers through a Cloudflare
 AI Gateway (caching, analytics, rate-limiting, retries):
 
-```
+```ini
 CF_ACCOUNT_ID=...
 CF_AIG_GATEWAY_ID=...      # the gateway slug
 CF_AIG_TOKEN=...           # sent as the cf-aig-authorization header

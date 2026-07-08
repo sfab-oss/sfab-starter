@@ -156,7 +156,7 @@ const COMPACTION_FRACTION = 0.75;
 export type OrgChatModelConfig = {
   provider: OrgChatProvider;
   entryId: string;
-  /** `<provider>/<entryId>` — stamped on messages and used for logging. */
+  /** `<provider>/<entryId>` — used for logging/identity (not persisted). */
   modelId: string;
   contextWindow: number;
   providerOptions?: ProviderOptions;
@@ -169,11 +169,15 @@ export type OrgChatModelConfig = {
       apiKey?: string;
       /** True when the base URL points at a Cloudflare AI Gateway endpoint. */
       cloudflareGateway: boolean;
+      /** Extra request headers (the `cf-aig-authorization` gateway token). */
+      headers?: Record<string, string>;
     }
 );
 
 export interface ResolvedOrgChatModel {
   model: LanguageModel;
+  /** The bare provider model id (e.g. `google/gemini-3-flash`), stamped on
+   *  message metadata — kept prefix-free to preserve the persisted format. */
   modelId: string;
   contextWindow: number;
 }
@@ -222,6 +226,13 @@ function cloudflareGatewayBase(env: OrgInferenceEnv): string | null {
   }
   return null;
 }
+
+/** The env var carrying each provider's API key (for clear error messages). */
+const KEY_VAR: Record<OrgChatProvider, string> = {
+  "vercel-gateway": "AI_GATEWAY_API_KEY",
+  "zai-coding-plan": "ZAI_API_KEY",
+  "workers-ai": "WORKERS_AI_API_TOKEN",
+};
 
 function apiKeyFor(
   provider: OrgChatProvider,
@@ -283,20 +294,36 @@ export function resolveOrgChatModelConfig(
   if (build.kind === "gateway") {
     return { ...base, kind: "gateway", apiKey: env.AI_GATEWAY_API_KEY };
   }
+  const baseURL = effectiveBaseURL(provider, build, env);
+  const apiKey = apiKeyFor(provider, env);
+  // Fail fast at resolve time with a clear message rather than a cryptic 401 on
+  // the first inference — the registry's provider selection is explicit, so its
+  // key must be present. (`vercel-gateway` is exempt: it also supports OIDC.)
+  if (!apiKey) {
+    throw new Error(
+      `ORG_CHAT_PROVIDER="${provider}" requires ${KEY_VAR[provider]} to be set.`
+    );
+  }
+  // The upstream provider key travels as `Authorization: Bearer <apiKey>` (set
+  // by `createOpenAICompatible`); when a Cloudflare AI Gateway fronts it, the
+  // gateway token authenticates the gateway itself via `cf-aig-authorization:
+  // Bearer <token>` (per CF's provider docs — the Bearer prefix is required).
+  const cloudflareGateway = cloudflareGatewayBase(env) !== null;
   return {
     ...base,
     kind: "openai-compatible",
     providerName: build.providerName,
-    baseURL: effectiveBaseURL(provider, build, env),
-    apiKey: apiKeyFor(provider, env),
-    cloudflareGateway: cloudflareGatewayBase(env) !== null,
+    baseURL,
+    apiKey,
+    cloudflareGateway,
+    headers: cloudflareGateway
+      ? { "cf-aig-authorization": `Bearer ${env.CF_AIG_TOKEN}` }
+      : undefined,
   };
 }
 
-function buildFromConfig(
-  config: OrgChatModelConfig,
-  env: OrgInferenceEnv
-): LanguageModel {
+/** Build the AI SDK model from a resolved config. Exported for test coverage. */
+export function buildOrgChatModel(config: OrgChatModelConfig): LanguageModel {
   let model: LanguageModel;
   if (config.kind === "gateway") {
     model = createGateway({ apiKey: config.apiKey })(config.entryId);
@@ -305,9 +332,7 @@ function buildFromConfig(
       name: config.providerName,
       baseURL: config.baseURL,
       apiKey: config.apiKey,
-      headers: config.cloudflareGateway
-        ? { "cf-aig-authorization": `Bearer ${env.CF_AIG_TOKEN}` }
-        : undefined,
+      headers: config.headers,
     }).chatModel(config.entryId);
   }
   if (!config.providerOptions) {
@@ -331,8 +356,10 @@ export function resolveOrgChatModel(env: Cloudflare.Env): ResolvedOrgChatModel {
   const cfg = env as unknown as OrgInferenceEnv;
   const config = resolveOrgChatModelConfig(cfg);
   return {
-    model: buildFromConfig(config, cfg),
-    modelId: config.modelId,
+    model: buildOrgChatModel(config),
+    // Stamp the bare model id (no provider prefix) to preserve the persisted
+    // message-metadata format.
+    modelId: config.entryId,
     contextWindow: config.contextWindow,
   };
 }
