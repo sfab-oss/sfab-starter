@@ -105,12 +105,15 @@ export function InviteMemberForm({
   return (
     <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-4 sm:flex-row sm:gap-2">
           <Controller
             control={form.control}
             name="email"
             render={({ field, fieldState }) => (
-              <Field className="flex-1" data-invalid={fieldState.invalid}>
+              <Field
+                className="min-w-0 flex-1"
+                data-invalid={fieldState.invalid}
+              >
                 <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                 <Input
                   {...field}
@@ -129,10 +132,13 @@ export function InviteMemberForm({
             control={form.control}
             name="role"
             render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
+              <Field
+                className="w-full sm:w-40 sm:shrink-0"
+                data-invalid={fieldState.invalid}
+              >
                 <FieldLabel htmlFor={field.name}>Role</FieldLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger id={field.name}>
+                  <SelectTrigger className="w-full" id={field.name}>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>

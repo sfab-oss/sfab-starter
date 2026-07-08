@@ -13,6 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from "@workspace/ui/components/shadcn/sidebar";
 import {
   FileText,
@@ -122,7 +123,18 @@ export function AppSidebar() {
   );
 }
 
+function useCloseMobileSidebarOnNavigate() {
+  const { isMobile, setOpenMobile } = useSidebar();
+  return () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+}
+
 export function AppSidebarMainNavigation() {
+  const closeOnNavigate = useCloseMobileSidebarOnNavigate();
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -130,7 +142,7 @@ export function AppSidebarMainNavigation() {
         {mainNavigationItems.map((item) => (
           <SidebarMenuItem key={`${item.title}-${item.url}`}>
             <SidebarMenuButton asChild tooltip={item.title}>
-              <Link to={item.url}>
+              <Link onClick={closeOnNavigate} to={item.url}>
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>
               </Link>

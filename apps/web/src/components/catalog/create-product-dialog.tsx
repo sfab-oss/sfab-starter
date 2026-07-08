@@ -3,6 +3,7 @@
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -30,7 +31,7 @@ export function CreateProductDialog() {
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>
-        <Button>
+        <Button size="sm">
           <Plus className="mr-2 h-4 w-4" />
           Add Product
         </Button>
@@ -42,7 +43,12 @@ export function CreateProductDialog() {
             Create a new product record in your catalog.
           </DialogDescription>
         </DialogHeader>
-        <ProductForm isLoading={createProduct.isPending} onSubmit={onSubmit} />
+        <DialogBody>
+          <ProductForm
+            isLoading={createProduct.isPending}
+            onSubmit={onSubmit}
+          />
+        </DialogBody>
       </DialogContent>
     </Dialog>
   );
