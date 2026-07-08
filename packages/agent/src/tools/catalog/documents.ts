@@ -28,7 +28,7 @@ export const createDocumentTools = (
       }),
       outputSchema: documentListSchema,
       execute: async ({ type }) => {
-        const docs = await listDocuments(orgId, type);
+        const docs = await listDocuments(orgId, type ? { type } : undefined);
         return docs.map((d) => ({
           id: d.id,
           type: d.type,

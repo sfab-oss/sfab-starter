@@ -16,8 +16,10 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
 import { Route as AcceptInvitationIdRouteImport } from './routes/accept-invitation.$id'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
+import { Route as ProtectedEntitiesIndexRouteImport } from './routes/_protected/entities/index'
 import { Route as ProtectedDocumentsIndexRouteImport } from './routes/_protected/documents/index'
 import { Route as ProtectedCatalogIndexRouteImport } from './routes/_protected/catalog/index'
+import { Route as ProtectedEntitiesIdRouteImport } from './routes/_protected/entities/$id'
 import { Route as ProtectedDocumentsIdRouteImport } from './routes/_protected/documents/$id'
 import { Route as ProtectedCatalogIdRouteImport } from './routes/_protected/catalog/$id'
 
@@ -55,6 +57,11 @@ const ProtectedSettingsRoute = ProtectedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedEntitiesIndexRoute = ProtectedEntitiesIndexRouteImport.update({
+  id: '/entities/',
+  path: '/entities/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedDocumentsIndexRoute = ProtectedDocumentsIndexRouteImport.update({
   id: '/documents/',
   path: '/documents/',
@@ -63,6 +70,11 @@ const ProtectedDocumentsIndexRoute = ProtectedDocumentsIndexRouteImport.update({
 const ProtectedCatalogIndexRoute = ProtectedCatalogIndexRouteImport.update({
   id: '/catalog/',
   path: '/catalog/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedEntitiesIdRoute = ProtectedEntitiesIdRouteImport.update({
+  id: '/entities/$id',
+  path: '/entities/$id',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedDocumentsIdRoute = ProtectedDocumentsIdRouteImport.update({
@@ -85,8 +97,10 @@ export interface FileRoutesByFullPath {
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/catalog/$id': typeof ProtectedCatalogIdRoute
   '/documents/$id': typeof ProtectedDocumentsIdRoute
+  '/entities/$id': typeof ProtectedEntitiesIdRoute
   '/catalog/': typeof ProtectedCatalogIndexRoute
   '/documents/': typeof ProtectedDocumentsIndexRoute
+  '/entities/': typeof ProtectedEntitiesIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -97,8 +111,10 @@ export interface FileRoutesByTo {
   '/': typeof ProtectedIndexRoute
   '/catalog/$id': typeof ProtectedCatalogIdRoute
   '/documents/$id': typeof ProtectedDocumentsIdRoute
+  '/entities/$id': typeof ProtectedEntitiesIdRoute
   '/catalog': typeof ProtectedCatalogIndexRoute
   '/documents': typeof ProtectedDocumentsIndexRoute
+  '/entities': typeof ProtectedEntitiesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -111,8 +127,10 @@ export interface FileRoutesById {
   '/_protected/': typeof ProtectedIndexRoute
   '/_protected/catalog/$id': typeof ProtectedCatalogIdRoute
   '/_protected/documents/$id': typeof ProtectedDocumentsIdRoute
+  '/_protected/entities/$id': typeof ProtectedEntitiesIdRoute
   '/_protected/catalog/': typeof ProtectedCatalogIndexRoute
   '/_protected/documents/': typeof ProtectedDocumentsIndexRoute
+  '/_protected/entities/': typeof ProtectedEntitiesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,8 +143,10 @@ export interface FileRouteTypes {
     | '/accept-invitation/$id'
     | '/catalog/$id'
     | '/documents/$id'
+    | '/entities/$id'
     | '/catalog/'
     | '/documents/'
+    | '/entities/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -137,8 +157,10 @@ export interface FileRouteTypes {
     | '/'
     | '/catalog/$id'
     | '/documents/$id'
+    | '/entities/$id'
     | '/catalog'
     | '/documents'
+    | '/entities'
   id:
     | '__root__'
     | '/_protected'
@@ -150,8 +172,10 @@ export interface FileRouteTypes {
     | '/_protected/'
     | '/_protected/catalog/$id'
     | '/_protected/documents/$id'
+    | '/_protected/entities/$id'
     | '/_protected/catalog/'
     | '/_protected/documents/'
+    | '/_protected/entities/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -213,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedSettingsRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/entities/': {
+      id: '/_protected/entities/'
+      path: '/entities'
+      fullPath: '/entities/'
+      preLoaderRoute: typeof ProtectedEntitiesIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/documents/': {
       id: '/_protected/documents/'
       path: '/documents'
@@ -225,6 +256,13 @@ declare module '@tanstack/react-router' {
       path: '/catalog'
       fullPath: '/catalog/'
       preLoaderRoute: typeof ProtectedCatalogIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/entities/$id': {
+      id: '/_protected/entities/$id'
+      path: '/entities/$id'
+      fullPath: '/entities/$id'
+      preLoaderRoute: typeof ProtectedEntitiesIdRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/documents/$id': {
@@ -249,8 +287,10 @@ interface ProtectedRouteChildren {
   ProtectedIndexRoute: typeof ProtectedIndexRoute
   ProtectedCatalogIdRoute: typeof ProtectedCatalogIdRoute
   ProtectedDocumentsIdRoute: typeof ProtectedDocumentsIdRoute
+  ProtectedEntitiesIdRoute: typeof ProtectedEntitiesIdRoute
   ProtectedCatalogIndexRoute: typeof ProtectedCatalogIndexRoute
   ProtectedDocumentsIndexRoute: typeof ProtectedDocumentsIndexRoute
+  ProtectedEntitiesIndexRoute: typeof ProtectedEntitiesIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
@@ -258,8 +298,10 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedIndexRoute: ProtectedIndexRoute,
   ProtectedCatalogIdRoute: ProtectedCatalogIdRoute,
   ProtectedDocumentsIdRoute: ProtectedDocumentsIdRoute,
+  ProtectedEntitiesIdRoute: ProtectedEntitiesIdRoute,
   ProtectedCatalogIndexRoute: ProtectedCatalogIndexRoute,
   ProtectedDocumentsIndexRoute: ProtectedDocumentsIndexRoute,
+  ProtectedEntitiesIndexRoute: ProtectedEntitiesIndexRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
@@ -276,12 +318,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

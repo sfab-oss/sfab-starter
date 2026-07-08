@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   ShellHeader,
@@ -41,6 +41,27 @@ function paymentBadgeVariant(
     return "secondary";
   }
   return "outline";
+}
+
+function DocumentEntityLabel({
+  entityId,
+  entityName,
+}: {
+  entityId: string | null;
+  entityName: string | null;
+}) {
+  if (entityId) {
+    return (
+      <Link
+        className="hover:text-primary hover:underline"
+        params={{ id: entityId }}
+        to="/entities/$id"
+      >
+        {entityName ?? "Entity"}
+      </Link>
+    );
+  }
+  return <>{entityName ?? "Walk-in"}</>;
 }
 
 function RecordPaymentForm({ docId }: { docId: string }) {
@@ -190,7 +211,11 @@ function DocumentPage() {
                 </Badge>
               </div>
               <p className="text-muted-foreground text-sm">
-                {doc.entityName ?? "Walk-in"} ·{" "}
+                <DocumentEntityLabel
+                  entityId={doc.entityId}
+                  entityName={doc.entityName}
+                />{" "}
+                ·{" "}
                 {doc.folio !== null
                   ? `Folio #${doc.series ?? doc.type}-${doc.folio}`
                   : "No folio (draft)"}

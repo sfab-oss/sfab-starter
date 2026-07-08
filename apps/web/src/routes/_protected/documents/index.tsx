@@ -8,10 +8,25 @@ import {
 } from "@workspace/ui/components/brand/shell";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { Button } from "@workspace/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@workspace/ui/components/shadcn/dialog";
+import { Field, FieldLabel } from "@workspace/ui/components/shadcn/field";
 import { formatMoneyMinor } from "@workspace/ui/lib/money";
 import { format } from "date-fns";
 import { FileText, Plus } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import {
+  EntityPicker,
+  type EntityPickerValue,
+} from "@/components/entities/entity-picker";
 import { useSetPageContext } from "@/components/providers/page-context";
 import {
   useActivity,
@@ -28,6 +43,11 @@ function DocumentsPage() {
   const { data: docsResp } = useDocuments();
   const { data: activityResp } = useActivity();
   const createDocument = useCreateDocument();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [entityValue, setEntityValue] = useState<EntityPickerValue>({
+    kind: "walk_in",
+    name: "Walk-in",
+  });
 
   useSetPageContext(
     useMemo(
@@ -42,10 +62,22 @@ function DocumentsPage() {
   );
 
   const handleNewInvoice = async () => {
-    const doc = await createDocument.mutateAsync({
-      type: "invoice",
-      direction: "sales",
-    });
+    const payload =
+      entityValue?.kind === "entity"
+        ? {
+            type: "invoice" as const,
+            direction: "sales" as const,
+            entityId: entityValue.entity.id,
+          }
+        : {
+            type: "invoice" as const,
+            direction: "sales" as const,
+            entityName:
+              entityValue?.kind === "walk_in" ? entityValue.name : "Walk-in",
+          };
+
+    const doc = await createDocument.mutateAsync(payload);
+    setCreateOpen(false);
     navigate({ to: "/documents/$id", params: { id: doc.id } });
   };
 
@@ -57,14 +89,36 @@ function DocumentsPage() {
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs items={[{ title: "Documents" }]} />
         <ShellHeaderActions>
-          <Button
-            disabled={createDocument.isPending}
-            onClick={handleNewInvoice}
-            size="sm"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            New Invoice
-          </Button>
+          <Dialog onOpenChange={setCreateOpen} open={createOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                New Invoice
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[420px]">
+              <DialogHeader>
+                <DialogTitle>New invoice</DialogTitle>
+                <DialogDescription>
+                  Pick an existing entity or keep Walk-in for an ad-hoc name.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogBody>
+                <Field>
+                  <FieldLabel>Customer / entity</FieldLabel>
+                  <EntityPicker onChange={setEntityValue} value={entityValue} />
+                </Field>
+              </DialogBody>
+              <DialogFooter>
+                <Button
+                  disabled={createDocument.isPending}
+                  onClick={handleNewInvoice}
+                >
+                  {createDocument.isPending ? "Creating…" : "Create invoice"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </ShellHeaderActions>
       </ShellHeader>
 
