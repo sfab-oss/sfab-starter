@@ -5,7 +5,7 @@ overwritten by the next sync.
 
 ## draft (19)
 
-- [`ALW-435`](./ALW-435.md) — Documents UI: expose types & directions beyond the sales invoice (quotes, orders, bills, credit notes)
+- [`ALW-435`](./ALW-435.md) — Documents experience v1 — composer redesign + type system (quote / invoice / credit note / bill)
 - [`ALW-434`](./ALW-434.md) — Customer-credit wallet UI — balance, ledger, deposit/redeem on the entity page
 - [`ALW-433`](./ALW-433.md) — Entities (customers/suppliers) UI — directory, detail, create/edit + document picker
 - [`ALW-432`](./ALW-432.md) — Surface the transaction core in the UI — entities, wallet, document types, payments (Group)
