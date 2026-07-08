@@ -47,8 +47,9 @@ const V1_CREATE_DIRECTION: Partial<Record<DocumentType, "sales" | "purchase">> =
     quote: "sales",
     invoice: "sales",
     bill: "purchase",
-    credit_note: "sales",
   };
+
+type BatchItem = Parameters<typeof db.batch>[0][number];
 
 async function requireDraftDocument(
   orgId: string,
@@ -70,6 +71,36 @@ async function requireDraftDocument(
     );
   }
   return doc;
+}
+
+/**
+ * Public line APIs accept positive quantities/discounts only. Credit notes
+ * store reverse value as negative quantity and discount (unitPrice stays ≥ 0).
+ */
+function signedQuantityForDocument(doc: Document, quantity: number): number {
+  if (doc.type === "credit_note") {
+    return -Math.abs(quantity);
+  }
+  if (quantity < 0) {
+    throw new DomainError(
+      "Negative quantity is only allowed on credit notes",
+      "unprocessable"
+    );
+  }
+  return quantity;
+}
+
+function signedDiscountForDocument(doc: Document, discount: number): number {
+  if (doc.type === "credit_note") {
+    return -Math.abs(discount);
+  }
+  if (discount < 0) {
+    throw new DomainError(
+      "Negative discount is only allowed on credit notes",
+      "unprocessable"
+    );
+  }
+  return discount;
 }
 
 function buildLineValues(
@@ -115,6 +146,13 @@ export async function createDocument(
   orgId: string,
   input: CreateDocumentInput
 ): Promise<Document> {
+  if (input.type === "credit_note") {
+    throw new DomainError(
+      "Credit notes are created only as successors of a finalized invoice",
+      "unprocessable"
+    );
+  }
+
   const family = documentFamily(input.type);
   const expectedDirection = V1_CREATE_DIRECTION[input.type];
   if (expectedDirection && input.direction !== expectedDirection) {
@@ -162,10 +200,16 @@ export async function addLineItem(
   documentId: string,
   input: LineItemInput
 ): Promise<LineItem> {
-  await requireDraftDocument(orgId, documentId);
+  const doc = await requireDraftDocument(orgId, documentId);
   const [line] = await db
     .insert(lineItems)
-    .values(buildLineValues(orgId, documentId, input))
+    .values(
+      buildLineValues(orgId, documentId, {
+        ...input,
+        quantity: signedQuantityForDocument(doc, input.quantity),
+        discount: signedDiscountForDocument(doc, input.discount ?? 0),
+      })
+    )
     .returning();
   if (!line) {
     throw new DomainError("Failed to create line item", "unprocessable");
@@ -179,7 +223,7 @@ export async function updateLineItem(
   lineId: string,
   input: UpdateLineItemInput
 ): Promise<LineItem> {
-  await requireDraftDocument(orgId, documentId);
+  const doc = await requireDraftDocument(orgId, documentId);
 
   const [existing] = await db
     .select()
@@ -195,13 +239,23 @@ export async function updateLineItem(
     throw new DomainError(`Line item not found: ${lineId}`, "not_found");
   }
 
+  const quantity =
+    input.quantity !== undefined
+      ? signedQuantityForDocument(doc, input.quantity)
+      : existing.quantity;
+
+  const discount =
+    input.discount !== undefined
+      ? signedDiscountForDocument(doc, input.discount)
+      : existing.discount;
+
   const next = {
     productId:
       input.productId !== undefined ? input.productId : existing.productId,
     description: input.description ?? existing.description,
-    quantity: input.quantity ?? existing.quantity,
+    quantity,
     unitPrice: input.unitPrice ?? existing.unitPrice,
-    discount: input.discount ?? existing.discount,
+    discount,
     taxRate: input.taxRate ?? existing.taxRate,
     taxCode: input.taxCode !== undefined ? input.taxCode : existing.taxCode,
     taxMode: input.taxMode ?? existing.taxMode,
@@ -416,10 +470,34 @@ export async function createSuccessor(
   const successorId = createId();
   const now = new Date().toISOString();
   const negate = input.type === "credit_note";
+  const convertingQuote = input.type === "invoice" && parent.type === "quote";
 
-  const [successor] = await db
-    .insert(documents)
-    .values({
+  // Claim the quote before minting the invoice so concurrent converts cannot
+  // both pass assertSuccessorAllowed and create duplicate successors.
+  if (convertingQuote) {
+    const [claimed] = await db
+      .update(documents)
+      .set({ status: "converted", updatedAt: now })
+      .where(
+        and(
+          eq(documents.id, parent.id),
+          eq(documents.organizationId, orgId),
+          eq(documents.status, "accepted")
+        )
+      )
+      .returning();
+    if (!claimed) {
+      throw new DomainError(
+        `Quote ${parent.id} could not be converted (already converted or not accepted)`,
+        "conflict"
+      );
+    }
+  }
+
+  // Pre-generate ids so header + lines are one atomic batch (same pattern as
+  // finalize/payments/wallet). D1 has no interactive tx.
+  const batchStmts: BatchItem[] = [
+    db.insert(documents).values({
       id: successorId,
       organizationId: orgId,
       type: input.type,
@@ -433,42 +511,27 @@ export async function createSuccessor(
       sourceDocumentId: parent.id,
       rootDocumentId,
       reversesDocumentId: negate ? parent.id : null,
-    })
-    .returning();
+    }),
+    // Credit notes reverse value via negative quantity AND discount so
+    // taxableBase/total are exact negatives of the source (unitPrice ≥ 0).
+    ...lines.map((line) =>
+      db.insert(lineItems).values(
+        buildLineValues(orgId, successorId, {
+          productId: line.productId ?? undefined,
+          description: line.description,
+          quantity: negate ? -Math.abs(line.quantity) : line.quantity,
+          unitPrice: Math.abs(line.unitPrice),
+          discount: negate ? -Math.abs(line.discount) : line.discount,
+          taxRate: line.taxRate,
+          taxCode: line.taxCode,
+          taxMode: line.taxMode,
+          fulfillmentMode: line.fulfillmentMode,
+        })
+      )
+    ),
+  ];
 
-  if (!successor) {
-    throw new DomainError(
-      "Failed to create successor document",
-      "unprocessable"
-    );
-  }
-
-  for (const line of lines) {
-    // Credit notes reverse value via negative quantity (matches existing
-    // disposition tests); unitPrice stays non-negative.
-    await db.insert(lineItems).values(
-      buildLineValues(orgId, successorId, {
-        productId: line.productId ?? undefined,
-        description: line.description,
-        quantity: negate ? -Math.abs(line.quantity) : line.quantity,
-        unitPrice: Math.abs(line.unitPrice),
-        discount: line.discount,
-        taxRate: line.taxRate,
-        taxCode: line.taxCode,
-        taxMode: line.taxMode,
-        fulfillmentMode: line.fulfillmentMode,
-      })
-    );
-  }
-
-  if (input.type === "invoice" && parent.type === "quote") {
-    await db
-      .update(documents)
-      .set({ status: "converted", updatedAt: now })
-      .where(
-        and(eq(documents.id, parent.id), eq(documents.organizationId, orgId))
-      );
-  }
+  await db.batch(batchStmts as [BatchItem, ...BatchItem[]]);
 
   const result = await getDocumentWithLines(successorId, orgId);
   if (!result) {

@@ -1,10 +1,7 @@
 import {
-  addLineItem,
   applyCreditNoteDisposition,
-  createDocument,
   createEntity,
   depositCredit,
-  finalizeDocument,
   getCreditBalance,
   getDocumentWithLines,
   getEntity,
@@ -21,6 +18,7 @@ import { db, eq } from "@workspace/db";
 import { entities, paymentAllocations } from "@workspace/db/schema";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  seedFinalizedCreditNote,
   seedFinalizedInvoice,
   seedOrganization,
   seedUser,
@@ -351,35 +349,19 @@ describe("walk-in matching by reference (AC-4, C3)", () => {
 // ---------------------------------------------------------------------------
 
 describe("store_credit disposition (AC-5)", () => {
-  async function seedCreditNote(total: number, entityId?: string) {
-    const cn = await createDocument(orgId, {
-      type: "credit_note",
-      direction: "sales",
-      entityId,
-      entityName: entityId ? "CN Customer" : undefined,
-    });
-    await addLineItem(orgId, cn.id, {
-      description: "Return",
-      quantity: -1,
-      unitPrice: total,
-    });
-    await finalizeDocument(cn.id, orgId);
-    return cn;
-  }
-
   it("store_credit settles the CN and deposits to the wallet", async () => {
     const entity = await createEntity(orgId, {
       name: "Return Customer",
       type: "customer",
     });
 
-    await seedFinalizedInvoice(orgId, {
+    // Invoice 1000 AR; partial CN 200 from that invoice (source stays open).
+    const { creditNote: cn } = await seedFinalizedCreditNote(orgId, {
       total: 1000,
+      creditTotal: 200,
       entityId: entity.id,
       entityName: entity.name,
     });
-
-    const cn = await seedCreditNote(200, entity.id);
 
     const result = await applyCreditNoteDisposition(
       cn.id,
@@ -406,13 +388,12 @@ describe("store_credit disposition (AC-5)", () => {
       type: "customer",
     });
 
-    const invoice = await seedFinalizedInvoice(orgId, {
+    const { creditNote: cn, invoice } = await seedFinalizedCreditNote(orgId, {
       total: 1000,
+      creditTotal: 300,
       entityId: entity.id,
       entityName: entity.name,
     });
-
-    const cn = await seedCreditNote(300, entity.id);
 
     // Disposition → wallet gets 300.
     await applyCreditNoteDisposition(cn.id, orgId, "store_credit");
@@ -434,7 +415,9 @@ describe("store_credit disposition (AC-5)", () => {
   });
 
   it("store_credit rejects a credit note without entityId", async () => {
-    const cn = await seedCreditNote(200);
+    const { creditNote: cn } = await seedFinalizedCreditNote(orgId, {
+      total: 200,
+    });
 
     await expect(
       applyCreditNoteDisposition(cn.id, orgId, "store_credit")

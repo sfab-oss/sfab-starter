@@ -43,6 +43,7 @@ import {
 import { useSetPageContext } from "@/components/providers/page-context";
 import {
   useAcceptDocument,
+  useActivity,
   useAddLineItem,
   useApplyDisposition,
   useCreateSuccessor,
@@ -238,11 +239,11 @@ function DraftLineEditor({
               }}
             />
             <Input
-              defaultValue={line.quantity}
+              defaultValue={Math.abs(line.quantity)}
               min={1}
               onBlur={(e) => {
-                const quantity = Number(e.target.value) || 1;
-                if (quantity !== line.quantity) {
+                const quantity = Math.abs(Number(e.target.value) || 1);
+                if (quantity !== Math.abs(line.quantity)) {
                   updateLineItem.mutate({
                     id: docId,
                     lineId: line.id,
@@ -445,6 +446,7 @@ function DocumentPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const { data } = useDocument(id);
+  const { data: activityResp } = useActivity(id);
   const createSuccessor = useCreateSuccessor();
   const applyDisposition = useApplyDisposition();
 
@@ -690,6 +692,25 @@ function DocumentPage() {
           <div className="rounded-lg border p-4 text-muted-foreground text-xs">
             Created {format(new Date(doc.createdAt), "MMM d, yyyy h:mm a")}
             {!isDraft && " · Lines and totals are frozen"}
+          </div>
+
+          <div>
+            <h3 className="mb-2 font-medium text-sm">Activity</h3>
+            <div className="divide-y rounded-lg border">
+              {(activityResp?.data ?? []).map((event) => (
+                <div className="px-4 py-2 text-sm" key={event.id}>
+                  <div className="text-muted-foreground text-xs">
+                    {format(new Date(event.createdAt), "MMM d, h:mm a")}
+                  </div>
+                  <div>{event.summary ?? event.eventType}</div>
+                </div>
+              ))}
+              {(activityResp?.data ?? []).length === 0 && (
+                <div className="px-4 py-4 text-center text-muted-foreground text-xs">
+                  No activity yet.
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

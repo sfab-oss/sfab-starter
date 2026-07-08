@@ -9,7 +9,6 @@ import {
 } from "@workspace/contract/transaction";
 import { listActivity } from "@workspace/core/activity";
 import { getActiveMemberRole } from "@workspace/core/auth";
-import { DomainError } from "@workspace/core/errors";
 import {
   acceptDocument,
   addLineItem,
@@ -29,30 +28,6 @@ import type { HonoContextWithAuthAndOrg } from "../types";
 
 const documentIdSchema = z.object({ id: z.string() });
 const lineIdSchema = z.object({ id: z.string(), lineId: z.string() });
-
-function domainErrorStatus(error: DomainError): 404 | 409 | 422 {
-  if (error.code === "not_found") {
-    return 404;
-  }
-  if (error.code === "conflict") {
-    return 409;
-  }
-  return 422;
-}
-
-async function handleDomain<T>(
-  c: { json: (body: unknown, status?: 404 | 409 | 422) => Response },
-  fn: () => Promise<T>
-): Promise<T | Response> {
-  try {
-    return await fn();
-  } catch (error) {
-    if (error instanceof DomainError) {
-      return c.json({ error: error.message }, domainErrorStatus(error));
-    }
-    throw error;
-  }
-}
 
 const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
   .get("/", zValidator("query", listDocumentsQuerySchema), async (c) => {
@@ -78,11 +53,7 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
     async (c) => {
       const orgId = c.get("session").activeOrganizationId;
       const body = c.req.valid("json");
-      const result = await handleDomain(c, () => createDocument(orgId, body));
-      if (result instanceof Response) {
-        return result;
-      }
-      return c.json(result);
+      return c.json(await createDocument(orgId, body));
     }
   )
   .get("/:id", zValidator("param", documentIdSchema), async (c) => {
@@ -103,11 +74,7 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
       const orgId = c.get("session").activeOrganizationId;
       const { id } = c.req.valid("param");
       const body = c.req.valid("json");
-      const result = await handleDomain(c, () => addLineItem(orgId, id, body));
-      if (result instanceof Response) {
-        return result;
-      }
-      return c.json(result);
+      return c.json(await addLineItem(orgId, id, body));
     }
   )
   .put(
@@ -119,13 +86,7 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
       const orgId = c.get("session").activeOrganizationId;
       const { id, lineId } = c.req.valid("param");
       const body = c.req.valid("json");
-      const result = await handleDomain(c, () =>
-        updateLineItem(orgId, id, lineId, body)
-      );
-      if (result instanceof Response) {
-        return result;
-      }
-      return c.json(result);
+      return c.json(await updateLineItem(orgId, id, lineId, body));
     }
   )
   .delete(
@@ -135,13 +96,7 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
     async (c) => {
       const orgId = c.get("session").activeOrganizationId;
       const { id, lineId } = c.req.valid("param");
-      const result = await handleDomain(c, () =>
-        removeLineItem(orgId, id, lineId)
-      );
-      if (result instanceof Response) {
-        return result;
-      }
-      return c.json(result);
+      return c.json(await removeLineItem(orgId, id, lineId));
     }
   )
   .post(
@@ -151,11 +106,7 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
     async (c) => {
       const orgId = c.get("session").activeOrganizationId;
       const { id } = c.req.valid("param");
-      const result = await handleDomain(c, () => acceptDocument(orgId, id));
-      if (result instanceof Response) {
-        return result;
-      }
-      return c.json(result);
+      return c.json(await acceptDocument(orgId, id));
     }
   )
   .post(
@@ -167,13 +118,7 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
       const orgId = c.get("session").activeOrganizationId;
       const { id } = c.req.valid("param");
       const body = c.req.valid("json");
-      const result = await handleDomain(c, () =>
-        createSuccessor(orgId, id, body)
-      );
-      if (result instanceof Response) {
-        return result;
-      }
-      return c.json(result);
+      return c.json(await createSuccessor(orgId, id, body));
     }
   )
   .post(
@@ -188,16 +133,12 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
         userId,
         organizationId: orgId,
       });
-      const result = await handleDomain(c, () =>
-        finalizeDocument(id, orgId, {
+      return c.json(
+        await finalizeDocument(id, orgId, {
           actorId: userId,
           bypassCreditLimit: can("credit:bypass", { role }),
         })
       );
-      if (result instanceof Response) {
-        return result;
-      }
-      return c.json(result);
     }
   )
   .post(
@@ -220,16 +161,12 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
       const userId = c.get("session").userId;
       const { id } = c.req.valid("param");
       const body = c.req.valid("json");
-      const result = await handleDomain(c, () =>
-        applyCreditNoteDisposition(id, orgId, body.disposition, {
+      return c.json(
+        await applyCreditNoteDisposition(id, orgId, body.disposition, {
           targetDocumentId: body.targetDocumentId,
           actorId: userId,
         })
       );
-      if (result instanceof Response) {
-        return result;
-      }
-      return c.json(result);
     }
   );
 

@@ -34,12 +34,9 @@ export const fulfillmentModeSchema = z.enum([
 export const lineItemInputSchema = z.object({
   productId: z.string().optional(),
   description: z.string().min(1),
-  // Signed: credit notes reverse via negative quantity (unitPrice stays ≥ 0).
-  quantity: z.coerce
-    .number()
-    .int()
-    .refine((n) => n !== 0)
-    .default(1),
+  // Public API: positive quantities only. Credit-note reverse sign is applied
+  // in core (successor copy + draft normalize), not at the contract boundary.
+  quantity: z.coerce.number().int().min(1).default(1),
   unitPrice: z.number().int().min(0).default(0), // minor units
   discount: z.number().int().min(0).optional(), // minor units
   taxRate: z.number().int().min(0).max(10_000).optional(), // basis points
@@ -51,11 +48,7 @@ export const lineItemInputSchema = z.object({
 export const updateLineItemSchema = z.object({
   productId: z.string().nullable().optional(),
   description: z.string().min(1).optional(),
-  quantity: z.coerce
-    .number()
-    .int()
-    .refine((n) => n !== 0)
-    .optional(),
+  quantity: z.coerce.number().int().min(1).optional(),
   unitPrice: z.number().int().min(0).optional(),
   discount: z.number().int().min(0).optional(),
   taxRate: z.number().int().min(0).max(10_000).optional(),
