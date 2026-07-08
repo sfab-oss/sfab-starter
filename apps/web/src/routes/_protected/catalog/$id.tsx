@@ -185,28 +185,34 @@ function ProductPage() {
         <ShellHeaderActions>
           {isEditing ? (
             <Button
+              aria-label="Cancel"
               onClick={() => setIsEditing(false)}
               size="sm"
               variant="ghost"
             >
-              <X className="mr-2 h-4 w-4" /> Cancel
+              <X className="size-4" />
+              <span className="hidden sm:inline">Cancel</span>
             </Button>
           ) : (
             <>
               <Button
+                aria-label="Edit"
                 onClick={() => setIsEditing(true)}
                 size="sm"
                 variant="outline"
               >
-                <Pencil className="mr-2 h-4 w-4" /> Edit
+                <Pencil className="size-4" />
+                <span className="hidden sm:inline">Edit</span>
               </Button>
               <Button
+                aria-label="Delete"
                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={() => setIsDeleteDialogOpen(true)}
                 size="sm"
                 variant="outline"
               >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                <Trash2 className="size-4" />
+                <span className="hidden sm:inline">Delete</span>
               </Button>
             </>
           )}
