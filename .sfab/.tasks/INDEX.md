@@ -22,12 +22,9 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
+## merged (26)
 
 - [`ALW-435`](./ALW-435.md) — Documents experience v1 — composer redesign + type system (quote / invoice / credit note / bill)
-
-## merged (25)
-
 - [`ALW-433`](./ALW-433.md) — Entities (customers/suppliers) UI — directory, detail, create/edit + document picker
 - [`ALW-421`](./ALW-421.md) — Catalog: migrate list to ResourceTable (resource-list-page filters)
 - [`ALW-419`](./ALW-419.md) — Dogfood UX polish: shell chrome, settings layout, dialog padding, mobile nav/chat
