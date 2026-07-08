@@ -14,7 +14,11 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import type { z } from "zod";
 import { client } from "@/lib/client";
 
-export const getDocumentsKey = (type?: string) => ["documents", type ?? "all"];
+export const getDocumentsKey = (type?: string, entityId?: string) => [
+  "documents",
+  type ?? "all",
+  entityId ?? "all-entities",
+];
 export const getDocumentKey = (id: string) => ["documents", id];
 export const getActivityKey = (entityId?: string) => [
   "activity",
@@ -33,12 +37,15 @@ export interface DocumentWithLines {
   };
 }
 
-export const useDocuments = (type?: DocumentType) => {
+export const useDocuments = (type?: DocumentType, entityId?: string) => {
   return useQuery({
-    queryKey: getDocumentsKey(type),
+    queryKey: getDocumentsKey(type, entityId),
     queryFn: async () => {
       const res = await client.protected.documents.$get({
-        query: { type },
+        query: {
+          ...(type && { type }),
+          ...(entityId && { entityId }),
+        },
       });
       return (await res.json()) as { data: Document[] };
     },

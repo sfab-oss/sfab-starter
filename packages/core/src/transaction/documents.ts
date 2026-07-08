@@ -7,6 +7,7 @@ import type { Document, DocumentType, LineItem } from "@workspace/db/schema";
 import { documents, lineItems } from "@workspace/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { DomainError } from "../errors";
+import { getEntity } from "./entities";
 import { documentFamily } from "./family";
 import {
   computeDocumentTotals,
@@ -27,6 +28,20 @@ export async function createDocument(
   input: CreateDocumentInput
 ): Promise<Document> {
   const family = documentFamily(input.type);
+
+  const entityId = input.entityId ?? null;
+  let entityName = input.entityName ?? null;
+
+  if (entityId) {
+    const entity = await getEntity(entityId, orgId);
+    if (!entity || entity.archivedAt) {
+      throw new DomainError(`Entity not found: ${entityId}`, "not_found");
+    }
+    entityName = entity.name;
+  } else if (!entityName) {
+    entityName = "Walk-in";
+  }
+
   const [doc] = await db
     .insert(documents)
     .values({
@@ -35,8 +50,8 @@ export async function createDocument(
       family,
       direction: input.direction,
       status: "draft",
-      entityId: input.entityId ?? null,
-      entityName: input.entityName ?? null,
+      entityId,
+      entityName,
       currencyCode: input.currencyCode ?? "USD",
       series: input.series ?? null,
     })
@@ -149,14 +164,18 @@ export async function getDocumentWithLines(
 
 export async function listDocuments(
   orgId: string,
-  type?: DocumentType
+  filter?: { type?: DocumentType; entityId?: string }
 ): Promise<Document[]> {
-  const condition = type
-    ? and(eq(documents.organizationId, orgId), eq(documents.type, type))
-    : eq(documents.organizationId, orgId);
+  const conditions = [eq(documents.organizationId, orgId)];
+  if (filter?.type) {
+    conditions.push(eq(documents.type, filter.type));
+  }
+  if (filter?.entityId) {
+    conditions.push(eq(documents.entityId, filter.entityId));
+  }
   return await db
     .select()
     .from(documents)
-    .where(condition)
+    .where(and(...conditions))
     .orderBy(desc(documents.createdAt));
 }

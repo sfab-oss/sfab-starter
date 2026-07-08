@@ -294,6 +294,10 @@ export const entities = sqliteTable(
       Record<string, unknown>
     >(),
 
+    // Soft-archive — null = active. Archived entities stay on historical
+    // documents (entityName snapshot) but drop out of pickers / default lists.
+    archivedAt: text("archived_at"),
+
     ...timestamps,
   },
   (table) => [

@@ -40,6 +40,24 @@ const DEMO_NAME = "Demo User";
 const DEMO_ORG_NAME = "Demo Org";
 const DEMO_ORG_SLUG = "demo-org";
 
+const DEMO_ENTITIES = [
+  {
+    id: "seed-ent-acme",
+    name: "Acme Retail",
+    type: "customer",
+  },
+  {
+    id: "seed-ent-northwind",
+    name: "Northwind Supplies",
+    type: "supplier",
+  },
+  {
+    id: "seed-ent-contoso",
+    name: "Contoso Cafe",
+    type: "customer",
+  },
+] as const;
+
 async function main() {
   const { env, dispose } = await getPlatformProxy();
   try {
@@ -78,6 +96,20 @@ async function main() {
           "INSERT OR IGNORE INTO member (id, organization_id, user_id, role, created_at) VALUES (?, ?, ?, ?, ?)"
         )
         .bind(DEMO_MEMBER_ID, DEMO_ORG_ID, DEMO_USER_ID, "owner", now),
+      ...DEMO_ENTITIES.map((entity) =>
+        db
+          .prepare(
+            "INSERT OR IGNORE INTO entities (id, organization_id, name, type, balance, credit_balance, created_at, updated_at) VALUES (?, ?, ?, ?, 0, 0, ?, ?)"
+          )
+          .bind(
+            entity.id,
+            DEMO_ORG_ID,
+            entity.name,
+            entity.type,
+            new Date(now).toISOString(),
+            new Date(now).toISOString()
+          )
+      ),
     ]);
 
     // Self-verify: read the *stored* hash back and confirm it verifies against

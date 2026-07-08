@@ -22,6 +22,7 @@ import {
   Package,
   Search,
   Settings,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { AppSidebarFooter } from "@/components/layout/app-sidebar-footer";
@@ -43,6 +44,11 @@ const mainNavigationItems: NavigationItem[] = [
     title: "Catalog",
     url: "/catalog",
     icon: Package,
+  },
+  {
+    title: "Entities",
+    url: "/entities",
+    icon: Users,
   },
   {
     title: "Documents",

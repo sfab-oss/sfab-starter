@@ -1,0 +1,1 @@
+ALTER TABLE `entities` ADD `archived_at` text;

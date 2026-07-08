@@ -25,11 +25,20 @@ const documentIdSchema = z.object({ id: z.string() });
 const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
   .get(
     "/",
-    zValidator("query", z.object({ type: documentTypeSchema.optional() })),
+    zValidator(
+      "query",
+      z.object({
+        type: documentTypeSchema.optional(),
+        entityId: z.string().optional(),
+      })
+    ),
     async (c) => {
       const orgId = c.get("session").activeOrganizationId;
-      const { type } = c.req.valid("query");
-      const data = await listDocuments(orgId, type);
+      const { type, entityId } = c.req.valid("query");
+      const data = await listDocuments(orgId, {
+        ...(type && { type }),
+        ...(entityId && { entityId }),
+      });
       return c.json({ data });
     }
   )

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginationQuerySchema } from "./pagination";
 
 /**
  * Inbound (request) types for Transaction Core — hand-written Zod per ADR-004
@@ -131,12 +132,38 @@ export type RedeemCreditByReferenceInput = z.infer<
   typeof redeemCreditByReferenceSchema
 >;
 
+export const entityTypeSchema = z.enum(["customer", "supplier", "walk_in"]);
+export type EntityTypeInput = z.infer<typeof entityTypeSchema>;
+
 export const createEntitySchema = z.object({
   name: z.string().min(1),
-  type: z.enum(["customer", "supplier", "walk_in"]).default("customer"),
+  type: entityTypeSchema.default("customer"),
   creditLimit: z.number().int().nullable().optional(),
 });
 export type CreateEntityInput = z.infer<typeof createEntitySchema>;
+
+export const updateEntitySchema = z.object({
+  name: z.string().min(1).optional(),
+  type: entityTypeSchema.optional(),
+  creditLimit: z.number().int().nullable().optional(),
+});
+export type UpdateEntityInput = z.infer<typeof updateEntitySchema>;
+
+export const entityFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  type: entityTypeSchema,
+  creditLimit: z.number().int().nullable().optional(),
+});
+export type EntityFormValues = z.infer<typeof entityFormSchema>;
+
+export const listEntitiesQuerySchema = paginationQuerySchema.extend({
+  type: entityTypeSchema.optional(),
+  includeArchived: z
+    .union([z.boolean(), z.enum(["true", "false"])])
+    .optional()
+    .transform((v) => v === true || v === "true"),
+});
+export type ListEntitiesQuery = z.infer<typeof listEntitiesQuerySchema>;
 
 // --- Summary shapes (lists / agent) -------------------------------------------
 
