@@ -12,7 +12,7 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## ready (1)
+## review (1)
 
 - [`ALW-421`](./ALW-421.md) — Catalog: migrate list to ResourceTable (resource-list-page filters)
 
