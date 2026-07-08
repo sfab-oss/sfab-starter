@@ -33,6 +33,7 @@ import {
   resolveOrgChatModel,
 } from "../../inference/chat-models";
 import {
+  getOrgAgentApprovalTools,
   getOrgAgentDisplayTools,
   getOrgAgentTools,
 } from "../../tools/compose-org-tools";
@@ -265,13 +266,23 @@ export class OrgChat extends Think<Cloudflare.Env> {
       waitUntil: (promise: Promise<unknown>) => this.ctx.waitUntil(promise),
     };
     const erpTools = getOrgAgentTools(toolsCtx);
+    const approvalTools = getOrgAgentApprovalTools(toolsCtx);
     const displayTools = getOrgAgentDisplayTools(toolsCtx);
 
     return {
       // 0.9+ codemode: `createExecuteTool(this, ...)` infers ctx/env.LOADER and
       // the workspace `state.*` connector from the agent (our SharedWorkspace),
-      // and exposes the ERP tools as the codemode `tools.*` connector.
+      // and exposes the ERP tools as the codemode `tools.*` connector. These are
+      // autonomous (RBAC-gated but no human approval); `createExecuteTool` on
+      // think 0.12 / codemode 0.4 routes a `needsApproval` tool here through the
+      // ToolSetConnector as a durable pause (NOT the old silent strip) — but we
+      // keep this set approval-free and gate destructive writes top-level below.
       codemode: createExecuteTool(this, { tools: erpTools }),
+      // Human-approval-gated writes (ALW-348), TOP-LEVEL so the standard AI-SDK
+      // approval flow pauses the call for an in-chat Approve/Reject (rendered by
+      // `default-tool.tsx`). Currently `delete-product`. See
+      // `docs/guides/agent-tool-approvals.md`.
+      ...approvalTools,
       // Delegation: `agentTool(OrgSubAgent, …)` spawns a focused sub-agent as a
       // child facet with its OWN context window (heavy work stays out of this
       // chat's tokens), a resumable stream, and read-only org reach. It's

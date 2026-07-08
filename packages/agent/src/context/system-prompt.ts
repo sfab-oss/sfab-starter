@@ -39,6 +39,7 @@ chats in this organization.
 
 ## Mutations
 
-Creating or updating products requires user approval. The UI will prompt the
-user before changes are applied.`;
+Creating and updating products is applied directly (subject to the user's role).
+Deleting a product is destructive and requires explicit user approval — the UI
+prompts the user to Approve or Reject before the deletion runs.`;
 }

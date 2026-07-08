@@ -34,8 +34,9 @@ export const createProductReadTools = (
   };
 };
 
-// Mutating product tools. Every one is RBAC-gated (`assertCan`), so they
-// require the full context including the acting `userId`.
+// Autonomous mutating product tools. Every one is RBAC-gated (`assertCan`) but
+// applied directly (no human approval) — reversible catalog edits, so they run
+// inside codemode. They need the full context including the acting `userId`.
 export const createProductWriteTools = (ctx: AgentToolsContext) => {
   const orgId = ctx.organizationId;
   return {
@@ -59,9 +60,23 @@ export const createProductWriteTools = (ctx: AgentToolsContext) => {
         return updateProduct(id, orgId, data);
       },
     }),
+  };
+};
+
+// Human-approval-gated product tools (ALW-348). `deleteProduct` is destructive
+// and hard to reverse, so it opts into the AI-SDK approval flow via
+// `needsApproval: true`: the model calls it as a TOP-LEVEL tool (not inside
+// codemode), the chat renders an Approve/Reject prompt, and `execute` runs only
+// after the human approves. RBAC still guards on top — approval is not
+// authorization, so a role that can't `catalog:write` is still refused (post-
+// approval) by `assertCan`. See `docs/guides/agent-tool-approvals.md`.
+export const createProductApprovalTools = (ctx: AgentToolsContext) => {
+  const orgId = ctx.organizationId;
+  return {
     "delete-product": tool({
-      description: "Delete a product.",
+      description: "Delete a product. Requires explicit user approval.",
       inputSchema: z.object({ id: z.string() }),
+      needsApproval: true,
       execute: async ({ id }) => {
         await assertCan("catalog:write", ctx);
         return deleteProduct(id, orgId);
@@ -70,6 +85,9 @@ export const createProductWriteTools = (ctx: AgentToolsContext) => {
   };
 };
 
+// The codemode-bound product reach: reads + autonomous writes. The gated
+// `delete-product` is deliberately NOT here — it lives top-level (see
+// `createProductApprovalTools`), so it is never routed through codemode.
 export const createProductTools = (ctx: AgentToolsContext) => ({
   ...createProductReadTools(ctx),
   ...createProductWriteTools(ctx),

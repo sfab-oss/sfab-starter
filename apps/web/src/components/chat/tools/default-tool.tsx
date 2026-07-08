@@ -47,9 +47,10 @@ export const DefaultTool = memo(({ part }: DefaultToolProps) => {
       />
       <ToolContent>
         <ToolInput input={part.input} />
-        {/* The approval prompt is wired but dormant: no tool sets
-            `needsApproval` today — durable tool approvals are owned by ALW-348.
-            When a tool opts in, this renders end-to-end unchanged. */}
+        {/* Human-approval prompt (ALW-348). Live for top-level tools that set
+            `needsApproval` — currently `delete-product`. `addToolApprovalResponse`
+            resolves the paused call; on approve the tool's `execute` runs (still
+            RBAC-gated). See docs/guides/agent-tool-approvals.md. */}
         {part.state === "approval-requested" && <ToolApproval part={part} />}
         {denied ? (
           <PermissionDeniedNote />

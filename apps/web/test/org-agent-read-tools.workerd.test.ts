@@ -269,7 +269,10 @@ describe("no mutation tool is exposed (AC-3)", () => {
     }
   });
 
-  it("the full reach's only writes are the catalog product tools", () => {
+  it("the codemode reach's only writes are the autonomous catalog tools", () => {
+    // `delete-product` is deliberately NOT here — it is human-approval-gated and
+    // exposed top-level (getOrgAgentApprovalTools), never routed through codemode
+    // (ALW-348). See tool-approvals.workerd.test.ts.
     const names = Object.keys(
       getOrgAgentTools({
         organizationId: orgId,
@@ -278,10 +281,7 @@ describe("no mutation tool is exposed (AC-3)", () => {
       })
     );
     const mutating = names.filter((n) => MUTATING_TOOL_NAME.test(n)).sort();
-    expect(mutating).toEqual([
-      "create-product",
-      "delete-product",
-      "update-product",
-    ]);
+    expect(mutating).toEqual(["create-product", "update-product"]);
+    expect(names).not.toContain("delete-product");
   });
 });
