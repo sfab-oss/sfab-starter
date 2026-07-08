@@ -1,23 +1,44 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type {
   createDocumentSchema,
+  createSuccessorSchema,
   depositCreditSchema,
+  ListDocumentsQuery,
   lineItemInputSchema,
   recordPaymentSchema,
   redeemCreditByReferenceSchema,
   redeemCreditSchema,
+  updateLineItemSchema,
 } from "@workspace/contract/transaction";
 import type { Document, DocumentType, LineItem } from "@workspace/db/schema";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
+import type { InferResponseType } from "hono/client";
 import type { z } from "zod";
 import { client } from "@/lib/client";
 
-export const getDocumentsKey = (type?: string, entityId?: string) => [
+export type DocumentsListParams = Omit<ListDocumentsQuery, never> & {
+  page?: number;
+  pageSize?: number;
+  sortOrder?: "asc" | "desc";
+};
+
+export type DocumentRow = InferResponseType<
+  (typeof client.protected.documents)["$get"],
+  200
+>["data"][number];
+
+export const getDocumentsKey = () => ["documents"];
+export const getDocumentsListKey = (params: DocumentsListParams) => [
   "documents",
-  type ?? "all",
-  entityId ?? "all-entities",
+  "list",
+  params,
 ];
 export const getDocumentKey = (id: string) => ["documents", id];
 export const getActivityKey = (entityId?: string) => [
@@ -37,18 +58,51 @@ export interface DocumentWithLines {
   };
 }
 
+/** Entity-detail helper: all docs for one entity (first page, large). */
 export const useDocuments = (type?: DocumentType, entityId?: string) => {
   return useQuery({
-    queryKey: getDocumentsKey(type, entityId),
+    queryKey: getDocumentsListKey({
+      page: 1,
+      pageSize: 100,
+      sortOrder: "desc",
+      ...(type && { type }),
+      ...(entityId && { entityId }),
+    }),
     queryFn: async () => {
       const res = await client.protected.documents.$get({
         query: {
+          page: "1",
+          pageSize: "100",
+          sortOrder: "desc",
           ...(type && { type }),
           ...(entityId && { entityId }),
         },
       });
-      return (await res.json()) as { data: Document[] };
+      return res.json();
     },
+  });
+};
+
+export const useDocumentsList = (params: DocumentsListParams) => {
+  return useQuery({
+    queryKey: getDocumentsListKey(params),
+    queryFn: async () => {
+      const res = await client.protected.documents.$get({
+        query: {
+          page: String(params.page ?? 1),
+          pageSize: String(params.pageSize ?? 20),
+          ...(params.sortBy && { sortBy: params.sortBy }),
+          sortOrder: params.sortOrder ?? "desc",
+          ...(params.search && { search: params.search }),
+          ...(params.type && { type: params.type }),
+          ...(params.direction && { direction: params.direction }),
+          ...(params.status && { status: params.status }),
+          ...(params.entityId && { entityId: params.entityId }),
+        },
+      });
+      return res.json();
+    },
+    placeholderData: keepPreviousData,
   });
 };
 
@@ -80,7 +134,7 @@ export const useCreateDocument = () => {
       return (await res.json()) as Document;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       toast.success("Document created");
     },
     onError: () => {
@@ -110,10 +164,124 @@ export const useAddLineItem = () => {
       queryClient.invalidateQueries({
         queryKey: getDocumentKey(variables.id),
       });
-      toast.success("Line added");
     },
     onError: () => {
       toast.error("Failed to add line");
+    },
+  });
+};
+
+export const useUpdateLineItem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      id: string;
+      lineId: string;
+      data: z.infer<typeof updateLineItemSchema>;
+    }) => {
+      const res = await client.protected.documents[":id"].lines[":lineId"].$put(
+        {
+          param: { id: params.id, lineId: params.lineId },
+          json: params.data,
+        }
+      );
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error || "Failed to update line");
+      }
+      return (await res.json()) as LineItem;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: getDocumentKey(variables.id),
+      });
+    },
+    onError: () => {
+      toast.error("Failed to update line");
+    },
+  });
+};
+
+export const useRemoveLineItem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { id: string; lineId: string }) => {
+      const res = await client.protected.documents[":id"].lines[
+        ":lineId"
+      ].$delete({
+        param: { id: params.id, lineId: params.lineId },
+      });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error || "Failed to remove line");
+      }
+      return res.json();
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: getDocumentKey(variables.id),
+      });
+    },
+    onError: () => {
+      toast.error("Failed to remove line");
+    },
+  });
+};
+
+export const useAcceptDocument = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await client.protected.documents[":id"].accept.$post({
+        param: { id },
+      });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error || "Failed to accept");
+      }
+      return res.json();
+    },
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: getDocumentKey(id) });
+      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
+      toast.success("Quote accepted");
+    },
+    onError: () => {
+      toast.error("Failed to accept document");
+    },
+  });
+};
+
+export const useCreateSuccessor = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      id: string;
+      data: z.infer<typeof createSuccessorSchema>;
+    }) => {
+      const res = await client.protected.documents[":id"].successor.$post({
+        param: { id: params.id },
+        json: params.data,
+      });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error || "Failed to create successor");
+      }
+      return (await res.json()) as DocumentWithLines;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: getDocumentKey(variables.id),
+      });
+      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
+      toast.success(
+        variables.data.type === "credit_note"
+          ? "Credit note created"
+          : "Invoice draft created"
+      );
+    },
+    onError: () => {
+      toast.error("Failed to create successor");
     },
   });
 };
@@ -133,12 +301,54 @@ export const useFinalizeDocument = () => {
     },
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: getDocumentKey(id) });
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
       toast.success("Document finalized");
     },
     onError: () => {
       toast.error("Failed to finalize document");
+    },
+  });
+};
+
+export const useApplyDisposition = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      id: string;
+      disposition: "cash_refund" | "store_credit" | "apply_to_document";
+      targetDocumentId?: string;
+    }) => {
+      const res = await client.protected.documents[":id"].disposition.$post({
+        param: { id: params.id },
+        json: {
+          disposition: params.disposition,
+          ...(params.targetDocumentId && {
+            targetDocumentId: params.targetDocumentId,
+          }),
+        },
+      });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error || "Failed to apply disposition");
+      }
+      return res.json();
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: getDocumentKey(variables.id),
+      });
+      if (variables.targetDocumentId) {
+        queryClient.invalidateQueries({
+          queryKey: getDocumentKey(variables.targetDocumentId),
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
+      queryClient.invalidateQueries({ queryKey: ["entities"] });
+      toast.success("Disposition applied");
+    },
+    onError: () => {
+      toast.error("Failed to apply disposition");
     },
   });
 };
@@ -181,7 +391,7 @@ export const useRecordPayment = () => {
           queryKey: getDocumentKey(alloc.documentId),
         });
       }
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       toast.success("Payment recorded");
@@ -207,7 +417,7 @@ export const useReversePayment = () => {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
       toast.success("Payment reversed");

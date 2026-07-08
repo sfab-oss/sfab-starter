@@ -1,12 +1,19 @@
 import type {
   CreateDocumentInput,
+  CreateSuccessorInput,
   LineItemInput,
+  ListDocumentsQuery,
+  UpdateLineItemInput,
 } from "@workspace/contract/transaction";
-import { db } from "@workspace/db";
+import { createId, db } from "@workspace/db";
 import type { Document, DocumentType, LineItem } from "@workspace/db/schema";
 import { documents, lineItems } from "@workspace/db/schema";
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
+import {
+  buildPaginatedResponse,
+  getPaginationOffsetLimit,
+} from "../pagination";
 import { getEntity } from "./entities";
 import { documentFamily } from "./family";
 import {
@@ -20,14 +27,102 @@ import {
  * Document + line-item reads/writes for Transaction Core. Money values are
  * integer minor units; `taxAmount` is computed and frozen at finalize.
  *
+ * Progression is by immutable successor (`createSuccessor`) — never by
+ * mutating `type` on an existing header.
+ *
  * @see docs/architecture/transaction-core.md §1, §8
  */
+
+const documentSortColumns = {
+  createdAt: documents.createdAt,
+  type: documents.type,
+  status: documents.status,
+  total: documents.total,
+  entityName: documents.entityName,
+  folio: documents.folio,
+} as const;
+
+const V1_CREATE_DIRECTION: Partial<Record<DocumentType, "sales" | "purchase">> =
+  {
+    quote: "sales",
+    invoice: "sales",
+    bill: "purchase",
+    credit_note: "sales",
+  };
+
+async function requireDraftDocument(
+  orgId: string,
+  documentId: string
+): Promise<Document> {
+  const [doc] = await db
+    .select()
+    .from(documents)
+    .where(
+      and(eq(documents.id, documentId), eq(documents.organizationId, orgId))
+    );
+  if (!doc) {
+    throw new DomainError(`Document not found: ${documentId}`, "not_found");
+  }
+  if (doc.status !== "draft") {
+    throw new DomainError(
+      `Cannot modify lines on a ${doc.status} document (${documentId})`,
+      "conflict"
+    );
+  }
+  return doc;
+}
+
+function buildLineValues(
+  orgId: string,
+  documentId: string,
+  input: LineItemInput
+) {
+  const discount = input.discount ?? 0;
+  const taxRate = input.taxRate ?? 0;
+  const taxMode = input.taxMode ?? "exclusive";
+  const taxAmount = computeLineTax({
+    unitPrice: input.unitPrice,
+    quantity: input.quantity,
+    discount,
+    taxRate,
+    taxMode,
+  });
+  const taxableBase = computeLineTaxableBase({
+    unitPrice: input.unitPrice,
+    quantity: input.quantity,
+    discount,
+    taxMode,
+    taxRate,
+  });
+  return {
+    organizationId: orgId,
+    documentId,
+    productId: input.productId ?? null,
+    description: input.description,
+    quantity: input.quantity,
+    unitPrice: input.unitPrice,
+    discount,
+    taxRate,
+    taxCode: input.taxCode ?? null,
+    taxMode,
+    taxAmount,
+    taxableBase,
+    fulfillmentMode: input.fulfillmentMode ?? "none",
+  };
+}
 
 export async function createDocument(
   orgId: string,
   input: CreateDocumentInput
 ): Promise<Document> {
   const family = documentFamily(input.type);
+  const expectedDirection = V1_CREATE_DIRECTION[input.type];
+  if (expectedDirection && input.direction !== expectedDirection) {
+    throw new DomainError(
+      `${input.type} must use direction "${expectedDirection}"`,
+      "unprocessable"
+    );
+  }
 
   const entityId = input.entityId ?? null;
   let entityName = input.entityName ?? null;
@@ -67,14 +162,124 @@ export async function addLineItem(
   documentId: string,
   input: LineItemInput
 ): Promise<LineItem> {
-  // C5: lines may only be added to a draft — a finalized fiscal record is frozen.
-  // NOTE: This SELECT→INSERT gap is a known race on D1 (no interactive
-  // transactions). If a concurrent finalize slips in between the read and the
-  // insert, the orphaned line won't affect the frozen totals (they were
-  // computed from the lines that existed at finalize time). Acceptable for a
-  // starter; ALW-354 will add a conditional INSERT…WHERE EXISTS guard.
+  await requireDraftDocument(orgId, documentId);
+  const [line] = await db
+    .insert(lineItems)
+    .values(buildLineValues(orgId, documentId, input))
+    .returning();
+  if (!line) {
+    throw new DomainError("Failed to create line item", "unprocessable");
+  }
+  return line;
+}
+
+export async function updateLineItem(
+  orgId: string,
+  documentId: string,
+  lineId: string,
+  input: UpdateLineItemInput
+): Promise<LineItem> {
+  await requireDraftDocument(orgId, documentId);
+
+  const [existing] = await db
+    .select()
+    .from(lineItems)
+    .where(
+      and(
+        eq(lineItems.id, lineId),
+        eq(lineItems.documentId, documentId),
+        eq(lineItems.organizationId, orgId)
+      )
+    );
+  if (!existing) {
+    throw new DomainError(`Line item not found: ${lineId}`, "not_found");
+  }
+
+  const next = {
+    productId:
+      input.productId !== undefined ? input.productId : existing.productId,
+    description: input.description ?? existing.description,
+    quantity: input.quantity ?? existing.quantity,
+    unitPrice: input.unitPrice ?? existing.unitPrice,
+    discount: input.discount ?? existing.discount,
+    taxRate: input.taxRate ?? existing.taxRate,
+    taxCode: input.taxCode !== undefined ? input.taxCode : existing.taxCode,
+    taxMode: input.taxMode ?? existing.taxMode,
+    fulfillmentMode: input.fulfillmentMode ?? existing.fulfillmentMode,
+  };
+
+  const taxAmount = computeLineTax({
+    unitPrice: next.unitPrice,
+    quantity: next.quantity,
+    discount: next.discount,
+    taxRate: next.taxRate,
+    taxMode: next.taxMode,
+  });
+  const taxableBase = computeLineTaxableBase({
+    unitPrice: next.unitPrice,
+    quantity: next.quantity,
+    discount: next.discount,
+    taxMode: next.taxMode,
+    taxRate: next.taxRate,
+  });
+
+  const [updated] = await db
+    .update(lineItems)
+    .set({
+      ...next,
+      taxAmount,
+      taxableBase,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(
+      and(
+        eq(lineItems.id, lineId),
+        eq(lineItems.documentId, documentId),
+        eq(lineItems.organizationId, orgId)
+      )
+    )
+    .returning();
+
+  if (!updated) {
+    throw new DomainError(`Line item not found: ${lineId}`, "not_found");
+  }
+  return updated;
+}
+
+export async function removeLineItem(
+  orgId: string,
+  documentId: string,
+  lineId: string
+): Promise<{ id: string }> {
+  await requireDraftDocument(orgId, documentId);
+
+  const deleted = await db
+    .delete(lineItems)
+    .where(
+      and(
+        eq(lineItems.id, lineId),
+        eq(lineItems.documentId, documentId),
+        eq(lineItems.organizationId, orgId)
+      )
+    )
+    .returning({ id: lineItems.id });
+
+  if (!deleted[0]) {
+    throw new DomainError(`Line item not found: ${lineId}`, "not_found");
+  }
+  return deleted[0];
+}
+
+/**
+ * Accept a commercial draft (quote) so it can be converted via successor.
+ * Fiscal docs use `finalizeDocument` instead.
+ */
+export async function acceptDocument(
+  orgId: string,
+  documentId: string
+): Promise<Document> {
   const [doc] = await db
-    .select({ status: documents.status })
+    .select()
     .from(documents)
     .where(
       and(eq(documents.id, documentId), eq(documents.organizationId, orgId))
@@ -82,51 +287,197 @@ export async function addLineItem(
   if (!doc) {
     throw new DomainError(`Document not found: ${documentId}`, "not_found");
   }
-  if (doc.status !== "draft") {
+  if (documentFamily(doc.type) !== "commercial") {
     throw new DomainError(
-      `Cannot add lines to a ${doc.status} document (${documentId})`,
+      `Only commercial documents can be accepted (${doc.type})`,
+      "unprocessable"
+    );
+  }
+  if (doc.status !== "draft" && doc.status !== "sent") {
+    throw new DomainError(
+      `Cannot accept a ${doc.status} document (${documentId})`,
       "conflict"
     );
   }
-  const discount = input.discount ?? 0;
-  const taxRate = input.taxRate ?? 0;
-  const taxMode = input.taxMode ?? "exclusive";
-  const taxAmount = computeLineTax({
-    unitPrice: input.unitPrice,
-    quantity: input.quantity,
-    discount,
-    taxRate,
-    taxMode,
-  });
-  const taxableBase = computeLineTaxableBase({
-    unitPrice: input.unitPrice,
-    quantity: input.quantity,
-    discount,
-    taxMode,
-    taxRate,
-  });
-  const [line] = await db
-    .insert(lineItems)
+
+  const lines = await db
+    .select()
+    .from(lineItems)
+    .where(
+      and(
+        eq(lineItems.documentId, documentId),
+        eq(lineItems.organizationId, orgId)
+      )
+    );
+  if (lines.length === 0) {
+    throw new DomainError(
+      `Cannot accept document ${documentId} with no line items`,
+      "unprocessable"
+    );
+  }
+
+  const totals = computeDocumentTotals(lines);
+  const now = new Date().toISOString();
+
+  const [accepted] = await db
+    .update(documents)
+    .set({
+      status: "accepted",
+      subtotal: totals.subtotal,
+      discountTotal: totals.discountTotal,
+      taxTotal: totals.taxTotal,
+      total: totals.total,
+      issuedAt: doc.issuedAt ?? now,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(documents.id, documentId),
+        eq(documents.organizationId, orgId),
+        or(eq(documents.status, "draft"), eq(documents.status, "sent"))
+      )
+    )
+    .returning();
+
+  if (!accepted) {
+    throw new DomainError(
+      `Document ${documentId} could not be accepted`,
+      "conflict"
+    );
+  }
+
+  return accepted;
+}
+
+function assertSuccessorAllowed(
+  parent: Document,
+  type: CreateSuccessorInput["type"]
+): void {
+  if (type === "invoice") {
+    if (parent.type !== "quote") {
+      throw new DomainError(
+        "Only a quote can convert to an invoice",
+        "unprocessable"
+      );
+    }
+    if (parent.status !== "accepted") {
+      throw new DomainError(
+        "Quote must be accepted before converting to an invoice",
+        "conflict"
+      );
+    }
+    return;
+  }
+
+  if (parent.type !== "invoice") {
+    throw new DomainError(
+      "Only a finalized invoice can create a credit note",
+      "unprocessable"
+    );
+  }
+  if (parent.status !== "finalized") {
+    throw new DomainError(
+      "Invoice must be finalized before creating a credit note",
+      "conflict"
+    );
+  }
+}
+
+/**
+ * Create an immutable successor: new header + copied line snapshots, linked by
+ * `sourceDocumentId` / `rootDocumentId`. Supported v1 edges:
+ * - accepted quote → invoice draft
+ * - finalized invoice → credit_note draft (reversed quantities)
+ */
+export async function createSuccessor(
+  orgId: string,
+  sourceDocumentId: string,
+  input: CreateSuccessorInput
+): Promise<DocumentWithLines> {
+  const source = await getDocumentWithLines(sourceDocumentId, orgId);
+  if (!source) {
+    throw new DomainError(
+      `Document not found: ${sourceDocumentId}`,
+      "not_found"
+    );
+  }
+  const { doc: parent, lines } = source;
+  assertSuccessorAllowed(parent, input.type);
+
+  if (lines.length === 0) {
+    throw new DomainError(
+      `Cannot create successor from document ${sourceDocumentId} with no lines`,
+      "unprocessable"
+    );
+  }
+
+  const family = documentFamily(input.type);
+  const rootDocumentId = parent.rootDocumentId ?? parent.id;
+  const successorId = createId();
+  const now = new Date().toISOString();
+  const negate = input.type === "credit_note";
+
+  const [successor] = await db
+    .insert(documents)
     .values({
+      id: successorId,
       organizationId: orgId,
-      documentId,
-      productId: input.productId ?? null,
-      description: input.description,
-      quantity: input.quantity,
-      unitPrice: input.unitPrice,
-      discount,
-      taxRate,
-      taxCode: input.taxCode ?? null,
-      taxMode,
-      taxAmount,
-      taxableBase,
-      fulfillmentMode: input.fulfillmentMode ?? "none",
+      type: input.type,
+      family,
+      direction: parent.direction,
+      status: "draft",
+      entityId: parent.entityId,
+      entityName: parent.entityName,
+      currencyCode: parent.currencyCode,
+      series: parent.series,
+      sourceDocumentId: parent.id,
+      rootDocumentId,
+      reversesDocumentId: negate ? parent.id : null,
     })
     .returning();
-  if (!line) {
-    throw new DomainError("Failed to create line item", "unprocessable");
+
+  if (!successor) {
+    throw new DomainError(
+      "Failed to create successor document",
+      "unprocessable"
+    );
   }
-  return line;
+
+  for (const line of lines) {
+    // Credit notes reverse value via negative quantity (matches existing
+    // disposition tests); unitPrice stays non-negative.
+    await db.insert(lineItems).values(
+      buildLineValues(orgId, successorId, {
+        productId: line.productId ?? undefined,
+        description: line.description,
+        quantity: negate ? -Math.abs(line.quantity) : line.quantity,
+        unitPrice: Math.abs(line.unitPrice),
+        discount: line.discount,
+        taxRate: line.taxRate,
+        taxCode: line.taxCode,
+        taxMode: line.taxMode,
+        fulfillmentMode: line.fulfillmentMode,
+      })
+    );
+  }
+
+  if (input.type === "invoice" && parent.type === "quote") {
+    await db
+      .update(documents)
+      .set({ status: "converted", updatedAt: now })
+      .where(
+        and(eq(documents.id, parent.id), eq(documents.organizationId, orgId))
+      );
+  }
+
+  const result = await getDocumentWithLines(successorId, orgId);
+  if (!result) {
+    throw new DomainError(
+      "Successor created but could not be loaded",
+      "unprocessable"
+    );
+  }
+  return result;
 }
 
 export interface DocumentWithLines {
@@ -178,4 +529,61 @@ export async function listDocuments(
     .from(documents)
     .where(and(...conditions))
     .orderBy(desc(documents.createdAt));
+}
+
+export async function getPaginatedDocuments(
+  orgId: string,
+  params: ListDocumentsQuery
+) {
+  const { offset, limit } = getPaginationOffsetLimit(params);
+  const conditions = [eq(documents.organizationId, orgId)];
+
+  if (params.type) {
+    conditions.push(eq(documents.type, params.type));
+  }
+  if (params.direction) {
+    conditions.push(eq(documents.direction, params.direction));
+  }
+  if (params.status) {
+    conditions.push(eq(documents.status, params.status));
+  }
+  if (params.entityId) {
+    conditions.push(eq(documents.entityId, params.entityId));
+  }
+  if (params.search) {
+    const pattern = `%${params.search}%`;
+    const searchCondition = or(
+      like(documents.entityName, pattern),
+      like(documents.series, pattern),
+      sql`cast(${documents.folio} as text) like ${pattern}`
+    );
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
+  }
+
+  const whereClause = and(...conditions);
+
+  const countResult = await db
+    .select({ total: sql<number>`count(*)`.mapWith(Number) })
+    .from(documents)
+    .where(whereClause);
+  const total = countResult[0]?.total ?? 0;
+
+  const sortColumn =
+    params.sortBy && params.sortBy in documentSortColumns
+      ? documentSortColumns[params.sortBy as keyof typeof documentSortColumns]
+      : null;
+  const dirFn = params.sortOrder === "desc" ? desc : asc;
+  const sortTarget = sortColumn ?? documents.createdAt;
+
+  const data = await db
+    .select()
+    .from(documents)
+    .where(whereClause)
+    .orderBy(dirFn(sortTarget))
+    .limit(limit)
+    .offset(offset);
+
+  return buildPaginatedResponse(data, total, params);
 }
