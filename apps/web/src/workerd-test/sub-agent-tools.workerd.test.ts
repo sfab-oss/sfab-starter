@@ -15,10 +15,23 @@ const MUTATING_TOOL_NAME = /create|update|delete|write|void|reverse/;
 describe("OrgSubAgent read-only tool composition", () => {
   const ctx = { organizationId: "org_test" };
 
-  it("exposes only read tools (list/get products, list documents)", () => {
+  it("exposes only read tools (catalog + transaction-core reach — ALW-402)", () => {
     const tools = getOrgAgentReadOnlyTools(ctx);
     const names = Object.keys(tools).sort();
-    expect(names).toEqual(["get-product", "list-documents", "list-products"]);
+    expect(names).toEqual([
+      "get-credit-balance",
+      "get-document",
+      "get-entity",
+      "get-organization",
+      "get-payment",
+      "get-product",
+      "list-activity",
+      "list-credit-entries",
+      "list-documents",
+      "list-entities",
+      "list-payments",
+      "list-products",
+    ]);
   });
 
   it("never includes a mutating tool", () => {
