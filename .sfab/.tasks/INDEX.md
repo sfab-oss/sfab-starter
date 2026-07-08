@@ -12,11 +12,7 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
-
-- [`ALW-348`](./ALW-348.md) — Codemode tool approvals: adopt the supported durable-approval pattern (revisit needsApproval)
-
-## merged (21)
+## merged (22)
 
 - [`ALW-411`](./ALW-411.md) — Org-agent inference: Cloudflare AI Gateway + env-driven pluggable provider registry (Vercel / Workers AI / GLM)
 - [`ALW-402`](./ALW-402.md) — Org-agent: broaden read-only tool reach (transaction core / people / settings)
@@ -25,6 +21,7 @@ overwritten by the next sync.
 - [`ALW-355`](./ALW-355.md) — Customer-credit wallet (saldo a favor / anticipos) — complete the base money subgraph
 - [`ALW-354`](./ALW-354.md) — Transaction Core settlement engine — payments, allocations, projections & conservation (base)
 - [`ALW-351`](./ALW-351.md) — Build the on-brand registry gallery — Phase-0 spine first, hero/file surfaces deferred (UI-only)
+- [`ALW-348`](./ALW-348.md) — Codemode tool approvals: adopt the supported durable-approval pattern (revisit needsApproval)
 - [`ALW-347`](./ALW-347.md) — Role-based access control spine (owner/admin/operator) — gate sensitive actions via better-auth
 - [`ALW-335`](./ALW-335.md) — Find and remove unused functions, types, and dead code
 - [`ALW-334`](./ALW-334.md) — Remove unused and stale comments from the codebase
