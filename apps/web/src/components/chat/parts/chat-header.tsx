@@ -8,7 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
-import { SidebarTrigger } from "@workspace/ui/components/shadcn/sidebar";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import {
   Tooltip,
@@ -21,6 +20,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import {
   BotIcon,
   BrainIcon,
+  ChevronDownIcon,
   ClipboardCopyIcon,
   FolderTreeIcon,
   Maximize2Icon,
@@ -105,12 +105,25 @@ export function ChatHeader() {
     useChatTabsStore.getState().closeTab(organizationId, tabKey);
   }, [tabKey, organizationId]);
 
+  if (isMobile) {
+    return (
+      <MobileChatHeader
+        canCopy={canCopy}
+        isFilesPanelOpen={isFilesPanelOpen}
+        memoryOpen={memoryOpen}
+        onClose={handleClose}
+        onCopyMessages={handleCopyMessages}
+        onMinimize={handleMinimize}
+        onToggleFiles={handleToggleFiles}
+        setMemoryOpen={setMemoryOpen}
+        title={title}
+      />
+    );
+  }
+
   return (
     <div className="flex h-10 shrink-0 items-center justify-between border-b px-3">
       <div className="flex items-center gap-2 overflow-hidden">
-        {bodyState === "fullscreen" && (
-          <SidebarTrigger className="-ml-0.5 shrink-0 md:hidden" />
-        )}
         <BotIcon className="size-4 shrink-0 text-muted-foreground" />
         <span className="shrink-0 font-medium text-sm">ERP Assistant</span>
         {title !== "Chat" && title !== "New chat" && (
@@ -121,32 +134,11 @@ export function ChatHeader() {
       </div>
       <TooltipProvider delayDuration={300}>
         <div className="flex items-center gap-0.5">
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button className="size-7" size="icon" variant="ghost">
-                    <MoreHorizontalIcon className="size-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">More</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => setMemoryOpen(true)}>
-                <BrainIcon className="size-4" />
-                Organization memory
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                disabled={!canCopy}
-                onSelect={handleCopyMessages}
-              >
-                <ClipboardCopyIcon className="size-4" />
-                Copy conversation
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ChatMoreMenu
+            canCopy={canCopy}
+            onCopyMessages={handleCopyMessages}
+            onOpenMemory={() => setMemoryOpen(true)}
+          />
           <MemoryDialog onOpenChange={setMemoryOpen} open={memoryOpen} />
           {bodyState === "fullscreen" && (
             <Tooltip>
@@ -170,13 +162,11 @@ export function ChatHeader() {
               </TooltipContent>
             </Tooltip>
           )}
-          {!isMobile && (
-            <SizeToggleButton
-              bodyState={bodyState}
-              onCollapse={handleCollapse}
-              onExpand={handleExpand}
-            />
-          )}
+          <SizeToggleButton
+            bodyState={bodyState}
+            onCollapse={handleCollapse}
+            onExpand={handleExpand}
+          />
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -188,9 +178,7 @@ export function ChatHeader() {
                 <MinusIcon className="size-3.5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {isMobile ? "Minimize" : "Minimize to dock"}
-            </TooltipContent>
+            <TooltipContent side="bottom">Minimize to dock</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -208,6 +196,129 @@ export function ChatHeader() {
         </div>
       </TooltipProvider>
     </div>
+  );
+}
+
+function MobileChatHeader({
+  canCopy,
+  isFilesPanelOpen,
+  memoryOpen,
+  onClose,
+  onCopyMessages,
+  onMinimize,
+  onToggleFiles,
+  setMemoryOpen,
+  title,
+}: {
+  canCopy: boolean;
+  isFilesPanelOpen: boolean;
+  memoryOpen: boolean;
+  onClose: () => void;
+  onCopyMessages: () => void;
+  onMinimize: () => void;
+  onToggleFiles: () => void;
+  setMemoryOpen: (open: boolean) => void;
+  title: string;
+}) {
+  const displayTitle =
+    title === "Chat" || title === "New chat" ? "ERP Assistant" : title;
+
+  return (
+    <header className="flex h-14 shrink-0 items-center gap-1 border-b bg-background px-1.5 pt-[env(safe-area-inset-top)]">
+      <Button
+        aria-label="Minimize chat"
+        className="size-11 shrink-0"
+        onClick={onMinimize}
+        size="icon"
+        type="button"
+        variant="ghost"
+      >
+        <ChevronDownIcon className="size-5" />
+      </Button>
+      <span className="min-w-0 flex-1 truncate font-medium text-sm">
+        {displayTitle}
+      </span>
+      <Button
+        aria-label={isFilesPanelOpen ? "Hide files" : "Show files"}
+        aria-pressed={isFilesPanelOpen}
+        className={cn(
+          "size-11 shrink-0",
+          isFilesPanelOpen && "text-foreground"
+        )}
+        onClick={onToggleFiles}
+        size="icon"
+        type="button"
+        variant="ghost"
+      >
+        <FolderTreeIcon className="size-5" />
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            aria-label="More"
+            className="size-11 shrink-0"
+            size="icon"
+            type="button"
+            variant="ghost"
+          >
+            <MoreHorizontalIcon className="size-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => setMemoryOpen(true)}>
+            <BrainIcon className="size-4" />
+            Organization memory
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled={!canCopy} onSelect={onCopyMessages}>
+            <ClipboardCopyIcon className="size-4" />
+            Copy conversation
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={onClose}>
+            <XIcon className="size-4" />
+            Close chat
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <MemoryDialog onOpenChange={setMemoryOpen} open={memoryOpen} />
+    </header>
+  );
+}
+
+function ChatMoreMenu({
+  canCopy,
+  onCopyMessages,
+  onOpenMemory,
+}: {
+  canCopy: boolean;
+  onCopyMessages: () => void;
+  onOpenMemory: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button className="size-7" size="icon" variant="ghost">
+              <MoreHorizontalIcon className="size-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">More</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={onOpenMemory}>
+          <BrainIcon className="size-4" />
+          Organization memory
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem disabled={!canCopy} onSelect={onCopyMessages}>
+          <ClipboardCopyIcon className="size-4" />
+          Copy conversation
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

@@ -60,6 +60,7 @@ function DocumentsPage() {
           <Button
             disabled={createDocument.isPending}
             onClick={handleNewInvoice}
+            size="sm"
           >
             <Plus className="mr-2 h-4 w-4" />
             New Invoice

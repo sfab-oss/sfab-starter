@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { LogoMark } from "@workspace/ui/components/icons/logo-monochrome";
 import {
   Sidebar,
@@ -13,6 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from "@workspace/ui/components/shadcn/sidebar";
 import {
   FileText,
@@ -122,22 +123,49 @@ export function AppSidebar() {
   );
 }
 
+function useCloseMobileSidebarOnNavigate() {
+  const { isMobile, setOpenMobile } = useSidebar();
+  return () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+}
+
 export function AppSidebarMainNavigation() {
+  const closeOnNavigate = useCloseMobileSidebarOnNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
-        {mainNavigationItems.map((item) => (
-          <SidebarMenuItem key={`${item.title}-${item.url}`}>
-            <SidebarMenuButton asChild tooltip={item.title}>
-              <Link to={item.url}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
+        {mainNavigationItems.map((item) => {
+          const isActive = isPlatformNavActive(pathname, item.url);
+          return (
+            <SidebarMenuItem key={`${item.title}-${item.url}`}>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive}
+                tooltip={item.title}
+              >
+                <Link onClick={closeOnNavigate} to={item.url}>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
       </SidebarMenu>
     </SidebarGroup>
   );
+}
+
+/** Home is exact; other items stay active on nested paths (e.g. /settings/*). */
+function isPlatformNavActive(pathname: string, url: string): boolean {
+  if (url === "/") {
+    return pathname === "/";
+  }
+  return pathname === url || pathname.startsWith(`${url}/`);
 }

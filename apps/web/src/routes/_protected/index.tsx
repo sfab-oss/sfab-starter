@@ -5,7 +5,6 @@ import {
   ShellHeader,
   ShellHeaderActions,
   ShellHeaderSidebarTrigger,
-  ShellHeaderTitle,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import {
@@ -52,7 +51,6 @@ function TodayPage() {
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs items={[{ title: "Today" }]} />
-        <ShellHeaderTitle>Today</ShellHeaderTitle>
         <ShellHeaderActions />
       </ShellHeader>
 
