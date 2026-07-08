@@ -2,7 +2,10 @@ import {
   documentListSchema,
   documentTypeSchema,
 } from "@workspace/contract/transaction";
-import { listDocuments } from "@workspace/core/transaction";
+import {
+  getDocumentWithLines,
+  listDocuments,
+} from "@workspace/core/transaction";
 import { tool } from "ai";
 import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
@@ -37,6 +40,12 @@ export const createDocumentTools = (
           createdAt: d.createdAt,
         }));
       },
+    }),
+    "get-document": tool({
+      description:
+        "Get one business document by ID with its line items and totals — including its settlement projection (payment status and amount paid). Amounts are integer minor units.",
+      inputSchema: z.object({ id: z.string() }),
+      execute: async ({ id }) => getDocumentWithLines(id, orgId),
     }),
   };
 };
