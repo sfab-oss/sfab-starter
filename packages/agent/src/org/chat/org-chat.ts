@@ -30,7 +30,6 @@ import {
 } from "../../context/page-context";
 import {
   getCompactionLimit,
-  getOrgChatModelId,
   resolveOrgChatModel,
 } from "../../inference/chat-models";
 import {
@@ -56,14 +55,17 @@ export class OrgChat extends Think<Cloudflare.Env> {
   private organizationId!: string;
   private resolvedChatModel!: LanguageModel;
   private resolvedModelId!: string;
+  private resolvedContextWindow!: number;
   private lastTurnUsage: LanguageModelUsage | undefined;
 
   override onStart(): void {
     this.organizationId = this.requireOrganizationId();
-    // The chat model is a constant gateway resolution — resolve it once here
+    // The chat model is a constant env-driven resolution — resolve it once here
     // rather than re-resolving every turn.
-    this.resolvedChatModel = resolveOrgChatModel();
-    this.resolvedModelId = getOrgChatModelId();
+    const resolved = resolveOrgChatModel(this.env);
+    this.resolvedChatModel = resolved.model;
+    this.resolvedModelId = resolved.modelId;
+    this.resolvedContextWindow = resolved.contextWindow;
   }
 
   private getParent(): Promise<OrgAgentParent> {
@@ -136,7 +138,7 @@ export class OrgChat extends Think<Cloudflare.Env> {
         // one-time set is correct. `maybeCompactByUsage` layers a stricter
         // real-usage trigger on top for tool-heavy histories the estimate
         // under-counts.
-        .compactAfter(getCompactionLimit(this.resolvedModelId))
+        .compactAfter(getCompactionLimit(this.resolvedContextWindow))
     );
   }
 
@@ -193,7 +195,7 @@ export class OrgChat extends Think<Cloudflare.Env> {
   }
 
   private async maybeCompactByUsage(inputTokens: number): Promise<void> {
-    const limit = getCompactionLimit(this.resolvedModelId);
+    const limit = getCompactionLimit(this.resolvedContextWindow);
     if (!limit || inputTokens <= limit) {
       return;
     }

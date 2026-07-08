@@ -6,6 +6,7 @@
     ".": "./src/index.ts",
     "./types": "./src/types.ts",
     "./constants": "./src/constants.ts",
+    "./inference": "./src/inference/chat-models.ts",
     "./org": "./src/org/index.ts",
     "./org/chat": "./src/org/chat/index.ts"
   },
@@ -13,11 +14,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^2.0.56",
     "@cloudflare/shell": "0.4.1",
     "@cloudflare/think": "0.12.1",
     "@workspace/auth": "workspace:*",
-    "@workspace/core": "workspace:*",
     "@workspace/contract": "workspace:*",
+    "@workspace/core": "workspace:*",
     "agents": "0.17.3",
     "ai": "^6.0.202",
     "zod": "^4.3.5"

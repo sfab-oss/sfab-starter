@@ -5,7 +5,6 @@ import { generateText, type LanguageModel, type ToolSet } from "ai";
 import { buildOrgContext } from "../../context/assemble";
 import {
   getCompactionLimit,
-  getOrgChatModelId,
   resolveOrgChatModel,
 } from "../../inference/chat-models";
 import { getOrgAgentReadOnlyTools } from "../../tools/compose-org-tools";
@@ -35,12 +34,13 @@ export class OrgSubAgent extends Think<Cloudflare.Env> {
 
   private organizationId!: string;
   private resolvedChatModel!: LanguageModel;
-  private resolvedModelId!: string;
+  private resolvedContextWindow!: number;
 
   override onStart(): void {
     this.organizationId = this.resolveOrganizationId();
-    this.resolvedChatModel = resolveOrgChatModel();
-    this.resolvedModelId = getOrgChatModelId();
+    const resolved = resolveOrgChatModel(this.env);
+    this.resolvedChatModel = resolved.model;
+    this.resolvedContextWindow = resolved.contextWindow;
   }
 
   // `parentPath` is root-first: [{ OrgAgent, org }, { OrgChat, chatId }]. The
@@ -76,7 +76,7 @@ export class OrgSubAgent extends Think<Cloudflare.Env> {
           error
         );
       })
-      .compactAfter(getCompactionLimit(this.resolvedModelId));
+      .compactAfter(getCompactionLimit(this.resolvedContextWindow));
   }
 
   override getTools(): ToolSet {

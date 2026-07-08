@@ -14,5 +14,28 @@ RESEND_API_KEY=
 EMAIL_SENDER=noreply@example.com
 MOCK_SEND_EMAIL=true
 
-# Org agent inference (AI Gateway). Required for OrgChat in local dev.
+# ─── Org agent inference (ALW-411) ────────────────────────────────────────────
+# Pick the underlying provider; unset = vercel-gateway (default). Then fill the
+# matching key below. ORG_CHAT_MODEL optionally overrides the model id.
+#   ORG_CHAT_PROVIDER=vercel-gateway | workers-ai | zai-coding-plan
+# ORG_CHAT_PROVIDER=
+# ORG_CHAT_MODEL=
+
+# vercel-gateway (default): Vercel AI Gateway key. Required for OrgChat in local dev.
 AI_GATEWAY_API_KEY=
+
+# zai-coding-plan: z.ai GLM coding-plan key (https://z.ai/manage-apikey/apikey-list).
+# ZAI_API_KEY=
+
+# workers-ai: Cloudflare account id + an API token with Workers AI access.
+# CF_ACCOUNT_ID=
+# WORKERS_AI_API_TOKEN=
+
+# Cloudflare AI Gateway (optional, fronts the openai-compatible providers for
+# caching/observability). Set all three to enable. For a third-party upstream
+# like GLM, first create a Custom Provider in the CF dashboard/API with slug
+# "zai" and base_url "https://api.z.ai" (see docs/guides). Native Workers AI
+# needs no custom provider.
+# CF_ACCOUNT_ID=
+# CF_AIG_GATEWAY_ID=
+# CF_AIG_TOKEN=
