@@ -26,11 +26,14 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (3)
+## assigned (2)
 
-- [`ALW-459`](./ALW-459.md) — Adopt shadcn MessageScroller/Message/Bubble/Marker/Attachment for chat (passes 1–3)
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 - [`ALW-423`](./ALW-423.md) — QA: shell, navigation & command-K palette (desktop + mobile)
+
+## review (1)
+
+- [`ALW-459`](./ALW-459.md) — Adopt shadcn MessageScroller/Message/Bubble/Marker/Attachment for chat (passes 1–3)
 
 ## merged (31)
 
