@@ -13,6 +13,10 @@ import {
   listDocumentsQuerySchema,
 } from "@workspace/contract/transaction";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
+import {
+  type PaymentStatus,
+  PaymentStatusBadge,
+} from "@workspace/ui/components/brand/payment-status-badge";
 import { ResourceTable } from "@workspace/ui/components/brand/resource-table";
 import {
   ShellContent,
@@ -387,9 +391,9 @@ function DocumentsPage() {
           return <span className="text-muted-foreground">—</span>;
         }
         return (
-          <span className="text-muted-foreground text-sm capitalize">
-            {row.original.paymentStatus}
-          </span>
+          <PaymentStatusBadge
+            status={row.original.paymentStatus as PaymentStatus}
+          />
         );
       },
     },

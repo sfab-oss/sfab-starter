@@ -82,6 +82,31 @@ const DEMO_PRODUCTS = [
   },
 ] as const;
 
+const DEMO_LINE_ITEMS = [
+  {
+    id: "seed-line-quote-acme-1",
+    documentId: "seed-doc-quote-acme",
+    productId: "seed-prod-widget",
+    description: "Artisan Widget",
+    quantity: 2,
+    unitPrice: 1999,
+    taxRate: 0,
+    taxableBase: 3998,
+    taxAmount: 0,
+  },
+  {
+    id: "seed-line-invoice-contoso-1",
+    documentId: "seed-doc-invoice-contoso",
+    productId: "seed-prod-mug",
+    description: "Ceramic Mug",
+    quantity: 10,
+    unitPrice: 1250,
+    taxRate: 0,
+    taxableBase: 12_500,
+    taxAmount: 0,
+  },
+] as const;
+
 const DEMO_DOCUMENTS = [
   {
     id: "seed-doc-quote-acme",
@@ -93,7 +118,14 @@ const DEMO_DOCUMENTS = [
     entityName: "Acme Retail",
     series: "Q",
     folio: 1001,
-    total: 5000,
+    subtotal: 3998,
+    taxTotal: 0,
+    total: 3998,
+    amountPaid: 0,
+    balanceDue: 0,
+    paymentStatus: "unpaid",
+    issuedAt: null as string | null,
+    postingDate: null as string | null,
   },
   {
     id: "seed-doc-invoice-contoso",
@@ -105,7 +137,14 @@ const DEMO_DOCUMENTS = [
     entityName: "Contoso Cafe",
     series: "INV",
     folio: 2042,
+    subtotal: 12_500,
+    taxTotal: 0,
     total: 12_500,
+    amountPaid: 0,
+    balanceDue: 12_500,
+    paymentStatus: "unpaid",
+    issuedAt: null as string | null,
+    postingDate: null as string | null,
   },
 ] as const;
 
@@ -178,10 +217,14 @@ async function main() {
             nowIso
           )
       ),
-      ...DEMO_DOCUMENTS.map((doc) =>
-        db
+      ...DEMO_DOCUMENTS.map((doc) => {
+        const issuedAt =
+          doc.issuedAt ?? (doc.status === "finalized" ? nowIso : null);
+        const postingDate =
+          doc.postingDate ?? (doc.status === "finalized" ? nowIso : null);
+        return db
           .prepare(
-            "INSERT OR IGNORE INTO documents (id, organization_id, type, family, direction, status, entity_id, entity_name, total, series, folio, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT OR IGNORE INTO documents (id, organization_id, type, family, direction, status, entity_id, entity_name, currency_code, subtotal, discount_total, tax_total, total, amount_paid, balance_due, payment_status, series, folio, issued_at, posting_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'USD', ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
           )
           .bind(
             doc.id,
@@ -192,9 +235,36 @@ async function main() {
             doc.status,
             doc.entityId,
             doc.entityName,
+            doc.subtotal,
+            doc.taxTotal,
             doc.total,
+            doc.amountPaid,
+            doc.balanceDue,
+            doc.paymentStatus,
             doc.series,
             doc.folio,
+            issuedAt,
+            postingDate,
+            nowIso,
+            nowIso
+          );
+      }),
+      ...DEMO_LINE_ITEMS.map((line) =>
+        db
+          .prepare(
+            "INSERT OR IGNORE INTO line_items (id, organization_id, document_id, product_id, description, quantity, unit_price, discount, tax_rate, tax_mode, tax_amount, taxable_base, fulfillment_mode, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 'exclusive', ?, ?, 'none', ?, ?)"
+          )
+          .bind(
+            line.id,
+            DEMO_ORG_ID,
+            line.documentId,
+            line.productId,
+            line.description,
+            line.quantity,
+            line.unitPrice,
+            line.taxRate,
+            line.taxAmount,
+            line.taxableBase,
             nowIso,
             nowIso
           )
