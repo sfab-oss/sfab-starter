@@ -1,3 +1,4 @@
+import codemode from "@cloudflare/codemode/vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
@@ -10,6 +11,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 const config = defineConfig({
   plugins: [
     agents(),
+    // Required for OrgChat `createExecuteTool` / codemode sandbox under vite
+    // (same as the Think assistant example + local agent stack).
+    codemode(),
     devtools({ eventBusConfig: { port: 42_085 } }),
     cloudflare({ viteEnvironment: { name: "ssr" } }),
     tsconfigPaths({ projects: ["./tsconfig.json"] }),

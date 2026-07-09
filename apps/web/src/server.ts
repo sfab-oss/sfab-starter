@@ -1,6 +1,6 @@
 import handler from "@tanstack/react-start/server-entry";
 import { auth } from "@workspace/auth";
-import { routeAgentRequest } from "agents";
+import { getAgentByName, routeAgentRequest } from "agents";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -52,6 +52,17 @@ export default {
         if (gateFailure) {
           return gateFailure;
         }
+        // Same bootstrap the Think assistant example uses before routing:
+        // `getAgentByName` → partyserver `getServerByName` / set-name, which
+        // persists `__ps_name` so `this.name` works on WebSocket hibernation
+        // and alarm wakes when local workerd does not yet propagate
+        // `ctx.id.name` (compat date capped below 2026-03-15 under vite dev).
+        // Multi-session shape is unchanged: OrgAgent parent (shared workspace)
+        // + OrgChat facets (one window per chat) via client `sub:`.
+        await getAgentByName(
+          env.OrgAgent as unknown as Parameters<typeof getAgentByName>[0],
+          activeOrgId
+        );
       }
 
       const agentResponse = await routeAgentRequest(request, env);
