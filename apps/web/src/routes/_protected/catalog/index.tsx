@@ -22,10 +22,12 @@ import {
   getColumnFilterValue,
   type TableFilterDefinition,
 } from "@workspace/ui/lib/table-filter-types";
+import { Package } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { CreateProductDialog } from "@/components/catalog/create-product-dialog";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type Product, useProducts } from "@/hooks/use-products";
+import { getUploadUrl } from "@/lib/uploads";
 
 export const Route = createFileRoute("/_protected/catalog/")({
   component: CatalogPage,
@@ -199,6 +201,30 @@ function CatalogPage() {
   });
 
   const columns: ColumnDef<Product>[] = [
+    {
+      id: "image",
+      meta: { label: "Image" },
+      enableSorting: false,
+      header: () => <span className="sr-only">Image</span>,
+      cell: ({ row }) => {
+        const imageUrl = row.original.imageUrl;
+        return (
+          <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted">
+            {imageUrl ? (
+              <img
+                alt=""
+                className="size-full object-cover"
+                height={40}
+                src={getUploadUrl(imageUrl)}
+                width={40}
+              />
+            ) : (
+              <Package className="size-4 text-muted-foreground" />
+            )}
+          </div>
+        );
+      },
+    },
     {
       id: "name",
       meta: { label: "Name" },
