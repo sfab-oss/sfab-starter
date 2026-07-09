@@ -248,6 +248,8 @@ export const useAcceptDocument = () => {
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: getDocumentKey(id) });
       queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
+      queryClient.invalidateQueries({ queryKey: ["activity"] });
+      queryClient.invalidateQueries({ queryKey: getActivityKey(id) });
       toast.success("Quote accepted");
     },
     onError: () => {
@@ -273,11 +275,21 @@ export const useCreateSuccessor = () => {
       }
       return (await res.json()) as DocumentWithLines;
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: getDocumentKey(variables.id),
       });
       queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
+      queryClient.invalidateQueries({ queryKey: ["activity"] });
+      queryClient.invalidateQueries({
+        queryKey: getActivityKey(variables.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getActivityKey(data.doc.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getDocumentKey(data.doc.id),
+      });
       toast.success(
         variables.data.type === "credit_note"
           ? "Credit note created"

@@ -1,3 +1,4 @@
+import { listActivity } from "@workspace/core/activity";
 import {
   acceptDocument,
   addLineItem,
@@ -119,6 +120,50 @@ describe("acceptDocument + createSuccessor", () => {
 
     const parent = await getDocumentWithLines(quote.id, orgId);
     expect(parent?.doc.status).toBe("converted");
+  });
+
+  it("writes activity events for accept and quote-to-invoice convert", async () => {
+    const quote = await createDocument(orgId, {
+      type: "quote",
+      direction: "sales",
+      entityName: "Acme",
+    });
+    await addLineItem(orgId, quote.id, {
+      description: "Widget",
+      quantity: 1,
+      unitPrice: 1000,
+    });
+
+    await acceptDocument(orgId, quote.id, { actorId: "user-test" });
+    const quoteActivity = await listActivity(orgId, {
+      entityType: "document",
+      entityId: quote.id,
+    });
+    expect(
+      quoteActivity.some((row) => row.eventType === "document_accepted")
+    ).toBe(true);
+
+    const invoice = await createSuccessor(
+      orgId,
+      quote.id,
+      { type: "invoice" },
+      { actorId: "user-test" }
+    );
+    const quoteAfterConvert = await listActivity(orgId, {
+      entityType: "document",
+      entityId: quote.id,
+    });
+    expect(
+      quoteAfterConvert.some((row) => row.eventType === "quote_converted")
+    ).toBe(true);
+
+    const invoiceActivity = await listActivity(orgId, {
+      entityType: "document",
+      entityId: invoice.doc.id,
+    });
+    expect(
+      invoiceActivity.some((row) => row.eventType === "document_created")
+    ).toBe(true);
   });
 
   it("credit-note successor reverses qty+discount so taxableBase is exact negative", async () => {

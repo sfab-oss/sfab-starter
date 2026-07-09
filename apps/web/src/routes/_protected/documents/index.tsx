@@ -53,6 +53,7 @@ import {
   documentFolioLabel,
   documentTypeLabel,
 } from "@/components/documents/document-type";
+import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
 import {
   EntityPicker,
   type EntityPickerValue,
@@ -386,11 +387,7 @@ function DocumentsPage() {
         if (row.original.type === "quote") {
           return <span className="text-muted-foreground">—</span>;
         }
-        return (
-          <span className="text-muted-foreground text-sm capitalize">
-            {row.original.paymentStatus}
-          </span>
-        );
+        return <PaymentStatusBadge status={row.original.paymentStatus} />;
       },
     },
     {

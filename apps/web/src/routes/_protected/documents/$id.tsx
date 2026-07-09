@@ -26,9 +26,11 @@ import {
   SelectValue,
 } from "@workspace/ui/components/shadcn/select";
 import {
+  formatMajorInputValue,
   formatMoneyMinor,
   majorToMinor,
   minorToMajor,
+  minorToMajorInput,
 } from "@workspace/ui/lib/money";
 import { format } from "date-fns";
 import { Plus, Trash2 } from "lucide-react";
@@ -40,6 +42,7 @@ import {
   documentTypeLabel,
   percentToBps,
 } from "@/components/documents/document-type";
+import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
 import { useSetPageContext } from "@/components/providers/page-context";
 import {
   useAcceptDocument,
@@ -92,7 +95,7 @@ function RecordPaymentForm({
   const recordPayment = useRecordPayment();
   const [method, setMethod] = useState("cash");
   const [amountMajor, setAmountMajor] = useState(
-    minorToMajor(balanceDue, currencyCode)
+    minorToMajorInput(balanceDue, currencyCode)
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -135,7 +138,7 @@ function RecordPaymentForm({
           onChange={(e) => setAmountMajor(Number(e.target.value) || 0)}
           step="0.01"
           type="number"
-          value={amountMajor}
+          value={formatMajorInputValue(amountMajor, currencyCode)}
         />
         <Button
           disabled={
@@ -212,7 +215,7 @@ function DraftLineEditor({
       ...s,
       productId,
       description: product.name,
-      unitPriceMajor: minorToMajor(product.price ?? 0, currencyCode),
+      unitPriceMajor: minorToMajorInput(product.price ?? 0, currencyCode),
     }));
   };
 
@@ -254,7 +257,10 @@ function DraftLineEditor({
               type="number"
             />
             <Input
-              defaultValue={minorToMajor(line.unitPrice, currencyCode)}
+              defaultValue={formatMajorInputValue(
+                minorToMajor(line.unitPrice, currencyCode),
+                currencyCode
+              )}
               min={0}
               onBlur={(e) => {
                 const unitPrice = majorToMinor(
@@ -355,7 +361,7 @@ function DraftLineEditor({
           placeholder="Price"
           step="0.01"
           type="number"
-          value={draft.unitPriceMajor}
+          value={formatMajorInputValue(draft.unitPriceMajor, currencyCode)}
         />
         <Input
           min={0}
@@ -439,6 +445,42 @@ function DocumentHeaderActions({
         </Button>
       )}
     </ShellHeaderActions>
+  );
+}
+
+function FrozenLineItems({
+  lines,
+  currencyCode,
+}: {
+  lines: NonNullable<ReturnType<typeof useDocument>["data"]>["lines"];
+  currencyCode: string;
+}) {
+  return (
+    <div>
+      <h3 className="mb-2 font-medium text-sm">Line items</h3>
+      <div className="divide-y rounded-lg border">
+        {lines.map((line) => (
+          <div
+            className="flex items-center gap-3 px-4 py-2 text-sm"
+            key={line.id}
+          >
+            <span className="min-w-0 flex-1 truncate">{line.description}</span>
+            <span className="text-muted-foreground tabular-nums">
+              {line.quantity} × {formatMoneyMinor(line.unitPrice, currencyCode)}
+              {line.taxRate > 0 ? ` · ${bpsToPercent(line.taxRate)}% tax` : ""}
+            </span>
+            <span className="w-24 text-right font-medium tabular-nums">
+              {formatMoneyMinor(line.unitPrice * line.quantity, currencyCode)}
+            </span>
+          </div>
+        ))}
+        {lines.length === 0 && (
+          <div className="px-4 py-6 text-center text-muted-foreground text-xs">
+            No lines yet.
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -547,6 +589,9 @@ function DocumentPage() {
                 <Badge variant={isDraft ? "secondary" : "default"}>
                   {doc.status}
                 </Badge>
+                {!isDraft && isFiscalPayable && (
+                  <PaymentStatusBadge status={doc.paymentStatus} />
+                )}
               </div>
               <p className="text-muted-foreground text-sm">
                 <DocumentEntityLabel
@@ -573,34 +618,7 @@ function DocumentPage() {
           {isDraft ? (
             <DraftLineEditor currencyCode={doc.currencyCode} docId={id} />
           ) : (
-            <div>
-              <h3 className="mb-2 font-medium text-sm">Line items</h3>
-              <div className="divide-y rounded-lg border">
-                {lines.map((line) => (
-                  <div
-                    className="flex items-center gap-3 px-4 py-2 text-sm"
-                    key={line.id}
-                  >
-                    <span className="min-w-0 flex-1 truncate">
-                      {line.description}
-                    </span>
-                    <span className="text-muted-foreground tabular-nums">
-                      {line.quantity} ×{" "}
-                      {formatMoneyMinor(line.unitPrice, doc.currencyCode)}
-                      {line.taxRate > 0
-                        ? ` · ${bpsToPercent(line.taxRate)}% tax`
-                        : ""}
-                    </span>
-                    <span className="w-24 text-right font-medium tabular-nums">
-                      {formatMoneyMinor(
-                        line.unitPrice * line.quantity,
-                        doc.currencyCode
-                      )}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <FrozenLineItems currencyCode={doc.currencyCode} lines={lines} />
           )}
         </div>
 
@@ -629,7 +647,7 @@ function DocumentPage() {
               {!isDraft && isFiscalPayable && (
                 <>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Paid</dt>
+                    <dt className="text-muted-foreground">Amount paid</dt>
                     <dd className="tabular-nums">
                       {formatMoneyMinor(doc.amountPaid, doc.currencyCode)}
                     </dd>

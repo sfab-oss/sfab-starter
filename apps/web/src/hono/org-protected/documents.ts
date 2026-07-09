@@ -105,8 +105,9 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
     zValidator("param", documentIdSchema),
     async (c) => {
       const orgId = c.get("session").activeOrganizationId;
+      const userId = c.get("session").userId;
       const { id } = c.req.valid("param");
-      return c.json(await acceptDocument(orgId, id));
+      return c.json(await acceptDocument(orgId, id, { actorId: userId }));
     }
   )
   .post(
@@ -116,9 +117,12 @@ const documentsRoute = new Hono<HonoContextWithAuthAndOrg>()
     zValidator("json", createSuccessorSchema),
     async (c) => {
       const orgId = c.get("session").activeOrganizationId;
+      const userId = c.get("session").userId;
       const { id } = c.req.valid("param");
       const body = c.req.valid("json");
-      return c.json(await createSuccessor(orgId, id, body));
+      return c.json(
+        await createSuccessor(orgId, id, body, { actorId: userId })
+      );
     }
   )
   .post(

@@ -7,7 +7,7 @@ import type {
 } from "@workspace/contract/transaction";
 import { createId, db } from "@workspace/db";
 import type { Document, DocumentType, LineItem } from "@workspace/db/schema";
-import { documents, lineItems } from "@workspace/db/schema";
+import { activityLog, documents, lineItems } from "@workspace/db/schema";
 import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { DomainError } from "../errors";
 import {
@@ -330,7 +330,8 @@ export async function removeLineItem(
  */
 export async function acceptDocument(
   orgId: string,
-  documentId: string
+  documentId: string,
+  opts?: { actorId?: string | null }
 ): Promise<Document> {
   const [doc] = await db
     .select()
@@ -400,6 +401,17 @@ export async function acceptDocument(
     );
   }
 
+  await db.insert(activityLog).values({
+    organizationId: orgId,
+    kind: "event",
+    eventType: "document_accepted",
+    entityType: "document",
+    entityId: documentId,
+    actorId: opts?.actorId ?? null,
+    summary: "Quote accepted",
+    createdAt: now,
+  });
+
   return accepted;
 }
 
@@ -446,7 +458,8 @@ function assertSuccessorAllowed(
 export async function createSuccessor(
   orgId: string,
   sourceDocumentId: string,
-  input: CreateSuccessorInput
+  input: CreateSuccessorInput,
+  opts?: { actorId?: string | null }
 ): Promise<DocumentWithLines> {
   const source = await getDocumentWithLines(sourceDocumentId, orgId);
   if (!source) {
@@ -530,6 +543,39 @@ export async function createSuccessor(
       )
     ),
   ];
+
+  if (convertingQuote) {
+    batchStmts.push(
+      db.insert(activityLog).values({
+        organizationId: orgId,
+        kind: "event",
+        eventType: "quote_converted",
+        entityType: "document",
+        entityId: parent.id,
+        actorId: opts?.actorId ?? null,
+        summary: `Quote converted to ${input.type}`,
+        metadata: { successorId },
+        createdAt: now,
+      })
+    );
+  }
+
+  batchStmts.push(
+    db.insert(activityLog).values({
+      organizationId: orgId,
+      kind: "event",
+      eventType: "document_created",
+      entityType: "document",
+      entityId: successorId,
+      actorId: opts?.actorId ?? null,
+      summary:
+        input.type === "invoice"
+          ? "Invoice draft created from quote"
+          : `${input.type} draft created`,
+      metadata: { sourceDocumentId: parent.id },
+      createdAt: now,
+    })
+  );
 
   await db.batch(batchStmts as [BatchItem, ...BatchItem[]]);
 
