@@ -44,11 +44,9 @@ import {
   useUpdateProduct,
 } from "@/hooks/use-products";
 import { getUploadUrl } from "@/lib/uploads";
-
 export const Route = createFileRoute("/_protected/catalog/$id")({
   component: ProductPage,
 });
-
 interface ProductDetailsReadOnlyProps {
   product: {
     name: string;
@@ -57,7 +55,6 @@ interface ProductDetailsReadOnlyProps {
     imageUrl: string | null;
   };
 }
-
 function ProductDetailsReadOnly({ product }: ProductDetailsReadOnlyProps) {
   return (
     <div className="space-y-4">
@@ -86,20 +83,16 @@ function ProductDetailsReadOnly({ product }: ProductDetailsReadOnlyProps) {
     </div>
   );
 }
-
 function ProductPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
   const { id: productId } = Route.useParams();
   const navigate = useNavigate();
-
   const { data: product, isLoading: isLoadingProduct } = useProduct(
     productId || ""
   );
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
-
   useSetPageContext(
     useMemo(
       () =>
@@ -109,7 +102,9 @@ function ProductPage() {
               description: product.sku,
               entityType: "product",
               entityId: product.id,
-              data: { sku: product.sku },
+              data: {
+                sku: product.sku,
+              },
             }
           : {
               title: "Product",
@@ -119,7 +114,6 @@ function ProductPage() {
       [product, productId]
     )
   );
-
   if (!productId) {
     return (
       <ShellPage>
@@ -129,20 +123,22 @@ function ProductPage() {
       </ShellPage>
     );
   }
-
   const handleUpdate = async (data: ProductFormValues) => {
     await updateProduct.mutateAsync({
       id: productId,
-      data: { ...data, price: majorToMinor(data.price, DEFAULT_CURRENCY) },
+      data: {
+        ...data,
+        price: majorToMinor(data.price, DEFAULT_CURRENCY),
+      },
     });
     setIsEditing(false);
   };
-
   const handleDelete = async () => {
     await deleteProduct.mutateAsync(productId);
-    navigate({ to: "/catalog" });
+    navigate({
+      to: "/catalog",
+    });
   };
-
   if (isLoadingProduct) {
     return (
       <ShellPage>
@@ -158,28 +154,29 @@ function ProductPage() {
       </ShellPage>
     );
   }
-
   if (!product) {
     return (
       <ShellPage>
         <div className="flex h-full flex-col items-center justify-center gap-4">
           <h2 className="font-semibold text-xl">Product not found</h2>
-          <Button asChild>
-            <Link to="/catalog">Back to Catalog</Link>
-          </Button>
+          <Button render={<Link to="/catalog" />}>Back to Catalog</Button>
         </div>
       </ShellPage>
     );
   }
-
   return (
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
           items={[
-            { title: "Catalog", href: "/catalog" },
-            { title: product.name },
+            {
+              title: "Catalog",
+              href: "/catalog",
+            },
+            {
+              title: product.name,
+            },
           ]}
         />
         <ShellHeaderActions>

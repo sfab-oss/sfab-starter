@@ -46,7 +46,6 @@ import { useChatWindow } from "@/components/chat/window/chat-window";
 function formatMessagesAsJson(messages: OrgChatMessage[]): string {
   return JSON.stringify(messages, null, 2);
 }
-
 export function ChatHeader() {
   const { messages, tabKey } = useChatWindow();
   const { organizationId } = useChatOrgConnection();
@@ -54,14 +53,12 @@ export function ChatHeader() {
   const isMobile = useIsMobile();
   const focusedTabId = useFocusedTabId(organizationId);
   const [memoryOpen, setMemoryOpen] = useState(false);
-
   const title = useChatTabsStore(
     (s) =>
       s.byOrganization[organizationId]?.tabs.find((t) => t.tabKey === tabKey)
         ?.title ?? "Chat"
   );
   const canCopy = messages.length > 0;
-
   const handleCopyMessages = useCallback(async () => {
     if (messages.length === 0) {
       toast.info("No messages to copy");
@@ -70,7 +67,6 @@ export function ChatHeader() {
     await navigator.clipboard.writeText(formatMessagesAsJson(messages));
     toast.success("Copied to clipboard");
   }, [messages]);
-
   const handleExpand = useCallback(() => {
     if (focusedTabId) {
       useChatTabsStore
@@ -78,7 +74,6 @@ export function ChatHeader() {
         .setTabSize(organizationId, focusedTabId, "fullscreen");
     }
   }, [organizationId, focusedTabId]);
-
   const handleCollapse = useCallback(() => {
     if (!isMobile && focusedTabId) {
       useChatTabsStore
@@ -86,7 +81,6 @@ export function ChatHeader() {
         .setTabSize(organizationId, focusedTabId, "popup");
     }
   }, [isMobile, organizationId, focusedTabId]);
-
   const isFilesPanelOpen = useChatTabsStore((s) => s.isFilesPanelOpen);
   const handleToggleFiles = useCallback(() => {
     const store = useChatTabsStore.getState();
@@ -96,15 +90,12 @@ export function ChatHeader() {
       store.openFilesPanel();
     }
   }, []);
-
   const handleMinimize = useCallback(() => {
     useChatTabsStore.getState().closeBody();
   }, []);
-
   const handleClose = useCallback(() => {
     useChatTabsStore.getState().closeTab(organizationId, tabKey);
   }, [tabKey, organizationId]);
-
   if (isMobile) {
     return (
       <MobileChatHeader
@@ -120,7 +111,6 @@ export function ChatHeader() {
       />
     );
   }
-
   return (
     <div className="flex h-10 shrink-0 items-center justify-between border-b px-3">
       <div className="flex items-center gap-2 overflow-hidden">
@@ -132,7 +122,7 @@ export function ChatHeader() {
           </span>
         )}
       </div>
-      <TooltipProvider delayDuration={300}>
+      <TooltipProvider delay={300}>
         <div className="flex items-center gap-0.5">
           <ChatMoreMenu
             canCopy={canCopy}
@@ -142,20 +132,22 @@ export function ChatHeader() {
           <MemoryDialog onOpenChange={setMemoryOpen} open={memoryOpen} />
           {bodyState === "fullscreen" && (
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  aria-label={isFilesPanelOpen ? "Hide files" : "Show files"}
-                  aria-pressed={isFilesPanelOpen}
-                  className={cn(
-                    "size-7",
-                    isFilesPanelOpen && "text-foreground"
-                  )}
-                  onClick={handleToggleFiles}
-                  size="icon"
-                  variant="ghost"
-                >
-                  <FolderTreeIcon className="size-3.5" />
-                </Button>
+              <TooltipTrigger
+                render={
+                  <Button
+                    aria-label={isFilesPanelOpen ? "Hide files" : "Show files"}
+                    aria-pressed={isFilesPanelOpen}
+                    className={cn(
+                      "size-7",
+                      isFilesPanelOpen && "text-foreground"
+                    )}
+                    onClick={handleToggleFiles}
+                    size="icon"
+                    variant="ghost"
+                  />
+                }
+              >
+                <FolderTreeIcon className="size-3.5" />
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 {isFilesPanelOpen ? "Hide files" : "Files"}
@@ -168,28 +160,32 @@ export function ChatHeader() {
             onExpand={handleExpand}
           />
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="size-7"
-                onClick={handleMinimize}
-                size="icon"
-                variant="ghost"
-              >
-                <MinusIcon className="size-3.5" />
-              </Button>
+            <TooltipTrigger
+              render={
+                <Button
+                  className="size-7"
+                  onClick={handleMinimize}
+                  size="icon"
+                  variant="ghost"
+                />
+              }
+            >
+              <MinusIcon className="size-3.5" />
             </TooltipTrigger>
             <TooltipContent side="bottom">Minimize to dock</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="size-7"
-                onClick={handleClose}
-                size="icon"
-                variant="ghost"
-              >
-                <XIcon className="size-3.5" />
-              </Button>
+            <TooltipTrigger
+              render={
+                <Button
+                  className="size-7"
+                  onClick={handleClose}
+                  size="icon"
+                  variant="ghost"
+                />
+              }
+            >
+              <XIcon className="size-3.5" />
             </TooltipTrigger>
             <TooltipContent side="bottom">Close chat</TooltipContent>
           </Tooltip>
@@ -198,7 +194,6 @@ export function ChatHeader() {
     </div>
   );
 }
-
 function MobileChatHeader({
   canCopy,
   isFilesPanelOpen,
@@ -222,7 +217,6 @@ function MobileChatHeader({
 }) {
   const displayTitle =
     title === "Chat" || title === "New chat" ? "ERP Assistant" : title;
-
   return (
     <header className="flex h-14 shrink-0 items-center gap-1 border-b bg-background px-1.5 pt-[env(safe-area-inset-top)]">
       <Button
@@ -253,16 +247,18 @@ function MobileChatHeader({
         <FolderTreeIcon className="size-5" />
       </Button>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            aria-label="More"
-            className="size-11 shrink-0"
-            size="icon"
-            type="button"
-            variant="ghost"
-          >
-            <MoreHorizontalIcon className="size-5" />
-          </Button>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              aria-label="More"
+              className="size-11 shrink-0"
+              size="icon"
+              type="button"
+              variant="ghost"
+            />
+          }
+        >
+          <MoreHorizontalIcon className="size-5" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={() => setMemoryOpen(true)}>
@@ -285,7 +281,6 @@ function MobileChatHeader({
     </header>
   );
 }
-
 function ChatMoreMenu({
   canCopy,
   onCopyMessages,
@@ -298,12 +293,14 @@ function ChatMoreMenu({
   return (
     <DropdownMenu>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            <Button className="size-7" size="icon" variant="ghost">
-              <MoreHorizontalIcon className="size-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
+        <TooltipTrigger
+          render={
+            <DropdownMenuTrigger
+              render={<Button className="size-7" size="icon" variant="ghost" />}
+            />
+          }
+        >
+          <MoreHorizontalIcon className="size-3.5" />
         </TooltipTrigger>
         <TooltipContent side="bottom">More</TooltipContent>
       </Tooltip>
@@ -321,7 +318,6 @@ function ChatMoreMenu({
     </DropdownMenu>
   );
 }
-
 function SizeToggleButton({
   bodyState,
   onCollapse,
@@ -334,19 +330,21 @@ function SizeToggleButton({
   const isFullscreen = bodyState === "fullscreen";
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          className="size-7"
-          onClick={isFullscreen ? onCollapse : onExpand}
-          size="icon"
-          variant="ghost"
-        >
-          {isFullscreen ? (
-            <Minimize2Icon className="size-3.5" />
-          ) : (
-            <Maximize2Icon className="size-3.5" />
-          )}
-        </Button>
+      <TooltipTrigger
+        render={
+          <Button
+            className="size-7"
+            onClick={isFullscreen ? onCollapse : onExpand}
+            size="icon"
+            variant="ghost"
+          />
+        }
+      >
+        {isFullscreen ? (
+          <Minimize2Icon className="size-3.5" />
+        ) : (
+          <Maximize2Icon className="size-3.5" />
+        )}
       </TooltipTrigger>
       <TooltipContent side="bottom">
         {isFullscreen ? "Restore size" : "Expand"}

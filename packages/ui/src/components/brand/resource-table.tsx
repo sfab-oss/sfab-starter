@@ -18,14 +18,12 @@ import {
 import type { TableFilterDefinition } from "@workspace/ui/lib/table-filter-types";
 import { cn } from "@workspace/ui/lib/utils";
 import { MoreHorizontal } from "lucide-react";
-
 export interface ResourceTableRowAction<TData> {
   label: string;
   onSelect: (row: TData) => void;
   disabled?: boolean;
   disabledReason?: string;
 }
-
 export interface ResourceTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -53,7 +51,6 @@ export interface ResourceTableProps<TData, TValue> {
   /** Rich empty UI — keeps the filter toolbar visible on server-driven lists. */
   collectionEmpty?: React.ReactNode;
 }
-
 export function ResourceTable<TData, TValue>({
   columns,
   data,
@@ -79,7 +76,6 @@ export function ResourceTable<TData, TValue>({
   collectionEmpty,
 }: ResourceTableProps<TData, TValue>) {
   const hasActions = rowPrimaryAction || rowMenuActions;
-
   const actionColumn: ColumnDef<TData, TValue> = {
     id: "actions",
     enableSorting: false,
@@ -88,11 +84,9 @@ export function ResourceTable<TData, TValue>({
     cell: ({ row }) => {
       const primary = rowPrimaryAction?.(row.original) ?? null;
       const menu = rowMenuActions?.(row.original) ?? [];
-
       if (!primary && menu.length === 0) {
         return null;
       }
-
       return (
         <div className="flex items-center justify-end gap-1">
           {primary ? (
@@ -109,11 +103,17 @@ export function ResourceTable<TData, TValue>({
           ) : null}
           {menu.length > 0 ? (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="size-8 p-0" type="button" variant="ghost">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="size-4" />
-                </Button>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    className="size-8 p-0"
+                    type="button"
+                    variant="ghost"
+                  />
+                }
+              >
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {menu.map((action) => (
@@ -133,9 +133,7 @@ export function ResourceTable<TData, TValue>({
       );
     },
   };
-
   const allColumns = hasActions ? [...columns, actionColumn] : columns;
-
   return (
     <div
       className={cn(

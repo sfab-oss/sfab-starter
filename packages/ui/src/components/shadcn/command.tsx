@@ -54,8 +54,11 @@ function CommandDialog({
         className={cn("overflow-hidden rounded-xl! p-0 sm:max-w-lg", className)}
         showCloseButton={showCloseButton}
       >
-        <Command className="bg-transparent" shouldFilter={shouldFilter}>
-          {children}
+        <Command
+          className="bg-transparent **:data-[slot=dialog-close]:hidden"
+          shouldFilter={shouldFilter}
+        >
+          {children as React.ReactNode}
         </Command>
       </DialogContent>
     </Dialog>

@@ -14,11 +14,9 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useCreateEntity } from "@/hooks/use-entities";
 import { EntityForm, type EntityFormValues } from "./entity-form";
-
 export function CreateEntityDialog() {
   const [open, setOpen] = useState(false);
   const createEntity = useCreateEntity();
-
   const onSubmit = async (data: EntityFormValues) => {
     await createEntity.mutateAsync({
       name: data.name,
@@ -27,14 +25,11 @@ export function CreateEntityDialog() {
     });
     setOpen(false);
   };
-
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <DialogTrigger asChild>
-        <Button size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Entity
-        </Button>
+      <DialogTrigger render={<Button size="sm" />}>
+        <Plus className="mr-2 h-4 w-4" />
+        Add Entity
       </DialogTrigger>
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>

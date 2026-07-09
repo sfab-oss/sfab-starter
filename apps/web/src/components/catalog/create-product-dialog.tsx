@@ -15,11 +15,9 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useCreateProduct } from "@/hooks/use-products";
 import { ProductForm, type ProductFormValues } from "./product-form";
-
 export function CreateProductDialog() {
   const [open, setOpen] = useState(false);
   const createProduct = useCreateProduct();
-
   const onSubmit = async (data: ProductFormValues) => {
     await createProduct.mutateAsync({
       ...data,
@@ -27,14 +25,11 @@ export function CreateProductDialog() {
     });
     setOpen(false);
   };
-
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <DialogTrigger asChild>
-        <Button size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Product
-        </Button>
+      <DialogTrigger render={<Button size="sm" />}>
+        <Plus className="mr-2 h-4 w-4" />
+        Add Product
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>

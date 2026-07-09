@@ -135,7 +135,14 @@ export function PreviewStateDock({
         >
           <GripVertical className="size-4" />
         </button>
-        <Select onValueChange={onValueChange} value={value}>
+        <Select
+          onValueChange={(next) => {
+            if (next != null) {
+              onValueChange(next);
+            }
+          }}
+          value={value}
+        >
           <SelectTrigger
             aria-label={label}
             className="w-[6.5rem] border-0 bg-transparent shadow-none focus-visible:ring-0"

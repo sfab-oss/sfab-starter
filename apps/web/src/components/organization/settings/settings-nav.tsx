@@ -20,25 +20,21 @@ import {
 } from "@workspace/ui/components/shadcn/sidebar";
 import { Menu } from "lucide-react";
 import { useState } from "react";
-
 export interface SettingsNavItem {
   label: string;
   to: string;
 }
-
 export interface SettingsNavSection {
   items: SettingsNavItem[];
   /** Omitted for top-level nouns that aren't grouped under a heading. */
   label?: string;
 }
-
 export function isSettingsItemActive(
   pathname: string,
   item: SettingsNavItem
 ): boolean {
   return pathname === item.to || pathname.startsWith(`${item.to}/`);
 }
-
 export function findActiveSettingsItem(
   pathname: string,
   sections: SettingsNavSection[]
@@ -52,7 +48,6 @@ export function findActiveSettingsItem(
   }
   return null;
 }
-
 export function SettingsNav({
   onNavigate,
   sections,
@@ -60,8 +55,9 @@ export function SettingsNav({
   onNavigate?: () => void;
   sections: SettingsNavSection[];
 }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-
+  const pathname = useRouterState({
+    select: (s) => s.location.pathname,
+  });
   return (
     <>
       {sections.map((section) => (
@@ -75,10 +71,11 @@ export function SettingsNav({
                 const isActive = isSettingsItemActive(pathname, item);
                 return (
                   <SidebarMenuItem key={item.to + item.label}>
-                    <SidebarMenuButton asChild isActive={isActive}>
-                      <Link onClick={onNavigate} to={item.to}>
-                        <span>{item.label}</span>
-                      </Link>
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      render={<Link onClick={onNavigate} to={item.to} />}
+                    >
+                      <span>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -90,7 +87,6 @@ export function SettingsNav({
     </>
   );
 }
-
 export function SettingsMobileSectionTrigger({
   mobileTitle = "Settings",
   sections,
@@ -99,9 +95,10 @@ export function SettingsMobileSectionTrigger({
   sections: SettingsNavSection[];
 }) {
   const [open, setOpen] = useState(false);
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({
+    select: (s) => s.location.pathname,
+  });
   const active = findActiveSettingsItem(pathname, sections);
-
   return (
     <Drawer onOpenChange={setOpen} open={open}>
       <DrawerTrigger asChild>
@@ -126,7 +123,6 @@ export function SettingsMobileSectionTrigger({
     </Drawer>
   );
 }
-
 export function SettingsSectionLayout({
   children,
   mobileTitle = "Settings",

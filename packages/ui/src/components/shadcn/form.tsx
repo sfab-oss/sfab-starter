@@ -1,8 +1,9 @@
 "use client";
 
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import { Label } from "@workspace/ui/components/shadcn/label";
 import { cn } from "@workspace/ui/lib/utils";
-import { type Label as LabelPrimitive, Slot as SlotPrimitive } from "radix-ui";
 // biome-ignore lint/performance/noNamespaceImport: Ok
 import * as React from "react";
 import {
@@ -86,10 +87,7 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function FormLabel({
-  className,
-  ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+function FormLabel({ className, ...props }: React.ComponentProps<"label">) {
   const { error, formItemId } = useFormField();
 
   return (
@@ -104,22 +102,31 @@ function FormLabel({
 }
 
 function FormControl({
+  className,
+  render,
   ...props
-}: React.ComponentProps<typeof SlotPrimitive.Slot>) {
+}: useRender.ComponentProps<"div">) {
   const { error, formItemId, formDescriptionId, formMessageId } =
     useFormField();
 
-  return (
-    <SlotPrimitive.Slot
-      aria-describedby={
-        error ? `${formDescriptionId} ${formMessageId}` : `${formDescriptionId}`
-      }
-      aria-invalid={!!error}
-      data-slot="form-control"
-      id={formItemId}
-      {...props}
-    />
-  );
+  return useRender({
+    defaultTagName: "div",
+    props: mergeProps<"div">(
+      {
+        id: formItemId,
+        "aria-describedby": error
+          ? `${formDescriptionId} ${formMessageId}`
+          : `${formDescriptionId}`,
+        "aria-invalid": !!error,
+        className,
+      },
+      props
+    ),
+    render,
+    state: {
+      slot: "form-control",
+    },
+  });
 }
 
 function FormDescription({ className, ...props }: React.ComponentProps<"p">) {

@@ -16,54 +16,66 @@ import {
   type SettingsNavSection,
   SettingsSectionLayout,
 } from "@/components/organization/settings/settings-nav";
-
 export const Route = createFileRoute("/_protected/settings")({
   component: SettingsLayout,
 });
-
 const ORGANIZATION_SETTINGS_SECTIONS: SettingsNavSection[] = [
   {
     label: "Organization",
     items: [
-      { to: "/settings/general", label: "General" },
-      { to: "/settings/members", label: "Members" },
+      {
+        to: "/settings/general",
+        label: "General",
+      },
+      {
+        to: "/settings/members",
+        label: "Members",
+      },
     ],
   },
 ];
-
 function SettingsLayout() {
   const { data: activeOrganization, isPending } =
     authClient.useActiveOrganization();
-
   if (isPending) {
     return <SettingsSkeleton />;
   }
-
   if (!activeOrganization) {
     return (
       <ShellPage>
         <ShellHeader>
           <ShellHeaderSidebarTrigger className="-ml-1" />
-          <AppBreadcrumbs items={[{ title: "Settings" }]} />
+          <AppBreadcrumbs
+            items={[
+              {
+                title: "Settings",
+              },
+            ]}
+          />
           <ShellHeaderActions />
         </ShellHeader>
         <ShellContent>
           <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
             <p className="text-muted-foreground">No active organization</p>
-            <Button asChild>
-              <Link to="/onboarding">Create an organization</Link>
+            <Button render={<Link to="/onboarding" />}>
+              Create an organization
             </Button>
           </div>
         </ShellContent>
       </ShellPage>
     );
   }
-
   return (
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
-        <AppBreadcrumbs items={[{ title: "Settings" }]} />
+        <AppBreadcrumbs
+          items={[
+            {
+              title: "Settings",
+            },
+          ]}
+        />
         <ShellHeaderActions />
       </ShellHeader>
 
@@ -75,13 +87,18 @@ function SettingsLayout() {
     </ShellPage>
   );
 }
-
 function SettingsSkeleton() {
   return (
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
-        <AppBreadcrumbs items={[{ title: "Settings" }]} />
+        <AppBreadcrumbs
+          items={[
+            {
+              title: "Settings",
+            },
+          ]}
+        />
         <ShellHeaderActions />
       </ShellHeader>
       <ShellContent>

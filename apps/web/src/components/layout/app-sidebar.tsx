@@ -23,10 +23,8 @@ import {
   platformNavigationItems,
 } from "@/components/layout/platform-navigation";
 import { SearchCommand } from "@/components/search/search-command";
-
 export function AppSidebar() {
   const [searchOpen, setSearchOpen] = useState(false);
-
   return (
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader>
@@ -90,7 +88,6 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-
 function useCloseMobileSidebarOnNavigate() {
   const { isMobile, setOpenMobile } = useSidebar();
   return () => {
@@ -99,11 +96,11 @@ function useCloseMobileSidebarOnNavigate() {
     }
   };
 }
-
 export function AppSidebarMainNavigation() {
   const closeOnNavigate = useCloseMobileSidebarOnNavigate();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-
+  const pathname = useRouterState({
+    select: (s) => s.location.pathname,
+  });
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -113,14 +110,12 @@ export function AppSidebarMainNavigation() {
           return (
             <SidebarMenuItem key={`${item.title}-${item.url}`}>
               <SidebarMenuButton
-                asChild
                 isActive={isActive}
+                render={<Link onClick={closeOnNavigate} to={item.url} />}
                 tooltip={item.title}
               >
-                <Link onClick={closeOnNavigate} to={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </Link>
+                <item.icon />
+                <span>{item.title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           );

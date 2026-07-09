@@ -41,14 +41,12 @@ import {
 import { GalleryChatInput } from "./chat-input";
 import { ChatMessageRow } from "./chat-message-parts";
 import { ChatSidePanel } from "./chat-side-panel";
-
 export function FullScreenChat() {
   const [messages, setMessages] = useState(MOCK_CHAT_MESSAGES);
   const [status, setStatus] = useState<ChatStatus>("ready");
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
     null
   );
-
   const {
     panelOpen,
     tabs,
@@ -60,7 +58,6 @@ export function FullScreenChat() {
     closeTab,
     setActiveTabId,
   } = useChatSidePanel();
-
   const handleSubmit = useCallback(
     async (message: PromptInputMessage) => {
       const text = message.text.trim();
@@ -68,7 +65,6 @@ export function FullScreenChat() {
       if (!(text || hasAttachments)) {
         return;
       }
-
       const userMessage: GalleryChatMessage = {
         id: crypto.randomUUID(),
         role: "user",
@@ -79,25 +75,19 @@ export function FullScreenChat() {
           },
         ],
       };
-
       setMessages((current) => [...current, userMessage]);
       setStatus("submitted");
-
       await new Promise((resolve) => setTimeout(resolve, 400));
-
       const assistantMessage = createMockAssistantReply(messages.length);
       setStreamingMessageId(assistantMessage.id);
       setMessages((current) => [...current, assistantMessage]);
       setStatus("streaming");
-
       await new Promise((resolve) => setTimeout(resolve, 900));
-
       setStreamingMessageId(null);
       setStatus("ready");
     },
     [messages.length]
   );
-
   const handleCopyConversation = useCallback(() => {
     const text = messages
       .map((message) => {
@@ -110,13 +100,11 @@ export function FullScreenChat() {
       .join("\n\n");
     navigator.clipboard.writeText(text).catch(() => undefined);
   }, [messages]);
-
   const handleDeleteConversation = useCallback(() => {
     setMessages([]);
     setStreamingMessageId(null);
     setStatus("ready");
   }, []);
-
   return (
     <div
       className="@container flex h-full min-h-0 flex-col bg-background"
@@ -144,16 +132,18 @@ export function FullScreenChat() {
                 · Open balances
               </span>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    className="size-7 shrink-0"
-                    size="icon"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <MoreHorizontalIcon className="size-3.5" />
-                    <span className="sr-only">More actions</span>
-                  </Button>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      className="size-7 shrink-0"
+                      size="icon"
+                      type="button"
+                      variant="ghost"
+                    />
+                  }
+                >
+                  <MoreHorizontalIcon className="size-3.5" />
+                  <span className="sr-only">More actions</span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuItem onClick={handleCopyConversation}>

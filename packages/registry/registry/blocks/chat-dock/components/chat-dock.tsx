@@ -85,7 +85,6 @@ const MAX_VISIBLE_PILLS = 4;
 export function ChatDock() {
   const dock = useChatDock();
   const isMobile = useIsMobile();
-
   if (isMobile) {
     return <MobileDock dock={dock} />;
   }
@@ -98,7 +97,6 @@ export function ChatDock() {
  */
 function DesktopDock({ dock }: { dock: Dock }) {
   const focused = dock.focusedChat;
-
   return (
     <>
       <DockBar dock={dock} />
@@ -111,7 +109,6 @@ function DesktopDock({ dock }: { dock: Dock }) {
     </>
   );
 }
-
 function DockBar({ dock }: { dock: Dock }) {
   // In-flow footer row: it lives in the shell's `ShellFooter` slot, below and
   // OUTSIDE the rounded inset panel — not a fixed overlay. The focused chat
@@ -124,7 +121,6 @@ function DockBar({ dock }: { dock: Dock }) {
     Math.max(0, dock.openChats.length - MAX_VISIBLE_PILLS)
   );
   const visible = dock.openChats.slice(-MAX_VISIBLE_PILLS);
-
   return (
     <div className="flex h-12 w-full items-center justify-end gap-2 px-3 md:px-4">
       <div className="flex min-w-0 items-center gap-1.5">
@@ -147,10 +143,8 @@ function DockBar({ dock }: { dock: Dock }) {
     </div>
   );
 }
-
 function ChatPill({ chat, dock }: { chat: MockChat; dock: Dock }) {
   const isFocused = dock.focusedId === chat.id;
-
   return (
     <div className="group/pill relative shrink-0">
       <button
@@ -177,18 +171,19 @@ function ChatPill({ chat, dock }: { chat: MockChat; dock: Dock }) {
     </div>
   );
 }
-
 function OverflowMenu({ chats, dock }: { chats: MockChat[]; dock: Dock }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          className="h-8 shrink-0 rounded-full px-3 text-muted-foreground shadow-sm"
-          type="button"
-          variant="outline"
-        >
-          +{chats.length}
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            className="h-8 shrink-0 rounded-full px-3 text-muted-foreground shadow-sm"
+            type="button"
+            variant="outline"
+          />
+        }
+      >
+        +{chats.length}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56" side="top">
         {chats.map((chat) => (
@@ -217,20 +212,21 @@ function OverflowMenu({ chats, dock }: { chats: MockChat[]; dock: Dock }) {
     </DropdownMenu>
   );
 }
-
 function HistoryButton({ dock }: { dock: Dock }) {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          aria-label="Chat history"
-          className="size-8 shrink-0 rounded-full shadow-sm"
-          size="icon"
-          type="button"
-          variant="outline"
-        >
-          <HistoryIcon className="size-4" />
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            aria-label="Chat history"
+            className="size-8 shrink-0 rounded-full shadow-sm"
+            size="icon"
+            type="button"
+            variant="outline"
+          />
+        }
+      >
+        <HistoryIcon className="size-4" />
       </PopoverTrigger>
       <PopoverContent
         align="end"
@@ -248,12 +244,10 @@ function HistoryButton({ dock }: { dock: Dock }) {
     </Popover>
   );
 }
-
 interface PanelChromeProps {
   chat: MockChat;
   dock: Dock;
 }
-
 function DockConversation({
   messages,
   status,
@@ -287,7 +281,6 @@ function DockConversation({
     </>
   );
 }
-
 function EmptyConversation() {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-2 py-10 text-center">
@@ -300,20 +293,21 @@ function EmptyConversation() {
     </div>
   );
 }
-
 function PanelMenu({ chat, dock }: PanelChromeProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          className="size-7 shrink-0"
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          <MoreHorizontalIcon className="size-3.5" />
-          <span className="sr-only">More actions</span>
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            className="size-7 shrink-0"
+            size="icon"
+            type="button"
+            variant="ghost"
+          />
+        }
+      >
+        <MoreHorizontalIcon className="size-3.5" />
+        <span className="sr-only">More actions</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem onClick={() => dock.copyConversation(chat.id)}>
@@ -332,7 +326,6 @@ function PanelMenu({ chat, dock }: PanelChromeProps) {
     </DropdownMenu>
   );
 }
-
 function IconButton({
   icon: Icon,
   label,
@@ -355,12 +348,13 @@ function IconButton({
     </Button>
   );
 }
-
 function PanelHeader({
   chat,
   dock,
   actions,
-}: PanelChromeProps & { actions: React.ReactNode }) {
+}: PanelChromeProps & {
+  actions: React.ReactNode;
+}) {
   return (
     <header className="flex h-11 items-center gap-2 border-b bg-background px-3">
       <BotIcon className="size-4 shrink-0 text-muted-foreground" />
@@ -372,7 +366,6 @@ function PanelHeader({
     </header>
   );
 }
-
 function CompactWindow({ chat, dock }: PanelChromeProps) {
   // Fixed to the bottom-right corner, above the footer bar (h-12). It stays put
   // regardless of which pill is focused or how many pills are open — switching
@@ -409,7 +402,6 @@ function CompactWindow({ chat, dock }: PanelChromeProps) {
     </div>
   );
 }
-
 function BigWindow({ chat, dock }: PanelChromeProps) {
   const {
     panelOpen,
@@ -421,7 +413,6 @@ function BigWindow({ chat, dock }: PanelChromeProps) {
     closeTab,
     setActiveTabId,
   } = useChatSidePanel();
-
   return (
     <>
       <button
@@ -494,7 +485,6 @@ function BigWindow({ chat, dock }: PanelChromeProps) {
     </>
   );
 }
-
 function ClosedPanelRail({ onOpenFiles }: { onOpenFiles: () => void }) {
   return (
     <div className="flex flex-col items-center gap-1 border-l bg-muted/10 px-1.5 py-2">
@@ -527,7 +517,6 @@ function MobileDock({ dock }: { dock: Dock }) {
     </>
   );
 }
-
 function MobileLauncher({ dock }: { dock: Dock }) {
   // Most people keep a single main chat going, so surface the most recently
   // opened one right in the row for a one-tap reopen. The chats drawer only
@@ -536,7 +525,6 @@ function MobileLauncher({ dock }: { dock: Dock }) {
   const openChats = dock.openChats;
   const recent = openChats.at(-1) ?? null;
   const hasOthers = openChats.length > 1;
-
   return (
     <div className="flex w-full items-center gap-2 px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
       {hasOthers ? <MobileChatsButton dock={dock} /> : null}
@@ -576,13 +564,11 @@ function MobileLauncher({ dock }: { dock: Dock }) {
     </div>
   );
 }
-
 function MobileChatsButton({ dock }: { dock: Dock }) {
   const [open, setOpen] = useState(false);
   const count = dock.openChats.length;
   // Newest first — the most recently opened chats sit at the top of the list.
   const chats = [...dock.openChats].reverse();
-
   return (
     <Drawer onOpenChange={setOpen} open={open}>
       <DrawerTrigger asChild>
@@ -628,7 +614,6 @@ function MobileChatsButton({ dock }: { dock: Dock }) {
     </Drawer>
   );
 }
-
 function MobileChatRow({
   chat,
   dock,
@@ -666,7 +651,6 @@ function MobileChatRow({
     </div>
   );
 }
-
 function MobileHistoryButton({ dock }: { dock: Dock }) {
   const [open, setOpen] = useState(false);
   return (
@@ -701,10 +685,8 @@ function MobileHistoryButton({ dock }: { dock: Dock }) {
     </Drawer>
   );
 }
-
 function MobileChatSheet({ chat, dock }: PanelChromeProps) {
   const [filesOpen, setFilesOpen] = useState(false);
-
   return (
     <>
       <Sheet
@@ -717,7 +699,7 @@ function MobileChatSheet({ chat, dock }: PanelChromeProps) {
       >
         <SheetContent
           className="inset-0 flex h-dvh max-h-dvh w-full flex-col gap-0 rounded-none border-0 p-0 sm:max-w-none"
-          onOpenAutoFocus={(event) => event.preventDefault()}
+          initialFocus={false}
           showCloseButton={false}
           side="bottom"
         >
@@ -743,12 +725,13 @@ function MobileChatSheet({ chat, dock }: PanelChromeProps) {
     </>
   );
 }
-
 function MobileChatHeader({
   chat,
   dock,
   onOpenFiles,
-}: PanelChromeProps & { onOpenFiles: () => void }) {
+}: PanelChromeProps & {
+  onOpenFiles: () => void;
+}) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-1 border-b bg-background px-1.5 pt-[env(safe-area-inset-top)]">
       <Button
@@ -778,7 +761,6 @@ function MobileChatHeader({
     </header>
   );
 }
-
 function MobileFilesSheet({
   open,
   onOpenChange,
@@ -794,7 +776,6 @@ function MobileFilesSheet({
     closeTab,
     setActiveTabId,
   } = useChatSidePanel("files");
-
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent

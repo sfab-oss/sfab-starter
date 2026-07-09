@@ -12,7 +12,6 @@ import { Suspense } from "react";
  */
 export function ComponentPreview({ name }: { name: string }) {
   const entry = getEntry(name);
-
   if (!entry) {
     return (
       <div className="not-prose rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-destructive text-sm">
@@ -20,32 +19,32 @@ export function ComponentPreview({ name }: { name: string }) {
       </div>
     );
   }
-
   const Demo = entry.component;
-
   return (
     <div className="not-prose overflow-hidden rounded-xl border">
       <div className="flex items-center gap-2 border-b bg-muted/30 px-3 py-1.5">
         <span className="font-medium text-sm">{entry.title ?? entry.name}</span>
         <Button
-          asChild
           className="ml-auto size-7 rounded-sm p-0"
+          render={
+            <a
+              href={`/view/${entry.name}`}
+              rel="noreferrer"
+              target="_blank"
+              title="Open full screen"
+            >
+              <span className="sr-only">Open full screen</span>
+            </a>
+          }
           size="icon"
           variant="ghost"
         >
-          <a
-            href={`/view/${entry.name}`}
-            rel="noreferrer"
-            target="_blank"
-            title="Open full screen"
-          >
-            <Fullscreen className="size-4" />
-            <span className="sr-only">Open full screen</span>
-          </a>
+          <Fullscreen className="size-4" />
+          <span className="sr-only">Open full screen</span>
         </Button>
       </div>
       <div className="flex min-h-56 items-center justify-center p-10">
-        <TooltipProvider delayDuration={0}>
+        <TooltipProvider delay={0}>
           <Suspense fallback={null}>
             <Demo />
           </Suspense>

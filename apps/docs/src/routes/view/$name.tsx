@@ -35,31 +35,34 @@ export const Route = createFileRoute("/view/$name")({
   beforeLoad: ({ params }) => {
     const target = LEGACY_VIEW_REDIRECTS[params.name];
     if (target) {
-      throw redirect({ to: "/view/$name", params: { name: target } });
+      throw redirect({
+        to: "/view/$name",
+        params: {
+          name: target,
+        },
+      });
     }
   },
   loader: ({ params }) => {
     if (!getEntry(params.name)) {
       throw notFound();
     }
-    return { name: params.name };
+    return {
+      name: params.name,
+    };
   },
   component: ViewBlock,
   notFoundComponent: BlockNotFound,
 });
-
 function ViewBlock() {
   const { name } = Route.useLoaderData();
   const entry = getEntry(name);
-
   if (!entry) {
     return <BlockNotFound />;
   }
-
   const Preview = entry.component;
-
   return (
-    <TooltipProvider delayDuration={0}>
+    <TooltipProvider delay={0}>
       <Suspense fallback={null}>
         <Preview />
       </Suspense>

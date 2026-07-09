@@ -121,7 +121,14 @@ function RecordPaymentForm({
         exceed balance due.
       </p>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Select onValueChange={setMethod} value={method}>
+        <Select
+          onValueChange={(value) => {
+            if (value != null) {
+              setMethod(value);
+            }
+          }}
+          value={method}
+        >
           <SelectTrigger className="w-full sm:w-32">
             <SelectValue />
           </SelectTrigger>
@@ -318,7 +325,11 @@ function DraftLineEditor({
         onSubmit={handleAdd}
       >
         <Select
-          onValueChange={pickProduct}
+          onValueChange={(value) => {
+            if (value != null) {
+              pickProduct(value);
+            }
+          }}
           value={draft.productId || undefined}
         >
           <SelectTrigger>
@@ -679,11 +690,14 @@ function DocumentPage() {
               <div className="space-y-2 rounded-lg border p-4">
                 <h3 className="font-medium text-sm">Disposition</h3>
                 <Select
-                  onValueChange={(v) =>
+                  onValueChange={(v) => {
+                    if (v == null) {
+                      return;
+                    }
                     setDisposition(
                       v as "cash_refund" | "store_credit" | "apply_to_document"
-                    )
-                  }
+                    );
+                  }}
                   value={disposition}
                 >
                   <SelectTrigger>

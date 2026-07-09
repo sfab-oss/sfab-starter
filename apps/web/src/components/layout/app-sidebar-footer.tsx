@@ -44,7 +44,6 @@ function SidebarFooterSkeleton() {
     </SidebarMenu>
   );
 }
-
 function SidebarFooterError() {
   return (
     <SidebarMenu>
@@ -66,12 +65,10 @@ function SidebarFooterError() {
     </SidebarMenu>
   );
 }
-
 export function AppSidebarFooter() {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
   const {
     data: session,
     isPending: isSessionPending,
@@ -83,22 +80,23 @@ export function AppSidebarFooter() {
     refetch: refetchActiveOrganization,
     isPending: isOrgPending,
   } = authClient.useActiveOrganization();
-
   const user = session?.user;
   const isPending = isSessionPending || isOrgPending;
-
   const { mutate: setActiveOrganization } = useMutation({
     mutationFn: async (organizationId: string) => {
       await authClient.organization.setActive({
         organizationId,
       });
-      return { organizationId };
+      return {
+        organizationId,
+      };
     },
     onSuccess: ({ organizationId }) => {
       toast.success("Organization set as active");
-      navigate({ to: "/" });
+      navigate({
+        to: "/",
+      });
       refetchActiveOrganization();
-
       queryClient.invalidateQueries({
         predicate: (query) => {
           const queryKey = query.queryKey;
@@ -109,7 +107,6 @@ export function AppSidebarFooter() {
           );
         },
       });
-
       queryClient.invalidateQueries({
         predicate: (query) => {
           const queryKey = query.queryKey;
@@ -125,47 +122,47 @@ export function AppSidebarFooter() {
       });
     },
   });
-
   const handleSignOut = async () => {
     await authClient.signOut();
-    navigate({ to: "/login" });
+    navigate({
+      to: "/login",
+    });
   };
-
   if (isPending) {
     return <SidebarFooterSkeleton />;
   }
-
   if (error || !user) {
     return <SidebarFooterError />;
   }
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              size="lg"
-            >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage
-                  alt={activeOrganization?.name ?? "Organization"}
-                  src={activeOrganization?.logo ?? undefined}
-                />
-                <AvatarFallback className="rounded-lg">
-                  {activeOrganization?.name?.substring(0, 2).toUpperCase() ??
-                    "??"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  {activeOrganization?.name ?? "No Organization"}
-                </span>
-                <span className="truncate text-xs">{user.email}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
-            </SidebarMenuButton>
+          <DropdownMenuTrigger
+            render={
+              <SidebarMenuButton
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                size="lg"
+              />
+            }
+          >
+            <Avatar className="h-8 w-8 rounded-lg">
+              <AvatarImage
+                alt={activeOrganization?.name ?? "Organization"}
+                src={activeOrganization?.logo ?? undefined}
+              />
+              <AvatarFallback className="rounded-lg">
+                {activeOrganization?.name?.substring(0, 2).toUpperCase() ??
+                  "??"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold">
+                {activeOrganization?.name ?? "No Organization"}
+              </span>
+              <span className="truncate text-xs">{user.email}</span>
+            </div>
+            <ChevronsUpDown className="ml-auto size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
@@ -194,7 +191,11 @@ export function AppSidebarFooter() {
               ))}
               <DropdownMenuItem
                 className="gap-2 p-2"
-                onClick={() => navigate({ to: "/onboarding" })}
+                onClick={() =>
+                  navigate({
+                    to: "/onboarding",
+                  })
+                }
               >
                 <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                   <Plus className="size-4" />
