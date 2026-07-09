@@ -21,10 +21,13 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (2)
+## assigned (1)
+
+- [`ALW-423`](./ALW-423.md) — QA: shell, navigation & command-K palette (desktop + mobile)
+
+## review (1)
 
 - [`ALW-429`](./ALW-429.md) — Command-K palette: wire real global search (pages + catalog + documents)
-- [`ALW-423`](./ALW-423.md) — QA: shell, navigation & command-K palette (desktop + mobile)
 
 ## merged (26)
 
