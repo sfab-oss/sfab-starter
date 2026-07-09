@@ -33,7 +33,10 @@ export const getEntitiesListKey = (params: EntitiesListParams) => [
 ];
 export const getEntityKey = (id: string) => ["entities", id];
 
-export const useEntities = (params: EntitiesListParams) => {
+export const useEntities = (
+  params: EntitiesListParams,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: getEntitiesListKey(params),
     queryFn: async () => {
@@ -51,6 +54,7 @@ export const useEntities = (params: EntitiesListParams) => {
       return res.json();
     },
     placeholderData: keepPreviousData,
+    enabled: options?.enabled ?? true,
   });
 };
 
