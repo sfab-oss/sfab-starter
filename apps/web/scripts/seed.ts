@@ -11,8 +11,8 @@
  * writes to. It talks to the raw D1 binding with plain SQL rather than Drizzle:
  * the `@workspace/db` client is bound to `cloudflare:workers` (unavailable in
  * Node), and loading Drizzle's schema across the tsx package boundary tripped
- * on mismatched internal module identity. Four `INSERT OR IGNORE`s don't need
- * an ORM. Password hashing uses better-auth's own `hashPassword` (the same
+ * on mismatched internal module identity. Plain SQL `INSERT OR IGNORE`s don't
+ * need an ORM. Password hashing uses better-auth's own `hashPassword` (the same
  * scrypt params its sign-in path verifies against), imported from the env-free
  * `better-auth/crypto` ESM entry.
  *
@@ -58,11 +58,63 @@ const DEMO_ENTITIES = [
   },
 ] as const;
 
+const DEMO_PRODUCTS = [
+  {
+    id: "seed-prod-widget",
+    name: "Artisan Widget",
+    sku: "WDG-001",
+    price: 1999,
+    cost: 800,
+  },
+  {
+    id: "seed-prod-mug",
+    name: "Ceramic Mug",
+    sku: "MUG-100",
+    price: 1299,
+    cost: 400,
+  },
+  {
+    id: "seed-prod-syrup",
+    name: "Espresso Syrup",
+    sku: "SYR-ESP",
+    price: 899,
+    cost: 250,
+  },
+] as const;
+
+const DEMO_DOCUMENTS = [
+  {
+    id: "seed-doc-quote-acme",
+    type: "quote",
+    family: "commercial",
+    direction: "sales",
+    status: "draft",
+    entityId: "seed-ent-acme",
+    entityName: "Acme Retail",
+    series: "Q",
+    folio: 1001,
+    total: 5000,
+  },
+  {
+    id: "seed-doc-invoice-contoso",
+    type: "invoice",
+    family: "fiscal",
+    direction: "sales",
+    status: "finalized",
+    entityId: "seed-ent-contoso",
+    entityName: "Contoso Cafe",
+    series: "INV",
+    folio: 2042,
+    total: 12_500,
+  },
+] as const;
+
 async function main() {
   const { env, dispose } = await getPlatformProxy();
   try {
     const db = (env as { DB: D1Database }).DB;
     const now = Date.now(); // integer timestamp_ms columns
+    const nowIso = new Date(now).toISOString();
     const passwordHash = await hashPassword(DEMO_PASSWORD);
 
     await db.batch([
@@ -106,8 +158,45 @@ async function main() {
             DEMO_ORG_ID,
             entity.name,
             entity.type,
-            new Date(now).toISOString(),
-            new Date(now).toISOString()
+            nowIso,
+            nowIso
+          )
+      ),
+      ...DEMO_PRODUCTS.map((product) =>
+        db
+          .prepare(
+            "INSERT OR IGNORE INTO products (id, organization_id, sku, name, price, cost, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+          )
+          .bind(
+            product.id,
+            DEMO_ORG_ID,
+            product.sku,
+            product.name,
+            product.price,
+            product.cost,
+            nowIso,
+            nowIso
+          )
+      ),
+      ...DEMO_DOCUMENTS.map((doc) =>
+        db
+          .prepare(
+            "INSERT OR IGNORE INTO documents (id, organization_id, type, family, direction, status, entity_id, entity_name, total, series, folio, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+          )
+          .bind(
+            doc.id,
+            DEMO_ORG_ID,
+            doc.type,
+            doc.family,
+            doc.direction,
+            doc.status,
+            doc.entityId,
+            doc.entityName,
+            doc.total,
+            doc.series,
+            doc.folio,
+            nowIso,
+            nowIso
           )
       ),
     ]);
