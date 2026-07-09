@@ -15,52 +15,14 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@workspace/ui/components/shadcn/sidebar";
-import {
-  FileText,
-  Home,
-  type LucideIcon,
-  Package,
-  Search,
-  Settings,
-  Users,
-} from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 import { AppSidebarFooter } from "@/components/layout/app-sidebar-footer";
+import {
+  isPlatformNavActive,
+  platformNavigationItems,
+} from "@/components/layout/platform-navigation";
 import { SearchCommand } from "@/components/search/search-command";
-
-interface NavigationItem {
-  title: string;
-  url: string;
-  icon?: LucideIcon;
-}
-
-const mainNavigationItems: NavigationItem[] = [
-  {
-    title: "Home",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Catalog",
-    url: "/catalog",
-    icon: Package,
-  },
-  {
-    title: "Entities",
-    url: "/entities",
-    icon: Users,
-  },
-  {
-    title: "Documents",
-    url: "/documents",
-    icon: FileText,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
-];
 
 export function AppSidebar() {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -146,7 +108,7 @@ export function AppSidebarMainNavigation() {
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
-        {mainNavigationItems.map((item) => {
+        {platformNavigationItems.map((item) => {
           const isActive = isPlatformNavActive(pathname, item.url);
           return (
             <SidebarMenuItem key={`${item.title}-${item.url}`}>
@@ -156,7 +118,7 @@ export function AppSidebarMainNavigation() {
                 tooltip={item.title}
               >
                 <Link onClick={closeOnNavigate} to={item.url}>
-                  {item.icon && <item.icon />}
+                  <item.icon />
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
@@ -166,12 +128,4 @@ export function AppSidebarMainNavigation() {
       </SidebarMenu>
     </SidebarGroup>
   );
-}
-
-/** Home is exact; other items stay active on nested paths (e.g. /settings/*). */
-function isPlatformNavActive(pathname: string, url: string): boolean {
-  if (url === "/") {
-    return pathname === "/";
-  }
-  return pathname === url || pathname.startsWith(`${url}/`);
 }

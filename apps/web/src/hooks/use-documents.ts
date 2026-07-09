@@ -83,7 +83,10 @@ export const useDocuments = (type?: DocumentType, entityId?: string) => {
   });
 };
 
-export const useDocumentsList = (params: DocumentsListParams) => {
+export const useDocumentsList = (
+  params: DocumentsListParams,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: getDocumentsListKey(params),
     queryFn: async () => {
@@ -103,6 +106,7 @@ export const useDocumentsList = (params: DocumentsListParams) => {
       return res.json();
     },
     placeholderData: keepPreviousData,
+    enabled: options?.enabled ?? true,
   });
 };
 

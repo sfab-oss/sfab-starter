@@ -11,60 +11,25 @@ import {
   CommandList,
 } from "@workspace/ui/components/shadcn/command";
 import {
-  DialogDescription,
-  DialogTitle,
-} from "@workspace/ui/components/shadcn/dialog";
-import {
   CornerDownLeft,
   FileText,
-  Home,
   Loader2,
+  type LucideIcon,
   Package,
-  Settings,
   Users,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import {
+  documentFolioLabel,
+  documentTypeLabel,
+} from "@/components/documents/document-type";
+import { platformNavigationItems } from "@/components/layout/platform-navigation";
+import { useCatalogSearch } from "@/hooks/use-catalog-search";
+import { useDocumentsList } from "@/hooks/use-documents";
+import { useEntities } from "@/hooks/use-entities";
 
-interface SearchResult {
-  id: string;
-  title: string;
-  path: string;
-  icon: typeof Home;
-}
-
-const availablePages: SearchResult[] = [
-  {
-    id: "home",
-    title: "Home",
-    path: "/",
-    icon: Home,
-  },
-  {
-    id: "catalog",
-    title: "Catalog",
-    path: "/catalog",
-    icon: Package,
-  },
-  {
-    id: "entities",
-    title: "Entities",
-    path: "/entities",
-    icon: Users,
-  },
-  {
-    id: "documents",
-    title: "Documents",
-    path: "/documents",
-    icon: FileText,
-  },
-  {
-    id: "settings",
-    title: "Settings",
-    path: "/settings",
-    icon: Settings,
-  },
-];
+const MIN_QUERY_LENGTH = 2;
 
 interface SearchCommandProps {
   open: boolean;
@@ -80,13 +45,57 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
     setDebouncedQuery(value);
   }, 300);
 
-  const isLoading = false;
+  const trimmedDebounced = debouncedQuery.trim();
+  const canSearchRecords = open && trimmedDebounced.length >= MIN_QUERY_LENGTH;
 
-  const filteredResults = availablePages.filter(
-    (page) =>
-      page.title.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
-      page.path.toLowerCase().includes(debouncedQuery.toLowerCase())
+  const catalogSearch = useCatalogSearch(trimmedDebounced, canSearchRecords);
+  const documentsSearch = useDocumentsList(
+    {
+      page: 1,
+      pageSize: 8,
+      sortOrder: "desc",
+      search: trimmedDebounced,
+    },
+    { enabled: canSearchRecords }
   );
+  const entitiesSearch = useEntities(
+    {
+      page: 1,
+      pageSize: 8,
+      sortOrder: "asc",
+      sortBy: "name",
+      search: trimmedDebounced,
+    },
+    { enabled: canSearchRecords }
+  );
+
+  const isSearching =
+    canSearchRecords &&
+    (catalogSearch.isFetching ||
+      documentsSearch.isFetching ||
+      entitiesSearch.isFetching);
+
+  const pages = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      return platformNavigationItems;
+    }
+    return platformNavigationItems.filter(
+      (page) =>
+        page.title.toLowerCase().includes(q) ||
+        page.url.toLowerCase().includes(q)
+    );
+  }, [query]);
+
+  const products = canSearchRecords ? (catalogSearch.data?.results ?? []) : [];
+  const documents = canSearchRecords ? (documentsSearch.data?.data ?? []) : [];
+  const entities = canSearchRecords ? (entitiesSearch.data?.data ?? []) : [];
+
+  const hasResults =
+    pages.length > 0 ||
+    products.length > 0 ||
+    documents.length > 0 ||
+    entities.length > 0;
 
   useEffect(() => {
     debouncedSetQuery(query);
@@ -113,97 +122,172 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
     return () => document.removeEventListener("keydown", down);
   }, [open, setOpen]);
 
-  const handleSelect = useCallback(
-    (result: SearchResult) => {
-      setOpen(false);
-      router.navigate({ to: result.path });
+  const resetQuery = useCallback(() => {
+    setQuery("");
+    setDebouncedQuery("");
+    debouncedSetQuery.cancel();
+  }, [debouncedSetQuery]);
+
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      setOpen(next);
+      if (!next) {
+        resetQuery();
+      }
     },
-    [router, setOpen]
+    [resetQuery, setOpen]
   );
 
+  const navigateTo = useCallback(
+    (path: string) => {
+      setOpen(false);
+      resetQuery();
+      router.navigate({ to: path });
+    },
+    [resetQuery, router, setOpen]
+  );
+
+  let emptyMessage = `Type at least ${MIN_QUERY_LENGTH} characters to search records…`;
+  if (query.trim().length === 0) {
+    emptyMessage = "Search pages, products, documents, entities…";
+  } else if (isSearching) {
+    emptyMessage = "Searching…";
+  } else if (!hasResults) {
+    emptyMessage = "No results found.";
+  }
+
   return (
-    <CommandDialog onOpenChange={setOpen} open={open}>
-      <DialogTitle className="sr-only">Global Search</DialogTitle>
-      <DialogDescription className="sr-only">
-        Search across pages
-      </DialogDescription>
+    <CommandDialog
+      description="Search pages, products, documents, and entities"
+      onOpenChange={handleOpenChange}
+      open={open}
+      shouldFilter={false}
+      title="Global Search"
+    >
+      <CommandInput
+        onValueChange={setQuery}
+        placeholder="Search pages, products, documents…"
+        value={query}
+      />
 
-      <div className="flex items-center border-b px-3">
-        <CommandInput
-          className="border-none focus:ring-0"
-          onValueChange={setQuery}
-          placeholder="Search pages..."
-          value={query}
-        />
-        {isLoading && (
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-        )}
-      </div>
+      <CommandList className="max-h-[min(28rem,70vh)]">
+        {!hasResults && <CommandEmpty>{emptyMessage}</CommandEmpty>}
 
-      <CommandList className="max-h-[500px] pb-2">
-        <CommandEmpty className="py-6 text-center text-muted-foreground text-sm">
-          {query.length === 0 ? "Type to search..." : "No results found."}
-        </CommandEmpty>
-
-        {filteredResults.length > 0 && (
+        {pages.length > 0 && (
           <CommandGroup heading="Pages">
-            {filteredResults.map((result) => (
-              <ResultItem
-                key={result.id}
-                onSelect={handleSelect}
-                result={result}
+            {pages.map((page) => (
+              <PaletteItem
+                badge="Page"
+                icon={page.icon}
+                key={page.url}
+                onSelect={() => navigateTo(page.url)}
+                subtitle={page.url}
+                title={page.title}
+                value={`page:${page.url}`}
+              />
+            ))}
+          </CommandGroup>
+        )}
+
+        {products.length > 0 && (
+          <CommandGroup heading="Products">
+            {products.map((product) => (
+              <PaletteItem
+                badge="Product"
+                icon={Package}
+                key={product.metadata.id}
+                onSelect={() => navigateTo(product.path)}
+                subtitle={product.metadata.sku || product.snippet}
+                title={product.metadata.title}
+                value={`product:${product.metadata.id}`}
+              />
+            ))}
+          </CommandGroup>
+        )}
+
+        {documents.length > 0 && (
+          <CommandGroup heading="Documents">
+            {documents.map((doc) => (
+              <PaletteItem
+                badge={documentTypeLabel(doc.type)}
+                icon={FileText}
+                key={doc.id}
+                onSelect={() => navigateTo(`/documents/${doc.id}`)}
+                subtitle={doc.entityName ?? "Walk-in"}
+                title={`${documentTypeLabel(doc.type)} ${documentFolioLabel(doc)}`}
+                value={`document:${doc.id}`}
+              />
+            ))}
+          </CommandGroup>
+        )}
+
+        {entities.length > 0 && (
+          <CommandGroup heading="Entities">
+            {entities.map((entity) => (
+              <PaletteItem
+                badge={entity.type}
+                icon={Users}
+                key={entity.id}
+                onSelect={() => navigateTo(`/entities/${entity.id}`)}
+                subtitle={entity.type}
+                title={entity.name}
+                value={`entity:${entity.id}`}
               />
             ))}
           </CommandGroup>
         )}
       </CommandList>
 
-      <div className="flex h-10 items-center justify-between border-t bg-muted/20 px-3 text-muted-foreground text-xs">
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1">
-            <CornerDownLeft className="h-3 w-3" /> Open
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Cmd+K to open</span>
-        </div>
+      <div className="flex h-10 items-center justify-between border-t px-3 text-muted-foreground text-xs">
+        <span className="flex items-center gap-1">
+          <CornerDownLeft className="size-3" /> Open
+        </span>
+        <span className="flex items-center gap-2">
+          {isSearching && <Loader2 className="size-3 animate-spin" />}
+          <span>⌘K</span>
+        </span>
       </div>
     </CommandDialog>
   );
 }
 
-function ResultItem({
-  result,
+function PaletteItem({
+  title,
+  subtitle,
+  badge,
+  icon: Icon,
+  value,
   onSelect,
 }: {
-  result: SearchResult;
-  onSelect: (r: SearchResult) => void;
+  title: string;
+  subtitle: string;
+  badge: string;
+  icon: LucideIcon;
+  value: string;
+  onSelect: () => void;
 }) {
-  const Icon = result.icon;
-
   return (
     <CommandItem
-      className="flex items-start gap-3 rounded-lg px-3 py-3 aria-selected:bg-accent"
-      onSelect={() => onSelect(result)}
-      value={result.title + result.path}
+      className="flex items-start gap-3 px-3 py-2.5"
+      onSelect={onSelect}
+      value={value}
     >
-      <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
-        <Icon className="h-4 w-4" />
+      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
+        <Icon className="size-4" />
       </div>
-
-      <div className="flex flex-1 flex-col gap-1 overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5 overflow-hidden">
         <div className="flex items-center gap-2">
-          <span className="flex-1 truncate font-medium">{result.title}</span>
-          <Badge className="h-5 px-2 font-medium text-[10px]" variant="outline">
-            Page
+          <span className="truncate font-medium">{title}</span>
+          <Badge
+            className="h-5 shrink-0 px-1.5 font-medium text-[10px] capitalize"
+            variant="outline"
+          >
+            {badge}
           </Badge>
         </div>
-
-        <div className="flex items-center gap-2 text-muted-foreground/70 text-xs">
-          <span className="max-w-[200px] truncate font-mono">
-            {result.path}
-          </span>
-        </div>
+        <span className="truncate text-muted-foreground text-xs">
+          {subtitle}
+        </span>
       </div>
     </CommandItem>
   );
