@@ -5,6 +5,7 @@ import { productFormSchema } from "@workspace/contract/catalog";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Field,
+  FieldContent,
   FieldDescription,
   FieldError,
   FieldGroup,
@@ -12,6 +13,10 @@ import {
 } from "@workspace/ui/components/shadcn/field";
 import { Input } from "@workspace/ui/components/shadcn/input";
 import { Textarea } from "@workspace/ui/components/shadcn/textarea";
+import {
+  DEFAULT_CURRENCY,
+  formatMajorInputValue,
+} from "@workspace/ui/lib/money";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 import { ImageUpload } from "./image-upload";
@@ -64,15 +69,17 @@ export function ProductForm({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Name</FieldLabel>
-                <Input
-                  {...field}
-                  aria-invalid={fieldState.invalid}
-                  id={field.name}
-                  placeholder="Product Name"
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
+                <FieldContent>
+                  <Input
+                    {...field}
+                    aria-invalid={fieldState.invalid}
+                    id={field.name}
+                    placeholder="Product Name"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </FieldContent>
               </Field>
             )}
           />
@@ -83,15 +90,17 @@ export function ProductForm({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>SKU</FieldLabel>
-                <Input
-                  {...field}
-                  aria-invalid={fieldState.invalid}
-                  id={field.name}
-                  placeholder="PROD-001"
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
+                <FieldContent>
+                  <Input
+                    {...field}
+                    aria-invalid={fieldState.invalid}
+                    id={field.name}
+                    placeholder="PROD-001"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </FieldContent>
               </Field>
             )}
           />
@@ -104,20 +113,22 @@ export function ProductForm({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Price</FieldLabel>
-                <Input
-                  {...field}
-                  aria-invalid={fieldState.invalid}
-                  id={field.name}
-                  onChange={(e) =>
-                    field.onChange(Number.parseFloat(e.target.value))
-                  }
-                  step="0.01"
-                  type="number"
-                  value={field.value}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
+                <FieldContent>
+                  <Input
+                    {...field}
+                    aria-invalid={fieldState.invalid}
+                    id={field.name}
+                    onChange={(e) =>
+                      field.onChange(Number.parseFloat(e.target.value))
+                    }
+                    step="0.01"
+                    type="number"
+                    value={formatMajorInputValue(field.value, DEFAULT_CURRENCY)}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </FieldContent>
               </Field>
             )}
           />
@@ -128,22 +139,24 @@ export function ProductForm({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Low Stock Alert</FieldLabel>
-                <Input
-                  {...field}
-                  aria-invalid={fieldState.invalid}
-                  id={field.name}
-                  onChange={(e) =>
-                    field.onChange(Number.parseInt(e.target.value, 10))
-                  }
-                  type="number"
-                  value={field.value}
-                />
-                <FieldDescription>
-                  Alert when stock falls below this.
-                </FieldDescription>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
+                <FieldContent>
+                  <Input
+                    {...field}
+                    aria-invalid={fieldState.invalid}
+                    id={field.name}
+                    onChange={(e) =>
+                      field.onChange(Number.parseInt(e.target.value, 10))
+                    }
+                    type="number"
+                    value={field.value}
+                  />
+                  <FieldDescription>
+                    Alert when stock falls below this.
+                  </FieldDescription>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </FieldContent>
               </Field>
             )}
           />
@@ -155,15 +168,19 @@ export function ProductForm({
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Description</FieldLabel>
-              <Textarea
-                {...field}
-                aria-invalid={fieldState.invalid}
-                className="resize-none"
-                id={field.name}
-                placeholder="Product details..."
-                value={field.value ?? ""}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              <FieldContent>
+                <Textarea
+                  {...field}
+                  aria-invalid={fieldState.invalid}
+                  className="resize-none"
+                  id={field.name}
+                  placeholder="Product details..."
+                  value={field.value ?? ""}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </FieldContent>
             </Field>
           )}
         />

@@ -41,6 +41,25 @@ export function minorToMajor(
   return amountMinor / 10 ** exponent;
 }
 
+/** Major units rounded for `<input type="number">` display (avoids float noise). */
+export function minorToMajorInput(
+  amountMinor: MoneyMinor,
+  currencyCode: string
+): number {
+  const exponent = getMinorExponent(currencyCode);
+  return Number.parseFloat(
+    minorToMajor(amountMinor, currencyCode).toFixed(exponent)
+  );
+}
+
+export function formatMajorInputValue(
+  major: number,
+  currencyCode: string
+): number {
+  const exponent = getMinorExponent(currencyCode);
+  return Number.parseFloat(major.toFixed(exponent));
+}
+
 export function majorToMinor(major: number, currencyCode: string): MoneyMinor {
   const exponent = getMinorExponent(currencyCode);
   return Math.round(major * 10 ** exponent);

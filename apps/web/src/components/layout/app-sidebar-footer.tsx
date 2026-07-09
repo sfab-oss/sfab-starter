@@ -15,7 +15,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
 import {
@@ -178,7 +177,7 @@ export function AppSidebarFooter() {
               Organizations
             </DropdownMenuLabel>
             <DropdownMenuGroup>
-              {organizations?.map((organization, index) => (
+              {organizations?.map((organization) => (
                 <DropdownMenuItem
                   className="gap-2 p-2"
                   key={organization.id}
@@ -191,7 +190,6 @@ export function AppSidebarFooter() {
                     </AvatarFallback>
                   </Avatar>
                   {organization.name}
-                  <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
                 </DropdownMenuItem>
               ))}
               <DropdownMenuItem

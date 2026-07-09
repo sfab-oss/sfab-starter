@@ -29,7 +29,7 @@ import {
   DEFAULT_CURRENCY,
   formatMoneyMinor,
   majorToMinor,
-  minorToMajor,
+  minorToMajorInput,
 } from "@workspace/ui/lib/money";
 import { DollarSign, Pencil, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -246,7 +246,10 @@ function ProductPage() {
                 defaultValues={{
                   name: product.name,
                   sku: product.sku,
-                  price: minorToMajor(product.price ?? 0, DEFAULT_CURRENCY),
+                  price: minorToMajorInput(
+                    product.price ?? 0,
+                    DEFAULT_CURRENCY
+                  ),
                   description: product.description || "",
                   minStockLevel: product.minStockLevel || 5,
                   imageUrl: product.imageUrl || null,

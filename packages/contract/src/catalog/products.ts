@@ -7,8 +7,8 @@ import { z } from "zod";
 // can never drift from the DB row.
 
 export const createProductSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  sku: z.string().min(2, "SKU must be at least 2 characters"),
+  name: z.string().min(2, "Must be at least 2 characters"),
+  sku: z.string().min(2, "Must be at least 2 characters"),
   price: z.coerce.number().int().min(0, "Price must be positive").optional(),
   description: z.string().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
@@ -34,8 +34,8 @@ export type UpdateProduct = z.infer<typeof updateProductSchema>;
 // Form schema: price stays in major units (what the user types); the UI converts
 // major -> minor at the submit boundary (@workspace/ui/lib/money).
 export const productFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  sku: z.string().min(2, "SKU must be at least 2 characters"),
+  name: z.string().min(2, "Must be at least 2 characters"),
+  sku: z.string().min(2, "Must be at least 2 characters"),
   price: z.number().min(0, "Price must be positive"),
   minStockLevel: z.number().min(0, "Minimum stock must be positive"),
   description: z.string().nullable(),
