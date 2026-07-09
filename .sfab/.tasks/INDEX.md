@@ -25,14 +25,11 @@ overwritten by the next sync.
 
 - [`ALW-423`](./ALW-423.md) — QA: shell, navigation & command-K palette (desktop + mobile)
 
-## review (1)
-
-- [`ALW-429`](./ALW-429.md) — Command-K palette: wire real global search (pages + catalog + documents)
-
-## merged (26)
+## merged (27)
 
 - [`ALW-435`](./ALW-435.md) — Documents experience v1 — composer redesign + type system (quote / invoice / credit note / bill)
 - [`ALW-433`](./ALW-433.md) — Entities (customers/suppliers) UI — directory, detail, create/edit + document picker
+- [`ALW-429`](./ALW-429.md) — Command-K palette: wire real global search (pages + catalog + documents)
 - [`ALW-421`](./ALW-421.md) — Catalog: migrate list to ResourceTable (resource-list-page filters)
 - [`ALW-419`](./ALW-419.md) — Dogfood UX polish: shell chrome, settings layout, dialog padding, mobile nav/chat
 - [`ALW-411`](./ALW-411.md) — Org-agent inference: Cloudflare AI Gateway + env-driven pluggable provider registry (Vercel / Workers AI / GLM)
