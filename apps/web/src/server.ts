@@ -1,6 +1,6 @@
 import handler from "@tanstack/react-start/server-entry";
 import { auth } from "@workspace/auth";
-import { routeAgentRequest } from "agents";
+import { getAgentByName, routeAgentRequest } from "agents";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -52,6 +52,10 @@ export default {
         if (gateFailure) {
           return gateFailure;
         }
+        await getAgentByName(
+          env.OrgAgent as unknown as Parameters<typeof getAgentByName>[0],
+          activeOrgId
+        );
       }
 
       const agentResponse = await routeAgentRequest(request, env);

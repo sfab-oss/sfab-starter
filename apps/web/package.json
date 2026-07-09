@@ -32,7 +32,7 @@
     "@cloudflare/codemode": "0.4.2",
     "@cloudflare/shell": "0.4.1",
     "@cloudflare/think": "0.12.1",
-    "@cloudflare/vite-plugin": "^1.13.8",
+    "@cloudflare/vite-plugin": "1.43.0",
     "@hono/zod-validator": "^0.7.6",
     "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.1.18",
@@ -87,6 +87,6 @@
     "vite": "^7.1.7",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.1.0",
-    "wrangler": "^4.68.1"
+    "wrangler": "4.107.0"
   }
 }
