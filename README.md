@@ -1,10 +1,14 @@
 # SFab Starter
 
-SFab is an open-source factory for building software with AI agents. This is its
-starter template, an AI-native app foundation: every app you build on it ships
-with an AI agent that works on your own data and business context. It is what new
-SFab apps are built on, and a complete Cloudflare full-stack monorepo you can use
-on its own.
+An AI-native app foundation: every app you build on it ships with an AI agent
+that works on your own data and business context. It is a complete Cloudflare
+full-stack monorepo you can clone and run.
+
+**Copy → ask → reshape.** The usual path is clone, run it, then (often with an
+AI agent) turn the neutral hub into *your* product. For that first pass, see
+[`docs/template-init.md`](docs/template-init.md) — suggested questions and a
+light plan → transform path. Day-to-day agent conventions live in
+[`AGENTS.md`](AGENTS.md).
 
 ## What's included
 
@@ -70,8 +74,7 @@ app — nothing to delete before building a domain on top.
 
 ## Getting started
 
-Inside SFab, the factory creates an app for you. To use the starter on its own,
-click **Use this template** on GitHub (or `git clone` it), then:
+Click **Use this template** on GitHub (or `git clone` it), then:
 
 ```bash
 pnpm install
@@ -115,7 +118,8 @@ worked example are in [`docs/architecture.md`](docs/architecture.md).
 
 ## Where to go next
 
-- [`AGENTS.md`](AGENTS.md): start here if you are an AI agent working in this repo.
+- [`docs/template-init.md`](docs/template-init.md): adopting / transforming the template (agent-oriented guidance).
+- [`AGENTS.md`](AGENTS.md): commands + conventions once you are working in the repo.
 - [`docs/architecture.md`](docs/architecture.md): the layer map and a worked feature example.
 - [`docs/guides/`](docs/guides/): code-anchored how-tos.
 - [`docs/decisions/`](docs/decisions/): the architecture decision records.
