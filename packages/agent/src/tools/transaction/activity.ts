@@ -12,7 +12,7 @@ export const createActivityReadTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    "list-activity": tool({
+    list_activity: tool({
       description:
         "List the org's recent activity/event timeline (document finalize and payment events), newest first. Optionally filter by entity.",
       inputSchema: z.object({

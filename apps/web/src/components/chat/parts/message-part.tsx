@@ -60,8 +60,6 @@ export function MessagePart({
 
   if (part.type === "dynamic-tool" || isToolUIPart(part)) {
     const toolPart = part as DynamicToolUIPart | ToolUIPart;
-    // A live renderer (e.g. `delegate`) owns the tool in every state; the
-    // display renderers only replace a completed tool's output.
     const Renderer =
       getLiveToolRenderer(toolPart) ??
       (toolPart.state === "output-available"

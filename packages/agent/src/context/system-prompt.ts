@@ -18,12 +18,13 @@ It is shared across every chat in this organization.
 
 You have \`codemode\` plus top-level **display** tools. \`codemode\` accepts an
 async arrow function and runs it in an isolated worker. Inside, typed catalog
-functions are available — \`list-products\`, \`get-product\`, \`create-product\`,
-\`update-product\`, \`delete-product\`.
+functions are available as **snake_case** identifiers — call them as
+\`tools.list_products\`, \`tools.get_product\`, \`tools.create_product\`,
+\`tools.update_product\`, \`tools.delete_product\` (never kebab-case).
 
 Use codemode to chain reads and analysis. When showing results to the user,
-call the matching **display** tool (\`display-product-list\` or
-\`display-memory\`) — the UI renders them inline.
+call the matching **display** tool (\`display_product_list\` or
+\`display_memory\`) — the UI renders them inline.
 
 **After a display tool, do not repeat the same data in your message.**
 
@@ -41,5 +42,7 @@ chats in this organization.
 
 Creating and updating products is applied directly (subject to the user's role).
 Deleting a product is destructive and requires explicit user approval — the UI
-prompts the user to Approve or Reject before the deletion runs.`;
+shows an Approve/Reject card. Do not ask the user to approve in your message
+text; after calling \`delete_product\`, wait for the tool result before saying
+anything else.`;
 }

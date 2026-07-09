@@ -16,7 +16,7 @@ export const createPaymentReadTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    "list-payments": tool({
+    list_payments: tool({
       description:
         "List recorded payments (money received/applied), newest first. Optionally filter to one customer/entity. Amounts are integer minor units.",
       inputSchema: z.object({
@@ -37,7 +37,7 @@ export const createPaymentReadTools = (
       execute: async ({ entityId, limit }) =>
         (await listPayments(orgId, { entityId })).slice(0, limit ?? 50),
     }),
-    "get-payment": tool({
+    get_payment: tool({
       description:
         "Get a single payment with its allocations — the documents (invoices/orders) it was applied to and how much went to each.",
       inputSchema: z.object({ id: z.string() }),

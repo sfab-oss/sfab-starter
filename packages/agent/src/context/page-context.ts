@@ -30,7 +30,7 @@ export function buildPageContextSection(ctx: OrgPageContext): string {
     lines.push(`- Entity: ${params.entityType} (${params.entityId})`);
     if (params.entityType === "product") {
       lines.push(
-        `- Hint: Use codemode \`get-product\` with id \`${params.entityId}\` for current state.`
+        `- Hint: Use codemode \`get_product\` with id \`${params.entityId}\` for current state.`
       );
     }
   }

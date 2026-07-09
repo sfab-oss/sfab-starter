@@ -12,7 +12,7 @@ export const createEntityReadTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    "list-entities": tool({
+    list_entities: tool({
       description:
         "List entities (customers / counterparties) with their cached AR balance, credit balance, and optional credit limit.",
       inputSchema: z.object({
@@ -28,7 +28,7 @@ export const createEntityReadTools = (
       execute: async ({ limit }) =>
         (await listEntities(orgId)).slice(0, limit ?? 50),
     }),
-    "get-entity": tool({
+    get_entity: tool({
       description:
         "Get one entity (customer / counterparty) by ID: its AR balance, store-credit balance, and credit limit. Amounts are integer minor units.",
       inputSchema: z.object({ id: z.string() }),

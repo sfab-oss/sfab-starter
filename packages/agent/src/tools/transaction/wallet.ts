@@ -14,7 +14,7 @@ export const createWalletReadTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    "get-credit-balance": tool({
+    get_credit_balance: tool({
       description:
         "Get a customer's store-credit balance (saldo a favor / anticipos) as an integer minor-unit amount. Positive = credit the business owes the customer.",
       inputSchema: z.object({ entityId: z.string() }),
@@ -23,7 +23,7 @@ export const createWalletReadTools = (
         balance: await getCreditBalance(entityId, orgId),
       }),
     }),
-    "list-credit-entries": tool({
+    list_credit_entries: tool({
       description:
         "List store-credit ledger entries (deposits, redemptions, corrections), newest first. Optionally filter to one customer/entity.",
       inputSchema: z.object({

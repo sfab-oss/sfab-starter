@@ -96,11 +96,11 @@ beforeEach(async () => {
 });
 
 describe("transaction-core read tools (AC-1)", () => {
-  it("list-payments returns only this org's payments", async () => {
+  it("list_payments returns only this org's payments", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const rows = await run<
       Array<{ id: string; amount: number; organizationId: string }>
-    >(tools, "list-payments", {});
+    >(tools, "list_payments", {});
     // Every row is org-scoped, and the recorded 400 payment is present.
     for (const row of rows) {
       expect(row.organizationId).toBe(orgId);
@@ -108,11 +108,11 @@ describe("transaction-core read tools (AC-1)", () => {
     expect(rows.find((p) => p.id === paymentId)?.amount).toBe(400);
   });
 
-  it("list-payments can filter to one entity", async () => {
+  it("list_payments can filter to one entity", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const mine = await run<Array<{ id: string; entityId: string | null }>>(
       tools,
-      "list-payments",
+      "list_payments",
       { entityId }
     );
     expect(mine.length).toBeGreaterThan(0);
@@ -120,56 +120,56 @@ describe("transaction-core read tools (AC-1)", () => {
       expect(row.entityId).toBe(entityId);
     }
     expect(mine.some((p) => p.id === paymentId)).toBe(true);
-    const none = await run<unknown[]>(tools, "list-payments", {
+    const none = await run<unknown[]>(tools, "list_payments", {
       entityId: "ent_missing",
     });
     expect(none.length).toBe(0);
   });
 
-  it("list-payments caps returned rows at the requested limit", async () => {
+  it("list_payments caps returned rows at the requested limit", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     // The org has >1 payment (the recorded payment + the wallet deposit).
-    const all = await run<unknown[]>(tools, "list-payments", {});
+    const all = await run<unknown[]>(tools, "list_payments", {});
     expect(all.length).toBeGreaterThan(1);
-    const capped = await run<unknown[]>(tools, "list-payments", { limit: 1 });
+    const capped = await run<unknown[]>(tools, "list_payments", { limit: 1 });
     expect(capped.length).toBe(1);
   });
 
-  it("get-payment returns the payment with its allocations", async () => {
+  it("get_payment returns the payment with its allocations", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const result = await run<{
       payment: { id: string; amount: number };
       allocations: Array<{ documentId: string; amount: number }>;
-    } | null>(tools, "get-payment", { id: paymentId });
+    } | null>(tools, "get_payment", { id: paymentId });
     expect(result?.payment.id).toBe(paymentId);
     expect(result?.allocations).toHaveLength(1);
     expect(result?.allocations[0]?.documentId).toBe(invoiceId);
     expect(result?.allocations[0]?.amount).toBe(400);
   });
 
-  it("get-payment is null for another org's payment id", async () => {
+  it("get_payment is null for another org's payment id", async () => {
     const otherTools = getOrgAgentReadOnlyTools({ organizationId: otherOrgId });
-    const leaked = await run<unknown>(otherTools, "get-payment", {
+    const leaked = await run<unknown>(otherTools, "get_payment", {
       id: paymentId,
     });
     expect(leaked).toBeNull();
   });
 
-  it("get-document exposes the settlement projection (amount paid / status)", async () => {
+  it("get_document exposes the settlement projection (amount paid / status)", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const doc = await run<{
       doc: { id: string; amountPaid: number; paymentStatus: string };
       lines: unknown[];
-    } | null>(tools, "get-document", { id: invoiceId });
+    } | null>(tools, "get_document", { id: invoiceId });
     expect(doc?.doc.id).toBe(invoiceId);
     expect(doc?.doc.amountPaid).toBe(400);
     expect(doc?.doc.paymentStatus).toBe("partial");
     expect(doc?.lines.length).toBeGreaterThan(0);
   });
 
-  it("get-document is null for another org's document id", async () => {
+  it("get_document is null for another org's document id", async () => {
     const otherTools = getOrgAgentReadOnlyTools({ organizationId: otherOrgId });
-    const leaked = await run<unknown>(otherTools, "get-document", {
+    const leaked = await run<unknown>(otherTools, "get_document", {
       id: invoiceId,
     });
     expect(leaked).toBeNull();
@@ -177,22 +177,22 @@ describe("transaction-core read tools (AC-1)", () => {
 });
 
 describe("wallet read tools (AC-1)", () => {
-  it("get-credit-balance returns the store-credit sum for an entity", async () => {
+  it("get_credit_balance returns the store-credit sum for an entity", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const result = await run<{ entityId: string; balance: number }>(
       tools,
-      "get-credit-balance",
+      "get_credit_balance",
       { entityId }
     );
     expect(result.entityId).toBe(entityId);
     expect(result.balance).toBe(300);
   });
 
-  it("list-credit-entries returns the wallet ledger", async () => {
+  it("list_credit_entries returns the wallet ledger", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const entries = await run<Array<{ amount: number; type: string }>>(
       tools,
-      "list-credit-entries",
+      "list_credit_entries",
       { entityId }
     );
     expect(entries).toHaveLength(1);
@@ -204,7 +204,7 @@ describe("wallet read tools (AC-1)", () => {
     const otherTools = getOrgAgentReadOnlyTools({ organizationId: otherOrgId });
     const result = await run<{ balance: number }>(
       otherTools,
-      "get-credit-balance",
+      "get_credit_balance",
       { entityId }
     );
     expect(result.balance).toBe(0);
@@ -212,44 +212,44 @@ describe("wallet read tools (AC-1)", () => {
 });
 
 describe("people/entity + settings read tools (AC-2)", () => {
-  it("list-entities returns this org's entities only", async () => {
+  it("list_entities returns this org's entities only", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const rows = await run<Array<{ id: string; name: string }>>(
       tools,
-      "list-entities",
+      "list_entities",
       {}
     );
     expect(rows.map((e) => e.id)).toEqual([entityId]);
   });
 
-  it("get-entity carries AR balance and credit balance projections", async () => {
+  it("get_entity carries AR balance and credit balance projections", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const entity = await run<{
       id: string;
       balance: number;
       creditBalance: number;
-    } | null>(tools, "get-entity", { id: entityId });
+    } | null>(tools, "get_entity", { id: entityId });
     // AR = 1000 − 400 paid = 600; credit = 300; net balance = 600 − 300 = 300.
     expect(entity?.id).toBe(entityId);
     expect(entity?.creditBalance).toBe(300);
     expect(entity?.balance).toBe(300);
   });
 
-  it("get-organization returns the org's own settings", async () => {
+  it("get_organization returns the org's own settings", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const org = await run<{ id: string; name: string } | null>(
       tools,
-      "get-organization",
+      "get_organization",
       {}
     );
     expect(org?.id).toBe(orgId);
   });
 
-  it("list-activity returns this org's event timeline", async () => {
+  it("list_activity returns this org's event timeline", async () => {
     const tools = getOrgAgentReadOnlyTools({ organizationId: orgId });
     const rows = await run<Array<{ organizationId: string }>>(
       tools,
-      "list-activity",
+      "list_activity",
       {}
     );
     expect(rows.length).toBeGreaterThan(0);
@@ -269,10 +269,10 @@ describe("no mutation tool is exposed (AC-3)", () => {
     }
   });
 
-  it("the codemode reach's only writes are the autonomous catalog tools", () => {
-    // `delete-product` is deliberately NOT here — it is human-approval-gated and
-    // exposed top-level (getOrgAgentApprovalTools), never routed through codemode
-    // (ALW-348). See tool-approvals.workerd.test.ts.
+  it("the codemode reach's only writes are the catalog tools", () => {
+    // `delete_product` is in-codemode with needsApproval (ALW-456); money /
+    // document mutations stay off the agent entirely. See
+    // tool-approvals.workerd.test.ts.
     const names = Object.keys(
       getOrgAgentTools({
         organizationId: orgId,
@@ -281,7 +281,10 @@ describe("no mutation tool is exposed (AC-3)", () => {
       })
     );
     const mutating = names.filter((n) => MUTATING_TOOL_NAME.test(n)).sort();
-    expect(mutating).toEqual(["create-product", "update-product"]);
-    expect(names).not.toContain("delete-product");
+    expect(mutating).toEqual([
+      "create_product",
+      "delete_product",
+      "update_product",
+    ]);
   });
 });
