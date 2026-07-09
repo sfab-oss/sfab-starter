@@ -35,3 +35,9 @@
 - `pnpm --filter @workspace/registry typecheck` ✅
 - `pnpm --filter docs typecheck` ✅
 - Remaining radix imports in packages/ui + apps: none.
+
+## Post-rebase (ALW-459)
+
+2026-07-09: after rebasing onto main (chat shadcn kit), migrated newly added
+`attachment`, `bubble`, and `marker` wrappers the same way. Restored
+`button.tsx` customizations after `shadcn add attachment` rewrote it.
