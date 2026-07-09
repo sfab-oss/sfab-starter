@@ -1,5 +1,6 @@
 "use client";
 
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Drawer,
@@ -32,19 +33,19 @@ export interface SettingsNavSection {
 }
 
 export function isSettingsItemActive(
-  activePath: string,
+  pathname: string,
   item: SettingsNavItem
 ): boolean {
-  return activePath === item.to || activePath.startsWith(`${item.to}/`);
+  return pathname === item.to || pathname.startsWith(`${item.to}/`);
 }
 
 export function findActiveSettingsItem(
-  activePath: string,
+  pathname: string,
   sections: SettingsNavSection[]
 ): SettingsNavItem | null {
   for (const section of sections) {
     for (const item of section.items) {
-      if (isSettingsItemActive(activePath, item)) {
+      if (isSettingsItemActive(pathname, item)) {
         return item;
       }
     }
@@ -53,16 +54,14 @@ export function findActiveSettingsItem(
 }
 
 export function SettingsNav({
-  activePath,
-  onItemSelect,
   onNavigate,
   sections,
 }: {
-  activePath: string;
-  onItemSelect?: (to: string) => void;
   onNavigate?: () => void;
   sections: SettingsNavSection[];
 }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
   return (
     <>
       {sections.map((section) => (
@@ -73,18 +72,13 @@ export function SettingsNav({
           <SidebarGroupContent>
             <SidebarMenu>
               {section.items.map((item) => {
-                const isActive = isSettingsItemActive(activePath, item);
+                const isActive = isSettingsItemActive(pathname, item);
                 return (
                   <SidebarMenuItem key={item.to + item.label}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => {
-                        onItemSelect?.(item.to);
-                        onNavigate?.();
-                      }}
-                      type="button"
-                    >
-                      <span>{item.label}</span>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link onClick={onNavigate} to={item.to}>
+                        <span>{item.label}</span>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -98,18 +92,15 @@ export function SettingsNav({
 }
 
 export function SettingsMobileSectionTrigger({
-  activePath,
   mobileTitle = "Settings",
-  onItemSelect,
   sections,
 }: {
-  activePath: string;
   mobileTitle?: string;
-  onItemSelect?: (to: string) => void;
   sections: SettingsNavSection[];
 }) {
   const [open, setOpen] = useState(false);
-  const active = findActiveSettingsItem(activePath, sections);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const active = findActiveSettingsItem(pathname, sections);
 
   return (
     <Drawer onOpenChange={setOpen} open={open}>
@@ -129,12 +120,7 @@ export function SettingsMobileSectionTrigger({
           <DrawerDescription>Pick a section</DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-2 overflow-y-auto px-2 pb-6">
-          <SettingsNav
-            activePath={activePath}
-            onItemSelect={onItemSelect}
-            onNavigate={() => setOpen(false)}
-            sections={sections}
-          />
+          <SettingsNav onNavigate={() => setOpen(false)} sections={sections} />
         </div>
       </DrawerContent>
     </Drawer>
@@ -142,16 +128,12 @@ export function SettingsMobileSectionTrigger({
 }
 
 export function SettingsSectionLayout({
-  activePath,
   children,
   mobileTitle = "Settings",
-  onItemSelect,
   sections,
 }: {
-  activePath: string;
   children: React.ReactNode;
   mobileTitle?: string;
-  onItemSelect?: (to: string) => void;
   sections: SettingsNavSection[];
 }) {
   return (
@@ -161,19 +143,13 @@ export function SettingsSectionLayout({
     >
       <aside className="hidden w-56 shrink-0 border-r md:flex md:flex-col">
         <div className="flex flex-col gap-2 p-2">
-          <SettingsNav
-            activePath={activePath}
-            onItemSelect={onItemSelect}
-            sections={sections}
-          />
+          <SettingsNav sections={sections} />
         </div>
       </aside>
       <div className="flex flex-1 flex-col overflow-y-auto">
         <div className="border-b p-3 md:hidden">
           <SettingsMobileSectionTrigger
-            activePath={activePath}
             mobileTitle={mobileTitle}
-            onItemSelect={onItemSelect}
             sections={sections}
           />
         </div>
