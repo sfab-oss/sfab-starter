@@ -19,18 +19,18 @@ describe("OrgSubAgent read-only tool composition", () => {
     const tools = getOrgAgentReadOnlyTools(ctx);
     const names = Object.keys(tools).sort();
     expect(names).toEqual([
-      "get-credit-balance",
-      "get-document",
-      "get-entity",
-      "get-organization",
-      "get-payment",
-      "get-product",
-      "list-activity",
-      "list-credit-entries",
-      "list-documents",
-      "list-entities",
-      "list-payments",
-      "list-products",
+      "get_credit_balance",
+      "get_document",
+      "get_entity",
+      "get_organization",
+      "get_payment",
+      "get_product",
+      "list_activity",
+      "list_credit_entries",
+      "list_documents",
+      "list_entities",
+      "list_payments",
+      "list_products",
     ]);
   });
 
@@ -53,7 +53,7 @@ describe("OrgSubAgent read-only tool composition", () => {
       expect(full).toHaveProperty(name);
     }
     // And the full reach really does carry writes the read-only set drops.
-    expect(Object.keys(full)).toContain("create-product");
-    expect(getOrgAgentReadOnlyTools(ctx)).not.toHaveProperty("create-product");
+    expect(Object.keys(full)).toContain("create_product");
+    expect(getOrgAgentReadOnlyTools(ctx)).not.toHaveProperty("create_product");
   });
 });

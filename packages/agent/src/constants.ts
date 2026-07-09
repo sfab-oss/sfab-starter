@@ -1,7 +1,7 @@
 /** Keep in sync with `tools/display.ts` and UI `tool-registry.tsx`. */
 export const DISPLAY_TOOL_NAMES = {
-  PRODUCT_LIST: "display-product-list",
-  MEMORY: "display-memory",
+  PRODUCT_LIST: "display_product_list",
+  MEMORY: "display_memory",
 } as const;
 
 export type DisplayToolName =

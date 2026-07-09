@@ -33,7 +33,6 @@ import {
   resolveOrgChatModel,
 } from "../../inference/chat-models";
 import {
-  getOrgAgentApprovalTools,
   getOrgAgentDisplayTools,
   getOrgAgentTools,
 } from "../../tools/compose-org-tools";
@@ -58,6 +57,8 @@ export class OrgChat extends Think<Cloudflare.Env> {
   private resolvedModelId!: string;
   private resolvedContextWindow!: number;
   private lastTurnUsage: LanguageModelUsage | undefined;
+  /** Acting user for tool execute / approve-resume (WebSocket ALS is often unset). */
+  private turnUserId: string | undefined;
 
   override onStart(): void {
     this.organizationId = this.requireOrganizationId();
@@ -93,10 +94,10 @@ export class OrgChat extends Think<Cloudflare.Env> {
       connection.close(1008, "unauthenticated");
       return;
     }
-    // Persist the resolved user on the connection's WebSocket attachment
-    // (not an in-memory Map) so it survives DO hibernation — onConnect does
-    // not re-run when a hibernated DO wakes on the next message.
+    // Survive DO hibernation (onConnect does not re-run on wake).
     connection.setState({ userId });
+    // In-memory copy for tool closures: getTools/codemode often lack WebSocket ALS.
+    this.turnUserId = userId;
   }
 
   override getModel(): LanguageModel {
@@ -227,6 +228,12 @@ export class OrgChat extends Think<Cloudflare.Env> {
   override async beforeTurn(ctx: TurnContext) {
     const parent = await this.getParent();
     const organizationId = this.requireOrganizationId();
+    // Refresh after hibernation (onConnect does not re-run).
+    try {
+      this.turnUserId = this.requireConnectedUserId();
+    } catch {
+      // Keep onConnect value when ALS is unset (approve/resume paths).
+    }
     const { header } = await buildOrgContext(organizationId);
 
     const pageContext = getLatestUserPageContext(this.messages);
@@ -256,38 +263,51 @@ export class OrgChat extends Think<Cloudflare.Env> {
     return resolveTurnUserId(connection, `${orgId}/${this.name}`);
   }
 
+  /**
+   * Acting user for tool execute / approve-resume: turnUserId, then ALS
+   * connection, then any live connection attachment (resume often has no ALS).
+   */
+  private requireTurnUserId(): string {
+    if (this.turnUserId) {
+      return this.turnUserId;
+    }
+    try {
+      const userId = this.requireConnectedUserId();
+      this.turnUserId = userId;
+      return userId;
+    } catch {
+      // fall through to connection scan
+    }
+    for (const connection of this.getConnections<{ userId?: string }>()) {
+      const userId = connection.state?.userId;
+      if (userId) {
+        this.turnUserId = userId;
+        return userId;
+      }
+    }
+    const orgId = this.parentPath.at(-1)?.name ?? "?";
+    throw new Error(
+      `OrgAgent ${orgId}/${this.name}: no active connection for this turn`
+    );
+  }
+
   override getTools(): ToolSet {
     const self = this;
+    // Lazy: getTools runs before beforeTurn; codemode execute often has no ALS.
     const toolsCtx = {
       get userId() {
-        return self.requireConnectedUserId();
+        return self.requireTurnUserId();
       },
       organizationId: this.organizationId,
       waitUntil: (promise: Promise<unknown>) => this.ctx.waitUntil(promise),
     };
     const erpTools = getOrgAgentTools(toolsCtx);
-    const approvalTools = getOrgAgentApprovalTools(toolsCtx);
     const displayTools = getOrgAgentDisplayTools(toolsCtx);
 
     return {
-      // 0.9+ codemode: `createExecuteTool(this, ...)` infers ctx/env.LOADER and
-      // the workspace `state.*` connector from the agent (our SharedWorkspace),
-      // and exposes the ERP tools as the codemode `tools.*` connector. These are
-      // autonomous (RBAC-gated but no human approval); `createExecuteTool` on
-      // think 0.12 / codemode 0.4 routes a `needsApproval` tool here through the
-      // ToolSetConnector as a durable pause (NOT the old silent strip) — but we
-      // keep this set approval-free and gate destructive writes top-level below.
+      // ERP tools as `tools.*` inside the sandbox; `needsApproval` pauses mid-script.
       codemode: createExecuteTool(this, { tools: erpTools }),
-      // Human-approval-gated writes (ALW-348), TOP-LEVEL so the standard AI-SDK
-      // approval flow pauses the call for an in-chat Approve/Reject (rendered by
-      // `default-tool.tsx`). Currently `delete-product`. See
-      // `docs/guides/agent-tool-approvals.md`.
-      ...approvalTools,
-      // Delegation: `agentTool(OrgSubAgent, …)` spawns a focused sub-agent as a
-      // child facet with its OWN context window (heavy work stays out of this
-      // chat's tokens), a resumable stream, and read-only org reach. It's
-      // recovery-aware (stable runId from the tool-call id) and returns a
-      // concise summary. See `OrgSubAgent`.
+      // Child facet with its own context window — see `OrgSubAgent`.
       delegate: agentTool(OrgSubAgent, {
         description:
           "Delegate ONE self-contained research or analysis task to a focused sub-agent that works in its own context window with read-only access to org data (catalog products, documents) and a code sandbox. Use this for multi-step data gathering or analysis that would otherwise clutter this conversation. The sub-agent cannot see this conversation and cannot modify any data — give it a complete, standalone task description. Returns the sub-agent's result summary.",

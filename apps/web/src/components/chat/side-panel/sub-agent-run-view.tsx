@@ -47,12 +47,14 @@ function RunConnection({ run }: { run: ActiveSubAgentRun }) {
 
   const isHydrating = !(childAgent.identified || childAgent.connectionError);
 
-  // ChatMessages' per-message actions read `useChatConnection()`; give them the
-  // child's own helpers. The child has no sub-agents of its own, so
-  // `getSubAgentRuns` is a constant empty.
   return (
     <ChatConnectionContext.Provider
-      value={{ getSubAgentRuns: () => [], helpers }}
+      value={{
+        callAgent: () =>
+          Promise.reject(new Error("Sub-agent view is read-only")),
+        getSubAgentRuns: () => [],
+        helpers,
+      }}
     >
       <ChatMessages
         helpers={helpers}

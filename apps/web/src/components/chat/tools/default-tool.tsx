@@ -47,10 +47,6 @@ export const DefaultTool = memo(({ part }: DefaultToolProps) => {
       />
       <ToolContent>
         <ToolInput input={part.input} />
-        {/* Human-approval prompt (ALW-348). Live for top-level tools that set
-            `needsApproval` — currently `delete-product`. `addToolApprovalResponse`
-            resolves the paused call; on approve the tool's `execute` runs (still
-            RBAC-gated). See docs/guides/agent-tool-approvals.md. */}
         {part.state === "approval-requested" && <ToolApproval part={part} />}
         {denied ? (
           <PermissionDeniedNote />

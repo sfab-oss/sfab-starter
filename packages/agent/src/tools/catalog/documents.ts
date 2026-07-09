@@ -18,7 +18,7 @@ export const createDocumentTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    "list-documents": tool({
+    list_documents: tool({
       description:
         "List business documents (quotes, orders, invoices, etc.). Optional type filter.",
       inputSchema: z.object({
@@ -41,7 +41,7 @@ export const createDocumentTools = (
         }));
       },
     }),
-    "get-document": tool({
+    get_document: tool({
       description:
         "Get one business document by ID with its line items and totals — including its settlement projection (payment status and amount paid). Amounts are integer minor units.",
       inputSchema: z.object({ id: z.string() }),

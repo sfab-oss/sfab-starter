@@ -5,16 +5,17 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 /**
- * ALW-348 — human-approval-gated agent writes.
+ * ALW-348 / ALW-456 — human-approval-gated agent writes.
  *
  * AC-1: confirm, against the INSTALLED codemode, that a `needsApproval` tool is
  * NOT silently stripped (the old 0.3.8 bug) — the `ToolSetConnector` that
  * `createExecuteTool` builds maps it to codemode `requiresApproval: true` (a
- * durable pause). AC-4: the one gated write (`delete-product`) is exposed
- * top-level with `needsApproval` and kept OUT of the autonomous codemode set.
+ * durable pause). AC-4: the gated write (`delete_product`) lives IN the
+ * codemode set with `needsApproval` (ALW-456); top-level approval tools are
+ * an empty deprecated stub.
  *
  * The live end-to-end (model calls the tool → chat renders Approve/Reject →
- * `execute` runs on approve) needs a real facet + model and is verified in
+ * `approveExecution` resumes) needs a real facet + model and is verified in
  * `pnpm dev` — see org-agent.workerd.test.ts for why the harness can't drive it.
  */
 
@@ -65,23 +66,31 @@ describe("codemode approval mapping (AC-1) — needsApproval pauses, not strips"
   });
 });
 
-describe("top-level approval-gated writes (AC-4)", () => {
-  it("delete-product is exposed with needsApproval", () => {
-    const tools = getOrgAgentApprovalTools(ctx);
-    expect(Object.keys(tools)).toEqual(["delete-product"]);
-    const deleteTool = tools["delete-product"] as { needsApproval?: unknown };
-    expect(deleteTool.needsApproval).toBe(true);
-  });
-
-  it("delete-product is NOT in the autonomous codemode set", () => {
+describe("in-codemode approval-gated writes (AC-4 / ALW-456)", () => {
+  it("delete_product is in the codemode set with needsApproval", () => {
     const codemodeTools = getOrgAgentTools(ctx);
-    expect(codemodeTools).not.toHaveProperty("delete-product");
+    expect(codemodeTools).toHaveProperty("delete_product");
+    const deleteTool = codemodeTools.delete_product as {
+      needsApproval?: unknown;
+    };
+    expect(deleteTool.needsApproval).toBe(true);
     // The reversible catalog writes stay autonomous (no approval gate).
-    expect(codemodeTools).toHaveProperty("create-product");
-    expect(codemodeTools).toHaveProperty("update-product");
+    expect(codemodeTools).toHaveProperty("create_product");
+    expect(codemodeTools).toHaveProperty("update_product");
     expect(
-      (getOrgAgentTools(ctx)["create-product"] as { needsApproval?: unknown })
+      (codemodeTools.create_product as { needsApproval?: unknown })
         .needsApproval
     ).toBeUndefined();
+  });
+
+  it("top-level approval tools are an empty deprecated stub", () => {
+    expect(getOrgAgentApprovalTools(ctx)).toEqual({});
+  });
+
+  it("delete_product maps through ToolSetConnector with requiresApproval", () => {
+    // Tool names are authored in snake_case so they match the sandbox identifiers without rename.
+    const mapped = mapThroughCodemode(getOrgAgentTools(ctx));
+    expect(mapped.delete_product?.requiresApproval).toBe(true);
+    expect(mapped.create_product?.requiresApproval).toBeUndefined();
   });
 });

@@ -89,6 +89,8 @@ interface ChatConnectionValue {
    * card; replay-durable across reconnect. Empty until the child starts.
    */
   getSubAgentRuns: (toolCallId: string) => SubAgentRun[];
+  /** RPC into the OrgChat facet (Think `@callable`s). */
+  callAgent: (method: string, args?: unknown[]) => Promise<unknown>;
 }
 
 export const ChatConnectionContext = createContext<ChatConnectionValue | null>(
@@ -458,8 +460,16 @@ function ChatConnection({
     onSendError,
   ]);
 
+  const callAgent = useCallback(
+    (method: string, args: unknown[] = []) =>
+      chatAgent.call(method, args) as Promise<unknown>,
+    [chatAgent]
+  );
+
   return (
-    <ChatConnectionContext.Provider value={{ helpers, getSubAgentRuns }}>
+    <ChatConnectionContext.Provider
+      value={{ helpers, getSubAgentRuns, callAgent }}
+    >
       <ChatMessages
         helpers={helpers}
         isHydrating={isHydrating}

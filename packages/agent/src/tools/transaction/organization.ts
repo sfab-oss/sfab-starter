@@ -10,7 +10,7 @@ export const createOrganizationReadTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    "get-organization": tool({
+    get_organization: tool({
       description:
         "Get this organization's basic settings (id, name, slug). Use to ground answers about the current org.",
       inputSchema: z.object({}),
