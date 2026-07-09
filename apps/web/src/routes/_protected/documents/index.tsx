@@ -13,10 +13,6 @@ import {
   listDocumentsQuerySchema,
 } from "@workspace/contract/transaction";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
-import {
-  type PaymentStatus,
-  PaymentStatusBadge,
-} from "@workspace/ui/components/brand/payment-status-badge";
 import { ResourceTable } from "@workspace/ui/components/brand/resource-table";
 import {
   ShellContent,
@@ -57,6 +53,7 @@ import {
   documentFolioLabel,
   documentTypeLabel,
 } from "@/components/documents/document-type";
+import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
 import {
   EntityPicker,
   type EntityPickerValue,
@@ -390,11 +387,7 @@ function DocumentsPage() {
         if (row.original.type === "quote") {
           return <span className="text-muted-foreground">—</span>;
         }
-        return (
-          <PaymentStatusBadge
-            status={row.original.paymentStatus as PaymentStatus}
-          />
-        );
+        return <PaymentStatusBadge status={row.original.paymentStatus} />;
       },
     },
     {

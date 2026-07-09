@@ -544,36 +544,40 @@ export async function createSuccessor(
     ),
   ];
 
-  await db.batch(batchStmts as [BatchItem, ...BatchItem[]]);
-
   if (convertingQuote) {
-    await db.insert(activityLog).values({
-      organizationId: orgId,
-      kind: "event",
-      eventType: "quote_converted",
-      entityType: "document",
-      entityId: parent.id,
-      actorId: opts?.actorId ?? null,
-      summary: `Quote converted to ${input.type}`,
-      metadata: { successorId },
-      createdAt: now,
-    });
+    batchStmts.push(
+      db.insert(activityLog).values({
+        organizationId: orgId,
+        kind: "event",
+        eventType: "quote_converted",
+        entityType: "document",
+        entityId: parent.id,
+        actorId: opts?.actorId ?? null,
+        summary: `Quote converted to ${input.type}`,
+        metadata: { successorId },
+        createdAt: now,
+      })
+    );
   }
 
-  await db.insert(activityLog).values({
-    organizationId: orgId,
-    kind: "event",
-    eventType: "document_created",
-    entityType: "document",
-    entityId: successorId,
-    actorId: opts?.actorId ?? null,
-    summary:
-      input.type === "invoice"
-        ? "Invoice draft created from quote"
-        : `${input.type} draft created`,
-    metadata: { sourceDocumentId: parent.id },
-    createdAt: now,
-  });
+  batchStmts.push(
+    db.insert(activityLog).values({
+      organizationId: orgId,
+      kind: "event",
+      eventType: "document_created",
+      entityType: "document",
+      entityId: successorId,
+      actorId: opts?.actorId ?? null,
+      summary:
+        input.type === "invoice"
+          ? "Invoice draft created from quote"
+          : `${input.type} draft created`,
+      metadata: { sourceDocumentId: parent.id },
+      createdAt: now,
+    })
+  );
+
+  await db.batch(batchStmts as [BatchItem, ...BatchItem[]]);
 
   const result = await getDocumentWithLines(successorId, orgId);
   if (!result) {

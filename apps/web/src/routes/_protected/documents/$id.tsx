@@ -1,10 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
-  type PaymentStatus,
-  PaymentStatusBadge,
-} from "@workspace/ui/components/brand/payment-status-badge";
-import {
   ShellHeader,
   ShellHeaderActions,
   ShellHeaderSidebarTrigger,
@@ -46,6 +42,7 @@ import {
   documentTypeLabel,
   percentToBps,
 } from "@/components/documents/document-type";
+import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
 import { useSetPageContext } from "@/components/providers/page-context";
 import {
   useAcceptDocument,
@@ -593,9 +590,7 @@ function DocumentPage() {
                   {doc.status}
                 </Badge>
                 {!isDraft && isFiscalPayable && (
-                  <PaymentStatusBadge
-                    status={doc.paymentStatus as PaymentStatus}
-                  />
+                  <PaymentStatusBadge status={doc.paymentStatus} />
                 )}
               </div>
               <p className="text-muted-foreground text-sm">

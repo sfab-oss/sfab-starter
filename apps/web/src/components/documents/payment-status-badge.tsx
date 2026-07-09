@@ -1,11 +1,8 @@
 "use client";
 
+import type { PaymentStatus } from "@workspace/db/schema";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { cn } from "@workspace/ui/lib/utils";
-
-export const paymentStatusValues = ["unpaid", "partial", "paid"] as const;
-
-export type PaymentStatus = (typeof paymentStatusValues)[number];
 
 const PAYMENT_STATUS_CLASSES: Record<PaymentStatus, string> = {
   unpaid:
@@ -21,15 +18,11 @@ const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   paid: "Paid",
 };
 
-export type PaymentStatusBadgeProps = React.ComponentProps<typeof Badge> & {
-  status: PaymentStatus;
-};
-
 export function PaymentStatusBadge({
   status,
   className,
   ...props
-}: PaymentStatusBadgeProps) {
+}: React.ComponentProps<typeof Badge> & { status: PaymentStatus }) {
   return (
     <Badge
       className={cn(PAYMENT_STATUS_CLASSES[status], className)}
