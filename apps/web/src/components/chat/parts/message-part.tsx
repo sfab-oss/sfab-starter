@@ -5,6 +5,7 @@ import {
   ReasoningContent,
   ReasoningTrigger,
 } from "@workspace/ui/components/ai-elements/reasoning";
+import { Bubble, BubbleContent } from "@workspace/ui/components/shadcn/bubble";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   type DynamicToolUIPart,
@@ -26,21 +27,31 @@ export function MessagePart({
   partIndex,
   isLoading,
   isLastPart,
+  role = "assistant",
 }: {
   part: UIMessagePart<AIDataPart, UITools>;
   messageId: string;
   partIndex: number;
   isLoading: boolean;
   isLastPart: boolean;
+  role?: "user" | "assistant" | "system";
 }) {
   if (part.type === "text") {
+    if (role === "user") {
+      return (
+        <Bubble align="end" variant="secondary">
+          <BubbleContent>
+            <MessageResponse className="text-base">{part.text}</MessageResponse>
+          </BubbleContent>
+        </Bubble>
+      );
+    }
     return (
-      <MessageResponse
-        className="text-base"
-        key={`${messageId}-text-${partIndex}`}
-      >
-        {part.text}
-      </MessageResponse>
+      <Bubble variant="ghost">
+        <BubbleContent className="w-full max-w-full">
+          <MessageResponse className="text-base">{part.text}</MessageResponse>
+        </BubbleContent>
+      </Bubble>
     );
   }
 
