@@ -47,6 +47,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <TanStackDevtools
           config={{
             position: "bottom-right",
+            // Hide FAB unless ?tanstack-devtools — docs opt-in pattern.
+            // Config persists in localStorage after first load.
+            requireUrlFlag: true,
+            urlFlag: "tanstack-devtools",
           }}
           plugins={[
             {
