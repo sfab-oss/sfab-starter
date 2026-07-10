@@ -3,7 +3,6 @@
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Dialog,
-  DialogBody,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -38,13 +37,11 @@ export function CreateEntityDialog() {
             Create a customer or supplier counterparty.
           </DialogDescription>
         </DialogHeader>
-        <DialogBody>
-          <EntityForm
-            isLoading={createEntity.isPending}
-            onSubmit={onSubmit}
-            submitLabel="Create Entity"
-          />
-        </DialogBody>
+        <EntityForm
+          isLoading={createEntity.isPending}
+          onSubmit={onSubmit}
+          submitLabel="Create Entity"
+        />
       </DialogContent>
     </Dialog>
   );

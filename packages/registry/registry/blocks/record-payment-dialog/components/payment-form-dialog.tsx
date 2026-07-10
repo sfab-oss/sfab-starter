@@ -3,7 +3,6 @@
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Dialog,
-  DialogBody,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -72,30 +71,29 @@ export function PaymentFormDialog({
           </div>
         </DialogHeader>
 
-        <DialogBody className="gap-0 px-0 pb-0">
-          <div className="px-6 pb-6">
-            <PaymentForm
-              defaultAmountMinor={invoice.balanceMinor}
-              formId={PAYMENT_FORM_ID}
-              invoice={invoice}
-              onSubmit={async (data) => {
-                setIsSubmitting(true);
-                try {
-                  await onSubmit(data);
-                  onOpenChange(false);
-                } finally {
-                  setIsSubmitting(false);
-                }
-              }}
-            />
-          </div>
+        <div className="flex min-h-0 w-full min-w-0 flex-col overflow-y-auto overscroll-contain">
+          <PaymentForm
+            defaultAmountMinor={invoice.balanceMinor}
+            formId={PAYMENT_FORM_ID}
+            invoice={invoice}
+            onSubmit={async (data) => {
+              setIsSubmitting(true);
+              try {
+                await onSubmit(data);
+                onOpenChange(false);
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
+          />
 
-          <div className="border-t" data-slot="payment-form-dialog-activity">
-            <div className="px-6 pt-4 pb-6">
-              <ActivityTimeline entries={getInvoiceActivity(invoiceRow)} />
-            </div>
+          <div
+            className="-mx-6 mt-6 border-t px-6 pt-4"
+            data-slot="payment-form-dialog-activity"
+          >
+            <ActivityTimeline entries={getInvoiceActivity(invoiceRow)} />
           </div>
-        </DialogBody>
+        </div>
       </DialogContent>
     </Dialog>
   );

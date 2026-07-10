@@ -425,11 +425,14 @@ function BigWindow({ chat, dock }: PanelChromeProps) {
         className="@container fixed inset-3 z-50 flex flex-col overflow-hidden rounded-xl border bg-background shadow-2xl md:inset-6"
         data-slot="chat-dock-expanded"
       >
-        <ResizablePanelGroup className="min-h-0 flex-1" direction="horizontal">
+        <ResizablePanelGroup
+          className="min-h-0 flex-1"
+          orientation="horizontal"
+        >
           <ResizablePanel
             className="flex min-h-0 flex-col"
-            defaultSize={panelOpen ? 62 : 100}
-            minSize={40}
+            defaultSize={panelOpen ? "62%" : "100%"}
+            minSize="40%"
           >
             <PanelHeader
               actions={
@@ -462,9 +465,9 @@ function BigWindow({ chat, dock }: PanelChromeProps) {
               <ResizableHandle className="bg-transparent" />
               <ResizablePanel
                 className="ml-px flex min-h-0 flex-col overflow-hidden rounded-l-xl border-border border-l bg-accent/5 shadow"
-                defaultSize={38}
-                maxSize={60}
-                minSize={24}
+                defaultSize="38%"
+                maxSize="60%"
+                minSize="24%"
               >
                 <ChatSidePanel
                   activeTab={activeTab}

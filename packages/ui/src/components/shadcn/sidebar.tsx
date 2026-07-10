@@ -1,3 +1,8 @@
+// biome-ignore-all lint/correctness/useExhaustiveDependencies: shadcn registry stock
+// biome-ignore-all lint/performance/noNamespaceImport: shadcn registry stock
+// biome-ignore-all lint/style/useConsistentTypeDefinitions: shadcn registry stock
+// biome-ignore-all lint/suspicious/noDocumentCookie: shadcn registry stock
+
 "use client";
 
 import { mergeProps } from "@base-ui/react/merge-props";
@@ -22,7 +27,6 @@ import { useIsMobile } from "@workspace/ui/hooks/use-mobile";
 import { cn } from "@workspace/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
-// biome-ignore lint/performance/noNamespaceImport: shadcn component
 import * as React from "react";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
@@ -32,7 +36,6 @@ const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
-// biome-ignore lint/style/useConsistentTypeDefinitions: shadcn component
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
   open: boolean;
@@ -52,11 +55,6 @@ function useSidebar() {
   }
 
   return context;
-}
-
-/** Returns null outside `SidebarProvider` (standalone previews, tests). */
-function useOptionalSidebar() {
-  return React.useContext(SidebarContext);
 }
 
 function SidebarProvider({
@@ -89,14 +87,12 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
-      // biome-ignore lint/suspicious/noDocumentCookie: shadcn component
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
     },
     [setOpenProp, open]
   );
 
   // Helper to toggle the sidebar.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: shadcn component
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
   }, [isMobile, setOpen, setOpenMobile]);
@@ -121,7 +117,6 @@ function SidebarProvider({
   // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed";
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: shadcn component
   const contextValue = React.useMemo<SidebarContextProps>(
     () => ({
       state,
@@ -728,6 +723,5 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
-  useOptionalSidebar,
   useSidebar,
 };

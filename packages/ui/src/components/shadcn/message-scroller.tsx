@@ -1,6 +1,13 @@
+// biome-ignore-all lint/style/noExportedImports: shadcn registry stock
+
 "use client";
 
-import { MessageScroller as MessageScrollerPrimitive } from "@shadcn/react/message-scroller";
+import {
+  MessageScroller as MessageScrollerPrimitive,
+  useMessageScroller,
+  useMessageScrollerScrollable,
+  useMessageScrollerVisibility,
+} from "@shadcn/react/message-scroller";
 import { Button } from "@workspace/ui/components/shadcn/button";
 
 import { cn } from "@workspace/ui/lib/utils";
@@ -119,10 +126,7 @@ export {
   MessageScrollerContent,
   MessageScrollerItem,
   MessageScrollerButton,
-};
-
-export {
   useMessageScroller,
   useMessageScrollerScrollable,
   useMessageScrollerVisibility,
-} from "@shadcn/react/message-scroller";
+};

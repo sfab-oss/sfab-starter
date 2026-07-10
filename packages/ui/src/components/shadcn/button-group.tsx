@@ -1,3 +1,5 @@
+// biome-ignore-all lint/a11y/useSemanticElements: shadcn registry stock
+
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { Separator } from "@workspace/ui/components/shadcn/separator";
@@ -28,7 +30,6 @@ function ButtonGroup({
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof buttonGroupVariants>) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: shadcn component
     <div
       className={cn(buttonGroupVariants({ orientation }), className)}
       data-orientation={orientation}

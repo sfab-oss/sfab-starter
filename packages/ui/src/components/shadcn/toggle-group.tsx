@@ -1,3 +1,5 @@
+// biome-ignore-all lint/performance/noNamespaceImport: shadcn registry stock
+
 "use client";
 
 import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
@@ -5,7 +7,6 @@ import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group
 import { toggleVariants } from "@workspace/ui/components/shadcn/toggle";
 import { cn } from "@workspace/ui/lib/utils";
 import type { VariantProps } from "class-variance-authority";
-// biome-ignore lint/performance/noNamespaceImport: shadcn component
 import * as React from "react";
 
 const ToggleGroupContext = React.createContext<

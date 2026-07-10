@@ -26,7 +26,6 @@ import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Dialog,
-  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -543,12 +542,10 @@ function DocumentsPage() {
               Pick an existing entity or keep Walk-in for an ad-hoc name.
             </DialogDescription>
           </DialogHeader>
-          <DialogBody>
-            <Field>
-              <FieldLabel>Customer / entity</FieldLabel>
-              <EntityPicker onChange={setEntityValue} value={entityValue} />
-            </Field>
-          </DialogBody>
+          <Field>
+            <FieldLabel>Customer / entity</FieldLabel>
+            <EntityPicker onChange={setEntityValue} value={entityValue} />
+          </Field>
           <DialogFooter>
             <Button
               disabled={createDocument.isPending || !createType}

@@ -1,3 +1,6 @@
+// biome-ignore-all lint/style/noNestedTernary: shadcn registry stock
+// biome-ignore-all lint/suspicious/noArrayIndexKey: shadcn registry stock
+
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
 
 import { cn } from "@workspace/ui/lib/utils";
@@ -12,8 +15,7 @@ function Slider({
 }: SliderPrimitive.Root.Props) {
   const _values = Array.isArray(value)
     ? value
-    : // biome-ignore lint/style/noNestedTernary: shadcn component
-      Array.isArray(defaultValue)
+    : Array.isArray(defaultValue)
       ? defaultValue
       : [min, max];
 
@@ -42,7 +44,6 @@ function Slider({
           <SliderPrimitive.Thumb
             className="block size-4 shrink-0 select-none rounded-full border border-primary bg-white shadow-sm ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:outline-hidden focus-visible:ring-4 disabled:pointer-events-none disabled:opacity-50"
             data-slot="slider-thumb"
-            // biome-ignore lint/suspicious/noArrayIndexKey: shadcn component
             key={index}
           />
         ))}

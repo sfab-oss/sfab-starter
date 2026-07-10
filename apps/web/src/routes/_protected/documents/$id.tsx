@@ -10,7 +10,6 @@ import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Dialog,
-  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -756,7 +755,6 @@ function DocumentPage() {
               invoice. Choose disposition after you finalize it.
             </DialogDescription>
           </DialogHeader>
-          <DialogBody />
           <DialogFooter>
             <Button
               disabled={createSuccessor.isPending}

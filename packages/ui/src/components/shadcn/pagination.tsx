@@ -1,3 +1,6 @@
+// biome-ignore-all lint/a11y/noRedundantRoles: shadcn registry stock
+// biome-ignore-all lint/a11y/useSemanticElements: shadcn registry stock
+
 import { Button } from "@workspace/ui/components/shadcn/button";
 
 import { cn } from "@workspace/ui/lib/utils";
@@ -10,12 +13,10 @@ import type * as React from "react";
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: shadcn component
     <nav
       aria-label="pagination"
       className={cn("mx-auto flex w-full justify-center", className)}
       data-slot="pagination"
-      // biome-ignore lint/a11y/noRedundantRoles: shadcn component
       role="navigation"
       {...props}
     />

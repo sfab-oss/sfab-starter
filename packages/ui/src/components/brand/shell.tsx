@@ -4,7 +4,7 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-  useOptionalSidebar,
+  useSidebar,
 } from "@workspace/ui/components/shadcn/sidebar";
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -88,18 +88,16 @@ export function ShellPage({
   );
 }
 
-/** Sidebar expand control in page headers — mobile always; desktop when collapsed. */
+/**
+ * Sidebar expand control in page headers — mobile always; desktop when
+ * collapsed. Must render under `Shell` / `SidebarProvider`.
+ */
 export function ShellHeaderSidebarTrigger({
   className,
 }: {
   className?: string;
 }) {
-  const sidebar = useOptionalSidebar();
-  if (!sidebar) {
-    return null;
-  }
-
-  const { state } = sidebar;
+  const { state } = useSidebar();
 
   return (
     <>

@@ -1,3 +1,5 @@
+// biome-ignore-all lint/performance/noNamespaceImport: shadcn registry stock
+
 "use client";
 
 import { Combobox as ComboboxPrimitive } from "@base-ui/react";
@@ -10,7 +12,7 @@ import {
 } from "@workspace/ui/components/shadcn/input-group";
 import { cn } from "@workspace/ui/lib/utils";
 import { CheckIcon, ChevronDownIcon, XIcon } from "lucide-react";
-import { type ComponentPropsWithRef, useRef } from "react";
+import * as React from "react";
 
 const Combobox = ComboboxPrimitive.Root;
 
@@ -217,7 +219,7 @@ function ComboboxSeparator({
 function ComboboxChips({
   className,
   ...props
-}: ComponentPropsWithRef<typeof ComboboxPrimitive.Chips> &
+}: React.ComponentPropsWithRef<typeof ComboboxPrimitive.Chips> &
   ComboboxPrimitive.Chips.Props) {
   return (
     <ComboboxPrimitive.Chips
@@ -276,7 +278,7 @@ function ComboboxChipsInput({
 }
 
 function useComboboxAnchor() {
-  return useRef<HTMLDivElement | null>(null);
+  return React.useRef<HTMLDivElement | null>(null);
 }
 
 export {

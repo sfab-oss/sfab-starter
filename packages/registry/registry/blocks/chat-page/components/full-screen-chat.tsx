@@ -113,12 +113,12 @@ export function FullScreenChat() {
       <ResizablePanelGroup
         className="min-h-0 flex-1"
         data-slot="full-screen-chat-layout"
-        direction="horizontal"
+        orientation="horizontal"
       >
         <ResizablePanel
           className="flex min-h-0 flex-col"
-          defaultSize={panelOpen ? 68 : 100}
-          minSize={45}
+          defaultSize={panelOpen ? "68%" : "100%"}
+          minSize="45%"
         >
           <ShellHeader
             className="h-10 px-3"
@@ -196,9 +196,9 @@ export function FullScreenChat() {
             <ResizableHandle className="bg-transparent" />
             <ResizablePanel
               className="ml-px flex min-h-0 flex-col overflow-hidden rounded-l-xl border-border border-l bg-accent/5 shadow"
-              defaultSize={32}
-              maxSize={55}
-              minSize={22}
+              defaultSize="32%"
+              maxSize="55%"
+              minSize="22%"
             >
               <ChatSidePanel
                 activeTab={activeTab}

@@ -225,9 +225,9 @@ function ChatSidePanelTabContent({
     return (
       <ResizablePanelGroup
         data-slot="chat-side-panel-files-split"
-        direction="horizontal"
+        orientation="horizontal"
       >
-        <ResizablePanel className="min-h-0" defaultSize={65} minSize={40}>
+        <ResizablePanel className="min-h-0" defaultSize="65%" minSize="40%">
           {fileName && activeFilePath ? (
             <FileContent name={fileName} path={activeFilePath} />
           ) : (
@@ -237,9 +237,9 @@ function ChatSidePanelTabContent({
         <ResizableHandle />
         <ResizablePanel
           className="min-h-0 overflow-auto bg-background"
-          defaultSize={35}
-          maxSize={55}
-          minSize={20}
+          defaultSize="35%"
+          maxSize="55%"
+          minSize="20%"
         >
           <FileExplorerTree
             nodes={MOCK_WORKSPACE_TREE}

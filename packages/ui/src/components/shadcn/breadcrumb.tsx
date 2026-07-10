@@ -1,3 +1,6 @@
+// biome-ignore-all lint/a11y/useFocusableInteractive: shadcn registry stock
+// biome-ignore-all lint/a11y/useSemanticElements: shadcn registry stock
+
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cn } from "@workspace/ui/lib/utils";
@@ -60,8 +63,6 @@ function BreadcrumbLink({
 
 function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
   return (
-    // biome-ignore lint/a11y/useFocusableInteractive: shadcn component
-    // biome-ignore lint/a11y/useSemanticElements: shadcn component
     <span
       aria-current="page"
       aria-disabled="true"
