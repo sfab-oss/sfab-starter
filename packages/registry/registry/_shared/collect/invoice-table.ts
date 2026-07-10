@@ -23,8 +23,8 @@ export function filterInvoices(
     return rows;
   }
 
-  return rows.filter((row) => {
-    return columnFilters.every((filter) => {
+  return rows.filter((row) =>
+    columnFilters.every((filter) => {
       const value = row[filter.id as keyof OpenInvoiceRow];
       if (filter.id === "paymentStatus") {
         const values = filter.value;
@@ -37,8 +37,8 @@ export function filterInvoices(
         return value.toLowerCase().includes(String(filter.value).toLowerCase());
       }
       return true;
-    });
-  });
+    })
+  );
 }
 
 export function sortInvoices(

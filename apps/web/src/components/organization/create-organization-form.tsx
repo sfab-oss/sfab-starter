@@ -35,19 +35,17 @@ const DIACRITICS_REGEX = /\p{Diacritic}/gu;
 const MULTIPLE_HYPHENS_REGEX = /-{2,}/g;
 const TRAILING_HYPHEN_REGEX = /-+$/;
 
-export const filterName = (name: string) => {
-  return name
+export const filterName = (name: string) =>
+  name
     .replace(/[^a-zA-Z0-9\s-_']/g, "")
     .normalize("NFD")
     .replace(DIACRITICS_REGEX, "");
-};
 
-export const filterSlug = (slug: string) => {
-  return slug
+export const filterSlug = (slug: string) =>
+  slug
     .replace(/[^a-z0-9-_]/g, "")
     .replace(MULTIPLE_HYPHENS_REGEX, "-")
     .replace(TRAILING_HYPHEN_REGEX, "");
-};
 
 export function CreateOrganizationForm({
   className,

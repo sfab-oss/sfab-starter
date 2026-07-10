@@ -131,16 +131,14 @@ function Calendar({
       }}
       components={{
         // biome-ignore lint/correctness/noNestedComponentDefinitions: shadcn component
-        Root: ({ className, rootRef, ...props }) => {
-          return (
-            <div
-              className={cn(className)}
-              data-slot="calendar"
-              ref={rootRef}
-              {...props}
-            />
-          );
-        },
+        Root: ({ className, rootRef, ...props }) => (
+          <div
+            className={cn(className)}
+            data-slot="calendar"
+            ref={rootRef}
+            {...props}
+          />
+        ),
         // biome-ignore lint/correctness/noNestedComponentDefinitions: shadcn component
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {
@@ -167,15 +165,13 @@ function Calendar({
           <CalendarDayButton locale={locale} {...props} />
         ),
         // biome-ignore lint/correctness/noNestedComponentDefinitions: shadcn component
-        WeekNumber: ({ children, ...props }) => {
-          return (
-            <td {...props}>
-              <div className="flex size-(--cell-size) items-center justify-center text-center">
-                {children}
-              </div>
-            </td>
-          );
-        },
+        WeekNumber: ({ children, ...props }) => (
+          <td {...props}>
+            <div className="flex size-(--cell-size) items-center justify-center text-center">
+              {children}
+            </div>
+          </td>
+        ),
         ...components,
       }}
       formatters={{

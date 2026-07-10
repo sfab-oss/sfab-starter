@@ -72,28 +72,28 @@ import {
 } from "react";
 
 export interface AttachmentsContext {
+  add: (files: File[] | FileList) => void;
+  clear: () => void;
+  fileInputRef: RefObject<HTMLInputElement | null>;
   files: (FileUIPart & {
     id: string;
   })[];
-  add: (files: File[] | FileList) => void;
-  remove: (id: string) => void;
-  clear: () => void;
   openFileDialog: () => void;
-  fileInputRef: RefObject<HTMLInputElement | null>;
+  remove: (id: string) => void;
 }
 export interface TextInputContext {
-  value: string;
-  setInput: (v: string) => void;
   clear: () => void;
+  setInput: (v: string) => void;
+  value: string;
 }
 export interface PromptInputControllerProps {
-  textInput: TextInputContext;
-  attachments: AttachmentsContext;
   /** INTERNAL: Allows PromptInput to register its file textInput + "open" callback */
   __registerFileInput: (
     ref: RefObject<HTMLInputElement | null>,
     open: () => void
   ) => void;
+  attachments: AttachmentsContext;
+  textInput: TextInputContext;
 }
 const PromptInputController = createContext<PromptInputControllerProps | null>(
   null
@@ -155,11 +155,11 @@ export function PromptInputProvider({
     setAttachmentFiles((prev) =>
       prev.concat(
         incoming.map((file) => ({
+          filename: file.name,
           id: nanoid(),
+          mediaType: file.type,
           type: "file" as const,
           url: URL.createObjectURL(file),
-          mediaType: file.type,
-          filename: file.name,
         }))
       )
     );
@@ -187,26 +187,27 @@ export function PromptInputProvider({
   const attachmentsRef = useRef(attachmentFiles);
   attachmentsRef.current = attachmentFiles;
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       for (const f of attachmentsRef.current) {
         if (f.url) {
           URL.revokeObjectURL(f.url);
         }
       }
-    };
-  }, []);
+    },
+    []
+  );
   const openFileDialog = useCallback(() => {
     openRef.current?.();
   }, []);
   const attachments = useMemo<AttachmentsContext>(
     () => ({
-      files: attachmentFiles,
       add,
-      remove,
       clear,
-      openFileDialog,
       fileInputRef,
+      files: attachmentFiles,
+      openFileDialog,
+      remove,
     }),
     [attachmentFiles, add, remove, clear, openFileDialog]
   );
@@ -219,13 +220,13 @@ export function PromptInputProvider({
   );
   const controller = useMemo<PromptInputControllerProps>(
     () => ({
-      textInput: {
-        value: textInput,
-        setInput: setTextInput,
-        clear: clearInput,
-      },
-      attachments,
       __registerFileInput,
+      attachments,
+      textInput: {
+        clear: clearInput,
+        setInput: setTextInput,
+        value: textInput,
+      },
     }),
     [textInput, clearInput, attachments, __registerFileInput]
   );
@@ -400,8 +401,8 @@ export const PromptInputActionAddAttachments = ({
   );
 };
 export interface PromptInputMessage {
-  text: string;
   files: FileUIPart[];
+  text: string;
 }
 export type PromptInputProps = Omit<
   HTMLAttributes<HTMLFormElement>,
@@ -511,11 +512,11 @@ export const PromptInput = ({
         })[] = [];
         for (const file of capped) {
           next.push({
+            filename: file.name,
             id: nanoid(),
+            mediaType: file.type,
             type: "file",
             url: URL.createObjectURL(file),
-            mediaType: file.type,
-            filename: file.name,
           });
         }
         return prev.concat(next);
@@ -656,15 +657,15 @@ export const PromptInput = ({
   };
   const ctx = useMemo<AttachmentsContext>(
     () => ({
+      add,
+      clear,
+      fileInputRef: inputRef,
       files: files.map((item) => ({
         ...item,
         id: item.id,
       })),
-      add,
-      remove,
-      clear,
       openFileDialog,
-      fileInputRef: inputRef,
+      remove,
     }),
     [files, add, remove, clear, openFileDialog]
   );
@@ -698,20 +699,22 @@ export const PromptInput = ({
         try {
           const result = onSubmit(
             {
-              text,
               files: convertedFiles,
+              text,
             },
             event
           );
 
           if (result instanceof Promise) {
             result
+              // biome-ignore lint/suspicious/noNestedPromises: clear UI after async submit settles
               .then(() => {
                 clear();
                 if (usingProvider) {
                   controller.textInput.clear();
                 }
               })
+              // biome-ignore lint/suspicious/noNestedPromises: clear UI after async submit settles
               .catch(() => {
                 // Keep attachments so the user can retry.
               });
@@ -832,11 +835,11 @@ export const PromptInputTextarea = ({
   };
   const controlledProps = controller
     ? {
-        value: controller.textInput.value,
         onChange: (e: ChangeEvent<HTMLTextAreaElement>) => {
           controller.textInput.setInput(e.currentTarget.value);
           onChange?.(e);
         },
+        value: controller.textInput.value,
       }
     : {
         onChange,
@@ -1004,35 +1007,35 @@ interface SpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
-  start(): void;
-  stop(): void;
-  // biome-ignore lint/suspicious/noExplicitAny: ai-elements component
-  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  // biome-ignore lint/suspicious/noExplicitAny: ai-elements component
-  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onresult: // biome-ignore lint/suspicious/noExplicitAny: ai-elements component
-  ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
-  onerror: // biome-ignore lint/suspicious/noExplicitAny: ai-elements component
-  ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onerror:
+    | ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void)
+    | null;
+  onresult:
+    | ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void)
+    | null;
+  onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  start: () => void;
+  stop: () => void;
 }
 interface SpeechRecognitionEvent extends Event {
-  results: SpeechRecognitionResultList;
   resultIndex: number;
+  results: SpeechRecognitionResultList;
 }
 interface SpeechRecognitionResultList {
+  item: (index: number) => SpeechRecognitionResult;
   readonly length: number;
-  item(index: number): SpeechRecognitionResult;
   [index: number]: SpeechRecognitionResult;
 }
 interface SpeechRecognitionResult {
-  readonly length: number;
-  item(index: number): SpeechRecognitionAlternative;
-  [index: number]: SpeechRecognitionAlternative;
   isFinal: boolean;
+  item: (index: number) => SpeechRecognitionAlternative;
+  readonly length: number;
+  [index: number]: SpeechRecognitionAlternative;
 }
 interface SpeechRecognitionAlternative {
-  transcript: string;
   confidence: number;
+  transcript: string;
 }
 interface SpeechRecognitionErrorEvent extends Event {
   error: string;

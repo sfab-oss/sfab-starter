@@ -11,8 +11,8 @@ export const useActiveOrganizationId = () => {
   return session?.session?.activeOrganizationId;
 };
 
-export const useInvitation = (id: string) => {
-  return useQuery({
+export const useInvitation = (id: string) =>
+  useQuery({
     queryKey: getInvitationKey(id),
     queryFn: async () => {
       const res = await client.protected.organization.invitation[":id"].$get({
@@ -25,7 +25,6 @@ export const useInvitation = (id: string) => {
     },
     enabled: !!id,
   });
-};
 
 export const useAcceptInvitation = () => {
   const queryClient = useQueryClient();
@@ -46,8 +45,8 @@ export const useAcceptInvitation = () => {
   });
 };
 
-export const useRejectInvitation = () => {
-  return useMutation({
+export const useRejectInvitation = () =>
+  useMutation({
     mutationFn: async (invitationId: string) => {
       const res = await authClient.organization.rejectInvitation({
         invitationId,
@@ -58,7 +57,6 @@ export const useRejectInvitation = () => {
       return res.data;
     },
   });
-};
 
 export const useInviteMember = () => {
   const queryClient = useQueryClient();

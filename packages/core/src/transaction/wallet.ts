@@ -140,24 +140,24 @@ function buildDepositStmts(
 ): BatchStmt[] {
   const stmts: BatchStmt[] = [
     db.insert(payments).values({
-      id: paymentId,
-      organizationId: orgId,
       amount: input.amount,
+      entityId: input.entityId ?? null,
+      id: paymentId,
+      idempotencyKey: input.idempotencyKey ?? null,
       method: input.method ?? "deposit",
+      organizationId: orgId,
       paidAt: input.paidAt ?? now,
       reference: input.reference ?? null,
-      idempotencyKey: input.idempotencyKey ?? null,
-      entityId: input.entityId ?? null,
     }),
     db.insert(customerCredit).values({
-      id: entryId,
-      organizationId: orgId,
-      entityId: input.entityId ?? null,
       amount: input.amount,
-      type: input.type ?? "deposit",
+      entityId: input.entityId ?? null,
+      id: entryId,
+      notes: input.notes ?? null,
+      organizationId: orgId,
       paymentId,
       reference: input.reference ?? null,
-      notes: input.notes ?? null,
+      type: input.type ?? "deposit",
     }),
   ];
   if (input.entityId) {
@@ -175,20 +175,20 @@ async function logDepositEvent(
   now: string
 ): Promise<void> {
   await db.insert(activityLog).values({
-    organizationId: orgId,
-    kind: "event",
-    eventType: "credit_deposited",
-    entityType: input.entityId ? "entity" : "payment",
-    entityId: input.entityId ?? paymentId,
     actorId: actorId ?? null,
-    summary: `Credit deposited: ${input.amount}`,
+    createdAt: now,
+    entityId: input.entityId ?? paymentId,
+    entityType: input.entityId ? "entity" : "payment",
+    eventType: "credit_deposited",
+    kind: "event",
     metadata: {
       amount: input.amount,
-      type: input.type ?? "deposit",
       entryId,
       reference: input.reference ?? null,
+      type: input.type ?? "deposit",
     },
-    createdAt: now,
+    organizationId: orgId,
+    summary: `Credit deposited: ${input.amount}`,
   });
 }
 
@@ -197,10 +197,10 @@ async function logDepositEvent(
 // ---------------------------------------------------------------------------
 
 export interface RedeemCreditResult {
-  paymentId: string;
-  entryId: string;
-  touchedDocuments: string[];
   completedSales: string[];
+  entryId: string;
+  paymentId: string;
+  touchedDocuments: string[];
 }
 
 /**
@@ -257,33 +257,33 @@ export async function redeemCredit(
   const result = await recordPayment(
     orgId,
     {
+      allocations: [{ amount: input.amount, documentId: input.documentId }],
       amount: input.amount,
-      method: "wallet",
       entityId: input.entityId,
-      allocations: [{ documentId: input.documentId, amount: input.amount }],
+      method: "wallet",
     },
     {
       actorId: opts.actorId,
       docs: [doc],
-      paymentId,
       extraStmts: [
         db.insert(customerCredit).values({
+          amount: -input.amount,
+          entityId: input.entityId,
           id: entryId,
           organizationId: orgId,
-          entityId: input.entityId,
-          amount: -input.amount,
-          type: "redemption",
           paymentId,
+          type: "redemption",
         }),
       ],
+      paymentId,
     }
   );
 
   return {
-    paymentId: result.paymentId,
-    entryId,
-    touchedDocuments: result.touchedDocuments,
     completedSales: result.completedSales,
+    entryId,
+    paymentId: result.paymentId,
+    touchedDocuments: result.touchedDocuments,
   };
 }
 
@@ -378,64 +378,63 @@ export async function redeemCreditByReference(
     const result = await recordPayment(
       orgId,
       {
+        allocations: [{ amount: input.amount, documentId: input.documentId }],
         amount: input.amount,
-        method: "wallet",
         entityId: input.entityId,
-        allocations: [{ documentId: input.documentId, amount: input.amount }],
+        method: "wallet",
       },
       {
         actorId: opts.actorId,
         docs: [doc],
-        paymentId,
         extraStmts: [
           // Balanced transfer: debit walk-in scope (claimReference set for
           // UNIQUE race prevention), credit entity scope.
-          db
-            .insert(customerCredit)
-            .values({
-              id: claimWalkInId,
-              organizationId: orgId,
-              entityId: null,
-              amount: -walkInTotal,
-              type: "claim",
-              reference: input.reference,
-              claimReference: input.reference,
-            }),
           db.insert(customerCredit).values({
+            amount: -walkInTotal,
+            claimReference: input.reference,
+            entityId: null,
+            id: claimWalkInId,
+            organizationId: orgId,
+            reference: input.reference,
+            type: "claim",
+          }),
+          db.insert(customerCredit).values({
+            amount: walkInTotal,
+            entityId: input.entityId,
             id: claimEntityId,
             organizationId: orgId,
-            entityId: input.entityId,
-            amount: walkInTotal,
-            type: "claim",
             reference: input.reference,
+            type: "claim",
           }),
           // Ordinary wallet redemption for the requested amount.
-          db
-            .insert(customerCredit)
-            .values({
-              id: redemptionEntryId,
-              organizationId: orgId,
-              entityId: input.entityId,
-              amount: -input.amount,
-              type: "redemption",
-              paymentId,
-            }),
+          db.insert(customerCredit).values({
+            amount: -input.amount,
+            entityId: input.entityId,
+            id: redemptionEntryId,
+            organizationId: orgId,
+            paymentId,
+            type: "redemption",
+          }),
         ],
+        paymentId,
       }
     );
 
     return {
-      paymentId: result.paymentId,
-      entryId: redemptionEntryId,
-      touchedDocuments: result.touchedDocuments,
       completedSales: result.completedSales,
+      entryId: redemptionEntryId,
+      paymentId: result.paymentId,
+      touchedDocuments: result.touchedDocuments,
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes("claim_reference") && msg.includes("UNIQUE")) {
+      // DomainError forwards ErrorOptions via super; rule does not see subclass cause wiring.
+      // biome-ignore lint/style/useErrorCause: DomainError accepts ErrorOptions.cause
       throw new DomainError(
         `Reference "${input.reference}" has already been claimed`,
-        "conflict"
+        "conflict",
+        { cause: err }
       );
     }
     throw err;
@@ -473,13 +472,13 @@ export async function reverseCreditEntry(
 
   const stmts: BatchStmt[] = [
     db.insert(customerCredit).values({
-      id: reversalId,
-      organizationId: orgId,
-      entityId: entry.entityId,
       amount: -entry.amount,
-      type: "correction",
-      reference: entry.reference,
+      entityId: entry.entityId,
+      id: reversalId,
       notes: opts.reason ?? `Reversal of ${entryId}`,
+      organizationId: orgId,
+      reference: entry.reference,
+      type: "correction",
     }),
   ];
 

@@ -1,18 +1,42 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": [
-    "ultracite/biome/core",
-    "ultracite/biome/react",
-    "ultracite/biome/next"
+    "@workspace/biome-config/core",
+    "@workspace/biome-config/react",
+    "@workspace/biome-config/tanstack"
   ],
+  "assist": {
+    "actions": {
+      "source": {
+        "useSortedKeys": "off",
+        "useSortedAttributes": "off",
+        "useSortedInterfaceMembers": "off",
+        "useSortedProperties": "off",
+        "useSortedTypeFields": "off"
+      }
+    }
+  },
   "files": {
     "includes": ["!!packages/env/src/env.d.ts"]
   },
   "linter": {
     "rules": {
       "performance": {
+        "noBarrelFile": "off",
         "noImgElement": "off",
-        "noBarrelFile": "off"
+        "noJsxPropsBind": "off",
+        "noAwaitInLoops": "off"
+      },
+      "suspicious": {
+        "noLeakedRender": "off",
+        "noEqualsToNull": "off",
+        "noShadow": "off",
+        "noUnusedExpressions": "off",
+        "noUnnecessaryConditions": "off"
+      },
+      "style": {
+        "useDestructuring": "off",
+        "noIncrementDecrement": "off"
       }
     }
   },

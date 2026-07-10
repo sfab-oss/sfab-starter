@@ -72,12 +72,11 @@ export const getPaginatedProducts = async (
   return buildPaginatedResponse(data, total, params);
 };
 
-export const getProducts = async (orgId: string) => {
-  return await db
+export const getProducts = async (orgId: string) =>
+  await db
     .select(productSelectFields)
     .from(products)
     .where(eq(products.organizationId, orgId));
-};
 
 export const getProduct = async (id: string, orgId: string) => {
   const [product] = await db

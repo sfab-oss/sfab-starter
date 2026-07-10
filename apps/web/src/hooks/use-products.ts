@@ -33,8 +33,8 @@ export const getProductsListKey = (params: PaginationQuery) => [
 ];
 export const getProductKey = (id: string) => ["products", id];
 
-export const useProducts = (params: PaginationQuery) => {
-  return useQuery({
+export const useProducts = (params: PaginationQuery) =>
+  useQuery({
     queryKey: getProductsListKey(params),
     queryFn: async () => {
       const res = await client.protected.catalog.products.$get({
@@ -50,10 +50,9 @@ export const useProducts = (params: PaginationQuery) => {
     },
     placeholderData: keepPreviousData,
   });
-};
 
-export const useProduct = (id: string) => {
-  return useQuery({
+export const useProduct = (id: string) =>
+  useQuery({
     queryKey: getProductKey(id),
     queryFn: async () => {
       const res = await client.protected.catalog.products[":id"].$get({
@@ -66,7 +65,6 @@ export const useProduct = (id: string) => {
     },
     enabled: !!id,
   });
-};
 
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
@@ -173,8 +171,8 @@ export const useDeleteProduct = () => {
   });
 };
 
-export const useUploadProductImage = () => {
-  return useMutation({
+export const useUploadProductImage = () =>
+  useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
@@ -189,10 +187,9 @@ export const useUploadProductImage = () => {
       return res.json() as Promise<{ key: string }>;
     },
   });
-};
 
-export const useDeleteProductImage = () => {
-  return useMutation({
+export const useDeleteProductImage = () =>
+  useMutation({
     mutationFn: async (key: string) => {
       const res = await client.protected.catalog.uploads[":key"].$delete({
         param: { key },
@@ -203,4 +200,3 @@ export const useDeleteProductImage = () => {
       return res.json();
     },
   });
-};

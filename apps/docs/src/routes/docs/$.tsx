@@ -18,34 +18,33 @@ import { baseOptions } from "@/lib/layout.shared";
 import { source } from "@/lib/source";
 
 const LEGACY_BLOCK_REDIRECTS: Record<string, string> = {
+  "blocks/app-shell": "blocks/resource-list-page",
   "blocks/dashboard": "blocks/resource-list-page",
   "blocks/hoy-overview": "blocks/today-overview",
-  "blocks/operator-home": "blocks/today-overview",
-  "blocks/app-shell": "blocks/resource-list-page",
   "blocks/master-data-list-page": "blocks/resource-list-page",
+  "blocks/operator-home": "blocks/today-overview",
 };
 
 const LEGACY_COMPONENT_REDIRECTS: Record<string, string> = {
-  "components/list-page-shell": "components/shell",
-  "components/record-page-shell": "components/shell",
-  "components/button": "components/shell",
   "components/badge": "components/resource-table",
-  "components/money-fields": "components/resource-table",
-  "components/money-display": "components/resource-table",
-  "components/status-badges": "components/resource-table",
-  "components/filter-preset-bar": "components/resource-table",
-  "components/primary-action-bar": "components/shell",
+  "components/button": "components/shell",
   "components/command-palette": "blocks/command-palette",
-  "components/side-sheet-host": "components/shell",
   "components/confirm-ladder": "components/shell",
   "components/contract-form": "components/shell",
+  "components/filter-preset-bar": "components/resource-table",
+  "components/list-page-shell": "components/shell",
+  "components/money-display": "components/resource-table",
+  "components/money-fields": "components/resource-table",
+  "components/primary-action-bar": "components/shell",
+  "components/record-page-shell": "components/shell",
+  "components/side-sheet-host": "components/shell",
+  "components/status-badges": "components/resource-table",
 };
 
 export const Route = createFileRoute("/docs/$")({
   component: Page,
-  notFoundComponent: DocsNotFound,
   head: () => ({
-    links: [{ rel: "stylesheet", href: docsCss }],
+    links: [{ href: docsCss, rel: "stylesheet" }],
   }),
   loader: async ({ params }) => {
     const slugs = params._splat?.split("/").filter(Boolean) ?? [];
@@ -57,6 +56,7 @@ export const Route = createFileRoute("/docs/$")({
     }
     return data;
   },
+  notFoundComponent: DocsNotFound,
 });
 
 const serverLoader = createServerFn({ method: "GET" })
@@ -77,8 +77,8 @@ const serverLoader = createServerFn({ method: "GET" })
     }
 
     return {
-      path: page.path,
       pageTree: await source.serializePageTree(source.getPageTree()),
+      path: page.path,
     };
   });
 
@@ -88,6 +88,7 @@ function isBlocksDocsPath(path: string) {
 
 const clientLoader = browserCollections.docs.createClientLoader({
   component({ toc, frontmatter, default: MDX }) {
+    // biome-ignore lint/correctness/useHookAtTopLevel: fumadocs clientLoader `component` is a React component
     const path = Route.useLoaderData().path;
     const isBlocksSection = isBlocksDocsPath(path);
 

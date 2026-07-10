@@ -54,8 +54,6 @@ function resolveCollectionEmpty({
   if (isPresetEmpty) {
     return <ResourceListPresetEmptyState onClearFilters={clearFilters} />;
   }
-
-  return undefined;
 }
 
 function ResourceListPageContent() {

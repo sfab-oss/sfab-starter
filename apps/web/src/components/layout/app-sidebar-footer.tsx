@@ -152,8 +152,7 @@ export function AppSidebarFooter() {
                 src={activeOrganization?.logo ?? undefined}
               />
               <AvatarFallback className="rounded-lg">
-                {activeOrganization?.name?.substring(0, 2).toUpperCase() ??
-                  "??"}
+                {activeOrganization?.name?.slice(0, 2).toUpperCase() ?? "??"}
               </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
@@ -215,7 +214,7 @@ export function AppSidebarFooter() {
                       src={user.image ?? undefined}
                     />
                     <AvatarFallback className="rounded-lg">
-                      {user.name?.substring(0, 2).toUpperCase() ?? "??"}
+                      {user.name?.slice(0, 2).toUpperCase() ?? "??"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">

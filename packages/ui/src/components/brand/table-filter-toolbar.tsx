@@ -147,21 +147,23 @@ export function TableFilterToolbar({
   sort,
 }: TableFilterToolbarProps) {
   const activeCount = countActiveFilters(columnFilters, definitions);
-  const activeChips = useMemo(() => {
-    return definitions.flatMap((definition) => {
-      const value = getColumnFilterValue(columnFilters, definition.columnId);
-      if (!isFilterValueActive(value)) {
-        return [];
-      }
-      return [
-        {
-          columnId: definition.columnId,
-          label: definition.label,
-          displayValue: formatFilterChipValue(definition, value),
-        },
-      ];
-    });
-  }, [columnFilters, definitions]);
+  const activeChips = useMemo(
+    () =>
+      definitions.flatMap((definition) => {
+        const value = getColumnFilterValue(columnFilters, definition.columnId);
+        if (!isFilterValueActive(value)) {
+          return [];
+        }
+        return [
+          {
+            columnId: definition.columnId,
+            label: definition.label,
+            displayValue: formatFilterChipValue(definition, value),
+          },
+        ];
+      }),
+    [columnFilters, definitions]
+  );
   const updateFilter = (columnId: string, value: unknown) => {
     onColumnFiltersChange(setColumnFilterValue(columnFilters, columnId, value));
   };

@@ -1,4 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="6" fill="currentColor" opacity="0.1"/>
-  <text x="16" y="21" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="600" fill="currentColor">D</text>
+<svg fill="none" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <title>Docs</title>
+  <rect fill="currentColor" height="32" opacity="0.1" rx="6" width="32" />
+  <text
+    fill="currentColor"
+    font-family="system-ui,sans-serif"
+    font-size="14"
+    font-weight="600"
+    text-anchor="middle"
+    x="16"
+    y="21"
+  >
+    D
+  </text>
 </svg>

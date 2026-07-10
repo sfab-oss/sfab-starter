@@ -128,7 +128,7 @@ function deriveTitleFromMessage(message: OutgoingMessage): string | undefined {
     .replace(/\s+/g, " ")
     .trim();
   if (!text) {
-    return undefined;
+    return;
   }
   return text.length > 50 ? `${text.slice(0, 47).trim()}…` : text;
 }

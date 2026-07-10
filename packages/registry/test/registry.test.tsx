@@ -14,7 +14,7 @@ import { blocks, components, getSfabKind, REGISTRY } from "../src/index";
  * can ever be `shadcn add`-ed into an adopter.
  */
 
-const REPO_ROOT = join(__dirname, "..", "..", "..");
+const REPO_ROOT = join(import.meta.dirname, "..", "..", "..");
 const entries = Object.values(REGISTRY);
 
 afterEach(cleanup);

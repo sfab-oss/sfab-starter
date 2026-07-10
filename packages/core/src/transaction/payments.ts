@@ -39,6 +39,7 @@ import {
 // ---------------------------------------------------------------------------
 
 type BatchStmt = Parameters<typeof db.batch>[0][number];
+
 export type { BatchStmt };
 
 /** Run a batch of statements (typed wrapper to avoid repeating the tuple cast). */
@@ -74,7 +75,7 @@ export async function findPaymentByIdempotencyKey(
   idempotencyKey: string
 ): Promise<{ id: string; amount: number } | null> {
   const [existing] = await db
-    .select({ id: payments.id, amount: payments.amount })
+    .select({ amount: payments.amount, id: payments.id })
     .from(payments)
     .where(
       and(
@@ -132,9 +133,9 @@ async function replayIdempotentPayment(
     );
 
   return {
+    completedSales: [],
     paymentId: existing.id,
     touchedDocuments: allocations.map((a) => a.documentId),
-    completedSales: [],
   };
 }
 
@@ -173,31 +174,31 @@ function buildPaymentEventStmts(
 ): BatchStmt[] {
   const stmts: BatchStmt[] = completedSales.map((docId) =>
     db.insert(activityLog).values({
-      organizationId: orgId,
-      kind: "event",
-      eventType: "sale_completed",
-      entityType: "document",
-      entityId: docId,
       actorId: actorId ?? null,
-      summary: "Sale completed (fully paid)",
       createdAt: now,
+      entityId: docId,
+      entityType: "document",
+      eventType: "sale_completed",
+      kind: "event",
+      organizationId: orgId,
+      summary: "Sale completed (fully paid)",
     })
   );
   stmts.push(
     db.insert(activityLog).values({
-      organizationId: orgId,
-      kind: "event",
-      eventType: "payment_recorded",
-      entityType: "payment",
-      entityId: paymentId,
       actorId: actorId ?? null,
-      summary: `Payment recorded: ${input.method}`,
+      createdAt: now,
+      entityId: paymentId,
+      entityType: "payment",
+      eventType: "payment_recorded",
+      kind: "event",
       metadata: {
+        allocations: input.allocations.length,
         amount: input.amount,
         method: input.method,
-        allocations: input.allocations.length,
       },
-      createdAt: now,
+      organizationId: orgId,
+      summary: `Payment recorded: ${input.method}`,
     })
   );
   return stmts;
@@ -238,9 +239,9 @@ function detectNewlyCompletedSales(
 // ---------------------------------------------------------------------------
 
 export interface RecordPaymentResult {
+  completedSales: string[];
   paymentId: string;
   touchedDocuments: string[];
-  completedSales: string[];
 }
 
 /**
@@ -318,14 +319,14 @@ export async function recordPayment(
   // (a) Payment header.
   stmts.push(
     db.insert(payments).values({
-      id: paymentId,
-      organizationId: orgId,
       amount: input.amount,
+      entityId: input.entityId ?? null,
+      id: paymentId,
+      idempotencyKey: input.idempotencyKey ?? null,
       method: input.method,
+      organizationId: orgId,
       paidAt,
       reference: input.reference ?? null,
-      idempotencyKey: input.idempotencyKey ?? null,
-      entityId: input.entityId ?? null,
     })
   );
 
@@ -335,24 +336,24 @@ export async function recordPayment(
       db
         .insert(paymentAllocations)
         .values({
+          amount: alloc.amount,
+          documentId: alloc.documentId,
+          effectiveAt: alloc.effectiveAt ?? paidAt,
           id: createId("alloc"),
           organizationId: orgId,
           paymentId,
-          documentId: alloc.documentId,
-          amount: alloc.amount,
-          effectiveAt: alloc.effectiveAt ?? paidAt,
         })
         .onConflictDoUpdate({
-          target: [
-            paymentAllocations.organizationId,
-            paymentAllocations.paymentId,
-            paymentAllocations.documentId,
-          ],
           set: {
             amount: alloc.amount,
             effectiveAt: alloc.effectiveAt ?? paidAt,
             updatedAt: now,
           },
+          target: [
+            paymentAllocations.organizationId,
+            paymentAllocations.paymentId,
+            paymentAllocations.documentId,
+          ],
         })
     );
   }
@@ -402,7 +403,7 @@ export async function recordPayment(
     )
   );
 
-  return { paymentId, touchedDocuments: docIds, completedSales };
+  return { completedSales, paymentId, touchedDocuments: docIds };
 }
 
 // ---------------------------------------------------------------------------
@@ -491,14 +492,14 @@ export async function reversePayment(
   // (a) Reversal payment header (negated amount).
   stmts.push(
     db.insert(payments).values({
-      id: reversalPaymentId,
-      organizationId: orgId,
       amount: -payment.amount,
+      entityId: payment.entityId,
+      id: reversalPaymentId,
       method: payment.method,
+      organizationId: orgId,
       paidAt: now,
       reference: opts.reason ?? "Reversal",
       reversesPaymentId: paymentId,
-      entityId: payment.entityId,
     })
   );
 
@@ -507,12 +508,12 @@ export async function reversePayment(
     touchedDocIds.add(alloc.documentId);
     stmts.push(
       db.insert(paymentAllocations).values({
+        amount: -alloc.amount,
+        documentId: alloc.documentId,
+        effectiveAt: now,
         id: createId("alloc"),
         organizationId: orgId,
         paymentId: reversalPaymentId,
-        documentId: alloc.documentId,
-        amount: -alloc.amount,
-        effectiveAt: now,
       })
     );
     stmts.push(
@@ -544,22 +545,26 @@ export async function reversePayment(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes("reverses_payment_id") && msg.includes("UNIQUE")) {
-      throw new DomainError("Payment already reversed", "conflict");
+      // DomainError forwards ErrorOptions via super; rule does not see subclass cause wiring.
+      // biome-ignore lint/style/useErrorCause: DomainError accepts ErrorOptions.cause
+      throw new DomainError("Payment already reversed", "conflict", {
+        cause: err,
+      });
     }
     throw err;
   }
 
   // 5. POST-BATCH event.
   await db.insert(activityLog).values({
-    organizationId: orgId,
-    kind: "event",
-    eventType: "payment_reversed",
-    entityType: "payment",
-    entityId: paymentId,
     actorId: opts.actorId ?? null,
-    summary: `Payment reversed${opts.reason ? `: ${opts.reason}` : ""}`,
-    metadata: { reversalPaymentId },
     createdAt: now,
+    entityId: paymentId,
+    entityType: "payment",
+    eventType: "payment_reversed",
+    kind: "event",
+    metadata: { reversalPaymentId },
+    organizationId: orgId,
+    summary: `Payment reversed${opts.reason ? `: ${opts.reason}` : ""}`,
   });
 
   return {
@@ -610,5 +615,5 @@ export async function getPaymentWithAllocations(
         eq(paymentAllocations.organizationId, orgId)
       )
     );
-  return { payment, allocations };
+  return { allocations, payment };
 }

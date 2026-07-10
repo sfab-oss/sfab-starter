@@ -37,7 +37,7 @@ function mapThroughCodemode(
   // codemode would hand the sandbox runtime.
   return (
     connector as unknown as {
-      tools(): Record<string, { requiresApproval?: boolean }>;
+      tools: () => Record<string, { requiresApproval?: boolean }>;
     }
   ).tools();
 }
@@ -47,14 +47,14 @@ describe("codemode approval mapping (AC-1) — needsApproval pauses, not strips"
     const mapped = mapThroughCodemode({
       risky: tool({
         description: "A gated action.",
+        execute: async () => "ran",
         inputSchema: z.object({ id: z.string() }),
         needsApproval: true,
-        execute: async () => "ran",
       }),
       safe: tool({
         description: "An autonomous action.",
-        inputSchema: z.object({ id: z.string() }),
         execute: async () => "ran",
+        inputSchema: z.object({ id: z.string() }),
       }),
     });
 
