@@ -63,7 +63,7 @@
     "react-hook-form": "^7.81.0",
     "tailwindcss": "^4.3.2",
     "use-debounce": "^10.1.1",
-    "zod": "^4.3.5",
+    "zod": "4.3.5",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
