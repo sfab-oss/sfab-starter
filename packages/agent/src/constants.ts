@@ -8,6 +8,20 @@ export type DisplayToolName =
   (typeof DISPLAY_TOOL_NAMES)[keyof typeof DISPLAY_TOOL_NAMES];
 
 /**
+ * Mutating tools exposed inside codemode (`tools.*`). Keep in sync with the
+ * web invalidation registry (`agent-tool-invalidation-registry.ts`). Used when
+ * attaching `appliedWrites` on completed codemode output so read-only log
+ * entries never leave the DO.
+ */
+export const AGENT_WRITE_TOOL_NAMES = [
+  "create_product",
+  "update_product",
+  "delete_product",
+] as const;
+
+export type AgentWriteToolName = (typeof AGENT_WRITE_TOOL_NAMES)[number];
+
+/**
  * Thrown by the RBAC guard (`tools/guard.ts`) when the caller's role isn't
  * allowed to run a write tool. It crosses the wire as the tool part's
  * `errorText`, so the chat UI matches on this exact string to render a calm

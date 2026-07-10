@@ -10,42 +10,14 @@ import {
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import { useEffect, useState } from "react";
 import { useChatConnection } from "@/components/chat/window/chat-window";
+import {
+  asCodemodeOutput,
+  type CodemodeOutput,
+  type CodemodePendingAction,
+} from "@/lib/codemode-output";
 import { idToReadableText } from "@/lib/id-to-readable-text";
 
 const METHOD_SPLIT = /[_-]/;
-
-interface PendingAction {
-  method?: string;
-  args?: unknown;
-}
-
-interface CodemodeOutput {
-  status: "paused" | "completed" | "rejected" | "error";
-  executionId: string;
-  pending?: PendingAction[];
-  result?: unknown;
-  error?: string;
-  reason?: string;
-}
-
-function asCodemodeOutput(value: unknown): CodemodeOutput | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  const o = value as Record<string, unknown>;
-  if (typeof o.executionId !== "string" || typeof o.status !== "string") {
-    return null;
-  }
-  if (
-    o.status !== "paused" &&
-    o.status !== "completed" &&
-    o.status !== "rejected" &&
-    o.status !== "error"
-  ) {
-    return null;
-  }
-  return o as unknown as CodemodeOutput;
-}
 
 function humanizeMethod(method: string | undefined): string {
   if (!method) {
@@ -86,7 +58,7 @@ export function PausedExecutionCard({
   // Keep this card mounted after Approve (completed output looks like any
   // other codemode run). Session-only — reload of an approved run is generic.
   const [wasGated, setWasGated] = useState(false);
-  const [action, setAction] = useState<PendingAction | null>(null);
+  const [action, setAction] = useState<CodemodePendingAction | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {

@@ -40,6 +40,7 @@ import {
   MessagesAreaSkeleton,
 } from "@/components/chat/parts/chat-messages";
 import { ChatInputPlaceholder } from "@/components/chat/placeholders";
+import { useAgentToolMutationInvalidation } from "@/hooks/use-agent-tool-mutation-invalidation";
 
 /**
  * Real WebSocket connection state, driven by the `useAgent` socket lifecycle
@@ -406,6 +407,18 @@ function ChatConnection({
   const getSubAgentRuns = (toolCallId: string) =>
     subAgentEvents.getRunsForToolCall(toolCallId);
 
+  const callAgent = useCallback(
+    (method: string, args: unknown[] = []) =>
+      chatAgent.call(method, args) as Promise<unknown>,
+    [chatAgent]
+  );
+
+  // ALW-500: invalidate React Query when agent write tools complete (via
+  // helpers.messages — not onToolCall / tool card renderers).
+  useAgentToolMutationInvalidation({
+    messages: helpers.messages,
+  });
+
   useEffect(() => {
     onStatus(helpers.status);
   }, [helpers.status, onStatus]);
@@ -459,12 +472,6 @@ function ChatConnection({
     onClearPending,
     onSendError,
   ]);
-
-  const callAgent = useCallback(
-    (method: string, args: unknown[] = []) =>
-      chatAgent.call(method, args) as Promise<unknown>,
-    [chatAgent]
-  );
 
   return (
     <ChatConnectionContext.Provider
