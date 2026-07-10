@@ -27,9 +27,8 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (3)
+## assigned (2)
 
-- [`ALW-480`](./ALW-480.md) — Verify destructive-approval path on main (post-ALW-456)
 - [`ALW-453`](./ALW-453.md) — Fix chat attachment send — provider rejects non-text content types
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
@@ -79,8 +78,9 @@ overwritten by the next sync.
 - [`ALW-298`](./ALW-298.md) — Rename project identity from simple-monorepo-starter to sfab-starter
 - [`ALW-218`](./ALW-218.md) — Bring in the Think-based organization ERP agent (OrgAgent + OrgChat DO pattern from sfab)
 
-## done (5)
+## done (6)
 
+- [`ALW-480`](./ALW-480.md) — Verify destructive-approval path on main (post-ALW-456)
 - [`ALW-424`](./ALW-424.md) — QA: auth, onboarding & org lifecycle — incl. RBAC gating
 - [`ALW-423`](./ALW-423.md) — QA: shell, navigation & command-K palette (desktop + mobile)
 - [`ALW-327`](./ALW-327.md) — Directory / package structure (Tier-1 foundation)
