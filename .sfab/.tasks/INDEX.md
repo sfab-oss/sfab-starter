@@ -31,13 +31,13 @@ overwritten by the next sync.
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 - [`ALW-423`](./ALW-423.md) — QA: shell, navigation & command-K palette (desktop + mobile)
 
-## review (2)
+## review (1)
 
-- [`ALW-461`](./ALW-461.md) — Template release docs: README + agent init guidance
 - [`ALW-460`](./ALW-460.md) — Migrate shadcn wrappers from Radix to Base UI
 
-## merged (32)
+## merged (33)
 
+- [`ALW-461`](./ALW-461.md) — Template release docs: README + agent init guidance
 - [`ALW-459`](./ALW-459.md) — Adopt shadcn MessageScroller/Message/Bubble/Marker/Attachment for chat (passes 1–3)
 - [`ALW-456`](./ALW-456.md) — Codemode mid-script approval for delete-product + pending-execution UI
 - [`ALW-451`](./ALW-451.md) — Fix local OrgAgent Durable Object name (chat Connection closed)
