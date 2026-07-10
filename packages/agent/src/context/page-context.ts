@@ -19,7 +19,7 @@ export function getLatestUserPageContext(
 
 export function buildPageContextSection(ctx: OrgPageContext): string {
   const lines = [
-    "## Current page context",
+    "## Current page",
     "",
     "The user sent their last message while viewing:",
     `- Page: ${ctx.page}`,
@@ -28,15 +28,15 @@ export function buildPageContextSection(ctx: OrgPageContext): string {
   const { params } = ctx;
   if (params.entityType && params.entityId) {
     lines.push(`- Entity: ${params.entityType} (${params.entityId})`);
-    if (params.entityType === "product") {
-      lines.push(
-        `- Hint: Use codemode \`get_product\` with id \`${params.entityId}\` for current state.`
-      );
-    }
   }
   if (params.title) {
     lines.push(`- Title: ${params.title}`);
   }
+  // Prerequisite retrieval for every contextual page (not product-only).
+  // Keep lightweight: IDs/title here; full state via tools.
+  lines.push(
+    "- Before answering about this page, fetch current state with the matching get_*/list_* tool (via codemode)."
+  );
 
   return lines.join("\n");
 }
