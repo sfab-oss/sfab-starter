@@ -5,6 +5,10 @@ import {
   OrganizationInvitationTemplate,
   type OrganizationInvitationTemplateProps,
 } from "./templates/organization-invitation";
+import {
+  PasswordResetTemplate,
+  type PasswordResetTemplateProps,
+} from "./templates/password-reset";
 
 function getResend(): Resend {
   const apiKey = env.RESEND_API_KEY;
@@ -20,12 +24,18 @@ const emailTemplates = {
     subject: "You've been invited to join an organization",
     component: OrganizationInvitationTemplate,
   },
+  "password-reset": {
+    id: "password-reset",
+    subject: "Reset your password",
+    component: PasswordResetTemplate,
+  },
 } as const;
 
 type TemplateId = keyof typeof emailTemplates;
 
 interface TemplateProps {
   "organization-invitation": OrganizationInvitationTemplateProps;
+  "password-reset": PasswordResetTemplateProps;
 }
 
 export const sendMail = async <T extends TemplateId>(
