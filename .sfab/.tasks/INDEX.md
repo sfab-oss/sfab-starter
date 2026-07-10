@@ -33,16 +33,15 @@ overwritten by the next sync.
 
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
-## review (2)
+## review (1)
 
 - [`ALW-473`](./ALW-473.md) — Spike: migrate sfab-starter to TypeScript 7
-- [`ALW-442`](./ALW-442.md) — Add email password-reset flow (forgot-password + completion)
 
 ## needs-input (1)
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 
-## merged (39)
+## merged (40)
 
 - [`ALW-495`](./ALW-495.md) — Starter: own Biome ruleset, drop Ultracite, bump Biome
 - [`ALW-492`](./ALW-492.md) — Hide TanStack Devtools behind URL flag
@@ -54,6 +53,7 @@ overwritten by the next sync.
 - [`ALW-453`](./ALW-453.md) — Fix chat attachment send — provider rejects non-text content types
 - [`ALW-452`](./ALW-452.md) — Fix page-context chip never mounting on first paint
 - [`ALW-451`](./ALW-451.md) — Fix local OrgAgent Durable Object name (chat Connection closed)
+- [`ALW-442`](./ALW-442.md) — Add email password-reset flow (forgot-password + completion)
 - [`ALW-439`](./ALW-439.md) — Remove or implement forgot-password route (dead link on login)
 - [`ALW-435`](./ALW-435.md) — Documents experience v1 — composer redesign + type system (quote / invoice / credit note / bill)
 - [`ALW-433`](./ALW-433.md) — Entities (customers/suppliers) UI — directory, detail, create/edit + document picker
