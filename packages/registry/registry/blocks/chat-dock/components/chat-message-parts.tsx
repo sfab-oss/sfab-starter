@@ -190,6 +190,7 @@ export function ChatMessageRow({
           <GalleryMessagePart
             isLastPart={partIndex === message.parts.length - 1}
             isStreaming={isStreaming}
+            // biome-ignore lint/suspicious/noArrayIndexKey: part order within a message is stable
             key={`${message.id}-part-${partIndex}`}
             messageId={message.id}
             part={part}

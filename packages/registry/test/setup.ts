@@ -8,27 +8,27 @@
 if (!window.matchMedia) {
   window.matchMedia = (query: string): MediaQueryList =>
     ({
+      addEventListener: () => undefined,
+      addListener: () => undefined,
+      dispatchEvent: () => false,
       matches: false,
       media: query,
       onchange: null,
-      addEventListener: () => undefined,
       removeEventListener: () => undefined,
-      addListener: () => undefined,
       removeListener: () => undefined,
-      dispatchEvent: () => false,
     }) as MediaQueryList;
 }
 
 if (!globalThis.ResizeObserver) {
   globalThis.ResizeObserver = class {
     observe() {
-      return undefined;
+      // no-op stub for jsdom
     }
     unobserve() {
-      return undefined;
+      // no-op stub for jsdom
     }
     disconnect() {
-      return undefined;
+      // no-op stub for jsdom
     }
   };
 }

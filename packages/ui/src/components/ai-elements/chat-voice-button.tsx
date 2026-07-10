@@ -115,29 +115,31 @@ function useAudioRecording(options: {
     setState((prev) => ({ ...prev, isRecording: false }));
   }, []);
 
-  const stopRecording = useCallback((): Promise<Blob | null> => {
-    return new Promise((resolve) => {
-      if (
-        mediaRecorderRef.current &&
-        mediaRecorderRef.current.state === "recording"
-      ) {
-        mediaRecorderRef.current.onstop = () => {
-          const audioBlob =
-            audioChunksRef.current.length > 0
-              ? new Blob(audioChunksRef.current, {
-                  type: getOptimalAudioFormat(),
-                })
-              : null;
+  const stopRecording = useCallback(
+    (): Promise<Blob | null> =>
+      new Promise((resolve) => {
+        if (
+          mediaRecorderRef.current &&
+          mediaRecorderRef.current.state === "recording"
+        ) {
+          mediaRecorderRef.current.onstop = () => {
+            const audioBlob =
+              audioChunksRef.current.length > 0
+                ? new Blob(audioChunksRef.current, {
+                    type: getOptimalAudioFormat(),
+                  })
+                : null;
+            cleanup();
+            resolve(audioBlob);
+          };
+          mediaRecorderRef.current.stop();
+        } else {
           cleanup();
-          resolve(audioBlob);
-        };
-        mediaRecorderRef.current.stop();
-      } else {
-        cleanup();
-        resolve(null);
-      }
-    });
-  }, [cleanup, getOptimalAudioFormat]);
+          resolve(null);
+        }
+      }),
+    [cleanup, getOptimalAudioFormat]
+  );
 
   const startRecording = useCallback(async () => {
     if (!state.isSupported) {

@@ -166,9 +166,9 @@ function EntityPage() {
               </div>
               <CardDescription>
                 Balance {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY)}
-                {entity.creditLimit != null
-                  ? ` · Credit limit ${formatMoneyMinor(entity.creditLimit, DEFAULT_CURRENCY)}`
-                  : ""}
+                {entity.creditLimit == null
+                  ? ""
+                  : ` · Credit limit ${formatMoneyMinor(entity.creditLimit, DEFAULT_CURRENCY)}`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -238,9 +238,9 @@ function EntityPage() {
                     <div className="min-w-0 flex-1">
                       <div className="font-medium capitalize">
                         {doc.type.replace("_", " ")}
-                        {doc.folio !== null
-                          ? ` #${doc.series ?? doc.type}-${doc.folio}`
-                          : ""}
+                        {doc.folio === null
+                          ? ""
+                          : ` #${doc.series ?? doc.type}-${doc.folio}`}
                       </div>
                       <div className="text-muted-foreground text-xs">
                         {format(new Date(doc.createdAt), "MMM d, yyyy")}

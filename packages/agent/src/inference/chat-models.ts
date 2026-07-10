@@ -341,7 +341,7 @@ function apiKeyFor(
     case "workers-ai":
       return env.WORKERS_AI_API_TOKEN;
     default:
-      return undefined;
+      return;
   }
 }
 

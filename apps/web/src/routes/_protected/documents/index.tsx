@@ -147,7 +147,6 @@ function firstEnumValue(value: unknown): string | undefined {
   if (typeof value === "string" && value) {
     return value;
   }
-  return undefined;
 }
 const NEW_DOCUMENT_TYPES = createableDocumentTypeSchema.options;
 function DocumentsPage() {
@@ -314,7 +313,7 @@ function DocumentsPage() {
     docsResponse.total === 0;
   const collectionEmpty = (() => {
     if (!isEmptyResult) {
-      return undefined;
+      return;
     }
     if (hasActiveFilters) {
       return (

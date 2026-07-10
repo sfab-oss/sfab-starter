@@ -14,7 +14,6 @@ export function getLatestUserPageContext(
       return pageContext;
     }
   }
-  return undefined;
 }
 
 export function buildPageContextSection(ctx: OrgPageContext): string {

@@ -6,7 +6,6 @@ import { cn } from "@workspace/ui/lib/utils";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 declare module "@tanstack/react-table" {
-  // biome-ignore lint/correctness/noUnusedVariables: TanStack requires these type parameter names
   interface ColumnMeta<TData extends RowData, TValue> {
     /** Human-readable column label, shared by SortableHeader and the sort popover. */
     label?: string;
@@ -34,7 +33,6 @@ export function sortAriaSort(
   if (sorted === "desc") {
     return "descending";
   }
-  return undefined;
 }
 
 export function SortIcon({

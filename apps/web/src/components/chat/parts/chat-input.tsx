@@ -145,8 +145,6 @@ function ChatInputInner({
       }
 
       onSubmit(outgoing).catch(handleSendError);
-
-      return undefined;
     },
     [
       disabled,

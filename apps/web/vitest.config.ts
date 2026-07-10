@@ -23,7 +23,10 @@ import { defineConfig, type ViteUserConfig } from "vitest/config";
  * the `workers` setup file can apply the schema to the isolated per-test D1.
  */
 export default defineConfig(async (): Promise<ViteUserConfig> => {
-  const migrationsPath = path.join(__dirname, "../../packages/db/drizzle");
+  const migrationsPath = path.join(
+    import.meta.dirname,
+    "../../packages/db/drizzle"
+  );
   const migrations = await readD1Migrations(migrationsPath);
 
   return {

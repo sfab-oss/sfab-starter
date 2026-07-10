@@ -77,8 +77,6 @@ function resolveCollectionEmpty({
       </div>
     );
   }
-
-  return undefined;
 }
 
 function EntitiesPage() {

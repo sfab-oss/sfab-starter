@@ -36,8 +36,8 @@ export const getEntityKey = (id: string) => ["entities", id];
 export const useEntities = (
   params: EntitiesListParams,
   options?: { enabled?: boolean }
-) => {
-  return useQuery({
+) =>
+  useQuery({
     queryKey: getEntitiesListKey(params),
     queryFn: async () => {
       const res = await client.protected.entities.$get({
@@ -56,10 +56,9 @@ export const useEntities = (
     placeholderData: keepPreviousData,
     enabled: options?.enabled ?? true,
   });
-};
 
-export const useEntity = (id: string) => {
-  return useQuery({
+export const useEntity = (id: string) =>
+  useQuery({
     queryKey: getEntityKey(id),
     queryFn: async () => {
       const res = await client.protected.entities[":id"].$get({
@@ -72,7 +71,6 @@ export const useEntity = (id: string) => {
     },
     enabled: !!id,
   });
-};
 
 export const useCreateEntity = () => {
   const queryClient = useQueryClient();

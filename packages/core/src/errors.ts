@@ -7,8 +7,8 @@ export type DomainErrorCode = "not_found" | "conflict" | "unprocessable";
 export class DomainError extends Error {
   readonly code: DomainErrorCode;
 
-  constructor(message: string, code: DomainErrorCode) {
-    super(message);
+  constructor(message: string, code: DomainErrorCode, options?: ErrorOptions) {
+    super(message, options);
     this.name = "DomainError";
     this.code = code;
   }

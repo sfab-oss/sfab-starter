@@ -59,8 +59,8 @@ export interface DocumentWithLines {
 }
 
 /** Entity-detail helper: all docs for one entity (first page, large). */
-export const useDocuments = (type?: DocumentType, entityId?: string) => {
-  return useQuery({
+export const useDocuments = (type?: DocumentType, entityId?: string) =>
+  useQuery({
     queryKey: getDocumentsListKey({
       page: 1,
       pageSize: 100,
@@ -81,13 +81,12 @@ export const useDocuments = (type?: DocumentType, entityId?: string) => {
       return res.json();
     },
   });
-};
 
 export const useDocumentsList = (
   params: DocumentsListParams,
   options?: { enabled?: boolean }
-) => {
-  return useQuery({
+) =>
+  useQuery({
     queryKey: getDocumentsListKey(params),
     queryFn: async () => {
       const res = await client.protected.documents.$get({
@@ -108,10 +107,9 @@ export const useDocumentsList = (
     placeholderData: keepPreviousData,
     enabled: options?.enabled ?? true,
   });
-};
 
-export const useDocument = (id: string) => {
-  return useQuery({
+export const useDocument = (id: string) =>
+  useQuery({
     queryKey: getDocumentKey(id),
     queryFn: async () => {
       const res = await client.protected.documents[":id"].$get({
@@ -124,7 +122,6 @@ export const useDocument = (id: string) => {
     },
     enabled: !!id,
   });
-};
 
 export const useCreateDocument = () => {
   const queryClient = useQueryClient();
@@ -369,8 +366,8 @@ export const useApplyDisposition = () => {
   });
 };
 
-export const useActivity = (entityId?: string) => {
-  return useQuery({
+export const useActivity = (entityId?: string) =>
+  useQuery({
     queryKey: getActivityKey(entityId),
     queryFn: async () => {
       const res = await client.protected.documents.activity.$get({
@@ -386,7 +383,6 @@ export const useActivity = (entityId?: string) => {
       };
     },
   });
-};
 
 export const useRecordPayment = () => {
   const queryClient = useQueryClient();

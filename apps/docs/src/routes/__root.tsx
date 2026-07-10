@@ -4,23 +4,23 @@ import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
   head: () => ({
+    links: [
+      { href: appCss, rel: "stylesheet" },
+      { href: "/favicon.svg", rel: "icon", type: "image/svg+xml" },
+    ],
     meta: [
       { charSet: "utf-8" },
       {
-        name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
+        name: "viewport",
       },
       { title: "SFab Starter · Docs" },
       {
-        name: "description",
         content:
           "Documentation for the SFab starter template — architecture, guides, and UI component demos.",
+        name: "description",
       },
-      { name: "theme-color", content: "#ffffff" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { content: "#ffffff", name: "theme-color" },
     ],
   }),
   shellComponent: RootDocument,
@@ -29,7 +29,6 @@ export const Route = createRootRoute({
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      {/* biome-ignore lint/style/noHeadElement: TanStack Start requires <head> element */}
       <head>
         <HeadContent />
       </head>

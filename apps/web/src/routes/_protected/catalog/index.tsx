@@ -78,8 +78,6 @@ function resolveCollectionEmpty({
       </div>
     );
   }
-
-  return undefined;
 }
 
 function CatalogPage() {

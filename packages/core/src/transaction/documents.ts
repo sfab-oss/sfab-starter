@@ -240,24 +240,24 @@ export async function updateLineItem(
   }
 
   const quantity =
-    input.quantity !== undefined
-      ? signedQuantityForDocument(doc, input.quantity)
-      : existing.quantity;
+    input.quantity === undefined
+      ? existing.quantity
+      : signedQuantityForDocument(doc, input.quantity);
 
   const discount =
-    input.discount !== undefined
-      ? signedDiscountForDocument(doc, input.discount)
-      : existing.discount;
+    input.discount === undefined
+      ? existing.discount
+      : signedDiscountForDocument(doc, input.discount);
 
   const next = {
     productId:
-      input.productId !== undefined ? input.productId : existing.productId,
+      input.productId === undefined ? existing.productId : input.productId,
     description: input.description ?? existing.description,
     quantity,
     unitPrice: input.unitPrice ?? existing.unitPrice,
     discount,
     taxRate: input.taxRate ?? existing.taxRate,
-    taxCode: input.taxCode !== undefined ? input.taxCode : existing.taxCode,
+    taxCode: input.taxCode === undefined ? existing.taxCode : input.taxCode,
     taxMode: input.taxMode ?? existing.taxMode,
     fulfillmentMode: input.fulfillmentMode ?? existing.fulfillmentMode,
   };

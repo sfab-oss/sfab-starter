@@ -162,11 +162,11 @@ function ChatMessage({
             role={message.role}
           />
         ))}
-        {message.id !== PENDING_MESSAGE_ID ? (
+        {message.id === PENDING_MESSAGE_ID ? null : (
           <MessageFooter>
             <ChatMessageActions isLoading={isLoading} messageId={message.id} />
           </MessageFooter>
-        ) : null}
+        )}
       </MessageContent>
     </Message>
   );
@@ -279,11 +279,11 @@ function ChatMessagesInternal({
         <MessageScrollerItem messageId={pendingMessage.id} scrollAnchor>
           <ChatMessage isLoading={false} message={pendingMessage} />
         </MessageScrollerItem>
-        {sendError !== null ? (
+        {sendError === null ? null : (
           <MessageScrollerItem messageId="pending-send-error">
             <PendingSendErrorPill error={sendError} onRetry={onRetry} />
           </MessageScrollerItem>
-        ) : null}
+        )}
       </TranscriptScroller>
     );
   }
