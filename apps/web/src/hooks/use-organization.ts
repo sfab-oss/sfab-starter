@@ -107,6 +107,51 @@ export const useRemoveMember = () => {
   });
 };
 
+export const useCancelInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (invitationId: string) => {
+      const res = await authClient.organization.cancelInvitation({
+        invitationId,
+      });
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to cancel invitation");
+      }
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["activeOrganization"],
+      });
+    },
+  });
+};
+
+export const useDeleteOrganization = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (organizationId: string) => {
+      const res = await authClient.organization.delete({
+        organizationId,
+      });
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to delete organization");
+      }
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["activeOrganization"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["organizations"],
+      });
+    },
+  });
+};
+
 export const useUpdateOrganization = () => {
   const queryClient = useQueryClient();
 
