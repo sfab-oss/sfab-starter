@@ -4,7 +4,6 @@ import {
   useContext,
   useLayoutEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
@@ -39,20 +38,14 @@ export function PageContextProvider({
 
 export function useSetPageContext(config: PageConfig) {
   const context = useContext(PageContextContext);
-  const configRef = useRef(config);
-  const isFirstRender = useRef(true);
 
   useLayoutEffect(() => {
-    if (JSON.stringify(configRef.current) !== JSON.stringify(config)) {
-      context?.setPageConfig(config);
-      configRef.current = config;
-    }
-
+    // Always set on mount / config change. The previous content-equality
+    // guard skipped the first paint because configRef was initialized to
+    // `config`, leaving pageConfig undefined and the chip unmounted.
+    context?.setPageConfig(config);
     return () => {
-      if (!isFirstRender.current) {
-        context?.setPageConfig(undefined);
-      }
-      isFirstRender.current = false;
+      context?.setPageConfig(undefined);
     };
   }, [context, config]);
 }
