@@ -34,16 +34,15 @@ overwritten by the next sync.
 - [`ALW-495`](./ALW-495.md) — Starter: own Biome ruleset, drop Ultracite, bump Biome
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
-## review (2)
+## review (1)
 
 - [`ALW-473`](./ALW-473.md) — Spike: migrate sfab-starter to TypeScript 7
-- [`ALW-453`](./ALW-453.md) — Fix chat attachment send — provider rejects non-text content types
 
 ## needs-input (1)
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 
-## merged (36)
+## merged (37)
 
 - [`ALW-492`](./ALW-492.md) — Hide TanStack Devtools behind URL flag
 - [`ALW-464`](./ALW-464.md) — Bump starter dependencies within minimumReleaseAge
@@ -51,6 +50,7 @@ overwritten by the next sync.
 - [`ALW-460`](./ALW-460.md) — Migrate shadcn wrappers from Radix to Base UI
 - [`ALW-459`](./ALW-459.md) — Adopt shadcn MessageScroller/Message/Bubble/Marker/Attachment for chat (passes 1–3)
 - [`ALW-456`](./ALW-456.md) — Codemode mid-script approval for delete-product + pending-execution UI
+- [`ALW-453`](./ALW-453.md) — Fix chat attachment send — provider rejects non-text content types
 - [`ALW-451`](./ALW-451.md) — Fix local OrgAgent Durable Object name (chat Connection closed)
 - [`ALW-439`](./ALW-439.md) — Remove or implement forgot-password route (dead link on login)
 - [`ALW-435`](./ALW-435.md) — Documents experience v1 — composer redesign + type system (quote / invoice / credit note / bill)
