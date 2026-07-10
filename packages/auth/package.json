@@ -14,13 +14,13 @@
     "@workspace/db": "workspace:*",
     "@workspace/email": "workspace:*",
     "better-auth": "1.6.19",
-    "drizzle-orm": "^0.44.5"
+    "drizzle-orm": "^0.44.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250214.0",
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "@types/node": "^20.19.43",
     "@workspace/env": "workspace:*",
     "@workspace/tsconfig": "workspace:*",
-    "typescript": "^5.9.3",
-    "@types/node": "^20.19.9"
+    "typescript": "^5.9.3"
   }
 }
