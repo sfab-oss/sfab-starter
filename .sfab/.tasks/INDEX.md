@@ -32,17 +32,17 @@ overwritten by the next sync.
 
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
-## review (2)
+## review (1)
 
-- [`ALW-504`](./ALW-504.md) — Settings: wire destructive confirms (remove/leave, cancel invite, delete org)
 - [`ALW-473`](./ALW-473.md) — Spike: migrate sfab-starter to TypeScript 7
 
 ## needs-input (1)
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 
-## merged (40)
+## merged (41)
 
+- [`ALW-504`](./ALW-504.md) — Settings: wire destructive confirms (remove/leave, cancel invite, delete org)
 - [`ALW-495`](./ALW-495.md) — Starter: own Biome ruleset, drop Ultracite, bump Biome
 - [`ALW-492`](./ALW-492.md) — Hide TanStack Devtools behind URL flag
 - [`ALW-464`](./ALW-464.md) — Bump starter dependencies within minimumReleaseAge
