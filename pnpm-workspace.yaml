@@ -17,7 +17,7 @@ overrides:
   undici: "^7.28.0"
   ws: "^8.21.0"
   postcss: "^8.5.10"
-  hono: "^4.12.27"
+  hono: "^4.12.28"
   # Univer 0.25 (spreadsheet-viewer) needs rxjs >=7 — its core imports operators
   # from the `rxjs` root, which only exists in 7. The tree also drags rxjs 6 (via
   # inquirer, pulled by @turbo/gen). Left alone, pnpm fills some @univerjs peers

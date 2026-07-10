@@ -13,17 +13,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "drizzle-orm": "^0.44.5",
+    "drizzle-orm": "^0.44.7",
     "ulidx": "^2.4.1"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250214.0",
-    "@types/better-sqlite3": "^7.6.12",
-    "@types/node": "^22.13.4",
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.20.0",
     "@workspace/env": "workspace:*",
     "@workspace/tsconfig": "workspace:*",
     "better-sqlite3": "^11.10.0",
-    "drizzle-kit": "^0.31.4",
+    "drizzle-kit": "^0.31.10",
     "typescript": "^5.9.3"
   }
 }

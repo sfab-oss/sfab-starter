@@ -14,18 +14,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^2.0.56",
+    "@ai-sdk/openai-compatible": "^2.0.58",
     "@cloudflare/shell": "0.4.1",
     "@cloudflare/think": "0.12.1",
     "@workspace/auth": "workspace:*",
     "@workspace/contract": "workspace:*",
     "@workspace/core": "workspace:*",
     "agents": "0.17.3",
-    "ai": "^6.0.202",
+    "ai": "^6.0.221",
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250214.0",
+    "@cloudflare/workers-types": "^4.20260702.1",
     "@workspace/env": "workspace:*",
     "@workspace/tsconfig": "workspace:*",
     "typescript": "^5.9.3"

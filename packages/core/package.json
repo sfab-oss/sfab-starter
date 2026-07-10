@@ -11,13 +11,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@workspace/db": "workspace:*",
     "@workspace/contract": "workspace:*",
-    "drizzle-orm": "^0.44.5",
-    "nanoid": "^5.1.0"
+    "@workspace/db": "workspace:*",
+    "drizzle-orm": "^0.44.7",
+    "nanoid": "^5.1.16"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250214.0",
+    "@cloudflare/workers-types": "^4.20260702.1",
     "@workspace/env": "workspace:*",
     "@workspace/tsconfig": "workspace:*",
     "typescript": "^5.9.3"
