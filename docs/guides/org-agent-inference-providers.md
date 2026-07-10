@@ -24,14 +24,23 @@ sources keys from **env vars**, not the D1 `provider_keys` table.
 Set `ORG_CHAT_PROVIDER` (unset ⇒ `vercel-gateway`), then the matching key.
 `ORG_CHAT_MODEL` optionally overrides the model id.
 
-| `ORG_CHAT_PROVIDER` | Key env var | Default model | Notes |
-| --- | --- | --- | --- |
-| `vercel-gateway` (default) | `AI_GATEWAY_API_KEY` | `google/gemini-3-flash` | Vercel AI Gateway; unchanged behaviour |
-| `zai-coding-plan` | `ZAI_API_KEY` | `glm-5.2` | z.ai GLM coding plan (OpenAI-compatible) |
-| `workers-ai` | `WORKERS_AI_API_TOKEN` + `CF_ACCOUNT_ID` | `@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Cloudflare Workers AI via its OpenAI-compatible endpoint — **no `env.AI` binding**, so it runs under plain `wrangler dev` |
+| `ORG_CHAT_PROVIDER` | Key env var | Default model | Input modalities | Notes |
+| --- | --- | --- | --- | --- |
+| `vercel-gateway` (default) | `AI_GATEWAY_API_KEY` | `google/gemini-3-flash` | text + image | Vercel AI Gateway; unchanged behaviour |
+| `zai-coding-plan` | `ZAI_API_KEY` | `glm-5.2` | **text-only** | z.ai GLM coding plan (OpenAI-compatible); attach control is hidden |
+| `workers-ai` | `WORKERS_AI_API_TOKEN` + `CF_ACCOUNT_ID` | `@cf/meta/llama-3.3-70b-instruct-fp8-fast` | **text-only** | Cloudflare Workers AI via its OpenAI-compatible endpoint — **no `env.AI` binding**, so it runs under plain `wrangler dev` |
 
-Adding a model or provider is a data edit: extend `OrgChatProvider`,
-`PROVIDER_BUILD`, and `MODEL_OFFERINGS`.
+Modalities are a **per-model** property on each `MODEL_OFFERINGS` row (`inputModalities`),
+not a provider-wide flag — the same provider can host both text-only and vision models.
+An unknown `ORG_CHAT_MODEL` override defaults to text-only (conservative, same spirit as
+`DEFAULT_CONTEXT_WINDOW`).
+
+Adding a model or provider is a data edit: extend `OrgChatProvider`, `PROVIDER_BUILD`,
+and `MODEL_OFFERINGS` (include `inputModalities` on every row).
+
+Attachment gating (ALW-453): `gateChatAttachments` + `GET /api/protected/chat/capabilities`
+hide or reject non-text parts for text-only models before the model call, so users never
+see opaque provider errors like `messages.content.type is invalid`.
 
 ## Fronting with Cloudflare AI Gateway (optional)
 

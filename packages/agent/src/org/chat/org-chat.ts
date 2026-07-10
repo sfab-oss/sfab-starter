@@ -29,7 +29,9 @@ import {
   getLatestUserPageContext,
 } from "../../context/page-context";
 import {
+  gateChatAttachments,
   getCompactionLimit,
+  type OrgChatModelCapabilities,
   resolveOrgChatModel,
 } from "../../inference/chat-models";
 import {
@@ -56,6 +58,7 @@ export class OrgChat extends Think<Cloudflare.Env> {
   private resolvedChatModel!: LanguageModel;
   private resolvedModelId!: string;
   private resolvedContextWindow!: number;
+  private resolvedCapabilities!: OrgChatModelCapabilities;
   private lastTurnUsage: LanguageModelUsage | undefined;
   /** Acting user for tool execute / approve-resume (WebSocket ALS is often unset). */
   private turnUserId: string | undefined;
@@ -68,6 +71,7 @@ export class OrgChat extends Think<Cloudflare.Env> {
     this.resolvedChatModel = resolved.model;
     this.resolvedModelId = resolved.modelId;
     this.resolvedContextWindow = resolved.contextWindow;
+    this.resolvedCapabilities = resolved.capabilities;
   }
 
   private getParent(): Promise<OrgAgentParent> {
@@ -226,6 +230,30 @@ export class OrgChat extends Think<Cloudflare.Env> {
   }
 
   override async beforeTurn(ctx: TurnContext) {
+    // Reject unsupported attachment parts on the inbound user turn before the
+    // provider call so text-only models (e.g. zai-coding-plan) never surface an
+    // opaque content-type error. Only the latest user message is gated — older
+    // history is left alone so a prior failed attach cannot block later text.
+    const latestUser = [...this.messages]
+      .reverse()
+      .find((message) => message.role === "user");
+    if (latestUser) {
+      const attachmentParts = latestUser.parts.map((part) => ({
+        type: part.type,
+        mediaType:
+          "mediaType" in part && typeof part.mediaType === "string"
+            ? part.mediaType
+            : undefined,
+      }));
+      const gate = gateChatAttachments(
+        attachmentParts,
+        this.resolvedCapabilities
+      );
+      if (!gate.ok) {
+        throw new Error(gate.reason);
+      }
+    }
+
     const parent = await this.getParent();
     const organizationId = this.requireOrganizationId();
     // Refresh after hibernation (onConnect does not re-run).

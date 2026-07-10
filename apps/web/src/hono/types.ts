@@ -1,6 +1,7 @@
 import type { Auth } from "@workspace/auth";
 
 export interface HonoContext {
+  Bindings: Cloudflare.Env;
   Variables: {
     user: Auth["$Infer"]["Session"]["user"] | null;
     session: Auth["$Infer"]["Session"]["session"] | null;

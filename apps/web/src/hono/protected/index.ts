@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { extractAuth, requireAuth } from "../middleware/auth";
 import { orgProtectedRoutes } from "../org-protected";
 import type { HonoContext, HonoContextWithAuth } from "../types";
+import chatRoutes from "./chat";
 import organizationRoutes from "./organization";
 
 const meRoute = new Hono<HonoContextWithAuth>().get("/me", (c) => {
@@ -15,4 +16,5 @@ export const protectedRoutes = new Hono<HonoContext>()
   .use("*", requireAuth)
   .route("/", meRoute)
   .route("/organization", organizationRoutes)
+  .route("/chat", chatRoutes)
   .route("/", orgProtectedRoutes);

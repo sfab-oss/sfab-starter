@@ -381,18 +381,21 @@ export type PromptInputActionAddAttachmentsProps = ComponentProps<
 };
 export const PromptInputActionAddAttachments = ({
   label = "Add photos or files",
+  className,
   ...props
 }: PromptInputActionAddAttachmentsProps) => {
   const attachments = usePromptInputAttachments();
   return (
     <DropdownMenuItem
+      className={cn("whitespace-nowrap", className)}
       {...props}
       onClick={(e) => {
         e.preventDefault();
         attachments.openFileDialog();
       }}
     >
-      <ImageIcon className="mr-2 size-4" /> {label}
+      <ImageIcon className="size-4" />
+      <span>{label}</span>
     </DropdownMenuItem>
   );
 };
@@ -929,7 +932,13 @@ export const PromptInputActionMenuContent = ({
   className,
   ...props
 }: PromptInputActionMenuContentProps) => (
-  <DropdownMenuContent align="start" className={cn(className)} {...props} />
+  // Override DropdownMenuContent's `w-(--anchor-width)` — the attach trigger is
+  // a compact icon button, so anchoring width wraps labels like "Add images".
+  <DropdownMenuContent
+    align="start"
+    className={cn("w-auto min-w-40", className)}
+    {...props}
+  />
 );
 export type PromptInputActionMenuItemProps = ComponentProps<
   typeof DropdownMenuItem

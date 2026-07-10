@@ -23,6 +23,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { OutgoingMessage } from "@/components/chat/dock/chat-tabs-store";
 import { PageContextChip } from "@/components/chat/page-context-chip";
 import { usePageContext } from "@/components/providers/page-context";
+import { useChatCapabilities } from "@/hooks/use-chat-capabilities";
 
 function handleSendError(error: unknown) {
   console.error("Failed to send message:", error);
@@ -77,6 +78,10 @@ function ChatInputInner({
 }: ChatInputInnerProps) {
   const livePageContext = usePageContext();
   const controller = usePromptInputController();
+  const { data: capabilities } = useChatCapabilities();
+  // Default closed until capabilities load — avoids a flash of attach on
+  // text-only providers (zai-coding-plan / workers-ai).
+  const supportsImageInput = capabilities?.supportsImageInput === true;
   const [pinned, setPinned] = useState(false);
   const [pinnedContext, setPinnedContext] = useState(livePageContext);
   const [dismissed, setDismissed] = useState(false);
@@ -102,6 +107,24 @@ function ChatInputInner({
       const hasAttachments = Boolean(files?.length);
 
       if (!(hasText || hasAttachments)) {
+        return;
+      }
+
+      // Client-side gate (ALW-453): never hit the API with parts the active
+      // provider rejects. Mirrors `gateChatAttachments` on the server.
+      if (hasAttachments && !supportsImageInput) {
+        toast.error(
+          "This chat model only accepts text. Remove attachments and try again."
+        );
+        return;
+      }
+      if (
+        hasAttachments &&
+        files.some((file) => !file.mediaType?.startsWith("image/"))
+      ) {
+        toast.error(
+          "Only image attachments are supported. Remove other file types and try again."
+        );
         return;
       }
 
@@ -131,6 +154,7 @@ function ChatInputInner({
       controller.attachments,
       controller.textInput,
       effectivePageContext,
+      supportsImageInput,
     ]
   );
 
@@ -158,9 +182,19 @@ function ChatInputInner({
         />
       ) : null}
       <PromptInput
+        accept={supportsImageInput ? "image/*" : undefined}
         className="rounded-2xl"
-        globalDrop
+        globalDrop={supportsImageInput}
         multiple
+        onError={(err) => {
+          if (err.code === "accept") {
+            toast.error(
+              "Only image attachments are supported for this chat model."
+            );
+            return;
+          }
+          toast.error(err.message);
+        }}
         onSubmit={handleSubmit}
       >
         <PromptInputAttachments>
@@ -171,12 +205,14 @@ function ChatInputInner({
         </PromptInputBody>
         <PromptInputFooter>
           <PromptInputTools>
-            <PromptInputActionMenu>
-              <PromptInputActionMenuTrigger />
-              <PromptInputActionMenuContent>
-                <PromptInputActionAddAttachments />
-              </PromptInputActionMenuContent>
-            </PromptInputActionMenu>
+            {supportsImageInput ? (
+              <PromptInputActionMenu>
+                <PromptInputActionMenuTrigger />
+                <PromptInputActionMenuContent>
+                  <PromptInputActionAddAttachments label="Add images" />
+                </PromptInputActionMenuContent>
+              </PromptInputActionMenu>
+            ) : null}
           </PromptInputTools>
           <PromptInputTools className="gap-2">
             <ChatVoiceButton controller={controller} />
