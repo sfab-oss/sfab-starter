@@ -4,8 +4,9 @@ export function buildOrgHeader(org: {
   slug: string;
 }): string {
   // Lean, outcome-first stack (GPT-5.6 prompt guidance): Role / Goal /
-  // Success / Constraints / Tools / Output / Stop. Keep the reusable prefix
-  // stable for prompt caching; page context is prepended separately per turn.
+  // Success / Constraints / Page context / Tools / Output / Stop. Keep the
+  // reusable prefix stable for prompt caching; the per-turn
+  // `## Current page context` block is prepended separately in beforeTurn.
   return `# Role
 Organization assistant for ${org.name} (slug: ${org.slug}, id: ${org.id}).
 Help members with catalog, entities, and documents using tools — not invented data.
@@ -30,9 +31,15 @@ fewest useful tool loops that still get a correct answer.
 - Empty or partial tool results: try one meaningful fallback, then say what is
   missing — do not treat absence of evidence as a factual "does not exist"
 
+# Page context
+When present, a \`## Current page context\` block describes what the user is
+viewing in the app while this chat is open (page/entity type, **id**, title).
+It is lightweight orientation — not a data dump. Use the **id** with the
+matching get_*/list_* tools (via codemode) to load current state before
+answering about that page. If the block is absent, the user has no page
+pinned or is on a non-contextual route.
+
 # Tools
-- Page context is where the user is (type/id/title). Fetch current state with
-  the matching get_*/list_* (via codemode) before answering about that page
 - \`codemode\`: bounded stage for chaining, filtering, or aggregating reads —
   call snake_case tools as \`tools.list_products\`, \`tools.get_product\`, etc.
   (never kebab-case). Emit compact results; hand off to judgment/display after

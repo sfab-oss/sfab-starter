@@ -19,24 +19,34 @@ export function getLatestUserPageContext(
 
 export function buildPageContextSection(ctx: OrgPageContext): string {
   const lines = [
-    "## Current page",
+    "## Current page context",
     "",
-    "The user sent their last message while viewing:",
+    "What the user is viewing in the app while this chat is open:",
     `- Page: ${ctx.page}`,
   ];
 
   const { params } = ctx;
-  if (params.entityType && params.entityId) {
-    lines.push(`- Entity: ${params.entityType} (${params.entityId})`);
+  if (params.entityType) {
+    lines.push(`- Entity type: ${params.entityType}`);
+  }
+  if (params.entityId) {
+    // IDs are the tool handle — always surface explicitly when present.
+    lines.push(`- Id: ${params.entityId}`);
   }
   if (params.title) {
     lines.push(`- Title: ${params.title}`);
   }
   // Prerequisite retrieval for every contextual page (not product-only).
-  // Keep lightweight: IDs/title here; full state via tools.
-  lines.push(
-    "- Before answering about this page, fetch current state with the matching get_*/list_* tool (via codemode)."
-  );
+  // Keep lightweight: type/id/title here; full state via tools.
+  if (params.entityId) {
+    lines.push(
+      `- Before answering about this page, fetch current state with the matching get_*/list_* tool using id \`${params.entityId}\` (via codemode).`
+    );
+  } else {
+    lines.push(
+      "- Before answering about this page, fetch current state with the matching get_*/list_* tool (via codemode)."
+    );
+  }
 
   return lines.join("\n");
 }
