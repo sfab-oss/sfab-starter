@@ -240,6 +240,17 @@ function ProductPage() {
           <CardContent>
             {isEditing ? (
               <ProductForm
+                // Remount when server product fields change (e.g. agent tool
+                // invalidation) so RHF defaultValues pick up the fresh query.
+                key={[
+                  product.id,
+                  product.name,
+                  product.sku,
+                  product.price,
+                  product.description ?? "",
+                  product.minStockLevel,
+                  product.imageUrl ?? "",
+                ].join("|")}
                 defaultValues={{
                   name: product.name,
                   sku: product.sku,

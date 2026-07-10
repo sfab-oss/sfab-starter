@@ -5,7 +5,7 @@ import {
   Think,
   type TurnContext,
 } from "@cloudflare/think";
-import { createExecuteTool } from "@cloudflare/think/tools/execute";
+import { createExecuteRuntime } from "@cloudflare/think/tools/execute";
 import { auth } from "@workspace/auth";
 import {
   type Connection,
@@ -23,6 +23,7 @@ import {
   type ToolSet,
 } from "ai";
 import { z } from "zod";
+import { AGENT_WRITE_TOOL_NAMES } from "../../constants";
 import { buildOrgContext } from "../../context/assemble";
 import {
   buildPageContextSection,
@@ -219,7 +220,12 @@ export class OrgChat extends Think<Cloudflare.Env> {
     }
   }
 
-  @callable()
+  /**
+   * Client-callable — registered after the class body (same pattern as Think's
+   * `approveExecution` / `pendingExecutions`). `@callable()` on OrgChat facet
+   * methods does not reliably land in the agents WeakMap for RPC; post-class
+   * `callable()(proto.method)` does (ALW-500 QA: "Method … is not callable").
+   */
   async compactNow(): Promise<{ compacted: boolean }> {
     const result = await this.session.compact();
     if (!result) {
@@ -331,10 +337,50 @@ export class OrgChat extends Think<Cloudflare.Env> {
     };
     const erpTools = getOrgAgentTools(toolsCtx);
     const displayTools = getOrgAgentDisplayTools(toolsCtx);
+    const writeNames = new Set<string>(AGENT_WRITE_TOOL_NAMES);
+    const { runtime, tool: codemodeTool } = createExecuteRuntime(this, {
+      tools: erpTools,
+    });
+    const baseExecute = codemodeTool.execute;
 
     return {
       // ERP tools as `tools.*` inside the sandbox; `needsApproval` pauses mid-script.
-      codemode: createExecuteTool(this, { tools: erpTools }),
+      codemode: baseExecute
+        ? {
+            ...codemodeTool,
+            execute: async (input, callOptions) => {
+              const output = await baseExecute(input, callOptions);
+              if (
+                output &&
+                typeof output === "object" &&
+                (output as { status?: string }).status === "completed"
+              ) {
+                const executionId = (output as { executionId?: string })
+                  .executionId;
+                if (executionId) {
+                  const executions = await runtime.executions();
+                  const execution = executions.find(
+                    (row) => row.id === executionId
+                  );
+                  if (execution) {
+                    const appliedWrites = execution.log
+                      .filter(
+                        (entry) =>
+                          entry.state === "applied" &&
+                          writeNames.has(entry.method)
+                      )
+                      .map((entry) => ({
+                        method: entry.method,
+                        args: entry.args,
+                      }));
+                    return { ...output, appliedWrites };
+                  }
+                }
+              }
+              return output;
+            },
+          }
+        : codemodeTool,
       // Child facet with its own context window — see `OrgSubAgent`.
       delegate: agentTool(OrgSubAgent, {
         description:
@@ -353,3 +399,11 @@ export class OrgChat extends Think<Cloudflare.Env> {
     };
   }
 }
+
+// Mirror Think: register facet RPCs on the prototype after the class body so
+// `agent.call(...)` from the browser passes `_isCallable`. Think uses the same
+// `callable()(proto.method, void 0)` form (see think.js after the class body).
+callable()(
+  OrgChat.prototype.compactNow,
+  undefined as unknown as ClassMethodDecoratorContext
+);
