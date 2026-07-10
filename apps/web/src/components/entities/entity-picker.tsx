@@ -86,7 +86,7 @@ export function EntityPicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        className="w-[var(--radix-popover-trigger-width)] gap-0 p-0"
       >
         <Command shouldFilter={false}>
           <CommandInput
