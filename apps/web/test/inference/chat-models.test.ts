@@ -2,7 +2,7 @@ import {
   buildOrgChatModel,
   gateChatAttachments,
   getCompactionLimit,
-  getOrgChatProviderCapabilities,
+  type OrgChatModelCapabilities,
   type OrgInferenceEnv,
   resolveOrgChatCapabilities,
   resolveOrgChatModel,
@@ -15,7 +15,7 @@ import { describe, expect, it } from "vitest";
  * whether Cloudflare AI Gateway fronts it) is a pure function, so we assert it
  * directly without touching the network or an SDK client.
  *
- * ALW-453 — provider input capabilities + attachment gating are also pure.
+ * ALW-453 — model input capabilities + attachment gating are also pure.
  */
 
 const NEEDS_ACCOUNT_ID = /CF_ACCOUNT_ID/;
@@ -225,39 +225,64 @@ describe("getCompactionLimit", () => {
   });
 });
 
-describe("org chat provider capabilities (ALW-453)", () => {
-  it("marks vercel-gateway as image-capable and zai/workers-ai as text-only", () => {
-    expect(getOrgChatProviderCapabilities("vercel-gateway")).toEqual({
+describe("org chat model capabilities (ALW-453)", () => {
+  it("resolves modalities from the active catalog offering per provider", () => {
+    expect(resolveOrgChatCapabilities(env())).toEqual({
       provider: "vercel-gateway",
+      entryId: "google/gemini-3-flash",
       inputModalities: ["text", "image"],
       supportsImageInput: true,
     });
-    expect(getOrgChatProviderCapabilities("zai-coding-plan")).toEqual({
+    expect(
+      resolveOrgChatCapabilities(env({ ORG_CHAT_PROVIDER: "zai-coding-plan" }))
+    ).toEqual({
       provider: "zai-coding-plan",
+      entryId: "glm-5.2",
       inputModalities: ["text"],
       supportsImageInput: false,
     });
-    expect(getOrgChatProviderCapabilities("workers-ai")).toEqual({
+    expect(
+      resolveOrgChatCapabilities(env({ ORG_CHAT_PROVIDER: "workers-ai" }))
+    ).toEqual({
       provider: "workers-ai",
+      entryId: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       inputModalities: ["text"],
       supportsImageInput: false,
     });
   });
 
-  it("resolveOrgChatCapabilities follows ORG_CHAT_PROVIDER", () => {
-    expect(resolveOrgChatCapabilities(env()).supportsImageInput).toBe(true);
+  it("defaults unknown ORG_CHAT_MODEL overrides to text-only", () => {
     expect(
-      resolveOrgChatCapabilities(env({ ORG_CHAT_PROVIDER: "zai-coding-plan" }))
-        .supportsImageInput
-    ).toBe(false);
+      resolveOrgChatCapabilities(
+        env({
+          ORG_CHAT_PROVIDER: "zai-coding-plan",
+          ORG_CHAT_MODEL: "glm-4.6",
+        })
+      )
+    ).toEqual({
+      provider: "zai-coding-plan",
+      entryId: "glm-4.6",
+      inputModalities: ["text"],
+      supportsImageInput: false,
+    });
   });
 });
 
 describe("gateChatAttachments (ALW-453)", () => {
-  const textOnly = getOrgChatProviderCapabilities("zai-coding-plan");
-  const vision = getOrgChatProviderCapabilities("vercel-gateway");
+  const textOnly: OrgChatModelCapabilities = {
+    provider: "zai-coding-plan",
+    entryId: "glm-5.2",
+    inputModalities: ["text"],
+    supportsImageInput: false,
+  };
+  const vision: OrgChatModelCapabilities = {
+    provider: "vercel-gateway",
+    entryId: "google/gemini-3-flash",
+    inputModalities: ["text", "image"],
+    supportsImageInput: true,
+  };
 
-  it("allows text-only parts on every provider", () => {
+  it("allows text-only parts on every model", () => {
     expect(gateChatAttachments([{ type: "text" }], textOnly)).toEqual({
       ok: true,
     });
@@ -266,7 +291,7 @@ describe("gateChatAttachments (ALW-453)", () => {
     });
   });
 
-  it("rejects any file part on text-only providers before the API call", () => {
+  it("rejects any file part on text-only models before the API call", () => {
     const result = gateChatAttachments(
       [{ type: "text" }, { type: "file", mediaType: "image/png" }],
       textOnly
@@ -278,7 +303,7 @@ describe("gateChatAttachments (ALW-453)", () => {
     expect(result.reason).toMatch(ONLY_ACCEPTS_TEXT);
   });
 
-  it("rejects non-image files on vision-capable providers", () => {
+  it("rejects non-image files on vision-capable models", () => {
     const result = gateChatAttachments(
       [{ type: "file", mediaType: "text/plain" }],
       vision
@@ -290,7 +315,7 @@ describe("gateChatAttachments (ALW-453)", () => {
     expect(result.reason).toMatch(ONLY_IMAGE);
   });
 
-  it("allows image file parts on vision-capable providers", () => {
+  it("allows image file parts on vision-capable models", () => {
     expect(
       gateChatAttachments(
         [{ type: "text" }, { type: "file", mediaType: "image/png" }],

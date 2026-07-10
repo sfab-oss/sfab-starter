@@ -6,7 +6,7 @@ import { Hono } from "hono";
 import type { HonoContextWithAuth } from "../types";
 
 /**
- * Expose the active org-chat provider's input capabilities so the composer can
+ * Expose the active org-chat model's input capabilities so the composer can
  * gate attachments before send (ALW-453). Env-driven — same resolution as the
  * Durable Object model pick; no secrets returned.
  */

@@ -31,7 +31,7 @@ import {
 import {
   gateChatAttachments,
   getCompactionLimit,
-  type OrgChatProviderCapabilities,
+  type OrgChatModelCapabilities,
   resolveOrgChatModel,
 } from "../../inference/chat-models";
 import {
@@ -58,7 +58,7 @@ export class OrgChat extends Think<Cloudflare.Env> {
   private resolvedChatModel!: LanguageModel;
   private resolvedModelId!: string;
   private resolvedContextWindow!: number;
-  private resolvedCapabilities!: OrgChatProviderCapabilities;
+  private resolvedCapabilities!: OrgChatModelCapabilities;
   private lastTurnUsage: LanguageModelUsage | undefined;
   /** Acting user for tool execute / approve-resume (WebSocket ALS is often unset). */
   private turnUserId: string | undefined;

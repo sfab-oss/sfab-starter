@@ -67,24 +67,22 @@ export type OrgChatProvider =
   | "workers-ai"
   | "zai-coding-plan";
 
-/** Modalities a provider accepts on user message content. `text` is always on. */
+/** Modalities a model accepts on user message content. `text` is always on. */
 export type OrgChatInputModality = "text" | "image";
 
 /**
- * Provider-level input capabilities (ALW-453).
+ * Model-level input capabilities (ALW-453).
  *
- * Documented here — not inferred from the SDK — because OpenAI-compatible
- * endpoints advertise the same wire shape while rejecting non-text parts at
- * runtime (e.g. z.ai coding-plan `glm-5.2` →
- * `messages.content.type is invalid, allowed values: ['text']`).
- *
- * - `vercel-gateway` — Gemini via the gateway accepts image file parts.
- * - `zai-coding-plan` — coding-plan GLM is **text-only** (vision lives on
- *   separate `*v` models / the paas endpoint, not this registry entry).
- * - `workers-ai` — default Llama instruct is **text-only**.
+ * Documented per catalog offering — not inferred from the SDK — because
+ * OpenAI-compatible endpoints advertise the same wire shape while rejecting
+ * non-text parts at runtime (e.g. z.ai coding-plan `glm-5.2` →
+ * `messages.content.type is invalid, allowed values: ['text']`). The same
+ * provider can host both text-only and vision models.
  */
-export interface OrgChatProviderCapabilities {
+export interface OrgChatModelCapabilities {
   provider: OrgChatProvider;
+  /** Bare model id (e.g. `google/gemini-3-flash`) — same as message metadata. */
+  entryId: string;
   inputModalities: readonly OrgChatInputModality[];
   /** True when `image` is in `inputModalities`. */
   supportsImageInput: boolean;
@@ -131,16 +129,6 @@ const PROVIDER_BUILD: Record<OrgChatProvider, ProviderBuild> = {
   },
 };
 
-/** Capability flag per provider registry entry — see `OrgChatProviderCapabilities`. */
-const PROVIDER_INPUT_MODALITIES: Record<
-  OrgChatProvider,
-  readonly OrgChatInputModality[]
-> = {
-  "vercel-gateway": ["text", "image"],
-  "zai-coding-plan": ["text"],
-  "workers-ai": ["text"],
-};
-
 /** GLM streams reasoning; enable thinking and keep the raw stream. */
 const ZAI_THINKING: ProviderOptions = {
   zaiCodingPlan: { thinking: { type: "enabled" }, clear_thinking: false },
@@ -152,6 +140,8 @@ interface ModelOffering {
   entryId: string;
   /** Total context window (tokens) — drives the compaction budget. */
   contextWindow: number;
+  /** User-message input modalities this model accepts. */
+  inputModalities: readonly OrgChatInputModality[];
   /** Per-model provider options, applied via middleware. */
   providerOptions?: ProviderOptions;
 }
@@ -163,17 +153,20 @@ const MODEL_OFFERINGS: readonly ModelOffering[] = [
     provider: "vercel-gateway",
     entryId: "google/gemini-3-flash",
     contextWindow: 1_000_000,
+    inputModalities: ["text", "image"],
   },
   {
     provider: "zai-coding-plan",
     entryId: "glm-5.2",
     contextWindow: 200_000,
+    inputModalities: ["text"],
     providerOptions: ZAI_THINKING,
   },
   {
     provider: "workers-ai",
     entryId: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     contextWindow: 128_000,
+    inputModalities: ["text"],
   },
 ];
 
@@ -214,7 +207,7 @@ export interface ResolvedOrgChatModel {
   modelId: string;
   contextWindow: number;
   provider: OrgChatProvider;
-  capabilities: OrgChatProviderCapabilities;
+  capabilities: OrgChatModelCapabilities;
 }
 
 /** Minimal part shape used when gating attachments against provider capabilities. */
@@ -225,32 +218,27 @@ export interface ChatAttachmentPart {
 
 export type AttachmentGateResult = { ok: true } | { ok: false; reason: string };
 
-/**
- * Capabilities for a known provider. Pure — no env / SDK.
- * Unknown strings fall back to the default provider's capabilities.
- */
-export function getOrgChatProviderCapabilities(
-  provider: string
-): OrgChatProviderCapabilities {
-  const resolved: OrgChatProvider = isProvider(provider)
-    ? provider
-    : DEFAULT_PROVIDER;
-  const inputModalities = PROVIDER_INPUT_MODALITIES[resolved];
+function capabilitiesFromOffering(
+  offering: ModelOffering
+): OrgChatModelCapabilities {
   return {
-    provider: resolved,
-    inputModalities,
-    supportsImageInput: inputModalities.includes("image"),
+    provider: offering.provider,
+    entryId: offering.entryId,
+    inputModalities: offering.inputModalities,
+    supportsImageInput: offering.inputModalities.includes("image"),
   };
 }
 
 /**
- * Resolve the active org-chat provider's input capabilities from env.
- * Pure — same selection rules as `resolveOrgChatModelConfig`.
+ * Resolve the active org-chat model's input capabilities from env.
+ * Pure — same `selectProvider` + `selectOffering` path as model resolve.
  */
 export function resolveOrgChatCapabilities(
   env: OrgInferenceEnv
-): OrgChatProviderCapabilities {
-  return getOrgChatProviderCapabilities(selectProvider(env));
+): OrgChatModelCapabilities {
+  const provider = selectProvider(env);
+  const offering = selectOffering(provider, env);
+  return capabilitiesFromOffering(offering);
 }
 
 /**
@@ -262,7 +250,7 @@ export function resolveOrgChatCapabilities(
  */
 export function gateChatAttachments(
   parts: readonly ChatAttachmentPart[],
-  capabilities: OrgChatProviderCapabilities
+  capabilities: OrgChatModelCapabilities
 ): AttachmentGateResult {
   const fileParts = parts.filter((part) => part.type === "file");
   if (fileParts.length === 0) {
@@ -314,6 +302,7 @@ function selectOffering(
       provider,
       entryId: override,
       contextWindow: DEFAULT_CONTEXT_WINDOW,
+      inputModalities: ["text"],
       providerOptions:
         provider === "zai-coding-plan" ? ZAI_THINKING : undefined,
     };
@@ -468,7 +457,9 @@ export function resolveOrgChatModel(env: Cloudflare.Env): ResolvedOrgChatModel {
     modelId: config.entryId,
     contextWindow: config.contextWindow,
     provider: config.provider,
-    capabilities: getOrgChatProviderCapabilities(config.provider),
+    capabilities: capabilitiesFromOffering(
+      selectOffering(config.provider, cfg)
+    ),
   };
 }
 
