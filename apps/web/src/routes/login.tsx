@@ -90,7 +90,15 @@ function LoginPage() {
                 name="password"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                    <div className="flex items-center">
+                      <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                      <Link
+                        className="ml-auto text-sm underline-offset-4 hover:underline"
+                        to="/forgot-password"
+                      >
+                        Forgot your password?
+                      </Link>
+                    </div>
                     <Input
                       {...field}
                       aria-invalid={fieldState.invalid}

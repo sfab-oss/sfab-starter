@@ -17,6 +17,11 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   emailAndPassword: {
     enabled: true,
+    sendResetPassword: ({ user, url }) =>
+      sendMail(user.email, "password-reset", {
+        resetLink: url,
+        username: user.name || user.email,
+      }),
   },
   plugins: [
     tanstackStartCookies(),
