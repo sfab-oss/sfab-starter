@@ -1,7 +1,10 @@
 import {
   buildOrgChatModel,
+  gateChatAttachments,
   getCompactionLimit,
+  getOrgChatProviderCapabilities,
   type OrgInferenceEnv,
+  resolveOrgChatCapabilities,
   resolveOrgChatModel,
   resolveOrgChatModelConfig,
 } from "@workspace/agent/inference";
@@ -11,11 +14,15 @@ import { describe, expect, it } from "vitest";
  * ALW-411 — the provider decision (which provider, model, base URL, key, and
  * whether Cloudflare AI Gateway fronts it) is a pure function, so we assert it
  * directly without touching the network or an SDK client.
+ *
+ * ALW-453 — provider input capabilities + attachment gating are also pure.
  */
 
 const NEEDS_ACCOUNT_ID = /CF_ACCOUNT_ID/;
 const NEEDS_ZAI_KEY = /ZAI_API_KEY/;
 const NEEDS_WORKERS_AI_TOKEN = /WORKERS_AI_API_TOKEN/;
+const ONLY_ACCEPTS_TEXT = /only accepts text/i;
+const ONLY_IMAGE = /only image/i;
 
 function env(overrides: OrgInferenceEnv = {}): OrgInferenceEnv {
   return overrides;
@@ -206,6 +213,8 @@ describe("resolveOrgChatModel", () => {
     expect(resolved.modelId).toBe("google/gemini-3-flash");
     expect(resolved.contextWindow).toBe(1_000_000);
     expect(resolved.model).toBeDefined();
+    expect(resolved.provider).toBe("vercel-gateway");
+    expect(resolved.capabilities.supportsImageInput).toBe(true);
   });
 });
 
@@ -213,5 +222,80 @@ describe("getCompactionLimit", () => {
   it("is 75% of the context window", () => {
     expect(getCompactionLimit(1_000_000)).toBe(750_000);
     expect(getCompactionLimit(128_000)).toBe(96_000);
+  });
+});
+
+describe("org chat provider capabilities (ALW-453)", () => {
+  it("marks vercel-gateway as image-capable and zai/workers-ai as text-only", () => {
+    expect(getOrgChatProviderCapabilities("vercel-gateway")).toEqual({
+      provider: "vercel-gateway",
+      inputModalities: ["text", "image"],
+      supportsImageInput: true,
+    });
+    expect(getOrgChatProviderCapabilities("zai-coding-plan")).toEqual({
+      provider: "zai-coding-plan",
+      inputModalities: ["text"],
+      supportsImageInput: false,
+    });
+    expect(getOrgChatProviderCapabilities("workers-ai")).toEqual({
+      provider: "workers-ai",
+      inputModalities: ["text"],
+      supportsImageInput: false,
+    });
+  });
+
+  it("resolveOrgChatCapabilities follows ORG_CHAT_PROVIDER", () => {
+    expect(resolveOrgChatCapabilities(env()).supportsImageInput).toBe(true);
+    expect(
+      resolveOrgChatCapabilities(env({ ORG_CHAT_PROVIDER: "zai-coding-plan" }))
+        .supportsImageInput
+    ).toBe(false);
+  });
+});
+
+describe("gateChatAttachments (ALW-453)", () => {
+  const textOnly = getOrgChatProviderCapabilities("zai-coding-plan");
+  const vision = getOrgChatProviderCapabilities("vercel-gateway");
+
+  it("allows text-only parts on every provider", () => {
+    expect(gateChatAttachments([{ type: "text" }], textOnly)).toEqual({
+      ok: true,
+    });
+    expect(gateChatAttachments([{ type: "text" }], vision)).toEqual({
+      ok: true,
+    });
+  });
+
+  it("rejects any file part on text-only providers before the API call", () => {
+    const result = gateChatAttachments(
+      [{ type: "text" }, { type: "file", mediaType: "image/png" }],
+      textOnly
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected rejection");
+    }
+    expect(result.reason).toMatch(ONLY_ACCEPTS_TEXT);
+  });
+
+  it("rejects non-image files on vision-capable providers", () => {
+    const result = gateChatAttachments(
+      [{ type: "file", mediaType: "text/plain" }],
+      vision
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected rejection");
+    }
+    expect(result.reason).toMatch(ONLY_IMAGE);
+  });
+
+  it("allows image file parts on vision-capable providers", () => {
+    expect(
+      gateChatAttachments(
+        [{ type: "text" }, { type: "file", mediaType: "image/png" }],
+        vision
+      )
+    ).toEqual({ ok: true });
   });
 });

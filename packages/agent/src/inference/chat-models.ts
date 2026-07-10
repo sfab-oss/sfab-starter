@@ -67,6 +67,29 @@ export type OrgChatProvider =
   | "workers-ai"
   | "zai-coding-plan";
 
+/** Modalities a provider accepts on user message content. `text` is always on. */
+export type OrgChatInputModality = "text" | "image";
+
+/**
+ * Provider-level input capabilities (ALW-453).
+ *
+ * Documented here — not inferred from the SDK — because OpenAI-compatible
+ * endpoints advertise the same wire shape while rejecting non-text parts at
+ * runtime (e.g. z.ai coding-plan `glm-5.2` →
+ * `messages.content.type is invalid, allowed values: ['text']`).
+ *
+ * - `vercel-gateway` — Gemini via the gateway accepts image file parts.
+ * - `zai-coding-plan` — coding-plan GLM is **text-only** (vision lives on
+ *   separate `*v` models / the paas endpoint, not this registry entry).
+ * - `workers-ai` — default Llama instruct is **text-only**.
+ */
+export interface OrgChatProviderCapabilities {
+  provider: OrgChatProvider;
+  inputModalities: readonly OrgChatInputModality[];
+  /** True when `image` is in `inputModalities`. */
+  supportsImageInput: boolean;
+}
+
 const PROVIDERS: readonly OrgChatProvider[] = [
   "vercel-gateway",
   "workers-ai",
@@ -106,6 +129,16 @@ const PROVIDER_BUILD: Record<OrgChatProvider, ProviderBuild> = {
     // Direct base URL is derived from CF_ACCOUNT_ID at resolve time.
     gatewayPath: "workers-ai/v1",
   },
+};
+
+/** Capability flag per provider registry entry — see `OrgChatProviderCapabilities`. */
+const PROVIDER_INPUT_MODALITIES: Record<
+  OrgChatProvider,
+  readonly OrgChatInputModality[]
+> = {
+  "vercel-gateway": ["text", "image"],
+  "zai-coding-plan": ["text"],
+  "workers-ai": ["text"],
 };
 
 /** GLM streams reasoning; enable thinking and keep the raw stream. */
@@ -180,6 +213,79 @@ export interface ResolvedOrgChatModel {
    *  message metadata — kept prefix-free to preserve the persisted format. */
   modelId: string;
   contextWindow: number;
+  provider: OrgChatProvider;
+  capabilities: OrgChatProviderCapabilities;
+}
+
+/** Minimal part shape used when gating attachments against provider capabilities. */
+export interface ChatAttachmentPart {
+  type: string;
+  mediaType?: string;
+}
+
+export type AttachmentGateResult = { ok: true } | { ok: false; reason: string };
+
+/**
+ * Capabilities for a known provider. Pure — no env / SDK.
+ * Unknown strings fall back to the default provider's capabilities.
+ */
+export function getOrgChatProviderCapabilities(
+  provider: string
+): OrgChatProviderCapabilities {
+  const resolved: OrgChatProvider = isProvider(provider)
+    ? provider
+    : DEFAULT_PROVIDER;
+  const inputModalities = PROVIDER_INPUT_MODALITIES[resolved];
+  return {
+    provider: resolved,
+    inputModalities,
+    supportsImageInput: inputModalities.includes("image"),
+  };
+}
+
+/**
+ * Resolve the active org-chat provider's input capabilities from env.
+ * Pure — same selection rules as `resolveOrgChatModelConfig`.
+ */
+export function resolveOrgChatCapabilities(
+  env: OrgInferenceEnv
+): OrgChatProviderCapabilities {
+  return getOrgChatProviderCapabilities(selectProvider(env));
+}
+
+/**
+ * Gate file/image parts against provider capabilities before the model call.
+ *
+ * - Text-only providers: any `file` part is rejected.
+ * - Image-capable providers: only `image/*` file parts are allowed; other
+ *   media types (e.g. text files, PDFs) are rejected before the API call.
+ */
+export function gateChatAttachments(
+  parts: readonly ChatAttachmentPart[],
+  capabilities: OrgChatProviderCapabilities
+): AttachmentGateResult {
+  const fileParts = parts.filter((part) => part.type === "file");
+  if (fileParts.length === 0) {
+    return { ok: true };
+  }
+  if (!capabilities.supportsImageInput) {
+    return {
+      ok: false,
+      reason:
+        "This chat model only accepts text. Remove attachments and try again, or switch to a vision-capable provider.",
+    };
+  }
+  const unsupported = fileParts.find(
+    (part) => !part.mediaType?.startsWith("image/")
+  );
+  if (unsupported) {
+    return {
+      ok: false,
+      reason:
+        "Only image attachments are supported for this chat model. Remove other file types and try again.",
+    };
+  }
+  return { ok: true };
 }
 
 function isProvider(value: string): value is OrgChatProvider {
@@ -361,6 +467,8 @@ export function resolveOrgChatModel(env: Cloudflare.Env): ResolvedOrgChatModel {
     // message-metadata format.
     modelId: config.entryId,
     contextWindow: config.contextWindow,
+    provider: config.provider,
+    capabilities: getOrgChatProviderCapabilities(config.provider),
   };
 }
 
