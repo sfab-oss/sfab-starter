@@ -34,7 +34,8 @@ through the layers.
 The starter ships a **country-neutral transaction hub** — not a vertical demo.
 Catalog (products) and Documents (quotes, orders, invoices) work end-to-end:
 create a product, draft an invoice, add lines, finalize to draw a folio and freeze
-the totals. This is the base; you build your domain on top of it.
+the totals, then record a payment against the balance due. This is the base; you
+build your domain on top of it.
 
 **What ships in the base:**
 
@@ -44,14 +45,19 @@ the totals. This is the base; you build your domain on top of it.
   with folio-atomic finalize, an event spine, and pack seams. The design lives in
   [`docs/architecture/transaction-core.md`](docs/architecture/transaction-core.md)
   (ADR-006).
+- **Pay-on-document** — record cash/transfer/card payments on finalized invoices
+  and bills (`payments` / `payment_allocations`), with payment status on the
+  documents list and detail. Store-credit balance is visible on the entity page;
+  credit-note disposition can deposit store credit.
 - **The AI agent** — reads your data (catalog, documents, activity) and reasons
   about it. Money and document mutations stay user-gated by convention.
 
 **What the base deliberately leaves out** (they graft on as packs or follow-on
 work, never by editing the hub):
 
-- Payments / settlement / allocation engine.
-- A customer-credit wallet.
+- A dedicated wallet / payments hub UI (deposit, redeem, reverse, multi-allocate
+  sheets) — the settlement and customer-credit engine is in core/API; the
+  operator surfaces above are document- and entity-centric only.
 - A posting handler (inventory decrement, GL entry) — the `shouldAffectStock`
   gate and `afterCommit` seam are in place; the handler is pack-owned.
 
