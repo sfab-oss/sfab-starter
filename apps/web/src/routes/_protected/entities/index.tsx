@@ -27,6 +27,7 @@ import { useCallback, useMemo } from "react";
 import { CreateEntityDialog } from "@/components/entities/create-entity-dialog";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type Entity, useEntities } from "@/hooks/use-entities";
+import { pickListPageView } from "@/lib/page-context-view";
 
 export const Route = createFileRoute("/_protected/entities/")({
   component: EntitiesPage,
@@ -91,8 +92,9 @@ function EntitiesPage() {
         description: "Customers and suppliers",
         entityType: "entities",
         entityId: "list",
+        view: pickListPageView(searchParams, ["type", "includeArchived"]),
       }),
-      []
+      [searchParams]
     )
   );
 

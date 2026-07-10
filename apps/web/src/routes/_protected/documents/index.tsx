@@ -63,6 +63,7 @@ import {
   useCreateDocument,
   useDocumentsList,
 } from "@/hooks/use-documents";
+import { pickListPageView } from "@/lib/page-context-view";
 export const Route = createFileRoute("/_protected/documents/")({
   component: DocumentsPage,
   validateSearch: listDocumentsQuerySchema,
@@ -170,8 +171,9 @@ function DocumentsPage() {
         description: "Quotes, invoices, bills",
         entityType: "documents",
         entityId: "list",
+        view: pickListPageView(searchParams, ["type", "direction", "status"]),
       }),
-      []
+      [searchParams]
     )
   );
   const pagination = useMemo<PaginationState>(

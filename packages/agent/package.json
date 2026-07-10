@@ -11,6 +11,8 @@
     "./org/chat": "./src/org/chat/index.ts"
   },
   "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -28,6 +30,7 @@
     "@cloudflare/workers-types": "^4.20260702.1",
     "@workspace/env": "workspace:*",
     "@workspace/tsconfig": "workspace:*",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   }
 }

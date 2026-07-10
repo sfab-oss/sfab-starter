@@ -64,7 +64,10 @@ sidebar. Scope phased: **Actions + Go-to now**, entity/doc search when the backe
 analysis / drafts — no overlap.
 
 **Agent placement:** bottom dock + mobile FAB + a sidebar-footer trigger;
-`useSetPageContext` on every route.
+`useSetPageContext` on every route. List routes mirror URL search params into
+`page.view` so the org agent system prompt carries a lightweight view fingerprint
+(IDs + query params only — never row payloads); the URL remains the source of
+truth for shareable list state.
 
 **Mobile:** a bottom tab bar owns the daily verbs on phone (Hoy · Vender · Cobrar ·
 Inventario · Más) — never hide Sell/Collect behind a hamburger. **The bottom bar owns the
