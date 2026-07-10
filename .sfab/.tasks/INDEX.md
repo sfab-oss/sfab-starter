@@ -29,12 +29,9 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## ready (1)
+## assigned (2)
 
 - [`ALW-442`](./ALW-442.md) — Add email password-reset flow (forgot-password + completion)
-
-## assigned (1)
-
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
 ## review (1)
