@@ -11,15 +11,18 @@
 
 ## 0. Build-state reality (read this first)
 
-Verified against the repo. **Shipped & live:** catalog/inventory CRUD + manual stock
-movements + warehouses, org/auth/onboarding/settings, a **catalog-scoped** AI agent.
-**Skeleton (spec only, no code):** all of Transaction Core — `documents`/`line_items`/
-`payments`/`payment_allocations`/`customer_credit`, `contacts`, `activity`. **Fake:** the
-home dashboard (hardcoded placeholder cards).
+Verified against the repo (2026-07-10). **Shipped & live:** org/auth/onboarding/settings;
+catalog (products); entities; documents hub (draft → finalize / folio); pay-on-document
+surfaces backed by `payments` / `payment_allocations` / `customer_credit` schema + core;
+activity log; an org AI agent that reads catalog/documents/activity (money and document
+mutations stay user-gated by convention); home landing with honest quick-links (no
+fabricated metrics). **Still thin / coming-soon relative to this spec:** verb-first
+Spanish shell (Hoy / Vender / Cobrar), wallet UI depth, multi-allocate, statement-ledger
+polish, and some Phase-2 sheets.
 
-The plan therefore distinguishes **what to fix now** (shell honesty, on shipped code) from
-**what to build with TC** (the hero surfaces). Anything not yet backed by a capability
-renders as an **honest-empty / coming-soon** state — never fake data.
+The rest of this doc is still the **target** operator UX. Prefer §0 + the live routes over
+older phase labels when they disagree. Anything not yet backed by a capability should
+render as an **honest-empty / coming-soon** state — never invented data.
 
 ## 1. Product vision & principles
 
@@ -275,11 +278,12 @@ fine-grained permission editor — revisit only if a pilot demands it.
 
 ## 7. Capability coverage
 
-- **LIVE today:** inventory CRUD, manual stock, search, the catalog AI agent.
-- **v1 hero (TC):** documents hub, fast cash sale, fiado, single payment (`PaymentSheet`),
-  contacts, minimal Entity 360, soft credit limit.
+- **LIVE today:** catalog CRUD + search; entities; documents hub (create/edit/finalize);
+  pay-on-document; activity log; org AI agent (read + gated catalog tools); org/auth/settings.
+- **Designed / partial vs this spec:** fast cash-sale flow, fiado UX depth, Entity 360 polish,
+  soft credit-limit meter, verb-first Spanish nav.
 - **Pri-1 (designed, next):** multi-allocate (`AllocateSheet`), wallet/anticipo
-  (`WalletSheet`), statement-ledger depth, activity data.
+  (`WalletSheet`), statement-ledger depth.
 - **Deferred / framed / gap:** quote chain, credit notes, payment reversal UI, AP/Buy,
   stock-family docs, global entity/doc search backend, file attach / File Hub (§9), PDF/print,
   agent intent cards.

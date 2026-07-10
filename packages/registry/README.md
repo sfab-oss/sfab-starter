@@ -2,9 +2,9 @@
 
 The SFAB capability + UI registry — the source of truth for what the starter
 distributes through the public shadcn **GitHub registry**
-(`shadcn add sfab-oss/sfab-starter/<item>#<ref>`). See
-`.sfab/.docs/decisions/0017-capability-pack-registry.md` (and its 2026-06-21
-amendment) for the model.
+(`shadcn add sfab-oss/sfab-starter/<item>#<ref>`). Pack vs block install
+semantics are summarized below; scaffold provenance lives under
+[`.sfab/README.md`](../../.sfab/README.md).
 
 ## One primitive, two kinds
 
