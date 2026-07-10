@@ -21,12 +21,18 @@ import { ChevronsUpDown, LogOut, Plus } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 
 const MOCK_ORGANIZATIONS = [
-  { id: "northside", name: "Northside Distributors", initials: "ND" },
-  { id: "central-plant", name: "Central Plant", initials: "CP" },
+  {
+    id: "northside",
+    name: "Northside Distributors",
+    initials: "ND",
+  },
+  {
+    id: "central-plant",
+    name: "Central Plant",
+    initials: "CP",
+  },
 ] as const;
-
 const MOCK_ACTIVE_ORG = MOCK_ORGANIZATIONS[0];
-
 const MOCK_USER = {
   name: "Sarah Chen",
   email: "sarah.chen@northside.com",
@@ -36,29 +42,30 @@ const MOCK_USER = {
 /** Gallery mock — org switcher, user identity, theme toggle, and sign out. */
 export function SidebarUserMenu() {
   const { isMobile } = useSidebar();
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              size="lg"
-            >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarFallback className="rounded-lg">
-                  {MOCK_ACTIVE_ORG.initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  {MOCK_ACTIVE_ORG.name}
-                </span>
-                <span className="truncate text-xs">{MOCK_USER.email}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
-            </SidebarMenuButton>
+          <DropdownMenuTrigger
+            render={
+              <SidebarMenuButton
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                size="lg"
+              />
+            }
+          >
+            <Avatar className="h-8 w-8 rounded-lg">
+              <AvatarFallback className="rounded-lg">
+                {MOCK_ACTIVE_ORG.initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold">
+                {MOCK_ACTIVE_ORG.name}
+              </span>
+              <span className="truncate text-xs">{MOCK_USER.email}</span>
+            </div>
+            <ChevronsUpDown className="ml-auto size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
@@ -66,10 +73,10 @@ export function SidebarUserMenu() {
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            <DropdownMenuLabel className="text-muted-foreground text-xs">
-              Organizations
-            </DropdownMenuLabel>
             <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-muted-foreground text-xs">
+                Organizations
+              </DropdownMenuLabel>
               {MOCK_ORGANIZATIONS.map((organization, index) => (
                 <DropdownMenuItem className="gap-2 p-2" key={organization.id}>
                   <Avatar className="size-6 rounded-sm">
@@ -91,21 +98,23 @@ export function SidebarUserMenu() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg">
-                    {MOCK_USER.initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">
-                    {MOCK_USER.name}
-                  </span>
-                  <span className="truncate text-xs">{MOCK_USER.email}</span>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarFallback className="rounded-lg">
+                      {MOCK_USER.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">
+                      {MOCK_USER.name}
+                    </span>
+                    <span className="truncate text-xs">{MOCK_USER.email}</span>
+                  </div>
                 </div>
-              </div>
-            </DropdownMenuLabel>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <div className="p-1">
               <ThemeToggle variant="icon" />

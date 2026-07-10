@@ -1,7 +1,10 @@
 "use client";
 
 import type { ChatSummary } from "@workspace/agent/types";
-import { DropdownMenuLabel } from "@workspace/ui/components/shadcn/dropdown-menu";
+import {
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+} from "@workspace/ui/components/shadcn/dropdown-menu";
 import { cn } from "@workspace/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -15,9 +18,11 @@ export function chatHistoryTimestamp(
 
 export function HistoryDropdownSectionLabel() {
   return (
-    <DropdownMenuLabel className="text-muted-foreground text-xs">
-      Organization chats · newest first
-    </DropdownMenuLabel>
+    <DropdownMenuGroup>
+      <DropdownMenuLabel className="text-muted-foreground text-xs">
+        Organization chats · newest first
+      </DropdownMenuLabel>
+    </DropdownMenuGroup>
   );
 }
 

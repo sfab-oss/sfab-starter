@@ -74,15 +74,16 @@ hero CTAs on phone; the sticky `PrimaryActionBar` is desktop/Hoy** (no double-up
 
 Mostly **extraction of the proven inventory pattern** (validateSearch → React Query → Hono
 → `DataTable`; `contract/<cap>` Zod + `Field`/RHF forms), not a new library. All new
-components follow the `components-composition` skill (cn/cva, `Slot.Root` `asChild`,
-`data-slot`, the `packages/ui`-imports-no-`core` boundary).
+components follow the `components-composition` skill (cn/cva, Base UI `render`
+composition, `data-slot`, the `packages/ui`-imports-no-`core` boundary).
 
 **Convention baseline (already true in the starter — verified):**
 `packages/ui/src/components/shadcn/button.tsx` is the canonical pattern (53 files use
 `data-slot`): `cn` = `clsx` + `tailwind-merge` from `@workspace/ui/lib/utils`; variants via
-`cva` defined outside the component, typed with `VariantProps`; `asChild` via the unified
-`radix-ui` package (`import { Slot } from "radix-ui"` → `Slot.Root`), **not**
-`@radix-ui/react-slot`; props = `React.ComponentProps<...> & VariantProps<...> & { asChild? }`.
+`cva` defined outside the component, typed with `VariantProps`; composition via Base UI's
+`render` prop (`@base-ui/react/button`, `useRender` + `mergeProps` for polymorphic
+non-button parts) — **not** Radix `Slot`/`asChild`. Style in `components.json` is
+`base-vega`.
 
 ### Primitives (`packages/ui`) — pure, never import `core`
 

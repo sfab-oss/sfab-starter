@@ -29,18 +29,30 @@ import { useState } from "react";
  */
 
 const WIDTHS = [
-  { value: "desktop", label: "Desktop", icon: Monitor, css: "100%" },
-  { value: "tablet", label: "Tablet", icon: Tablet, css: "768px" },
-  { value: "mobile", label: "Mobile", icon: Smartphone, css: "390px" },
+  {
+    value: "desktop",
+    label: "Desktop",
+    icon: Monitor,
+    css: "100%",
+  },
+  {
+    value: "tablet",
+    label: "Tablet",
+    icon: Tablet,
+    css: "768px",
+  },
+  {
+    value: "mobile",
+    label: "Mobile",
+    icon: Smartphone,
+    css: "390px",
+  },
 ] as const;
-
 type WidthValue = (typeof WIDTHS)[number]["value"];
-
 export function BlockViewer({ name }: { name: string }) {
   const [width, setWidth] = useState<WidthValue>("desktop");
   const [iframeKey, setIframeKey] = useState(0);
   const block = getEntry(name);
-
   if (!block) {
     return (
       <div className="not-prose rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-destructive text-sm">
@@ -48,9 +60,7 @@ export function BlockViewer({ name }: { name: string }) {
       </div>
     );
   }
-
   const css = WIDTHS.find((w) => w.value === width)?.css ?? "100%";
-
   return (
     <div
       className="not-prose flex flex-col gap-3"
@@ -70,9 +80,13 @@ export function BlockViewer({ name }: { name: string }) {
 
         <div className="ml-auto flex items-center gap-1 rounded-md border p-1">
           <ToggleGroup
-            onValueChange={(value) => value && setWidth(value as WidthValue)}
-            type="single"
-            value={width}
+            onValueChange={(value) => {
+              const next = value[0];
+              if (next) {
+                setWidth(next as WidthValue);
+              }
+            }}
+            value={[width]}
           >
             {WIDTHS.map((w) => (
               <ToggleGroupItem
@@ -97,20 +111,22 @@ export function BlockViewer({ name }: { name: string }) {
             <span className="sr-only">Refresh preview</span>
           </Button>
           <Button
-            asChild
             className="size-7 rounded-sm p-0"
+            render={
+              <a
+                href={`/view/${name}`}
+                rel="noreferrer"
+                target="_blank"
+                title="Open full screen"
+              >
+                <span className="sr-only">Open full screen</span>
+              </a>
+            }
             size="icon"
             variant="ghost"
           >
-            <a
-              href={`/view/${name}`}
-              rel="noreferrer"
-              target="_blank"
-              title="Open full screen"
-            >
-              <Fullscreen className="size-4" />
-              <span className="sr-only">Open full screen</span>
-            </a>
+            <Fullscreen className="size-4" />
+            <span className="sr-only">Open full screen</span>
           </Button>
         </div>
       </div>
@@ -120,7 +136,9 @@ export function BlockViewer({ name }: { name: string }) {
           className={cn(
             "mx-auto h-(--block-height) overflow-hidden rounded-lg border bg-background transition-[max-width] duration-300 ease-out"
           )}
-          style={{ maxWidth: css }}
+          style={{
+            maxWidth: css,
+          }}
         >
           <iframe
             className="size-full"

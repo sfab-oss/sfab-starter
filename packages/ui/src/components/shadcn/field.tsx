@@ -1,3 +1,7 @@
+// biome-ignore-all lint/a11y/useSemanticElements: shadcn registry stock
+// biome-ignore-all lint/suspicious/noArrayIndexKey: shadcn registry stock
+// biome-ignore-all lint/suspicious/noDoubleEquals: shadcn registry stock
+
 "use client";
 
 import { Label } from "@workspace/ui/components/shadcn/label";
@@ -75,7 +79,6 @@ function Field({
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants>) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: shadcn component
     <div
       className={cn(fieldVariants({ orientation }), className)}
       data-orientation={orientation}
@@ -120,7 +123,7 @@ function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "flex w-fit items-center gap-2 font-medium text-sm leading-snug group-data-[disabled=true]/field:opacity-50",
+        "flex w-fit items-center gap-2 font-medium text-sm group-data-[disabled=true]/field:opacity-50",
         className
       )}
       data-slot="field-label"
@@ -195,7 +198,7 @@ function FieldError({
       ...new Map(errors.map((error) => [error?.message, error])).values(),
     ];
 
-    if (uniqueErrors?.length === 1) {
+    if (uniqueErrors?.length == 1) {
       return uniqueErrors[0]?.message;
     }
 
@@ -203,7 +206,6 @@ function FieldError({
       <ul className="ml-4 flex list-disc flex-col gap-1">
         {uniqueErrors.map(
           (error, index) =>
-            // biome-ignore lint/suspicious/noArrayIndexKey: shadcn component
             error?.message && <li key={index}>{error.message}</li>
         )}
       </ul>

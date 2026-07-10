@@ -20,12 +20,16 @@ import { Check, ChevronsUpDown, UserRound } from "lucide-react";
 import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { type Entity, useEntities } from "@/hooks/use-entities";
-
 export type EntityPickerValue =
-  | { kind: "entity"; entity: Pick<Entity, "id" | "name" | "type"> }
-  | { kind: "walk_in"; name: string }
+  | {
+      kind: "entity";
+      entity: Pick<Entity, "id" | "name" | "type">;
+    }
+  | {
+      kind: "walk_in";
+      name: string;
+    }
   | null;
-
 interface EntityPickerProps {
   value: EntityPickerValue;
   onChange: (value: EntityPickerValue) => void;
@@ -33,7 +37,6 @@ interface EntityPickerProps {
   placeholder?: string;
   className?: string;
 }
-
 export function EntityPicker({
   value,
   onChange,
@@ -44,11 +47,9 @@ export function EntityPicker({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-
   const debouncedSetSearch = useDebouncedCallback((next: string) => {
     setDebouncedSearch(next);
   }, 200);
-
   const { data, isLoading } = useEntities({
     page: 1,
     pageSize: 20,
@@ -56,36 +57,36 @@ export function EntityPicker({
     sortBy: "name",
     search: debouncedSearch || undefined,
   });
-
   let label = placeholder;
   if (value?.kind === "entity") {
     label = value.entity.name;
   } else if (value?.kind === "walk_in") {
     label = value.name;
   }
-
   return (
     <Popover onOpenChange={setOpen} open={open}>
-      <PopoverTrigger asChild>
-        <Button
-          aria-expanded={open}
-          className={cn("w-full justify-between font-normal", className)}
-          disabled={disabled}
-          role="combobox"
-          variant="outline"
-        >
-          <span className="flex min-w-0 items-center gap-2 truncate">
-            <UserRound className="size-4 shrink-0 text-muted-foreground" />
-            <span className={cn("truncate", !value && "text-muted-foreground")}>
-              {label}
-            </span>
+      <PopoverTrigger
+        render={
+          <Button
+            aria-expanded={open}
+            className={cn("w-full justify-between font-normal", className)}
+            disabled={disabled}
+            role="combobox"
+            variant="outline"
+          />
+        }
+      >
+        <span className="flex min-w-0 items-center gap-2 truncate">
+          <UserRound className="size-4 shrink-0 text-muted-foreground" />
+          <span className={cn("truncate", !value && "text-muted-foreground")}>
+            {label}
           </span>
-          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-        </Button>
+        </span>
+        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        className="w-[var(--radix-popover-trigger-width)] gap-0 p-0"
       >
         <Command shouldFilter={false}>
           <CommandInput

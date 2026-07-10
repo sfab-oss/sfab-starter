@@ -4,7 +4,7 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-  useOptionalSidebar,
+  useSidebar,
 } from "@workspace/ui/components/shadcn/sidebar";
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -94,12 +94,7 @@ export function ShellHeaderSidebarTrigger({
 }: {
   className?: string;
 }) {
-  const sidebar = useOptionalSidebar();
-  if (!sidebar) {
-    return null;
-  }
-
-  const { state } = sidebar;
+  const { state } = useSidebar();
 
   return (
     <>

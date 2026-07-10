@@ -40,11 +40,22 @@ const TOOL_OPTIONS: {
   label: string;
   icon: typeof FolderTreeIcon;
 }[] = [
-  { tool: "files", label: "Files", icon: FolderTreeIcon },
-  { tool: "browser", label: "Browser", icon: GlobeIcon },
-  { tool: "terminal", label: "Terminal", icon: TerminalIcon },
+  {
+    tool: "files",
+    label: "Files",
+    icon: FolderTreeIcon,
+  },
+  {
+    tool: "browser",
+    label: "Browser",
+    icon: GlobeIcon,
+  },
+  {
+    tool: "terminal",
+    label: "Terminal",
+    icon: TerminalIcon,
+  },
 ];
-
 function tabLabel(tab: ChatSidePanelTab): string {
   if (tab.type === "file") {
     return tab.name;
@@ -53,7 +64,6 @@ function tabLabel(tab: ChatSidePanelTab): string {
     TOOL_OPTIONS.find((option) => option.tool === tab.type)?.label ?? tab.type
   );
 }
-
 function tabIcon(tab: ChatSidePanelTab) {
   if (tab.type === "file") {
     return FileIcon;
@@ -62,7 +72,6 @@ function tabIcon(tab: ChatSidePanelTab) {
     TOOL_OPTIONS.find((option) => option.tool === tab.type)?.icon ?? FileIcon
   );
 }
-
 export function ChatSidePanel({
   tabs,
   activeTabId,
@@ -123,16 +132,18 @@ export function ChatSidePanel({
           );
         })}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              className="size-7 shrink-0"
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
-              <PlusIcon className="size-3.5" />
-              <span className="sr-only">Open new tab</span>
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                className="size-7 shrink-0"
+                size="icon"
+                type="button"
+                variant="ghost"
+              />
+            }
+          >
+            <PlusIcon className="size-3.5" />
+            <span className="sr-only">Open new tab</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-40">
             {TOOL_OPTIONS.map(({ tool, label, icon: Icon }) => (
@@ -172,7 +183,6 @@ export function ChatSidePanel({
     </div>
   );
 }
-
 function ChatSidePanelEmptyState({
   onOpenToolTab,
 }: {
@@ -201,7 +211,6 @@ function ChatSidePanelEmptyState({
     </div>
   );
 }
-
 function ChatSidePanelTabContent({
   tab,
   activeFilePath,
@@ -214,7 +223,6 @@ function ChatSidePanelTabContent({
   if (tab.type === "files") {
     return <FilesTab activeFilePath={activeFilePath} onOpenFile={onOpenFile} />;
   }
-
   if (tab.type === "browser") {
     return (
       <SidePanelPlaceholder
@@ -223,7 +231,6 @@ function ChatSidePanelTabContent({
       />
     );
   }
-
   if (tab.type === "terminal") {
     return (
       <SidePanelPlaceholder
@@ -232,10 +239,8 @@ function ChatSidePanelTabContent({
       />
     );
   }
-
   return null;
 }
-
 function FilesTab({
   activeFilePath,
   onOpenFile,
@@ -274,13 +279,12 @@ function FilesTab({
       </div>
     );
   }
-
   return (
     <ResizablePanelGroup
       data-slot="chat-side-panel-files-split"
-      direction="horizontal"
+      orientation="horizontal"
     >
-      <ResizablePanel className="min-h-0" defaultSize={65} minSize={40}>
+      <ResizablePanel className="min-h-0" defaultSize="65%" minSize="40%">
         {fileName && activeFilePath ? (
           <FileContent name={fileName} path={activeFilePath} />
         ) : (
@@ -290,20 +294,18 @@ function FilesTab({
       <ResizableHandle />
       <ResizablePanel
         className="min-h-0 overflow-auto bg-background"
-        defaultSize={35}
-        maxSize={55}
-        minSize={20}
+        defaultSize="35%"
+        maxSize="55%"
+        minSize="20%"
       >
         <FileExplorerTree nodes={MOCK_WORKSPACE_TREE} onOpenFile={onOpenFile} />
       </ResizablePanel>
     </ResizablePanelGroup>
   );
 }
-
 function FileContent({ path, name }: { path: string; name: string }) {
   const content = MOCK_WORKSPACE_FILE_CONTENT[path];
   const extension = name.split(".").pop()?.toLowerCase();
-
   if (extension === "pdf" || extension === "docx") {
     return (
       <SidePanelPlaceholder
@@ -312,7 +314,6 @@ function FileContent({ path, name }: { path: string; name: string }) {
       />
     );
   }
-
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="border-b px-3 py-2 text-muted-foreground text-xs">
@@ -324,7 +325,6 @@ function FileContent({ path, name }: { path: string; name: string }) {
     </div>
   );
 }
-
 function NoFileSelected() {
   return (
     <div
@@ -339,7 +339,6 @@ function NoFileSelected() {
     </div>
   );
 }
-
 function SidePanelPlaceholder({
   title,
   description,

@@ -111,16 +111,16 @@ function FilesBody({
 
 function DesktopFiles({ tree }: { tree: ReturnType<typeof useWorkspaceTree> }) {
   return (
-    <ResizablePanelGroup direction="horizontal">
-      <ResizablePanel className="min-h-0" defaultSize={65} minSize={40}>
+    <ResizablePanelGroup orientation="horizontal">
+      <ResizablePanel className="min-h-0" defaultSize="65%" minSize="40%">
         <FilePreview tree={tree} />
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel
         className="min-h-0 overflow-auto bg-background"
-        defaultSize={35}
-        maxSize={55}
-        minSize={20}
+        defaultSize="35%"
+        maxSize="55%"
+        minSize="20%"
       >
         <FileExplorerTree tree={tree} />
       </ResizablePanel>

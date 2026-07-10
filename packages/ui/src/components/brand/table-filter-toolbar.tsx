@@ -37,7 +37,6 @@ interface TableFilterToolbarProps {
   sort?: TableSort;
   totalCount: number;
 }
-
 function FilterChip({
   label,
   value,
@@ -62,13 +61,17 @@ function FilterChip({
     </Badge>
   );
 }
-
 function EnumFilterSection({
   definition,
   selected,
   onChange,
 }: {
-  definition: Extract<TableFilterDefinition, { type: "enum" }>;
+  definition: Extract<
+    TableFilterDefinition,
+    {
+      type: "enum";
+    }
+  >;
   selected: string[];
   onChange: (values: string[]) => void;
 }) {
@@ -79,7 +82,6 @@ function EnumFilterSection({
     }
     onChange(selected.filter((item) => item !== value));
   };
-
   return (
     <div className="space-y-2">
       <p className="font-medium text-sm">{definition.label}</p>
@@ -104,13 +106,17 @@ function EnumFilterSection({
     </div>
   );
 }
-
 function TextFilterSection({
   definition,
   value,
   onChange,
 }: {
-  definition: Extract<TableFilterDefinition, { type: "text" }>;
+  definition: Extract<
+    TableFilterDefinition,
+    {
+      type: "text";
+    }
+  >;
   value: string;
   onChange: (value: string) => void;
 }) {
@@ -131,7 +137,6 @@ function TextFilterSection({
     </div>
   );
 }
-
 export function TableFilterToolbar({
   definitions,
   columnFilters,
@@ -142,7 +147,6 @@ export function TableFilterToolbar({
   sort,
 }: TableFilterToolbarProps) {
   const activeCount = countActiveFilters(columnFilters, definitions);
-
   const activeChips = useMemo(() => {
     return definitions.flatMap((definition) => {
       const value = getColumnFilterValue(columnFilters, definition.columnId);
@@ -158,17 +162,13 @@ export function TableFilterToolbar({
       ];
     });
   }, [columnFilters, definitions]);
-
   const updateFilter = (columnId: string, value: unknown) => {
     onColumnFiltersChange(setColumnFilterValue(columnFilters, columnId, value));
   };
-
   const clearAll = () => {
     onColumnFiltersChange([]);
   };
-
   const showSortControl = sort !== undefined && sort.columns.length > 0;
-
   return (
     <div
       className={cn(
@@ -180,27 +180,29 @@ export function TableFilterToolbar({
       {showSortControl ? <TableSortControl sort={sort} /> : null}
 
       <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            aria-label={
-              activeCount > 0 ? `Filters (${activeCount} active)` : "Filters"
-            }
-            className="relative shrink-0"
-            size="icon-xs"
-            variant="outline"
-          >
-            <ListFilter />
-            {activeCount > 0 ? (
-              <Badge
-                className="absolute -top-1 -right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-0.5 text-[9px] leading-none"
-                variant="secondary"
-              >
-                {activeCount}
-              </Badge>
-            ) : null}
-          </Button>
+        <PopoverTrigger
+          render={
+            <Button
+              aria-label={
+                activeCount > 0 ? `Filters (${activeCount} active)` : "Filters"
+              }
+              className="relative shrink-0"
+              size="icon-xs"
+              variant="outline"
+            />
+          }
+        >
+          <ListFilter />
+          {activeCount > 0 ? (
+            <Badge
+              className="absolute -top-1 -right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-0.5 text-[9px] leading-none"
+              variant="secondary"
+            >
+              {activeCount}
+            </Badge>
+          ) : null}
         </PopoverTrigger>
-        <PopoverContent align="start" className="w-80 p-0">
+        <PopoverContent align="start" className="w-80 gap-0 p-0">
           <div className="flex items-center justify-between px-4 py-3">
             <p className="font-medium text-sm">Filters</p>
             {activeCount > 0 ? (

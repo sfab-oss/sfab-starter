@@ -39,10 +39,10 @@ export function DestructiveConfirmCard() {
       </CardHeader>
       <CardContent>
         <AlertDialog defaultOpen>
-          <AlertDialogTrigger asChild>
-            <Button type="button" variant="outline">
-              Delete product
-            </Button>
+          <AlertDialogTrigger
+            render={<Button type="button" variant="outline" />}
+          >
+            Delete product
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>

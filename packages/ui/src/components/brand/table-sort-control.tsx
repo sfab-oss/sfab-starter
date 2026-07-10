@@ -11,12 +11,10 @@ import {
 import { Separator } from "@workspace/ui/components/shadcn/separator";
 import { Check } from "lucide-react";
 import { useState } from "react";
-
 export interface SortableColumn {
   id: string;
   label: string;
 }
-
 export interface TableSort {
   columns: SortableColumn[];
   onSortingChange: (sorting: SortingState) => void;
@@ -33,39 +31,36 @@ export function getSortableColumns<T>(table: Table<T>): SortableColumn[] {
       label: column.columnDef.meta?.label ?? column.id,
     }));
 }
-
 export function TableSortControl({ sort }: { sort: TableSort }) {
   const { sorting, onSortingChange, columns } = sort;
   const [open, setOpen] = useState(false);
-
   const active = sorting[0];
   const activeColumn = active
     ? columns.find((column) => column.id === active.id)
     : undefined;
   const activeDirection = active?.desc ? "desc" : "asc";
-
   const triggerLabel = activeColumn
     ? `Sorted by ${activeColumn.label}, ${activeDirection === "asc" ? "ascending" : "descending"}. Change sort.`
     : "Sort";
-
   const applySort = (nextSorting: SortingState) => {
     onSortingChange(nextSorting);
     setOpen(false);
   };
-
   return (
     <Popover onOpenChange={setOpen} open={open}>
-      <PopoverTrigger asChild>
-        <Button
-          aria-label={triggerLabel}
-          className="shrink-0"
-          size="icon-xs"
-          variant="outline"
-        >
-          <SortIcon sorted={active ? activeDirection : false} />
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            aria-label={triggerLabel}
+            className="shrink-0"
+            size="icon-xs"
+            variant="outline"
+          />
+        }
+      >
+        <SortIcon sorted={active ? activeDirection : false} />
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-56 p-0">
+      <PopoverContent align="start" className="w-56 gap-0 p-0">
         <div className="flex items-center justify-between px-4 py-3">
           <p className="font-medium text-sm">Sort by</p>
           {active ? (
@@ -96,7 +91,16 @@ export function TableSortControl({ sort }: { sort: TableSort }) {
                       className="h-8 w-full justify-between px-2 font-normal"
                       key={`${column.id}-${desc ? "desc" : "asc"}`}
                       onClick={() =>
-                        applySort(isActive ? [] : [{ id: column.id, desc }])
+                        applySort(
+                          isActive
+                            ? []
+                            : [
+                                {
+                                  id: column.id,
+                                  desc,
+                                },
+                              ]
+                        )
                       }
                       type="button"
                       variant="ghost"

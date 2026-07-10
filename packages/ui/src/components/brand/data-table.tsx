@@ -45,7 +45,6 @@ import { useState } from "react";
 
 const FILTER_TOOLBAR_TABLE_GUTTER =
   "[&_tr>*]:px-3 [&_tr>*:first-child]:pl-4 [&_tr>*:last-child]:pr-4";
-
 function DataTableEmptyRow({
   colSpan,
   message,
@@ -64,7 +63,6 @@ function DataTableEmptyRow({
     </TableRow>
   );
 }
-
 function buildTableBodyContent<TData>({
   columnCount,
   isServerSide,
@@ -94,11 +92,9 @@ function buildTableBodyContent<TData>({
       />
     );
   }
-
   if (!isServerSide && dataLength === 0) {
     return <DataTableEmptyRow colSpan={columnCount} message={emptyMessage} />;
   }
-
   if (tableRows.length === 0) {
     return (
       <DataTableEmptyRow
@@ -107,7 +103,6 @@ function buildTableBodyContent<TData>({
       />
     );
   }
-
   return tableRows.map((row) => (
     <TableRow
       className={onRowClick ? "cursor-pointer" : undefined}
@@ -123,7 +118,6 @@ function buildTableBodyContent<TData>({
     </TableRow>
   ));
 }
-
 function DataTableLegacyFilterRow<TData>({
   table,
   filterColumn,
@@ -162,10 +156,10 @@ function DataTableLegacyFilterRow<TData>({
       )}
       {showColumnVisibility ? (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="ml-auto" variant="outline">
-              Columns
-            </Button>
+          <DropdownMenuTrigger
+            render={<Button className="ml-auto" variant="outline" />}
+          >
+            Columns
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {table
@@ -187,7 +181,6 @@ function DataTableLegacyFilterRow<TData>({
     </div>
   );
 }
-
 function DataTablePaginationButtons({
   canPrevious,
   canNext,
@@ -226,7 +219,6 @@ function DataTablePaginationButtons({
     </div>
   );
 }
-
 function DataTableHeaderRows<TData>({
   table,
 }: {
@@ -258,7 +250,6 @@ function DataTableHeaderRows<TData>({
     </TableHeader>
   );
 }
-
 function getServerTableOptions({
   pageCount,
   pagination,
@@ -297,7 +288,6 @@ function getServerTableOptions({
     onColumnFiltersChange,
   };
 }
-
 function getClientTableOptions({
   sorting,
   columnFilters,
@@ -327,15 +317,12 @@ function getClientTableOptions({
     },
   };
 }
-
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-
   pageCount?: number;
   pagination?: PaginationState;
   onPaginationChange?: OnChangeFn<PaginationState>;
-
   sorting?: SortingState;
   onSortingChange?: OnChangeFn<SortingState>;
 
@@ -349,7 +336,6 @@ interface DataTableProps<TData, TValue> {
   filterDefinitions?: TableFilterDefinition[];
   columnFilters?: ColumnFiltersState;
   onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>;
-
   showColumnVisibility?: boolean;
   onRowClick?: (row: TData) => void;
   emptyMessage?: string;
@@ -359,12 +345,10 @@ interface DataTableProps<TData, TValue> {
   /** Rich empty UI for server-driven lists — replaces the default table empty row. */
   collectionEmpty?: ReactNode;
 }
-
 export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
   const controller = useDataTableController(props);
   return <DataTableView {...props} {...controller} />;
 }
-
 function useDataTableController<TData, TValue>({
   columns,
   data,
@@ -388,22 +372,21 @@ function useDataTableController<TData, TValue>({
   const isServerSide = externalPagination !== undefined;
   const useFilterToolbar =
     filterDefinitions !== undefined && filterDefinitions.length > 0;
-
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
   const [internalColumnFilters, setInternalColumnFilters] =
     useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-
   const sorting = externalSorting ?? internalSorting;
   const setSorting = onSortingChange ?? setInternalSorting;
   const columnFilters = externalColumnFilters ?? internalColumnFilters;
   const setColumnFilters = onColumnFiltersChange ?? setInternalColumnFilters;
-
   const table = useReactTable({
     data,
     columns,
-    filterFns: { arrIncludesExact },
+    filterFns: {
+      arrIncludesExact,
+    },
     getCoreRowModel: getCoreRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
@@ -428,7 +411,6 @@ function useDataTableController<TData, TValue>({
           sorting,
         })),
   });
-
   const filteredRows = table.getFilteredRowModel().rows;
   const tableRows = isServerSide ? table.getRowModel().rows : filteredRows;
   const toolbarFilteredCount = filteredCountProp ?? filteredRows.length;
@@ -437,7 +419,6 @@ function useDataTableController<TData, TValue>({
   const hasFilters = useFilterToolbar && columnFilters.length > 0;
   const showLegacyFilterRow =
     !useFilterToolbar && (onFilterChange !== undefined || filterColumn);
-
   const tableBodyContent = buildTableBodyContent({
     columnCount: columns.length,
     dataLength: data.length,
@@ -449,10 +430,8 @@ function useDataTableController<TData, TValue>({
     tableRows,
     toolbarFilteredCount,
   });
-
   const showCollectionEmpty =
     isServerSide && toolbarFilteredCount === 0 && collectionEmpty !== undefined;
-
   return {
     columnFilters,
     collectionEmpty,
@@ -471,7 +450,6 @@ function useDataTableController<TData, TValue>({
     showClientPagination: !(isServerSide || useFilterToolbar),
   };
 }
-
 function DataTableView<TData, TValue>({
   filterColumn = "name",
   filterDefinitions,

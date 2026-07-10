@@ -26,7 +26,6 @@ import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Dialog,
-  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -64,12 +63,10 @@ import {
   useCreateDocument,
   useDocumentsList,
 } from "@/hooks/use-documents";
-
 export const Route = createFileRoute("/_protected/documents/")({
   component: DocumentsPage,
   validateSearch: listDocumentsQuerySchema,
 });
-
 const DOCUMENT_FILTER_DEFINITIONS: TableFilterDefinition[] = [
   {
     id: "search",
@@ -84,10 +81,22 @@ const DOCUMENT_FILTER_DEFINITIONS: TableFilterDefinition[] = [
     label: "Type",
     type: "enum",
     options: [
-      { label: "Quote", value: "quote" },
-      { label: "Invoice", value: "invoice" },
-      { label: "Credit note", value: "credit_note" },
-      { label: "Bill", value: "bill" },
+      {
+        label: "Quote",
+        value: "quote",
+      },
+      {
+        label: "Invoice",
+        value: "invoice",
+      },
+      {
+        label: "Credit note",
+        value: "credit_note",
+      },
+      {
+        label: "Bill",
+        value: "bill",
+      },
     ],
   },
   {
@@ -96,8 +105,14 @@ const DOCUMENT_FILTER_DEFINITIONS: TableFilterDefinition[] = [
     label: "Direction",
     type: "enum",
     options: [
-      { label: "Sales", value: "sales" },
-      { label: "Purchase", value: "purchase" },
+      {
+        label: "Sales",
+        value: "sales",
+      },
+      {
+        label: "Purchase",
+        value: "purchase",
+      },
     ],
   },
   {
@@ -106,14 +121,25 @@ const DOCUMENT_FILTER_DEFINITIONS: TableFilterDefinition[] = [
     label: "Status",
     type: "enum",
     options: [
-      { label: "Draft", value: "draft" },
-      { label: "Accepted", value: "accepted" },
-      { label: "Converted", value: "converted" },
-      { label: "Finalized", value: "finalized" },
+      {
+        label: "Draft",
+        value: "draft",
+      },
+      {
+        label: "Accepted",
+        value: "accepted",
+      },
+      {
+        label: "Converted",
+        value: "converted",
+      },
+      {
+        label: "Finalized",
+        value: "finalized",
+      },
     ],
   },
 ];
-
 function firstEnumValue(value: unknown): string | undefined {
   if (Array.isArray(value) && typeof value[0] === "string") {
     return value[0];
@@ -123,15 +149,14 @@ function firstEnumValue(value: unknown): string | undefined {
   }
   return undefined;
 }
-
 const NEW_DOCUMENT_TYPES = createableDocumentTypeSchema.options;
-
 function DocumentsPage() {
   const searchParams = Route.useSearch();
-  const navigate = useNavigate({ from: Route.fullPath });
+  const navigate = useNavigate({
+    from: Route.fullPath,
+  });
   const { data: docsResponse, isLoading } = useDocumentsList(searchParams);
   const createDocument = useCreateDocument();
-
   const [createType, setCreateType] = useState<
     (typeof NEW_DOCUMENT_TYPES)[number] | null
   >(null);
@@ -139,7 +164,6 @@ function DocumentsPage() {
     kind: "walk_in",
     name: "Walk-in",
   });
-
   useSetPageContext(
     useMemo(
       () => ({
@@ -151,7 +175,6 @@ function DocumentsPage() {
       []
     )
   );
-
   const pagination = useMemo<PaginationState>(
     () => ({
       pageIndex: searchParams.page - 1,
@@ -159,7 +182,6 @@ function DocumentsPage() {
     }),
     [searchParams.page, searchParams.pageSize]
   );
-
   const onPaginationChange = useCallback(
     (updater: Updater<PaginationState>) => {
       const next =
@@ -174,7 +196,6 @@ function DocumentsPage() {
     },
     [navigate, pagination]
   );
-
   const sorting = useMemo<SortingState>(
     () =>
       searchParams.sortBy
@@ -184,10 +205,14 @@ function DocumentsPage() {
               desc: searchParams.sortOrder === "desc",
             },
           ]
-        : [{ id: "createdAt", desc: true }],
+        : [
+            {
+              id: "createdAt",
+              desc: true,
+            },
+          ],
     [searchParams.sortBy, searchParams.sortOrder]
   );
-
   const onSortingChange = useCallback(
     (updater: Updater<SortingState>) => {
       const next = typeof updater === "function" ? updater(sorting) : updater;
@@ -202,20 +227,31 @@ function DocumentsPage() {
     },
     [navigate, sorting]
   );
-
   const columnFilters = useMemo<ColumnFiltersState>(() => {
     const filters: ColumnFiltersState = [];
     if (searchParams.search) {
-      filters.push({ id: "search", value: searchParams.search });
+      filters.push({
+        id: "search",
+        value: searchParams.search,
+      });
     }
     if (searchParams.type) {
-      filters.push({ id: "type", value: [searchParams.type] });
+      filters.push({
+        id: "type",
+        value: [searchParams.type],
+      });
     }
     if (searchParams.direction) {
-      filters.push({ id: "direction", value: [searchParams.direction] });
+      filters.push({
+        id: "direction",
+        value: [searchParams.direction],
+      });
     }
     if (searchParams.status) {
-      filters.push({ id: "status", value: [searchParams.status] });
+      filters.push({
+        id: "status",
+        value: [searchParams.status],
+      });
     }
     return filters;
   }, [
@@ -224,7 +260,6 @@ function DocumentsPage() {
     searchParams.direction,
     searchParams.status,
   ]);
-
   const onColumnFiltersChange = useCallback(
     (updater: Updater<ColumnFiltersState>) => {
       const next =
@@ -252,7 +287,6 @@ function DocumentsPage() {
     },
     [columnFilters, navigate]
   );
-
   const clearFilters = useCallback(() => {
     navigate({
       search: (prev) => ({
@@ -265,11 +299,9 @@ function DocumentsPage() {
       }),
     });
   }, [navigate]);
-
   const pageCount = docsResponse
     ? Math.ceil(docsResponse.total / searchParams.pageSize)
     : 0;
-
   const hasActiveFilters = Boolean(
     searchParams.search?.trim() ||
       searchParams.type ||
@@ -280,7 +312,6 @@ function DocumentsPage() {
     !(isLoading && !docsResponse) &&
     docsResponse !== undefined &&
     docsResponse.total === 0;
-
   const collectionEmpty = (() => {
     if (!isEmptyResult) {
       return undefined;
@@ -310,7 +341,6 @@ function DocumentsPage() {
       </div>
     );
   })();
-
   const handleCreate = async () => {
     if (!createType) {
       return;
@@ -329,23 +359,30 @@ function DocumentsPage() {
             entityName:
               entityValue?.kind === "walk_in" ? entityValue.name : "Walk-in",
           };
-
     const doc = await createDocument.mutateAsync(payload);
     setCreateType(null);
-    navigate({ to: "/documents/$id", params: { id: doc.id } });
+    navigate({
+      to: "/documents/$id",
+      params: {
+        id: doc.id,
+      },
+    });
   };
-
   const columns: ColumnDef<DocumentRow>[] = [
     {
       id: "folio",
-      meta: { label: "Folio" },
+      meta: {
+        label: "Folio",
+      },
       accessorFn: (row) => documentFolioLabel(row),
       enableSorting: false,
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => (
         <Link
           className="font-medium hover:text-primary hover:underline"
-          params={{ id: row.original.id }}
+          params={{
+            id: row.original.id,
+          }}
           to="/documents/$id"
         >
           {documentFolioLabel(row.original)}
@@ -354,21 +391,27 @@ function DocumentsPage() {
     },
     {
       id: "type",
-      meta: { label: "Type" },
+      meta: {
+        label: "Type",
+      },
       accessorKey: "type",
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => <DocumentTypeBadge type={row.original.type} />,
     },
     {
       id: "entityName",
-      meta: { label: "Entity" },
+      meta: {
+        label: "Entity",
+      },
       accessorKey: "entityName",
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => row.original.entityName ?? "Walk-in",
     },
     {
       id: "status",
-      meta: { label: "Status" },
+      meta: {
+        label: "Status",
+      },
       accessorKey: "status",
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => (
@@ -379,7 +422,9 @@ function DocumentsPage() {
     },
     {
       id: "paymentStatus",
-      meta: { label: "Payment" },
+      meta: {
+        label: "Payment",
+      },
       accessorKey: "paymentStatus",
       enableSorting: false,
       header: ({ column }) => <SortableHeader column={column} />,
@@ -392,7 +437,9 @@ function DocumentsPage() {
     },
     {
       id: "total",
-      meta: { label: "Total" },
+      meta: {
+        label: "Total",
+      },
       accessorKey: "total",
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => (
@@ -403,7 +450,9 @@ function DocumentsPage() {
     },
     {
       id: "createdAt",
-      meta: { label: "Date" },
+      meta: {
+        label: "Date",
+      },
       accessorKey: "createdAt",
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => (
@@ -413,27 +462,33 @@ function DocumentsPage() {
       ),
     },
   ];
-
   return (
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
-        <AppBreadcrumbs items={[{ title: "Documents" }]} />
+        <AppBreadcrumbs
+          items={[
+            {
+              title: "Documents",
+            },
+          ]}
+        />
         <ShellHeaderActions>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                New document
-                <ChevronDown className="ml-1 h-4 w-4" />
-              </Button>
+            <DropdownMenuTrigger render={<Button size="sm" />}>
+              <Plus className="mr-2 h-4 w-4" />
+              New document
+              <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {NEW_DOCUMENT_TYPES.map((type) => (
                 <DropdownMenuItem
                   key={type}
                   onSelect={() => {
-                    setEntityValue({ kind: "walk_in", name: "Walk-in" });
+                    setEntityValue({
+                      kind: "walk_in",
+                      name: "Walk-in",
+                    });
                     setCreateType(type);
                   }}
                 >
@@ -487,12 +542,10 @@ function DocumentsPage() {
               Pick an existing entity or keep Walk-in for an ad-hoc name.
             </DialogDescription>
           </DialogHeader>
-          <DialogBody>
-            <Field>
-              <FieldLabel>Customer / entity</FieldLabel>
-              <EntityPicker onChange={setEntityValue} value={entityValue} />
-            </Field>
-          </DialogBody>
+          <Field>
+            <FieldLabel>Customer / entity</FieldLabel>
+            <EntityPicker onChange={setEntityValue} value={entityValue} />
+          </Field>
           <DialogFooter>
             <Button
               disabled={createDocument.isPending || !createType}

@@ -49,7 +49,6 @@ import { ChatSidePanel } from "@/components/chat/side-panel/chat-side-panel";
 import { MobileFilesSheet } from "@/components/chat/side-panel/mobile-files-sheet";
 import { ChatErrorBoundary } from "@/components/chat/window/chat-error-boundary";
 import { ChatWindow } from "@/components/chat/window/chat-window";
-
 export function BottomChatDock() {
   return (
     <>
@@ -65,7 +64,6 @@ export function BottomChatDock() {
     </>
   );
 }
-
 function DockBody() {
   const { organizationId } = useChatOrgConnection();
   const bodyState = useDockBodyState(organizationId);
@@ -79,7 +77,6 @@ function DockBody() {
   // mobile. Both are driven by the same `isFilesPanelOpen` flag.
   const showDesktopPanel =
     !isMobile && bodyState === "fullscreen" && isFilesPanelOpen;
-
   return (
     <>
       <DockBodyShell hidden={isHidden} state={bodyState}>
@@ -111,7 +108,6 @@ function DockBody() {
     </>
   );
 }
-
 function PanelSlot({
   children,
   hidden,
@@ -125,7 +121,6 @@ function PanelSlot({
     </div>
   );
 }
-
 function DockBodyShell({
   children,
   hidden,
@@ -141,7 +136,6 @@ function DockBodyShell({
     : "top-4 right-2 bottom-12 left-0 shadow-xl";
   const popupClass =
     "right-4 bottom-12 h-[640px] max-h-[calc(100%-4rem)] w-[480px] max-w-[calc(100%-2rem)] border shadow-2xl";
-
   return (
     <div
       className={cn(
@@ -155,14 +149,11 @@ function DockBodyShell({
     </div>
   );
 }
-
 const MAX_VISIBLE_PILLS = 4;
-
 function DockBar() {
   const { organizationId } = useChatOrgConnection();
   const tabs = useTabs(organizationId);
   const isMobile = useIsMobile();
-
   if (isMobile) {
     return null;
   }
@@ -179,7 +170,6 @@ function DockBar() {
     pillTabs.length > MAX_VISIBLE_PILLS
       ? pillTabs.slice(pillTabs.length - MAX_VISIBLE_PILLS)
       : pillTabs;
-
   return (
     <div className="flex h-10 shrink-0 items-center gap-1 bg-transparent px-2">
       <div className="flex min-w-0 flex-1 overflow-x-auto">
@@ -190,20 +180,22 @@ function DockBar() {
           ))}
         </div>
       </div>
-      <TooltipProvider delayDuration={300}>
+      <TooltipProvider delay={300}>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              aria-label="New chat"
-              className="size-7 shrink-0"
-              onClick={() =>
-                useChatTabsStore.getState().openDraftTab(organizationId)
-              }
-              size="icon"
-              variant="ghost"
-            >
-              <PlusIcon className="size-4" />
-            </Button>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-label="New chat"
+                className="size-7 shrink-0"
+                onClick={() =>
+                  useChatTabsStore.getState().openDraftTab(organizationId)
+                }
+                size="icon"
+                variant="ghost"
+              />
+            }
+          >
+            <PlusIcon className="size-4" />
           </TooltipTrigger>
           <TooltipContent side="top">New chat</TooltipContent>
         </Tooltip>
@@ -212,12 +204,10 @@ function DockBar() {
     </div>
   );
 }
-
 function ChatTab({ tab }: { tab: TabEntry }) {
   const { organizationId } = useChatOrgConnection();
   const focusedTabId = useFocusedTabId(organizationId);
   const isFocused = focusedTabId === tab.tabKey;
-
   const handleClick = () => {
     const store = useChatTabsStore.getState();
     if (!store.isBodyOpen) {
@@ -231,12 +221,10 @@ function ChatTab({ tab }: { tab: TabEntry }) {
     }
     store.focusTab(organizationId, tab.tabKey);
   };
-
   const handleClose = (event: MouseEvent) => {
     event.stopPropagation();
     useChatTabsStore.getState().closeTab(organizationId, tab.tabKey);
   };
-
   return (
     <div
       className={cn(
@@ -265,22 +253,22 @@ function ChatTab({ tab }: { tab: TabEntry }) {
     </div>
   );
 }
-
 function OverflowMenu({ tabs }: { tabs: TabEntry[] }) {
   const { organizationId } = useChatOrgConnection();
   const focusedTabId = useFocusedTabId(organizationId);
-
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          aria-label={`${tabs.length} more chats`}
-          className="h-7 shrink-0 rounded-md px-2 text-muted-foreground text-xs"
-          size="sm"
-          variant="ghost"
-        >
-          +{tabs.length}
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            aria-label={`${tabs.length} more chats`}
+            className="h-7 shrink-0 rounded-md px-2 text-muted-foreground text-xs"
+            size="sm"
+            variant="ghost"
+          />
+        }
+      >
+        +{tabs.length}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56" side="top">
         {tabs.map((tab) => (
@@ -318,7 +306,6 @@ function OverflowMenu({ tabs }: { tabs: TabEntry[] }) {
     </DropdownMenu>
   );
 }
-
 function HistoryDropdownBody({
   chats,
   deleteChat,
@@ -368,27 +355,29 @@ function HistoryDropdownBody({
     </DropdownMenuItem>
   ));
 }
-
 function HistoryDropdown() {
   const { organizationId, deleteChat, historyLoadState } =
     useChatOrgConnection();
   const chats = useOrgChatHistory();
-
   return (
-    <TooltipProvider delayDuration={300}>
+    <TooltipProvider delay={300}>
       <DropdownMenu>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                aria-label="Chat history"
-                className="size-7 shrink-0"
-                size="icon"
-                variant="ghost"
-              >
-                <HistoryIcon className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
+          <TooltipTrigger
+            render={
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    aria-label="Chat history"
+                    className="size-7 shrink-0"
+                    size="icon"
+                    variant="ghost"
+                  />
+                }
+              />
+            }
+          >
+            <HistoryIcon className="size-4" />
           </TooltipTrigger>
           <TooltipContent side="top">History</TooltipContent>
         </Tooltip>

@@ -1,3 +1,8 @@
+// biome-ignore-all lint/a11y/useSemanticElements: shadcn registry stock
+// biome-ignore-all lint/performance/noNamespaceImport: shadcn registry stock
+// biome-ignore-all lint/style/useBlockStatements: shadcn registry stock
+// biome-ignore-all lint/style/useConsistentTypeDefinitions: shadcn registry stock
+
 "use client";
 
 import { Button } from "@workspace/ui/components/shadcn/button";
@@ -6,27 +11,19 @@ import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import {
-  type ComponentProps,
-  createContext,
-  type KeyboardEvent,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import * as React from "react";
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
 type CarouselOptions = UseCarouselParameters[0];
 type CarouselPlugin = UseCarouselParameters[1];
 
-interface CarouselProps {
+type CarouselProps = {
   opts?: CarouselOptions;
   plugins?: CarouselPlugin;
   orientation?: "horizontal" | "vertical";
   setApi?: (api: CarouselApi) => void;
-}
+};
 
 type CarouselContextProps = {
   carouselRef: ReturnType<typeof useEmblaCarousel>[0];
@@ -37,10 +34,10 @@ type CarouselContextProps = {
   canScrollNext: boolean;
 } & CarouselProps;
 
-const CarouselContext = createContext<CarouselContextProps | null>(null);
+const CarouselContext = React.createContext<CarouselContextProps | null>(null);
 
 function useCarousel() {
-  const context = useContext(CarouselContext);
+  const context = React.useContext(CarouselContext);
 
   if (!context) {
     throw new Error("useCarousel must be used within a <Carousel />");
@@ -57,7 +54,7 @@ function Carousel({
   className,
   children,
   ...props
-}: ComponentProps<"div"> & CarouselProps) {
+}: React.ComponentProps<"div"> & CarouselProps) {
   const [carouselRef, api] = useEmblaCarousel(
     {
       ...opts,
@@ -65,27 +62,25 @@ function Carousel({
     },
     plugins
   );
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
+  const [canScrollPrev, setCanScrollPrev] = React.useState(false);
+  const [canScrollNext, setCanScrollNext] = React.useState(false);
 
-  const onSelect = useCallback((api: CarouselApi) => {
-    if (!api) {
-      return;
-    }
+  const onSelect = React.useCallback((api: CarouselApi) => {
+    if (!api) return;
     setCanScrollPrev(api.canScrollPrev());
     setCanScrollNext(api.canScrollNext());
   }, []);
 
-  const scrollPrev = useCallback(() => {
+  const scrollPrev = React.useCallback(() => {
     api?.scrollPrev();
   }, [api]);
 
-  const scrollNext = useCallback(() => {
+  const scrollNext = React.useCallback(() => {
     api?.scrollNext();
   }, [api]);
 
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (event.key === "ArrowLeft") {
         event.preventDefault();
         scrollPrev();
@@ -97,17 +92,13 @@ function Carousel({
     [scrollPrev, scrollNext]
   );
 
-  useEffect(() => {
-    if (!(api && setApi)) {
-      return;
-    }
+  React.useEffect(() => {
+    if (!(api && setApi)) return;
     setApi(api);
   }, [api, setApi]);
 
-  useEffect(() => {
-    if (!api) {
-      return;
-    }
+  React.useEffect(() => {
+    if (!api) return;
     onSelect(api);
     api.on("reInit", onSelect);
     api.on("select", onSelect);
@@ -131,7 +122,6 @@ function Carousel({
         canScrollNext,
       }}
     >
-      {/* biome-ignore lint/a11y/useSemanticElements: shadcn component */}
       <div
         aria-roledescription="carousel"
         className={cn("relative", className)}
@@ -146,7 +136,7 @@ function Carousel({
   );
 }
 
-function CarouselContent({ className, ...props }: ComponentProps<"div">) {
+function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
   const { carouselRef, orientation } = useCarousel();
 
   return (
@@ -167,11 +157,10 @@ function CarouselContent({ className, ...props }: ComponentProps<"div">) {
   );
 }
 
-function CarouselItem({ className, ...props }: ComponentProps<"div">) {
+function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
   const { orientation } = useCarousel();
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: shadcn component
     <div
       aria-roledescription="slide"
       className={cn(
@@ -191,7 +180,7 @@ function CarouselPrevious({
   variant = "outline",
   size = "icon-sm",
   ...props
-}: ComponentProps<typeof Button>) {
+}: React.ComponentProps<typeof Button>) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel();
 
   return (
@@ -199,7 +188,7 @@ function CarouselPrevious({
       className={cn(
         "absolute touch-manipulation rounded-full",
         orientation === "horizontal"
-          ? "top-1/2 -left-12 -translate-y-1/2"
+          ? "inset-y-0 -left-12 my-auto"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
         className
       )}
@@ -221,7 +210,7 @@ function CarouselNext({
   variant = "outline",
   size = "icon-sm",
   ...props
-}: ComponentProps<typeof Button>) {
+}: React.ComponentProps<typeof Button>) {
   const { orientation, scrollNext, canScrollNext } = useCarousel();
 
   return (
@@ -229,7 +218,7 @@ function CarouselNext({
       className={cn(
         "absolute touch-manipulation rounded-full",
         orientation === "horizontal"
-          ? "top-1/2 -right-12 -translate-y-1/2"
+          ? "inset-y-0 -right-12 my-auto"
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
         className
       )}

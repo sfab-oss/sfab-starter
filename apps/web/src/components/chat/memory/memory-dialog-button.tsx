@@ -2,7 +2,6 @@
 
 import {
   Dialog,
-  DialogBody,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -27,9 +26,7 @@ export function MemoryDialog({
             every chat. The agent maintains it as you work.
           </DialogDescription>
         </DialogHeader>
-        <DialogBody className="pt-0">
-          {open && <MemoryCard showHeader={false} variant="dialog" />}
-        </DialogBody>
+        {open && <MemoryCard showHeader={false} variant="dialog" />}
       </DialogContent>
     </Dialog>
   );

@@ -35,8 +35,17 @@ function NativeSelect({
   );
 }
 
-function NativeSelectOption({ ...props }: React.ComponentProps<"option">) {
-  return <option data-slot="native-select-option" {...props} />;
+function NativeSelectOption({
+  className,
+  ...props
+}: React.ComponentProps<"option">) {
+  return (
+    <option
+      className={cn("bg-[Canvas] text-[CanvasText]", className)}
+      data-slot="native-select-option"
+      {...props}
+    />
+  );
 }
 
 function NativeSelectOptGroup({
@@ -45,7 +54,7 @@ function NativeSelectOptGroup({
 }: React.ComponentProps<"optgroup">) {
   return (
     <optgroup
-      className={cn(className)}
+      className={cn("bg-[Canvas] text-[CanvasText]", className)}
       data-slot="native-select-optgroup"
       {...props}
     />
