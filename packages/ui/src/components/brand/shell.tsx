@@ -88,10 +88,7 @@ export function ShellPage({
   );
 }
 
-/**
- * Sidebar expand control in page headers — mobile always; desktop when
- * collapsed. Must render under `Shell` / `SidebarProvider`.
- */
+/** Sidebar expand control in page headers — mobile always; desktop when collapsed. */
 export function ShellHeaderSidebarTrigger({
   className,
 }: {
