@@ -28,15 +28,15 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (3)
+## assigned (1)
 
-- [`ALW-495`](./ALW-495.md) — Starter: own Biome ruleset, drop Ultracite, bump Biome
-- [`ALW-452`](./ALW-452.md) — Fix page-context chip never mounting on first paint
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
-## review (1)
+## review (3)
 
+- [`ALW-495`](./ALW-495.md) — Starter: own Biome ruleset, drop Ultracite, bump Biome
 - [`ALW-473`](./ALW-473.md) — Spike: migrate sfab-starter to TypeScript 7
+- [`ALW-452`](./ALW-452.md) — Fix page-context chip never mounting on first paint
 
 ## needs-input (1)
 
