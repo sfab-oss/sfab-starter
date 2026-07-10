@@ -74,40 +74,50 @@ app — nothing to delete before building a domain on top.
 
 ## Getting started
 
-Click **Use this template** on GitHub (or `git clone` it), then:
+**Prerequisites:** Node 20+ and pnpm 11+ (this repo pins
+`packageManager: pnpm@11.5.2`). If needed: `corepack enable`.
+
+Clone (or click **Use this template** on GitHub):
 
 ```bash
+git clone https://github.com/sfab-oss/sfab-starter.git
+cd sfab-starter
 pnpm install
 
 # Configure local env
 cp apps/web/.dev.vars.example apps/web/.dev.vars
-# Fill in apps/web/.dev.vars. The file documents each var.
-# At minimum set BETTER_AUTH_SECRET and AI_GATEWAY_API_KEY.
+# Fill in apps/web/.dev.vars — the file documents each var.
+# BETTER_AUTH_SECRET: at least 32 characters, e.g.
+#   openssl rand -base64 32
+# AI_GATEWAY_API_KEY: required for the org agent chat (Vercel AI Gateway —
+#   https://vercel.com/docs/ai-gateway). Sign-in works without it; chat does not.
+# Other providers: see docs/guides/org-agent-inference-providers.md
 
 # Set up the local database
 pnpm db:migrate
 
-# Seed a demo user + organization so you can sign in right away (optional)
+# Seed a demo user + organization (recommended for the path below)
 pnpm db:seed
 
 # Run it
 pnpm dev
 ```
 
-Then open http://localhost:4011 and sign in with the seeded credentials:
+Open http://localhost:4011. After seeding, sign in with:
 
 | Field | Value |
 |-------|-------|
 | **Email** | `demo@sfab.dev` |
 | **Password** | `demo1234` |
 
+Or skip seed and create an account at `/signup`.
+
 `pnpm db:seed` is idempotent and **local-only** — safe to re-run, and it never
 touches a remote/production database.
 
-**Prerequisites:** Node 20+ and pnpm 10+.
-
-To deploy, build and ship to Cloudflare Workers with Wrangler (`pnpm build`, then
-`wrangler deploy`). See [`docs/`](docs/) for details.
+To deploy: `pnpm build`, then `wrangler deploy` from `apps/web` (set Worker
+secrets with `wrangler secret put`, and migrate the remote D1 database before
+serving traffic).
 
 ## Project layout
 
