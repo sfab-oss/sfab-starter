@@ -31,9 +31,8 @@ overwritten by the next sync.
 
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
-## review (3)
+## review (2)
 
-- [`ALW-492`](./ALW-492.md) — Hide TanStack Devtools behind URL flag
 - [`ALW-473`](./ALW-473.md) — Spike: migrate sfab-starter to TypeScript 7
 - [`ALW-453`](./ALW-453.md) — Fix chat attachment send — provider rejects non-text content types
 
@@ -41,8 +40,9 @@ overwritten by the next sync.
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 
-## merged (35)
+## merged (36)
 
+- [`ALW-492`](./ALW-492.md) — Hide TanStack Devtools behind URL flag
 - [`ALW-464`](./ALW-464.md) — Bump starter dependencies within minimumReleaseAge
 - [`ALW-461`](./ALW-461.md) — Template release docs: README + agent init guidance
 - [`ALW-460`](./ALW-460.md) — Migrate shadcn wrappers from Radix to Base UI
