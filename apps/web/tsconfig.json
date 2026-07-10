@@ -3,7 +3,6 @@
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["test/**"],
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"]

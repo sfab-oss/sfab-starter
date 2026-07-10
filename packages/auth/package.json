@@ -21,6 +21,6 @@
     "@types/node": "^20.19.43",
     "@workspace/env": "workspace:*",
     "@workspace/tsconfig": "workspace:*",
-    "typescript": "^5.9.3"
+    "typescript": "7.0.2"
   }
 }

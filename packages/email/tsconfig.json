@@ -1,7 +1,6 @@
 {
   "extends": "@workspace/tsconfig/react-library.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "lib": ["es2022", "DOM", "DOM.Iterable"],
     "types": ["node", "@cloudflare/workers-types"],
     "jsx": "react-jsx",

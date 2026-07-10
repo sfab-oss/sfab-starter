@@ -62,7 +62,7 @@
     "next": "16.1.2",
     "shadcn": "4.0.8",
     "tailwindcss": "^4.3.2",
-    "typescript": "^5.9.3"
+    "typescript": "7.0.2"
   },
   "peerDependencies": {
     "next": ">=14.0.0"
