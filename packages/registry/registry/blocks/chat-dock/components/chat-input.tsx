@@ -15,17 +15,11 @@ import {
   ChatTokenRemove,
 } from "@workspace/ui/components/shadcn/chat-token";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/shadcn/dropdown-menu";
-import {
   InputGroupAddon,
   InputGroupButton,
 } from "@workspace/ui/components/shadcn/input-group";
 import type { ChatStatus, FileUIPart } from "ai";
-import { FileIcon, PaperclipIcon, PlusIcon } from "lucide-react";
+import { FileIcon, PaperclipIcon } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import {
   MOCK_COMMANDS,
@@ -251,26 +245,15 @@ function ChatInputInner({
         <ChatInputEditor placeholder={placeholder} />
         <InputGroupAddon align="block-end" className="pt-1">
           <ChatInputMentionButton />
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <InputGroupButton
-                  aria-label="Add files"
-                  size="icon-sm"
-                  type="button"
-                  variant="outline"
-                />
-              }
-            >
-              <PlusIcon />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-44" side="top">
-              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-                <PaperclipIcon />
-                Add files
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <InputGroupButton
+            aria-label="Add files"
+            onClick={() => fileInputRef.current?.click()}
+            size="icon-sm"
+            type="button"
+            variant="outline"
+          >
+            <PaperclipIcon />
+          </InputGroupButton>
           <div className="ml-auto flex items-center gap-2">
             <ChatVoiceButton controller={{ textInput: textController }} />
             <ChatInputSubmitButton />

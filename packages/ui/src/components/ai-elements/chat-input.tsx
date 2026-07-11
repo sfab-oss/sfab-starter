@@ -24,8 +24,8 @@ import { cn } from "@workspace/ui/lib/utils";
 import type { ChatStatus } from "ai";
 import {
   ArrowUpIcon,
+  AtSignIcon,
   Loader2Icon,
-  PlusIcon,
   SquareIcon,
   XIcon,
 } from "lucide-react";
@@ -748,7 +748,7 @@ export function ChatInputMentionButton({
           />
         }
       >
-        <PlusIcon className="size-4" />
+        <AtSignIcon className="size-4" />
         <span className="sr-only">Insert mention</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48" side="top">
