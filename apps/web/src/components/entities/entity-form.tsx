@@ -4,10 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   type EntityFormValues as ContractEntityFormValues,
   entityFormSchema,
+  entityTypeSchema,
 } from "@workspace/contract/transaction";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -20,9 +22,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/shadcn/select";
+import {
+  DEFAULT_CURRENCY,
+  formatMajorInputValue,
+  majorToMinor,
+  minorToMajorInput,
+} from "@workspace/ui/lib/money";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 export type EntityFormValues = ContractEntityFormValues;
+
+/** UI schema: credit limit in major units; converted to minor before onSubmit. */
+const entityFormUiSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  type: entityTypeSchema,
+  creditLimit: z.number().nonnegative().nullable().optional(),
+});
+type EntityFormUiValues = z.infer<typeof entityFormUiSchema>;
 
 interface EntityFormProps {
   mode?: "create" | "edit";
@@ -39,20 +56,41 @@ export function EntityForm({
   isLoading,
   submitLabel = "Save",
 }: EntityFormProps) {
-  const form = useForm<EntityFormValues>({
-    resolver: zodResolver(entityFormSchema),
+  const form = useForm<EntityFormUiValues>({
+    resolver: zodResolver(entityFormUiSchema),
     defaultValues: {
       name: defaultValues?.name ?? "",
       type: defaultValues?.type ?? "customer",
-      creditLimit: defaultValues?.creditLimit ?? null,
+      creditLimit:
+        defaultValues?.creditLimit == null
+          ? null
+          : minorToMajorInput(defaultValues.creditLimit, DEFAULT_CURRENCY),
     },
   });
 
   const { isDirty } = form.formState;
   const submitDisabled = Boolean(isLoading) || (mode === "edit" && !isDirty);
 
+  const handleSubmit = (data: EntityFormUiValues) => {
+    const creditLimit =
+      data.creditLimit == null
+        ? null
+        : majorToMinor(data.creditLimit, DEFAULT_CURRENCY);
+    // Contract still requires integer minor units.
+    entityFormSchema.parse({
+      name: data.name,
+      type: data.type,
+      creditLimit,
+    });
+    onSubmit({
+      name: data.name,
+      type: data.type,
+      creditLimit,
+    });
+  };
+
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
+    <form onSubmit={form.handleSubmit(handleSubmit)}>
       <FieldGroup className="gap-4">
         <Controller
           control={form.control}
@@ -106,7 +144,7 @@ export function EntityForm({
                 className="text-muted-foreground"
                 htmlFor={field.name}
               >
-                Credit limit (minor units)
+                Credit limit
               </FieldLabel>
               <Input
                 aria-invalid={fieldState.invalid}
@@ -117,9 +155,17 @@ export function EntityForm({
                   field.onChange(raw === "" ? null : Number(raw));
                 }}
                 placeholder="Optional"
+                step="0.01"
                 type="number"
-                value={field.value ?? ""}
+                value={
+                  field.value == null
+                    ? ""
+                    : formatMajorInputValue(field.value, DEFAULT_CURRENCY)
+                }
               />
+              <FieldDescription>
+                Entered in {DEFAULT_CURRENCY} (same as product price).
+              </FieldDescription>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
