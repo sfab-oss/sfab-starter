@@ -4,7 +4,6 @@ import {
   ChatInput,
   ChatInputEditor,
   type ChatInputHandle,
-  ChatInputMentionButton,
   ChatInputSubmitButton,
 } from "@workspace/ui/components/ai-elements/chat-input";
 import { ChatVoiceButton } from "@workspace/ui/components/ai-elements/chat-voice-button";
@@ -16,11 +15,17 @@ import {
   ChatTokenRemove,
 } from "@workspace/ui/components/shadcn/chat-token";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/shadcn/dropdown-menu";
+import {
   InputGroupAddon,
   InputGroupButton,
 } from "@workspace/ui/components/shadcn/input-group";
 import type { ChatStatus, FileUIPart } from "ai";
-import { FileIcon, PaperclipIcon, SlashIcon } from "lucide-react";
+import { AtSignIcon, FileIcon, PaperclipIcon, SlashIcon } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import {
   MOCK_COMMANDS,
@@ -238,10 +243,34 @@ function ChatInputInner({
         ) : null}
         <ChatInputEditor placeholder={placeholder} />
         <InputGroupAddon align="block-end" className="pt-1">
-          <ChatInputMentionButton />
-          <ChatInputMentionButton trigger="/">
-            <SlashIcon className="size-4" />
-          </ChatInputMentionButton>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <InputGroupButton
+                  aria-label="Insert mention or command"
+                  size="icon-sm"
+                  type="button"
+                  variant="outline"
+                />
+              }
+            >
+              <AtSignIcon />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-44" side="top">
+              <DropdownMenuItem
+                onClick={() => inputRef.current?.insertText("@")}
+              >
+                <AtSignIcon />
+                Mention member
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => inputRef.current?.insertText("/")}
+              >
+                <SlashIcon />
+                Run command
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <InputGroupButton
             aria-label="Add files"
             onClick={() => fileInputRef.current?.click()}
