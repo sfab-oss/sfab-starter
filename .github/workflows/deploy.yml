@@ -8,10 +8,17 @@ name: Deploy
 # succeeds. Preferring `workflow_run` over "push + re-check status" keeps one
 # deploy run per green main SHA and leaves this workflow's own
 # queued/in_progress/completed events as the observation signal.
+#
+# `branches: [main]` is evaluated against the triggering CI run's head branch,
+# so PR-branch CI completions never create a Deploy run. The job `if` below is
+# belt-and-suspenders (push + success). When the gate fails, the sole job is
+# skipped and the Deploy run concludes `skipped` — not success (verified via
+# GitHub Actions API; see deploy-contract.md).
 on:
   workflow_run:
     workflows: [CI]
     types: [completed]
+    branches: [main]
 
 # One deploy at a time. Overlapping merges QUEUE — never cancel a deploy mid-flight.
 concurrency:
@@ -52,10 +59,27 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=4096
         run: pnpm --filter web build
 
+      # Optional: narrow deploy tokens may not list /accounts. When the platform
+      # writes CLOUDFLARE_ACCOUNT_ID alongside the token, export it; when absent
+      # or empty, leave unset so wrangler resolves the account from the token.
+      - name: Optional Cloudflare account id
+        env:
+          RAW_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        working-directory: .
+        run: |
+          if [ -n "$RAW_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_ACCOUNT_ID=$RAW_ACCOUNT_ID" >> "$GITHUB_ENV"
+            echo "CLOUDFLARE_ACCOUNT_ID present — wrangler will use it"
+          else
+            echo "CLOUDFLARE_ACCOUNT_ID absent/empty — wrangler resolves account from the deploy token"
+          fi
+
       # Migrations before deploy: additive-only (ALW-111), so old Worker code on
       # a new schema is safe; new code on an old schema is not.
+      # Address D1 by binding name `DB` (stable across fabrication); the
+      # provisioner rewrites `database_name` per project.
       - name: Apply D1 migrations
-        run: pnpm exec wrangler d1 migrations apply sfab-starter-db --remote
+        run: pnpm exec wrangler d1 migrations apply DB --remote
 
       # --no-x-provision: missing D1/R2/KV must fail loudly — CI never provisions
       # (resource IDs are committed in wrangler.jsonc by the platform provisioner).

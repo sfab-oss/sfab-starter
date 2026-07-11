@@ -20,46 +20,72 @@ this `name:` string (falling back to the filename only when `name:` is omitted).
 
 ### What start / success / failure look like
 
-A single `workflow_run` for `Deploy` covers the whole unit:
-
-| Phase | `workflow_run` / run fields |
+| Phase | How to read it |
 |---|---|
-| **Start** | `action: requested` (or the run entering `in_progress` / `queued`) after CI on `main` succeeds |
-| **Success** | `action: completed` with `conclusion: success` |
-| **Failure** | `action: completed` with `conclusion: failure` (or `cancelled` / `timed_out`) |
+| **Start** | A `Deploy` run is `queued` / `in_progress` (or `workflow_run` `action: requested`) after CI on `main` completes |
+| **Success** | Run `conclusion == success` **and** the `deploy` job conclusion is `success` (the job actually ran). Do **not** treat run-level success alone if you also inspect jobs — prefer checking the `deploy` job. |
+| **Skipped (not a deploy)** | Run `conclusion == skipped` — the job-level gate did not pass (e.g. CI on main was not green, or was not a `push`). **Not** a successful deploy. |
+| **Failure** | Run `conclusion == failure` (or `cancelled` / `timed_out`), or the `deploy` job conclusion is `failure` |
+
+Verified (2026-07-11) against live GitHub Actions API data
+(`ihhub/fheroes2` run
+[29155689737](https://github.com/ihhub/fheroes2/actions/runs/29155689737)):
+when every job in a `workflow_run`-triggered workflow is skipped by a job-level
+`if`, the **workflow run conclusion is `skipped`**, not `success`. (Separate
+GitHub docs note that a skipped *job* can still report Success as a *required
+status check* for branch protection — that is a different surface from
+`workflow_run.conclusion`, which is what ALW-125 observes.)
 
 `deployment_status` is **not** part of this contract. The deploy job does not
-create a GitHub Deployment entity; `workflow_run` on `Deploy` is sufficient for
-queued → in_progress → completed granularity.
+create a GitHub Deployment entity.
 
 ## Trigger & CI gate
 
 1. `CI` runs on every push to `main` (and on PRs).
-2. `Deploy` starts via `workflow_run` when that `CI` run completes with
+2. `Deploy` is triggered via `workflow_run` with `branches: [main]` — PR-branch
+   CI completions do not create a Deploy run at all.
+3. The `deploy` job additionally requires
    `conclusion == success`, `event == push`, and `head_branch == main`.
-3. The deploy job checks out `workflow_run.head_sha` (the commit CI validated).
+4. The deploy job checks out `workflow_run.head_sha` (the commit CI validated).
 
-PR-only CI completions do not deploy. Manual `workflow_dispatch` of CI does not
-deploy unless it was a push to `main`.
+### Converge-to-latest on rapid merges
+
+`CI` uses `concurrency: group: ci-${{ github.ref }}` with
+`cancel-in-progress: true`. On `main`, a newer push **cancels** an in-flight CI
+run for an older SHA. Cancelled CI never reaches `conclusion == success`, so
+that older SHA never gets a Deploy run. Deploys therefore **converge to the
+latest** main tip. ALW-125 will see some merges with no Deploy signal — that is
+expected, not a missed ingest bug.
 
 ## Pipeline (order is fixed)
 
 1. **Build** the web app (prerequisite for Wrangler upload).
-2. **`wrangler d1 migrations apply sfab-starter-db --remote`** — migrations
-   first. Additive-only migrations (ALW-111) mean old Worker code on a new
-   schema is safe; new code on an old schema is not.
-3. **`wrangler deploy --no-x-provision`** — a missing binding resource fails
+2. **Optional account id** — if Actions secret `CLOUDFLARE_ACCOUNT_ID` is
+   present and non-empty, export it for Wrangler; otherwise leave unset.
+3. **`wrangler d1 migrations apply DB --remote`** — migrations first, addressed
+   by the stable D1 **binding** `DB` (not `database_name`, which the provisioner
+   rewrites per fabricated project). Additive-only migrations (ALW-111) mean
+   old Worker code on a new schema is safe; new code on an old schema is not.
+4. **`wrangler deploy --no-x-provision`** — a missing binding resource fails
    the job; Wrangler must not auto-create anything from CI.
-4. **Secrets sync** — `wrangler secret bulk` for the Worker secret names listed
+5. **Secrets sync** — `wrangler secret bulk` for the Worker secret names listed
    in `apps/web/.dev.vars.example`, reading same-named GitHub Actions secrets.
    Absent or empty Actions secrets are skipped with a log line; the deploy does
    not fail. Secrets run **after** deploy because `wrangler secret` 404s before
    the Worker script exists; values persist across later deploys (bootstrap +
    drift correction).
 
-Auth for all Wrangler steps: Actions secret `CLOUDFLARE_API_TOKEN` only (scoped
-deploy token written by the platform). No account-id secret and no management
-token.
+### Auth / account resolution
+
+- Required: Actions secret `CLOUDFLARE_API_TOKEN` (scoped deploy token).
+- Optional: Actions secret `CLOUDFLARE_ACCOUNT_ID`. Narrow deploy tokens may not
+  be able to list `/accounts`; if Wrangler cannot resolve the account from the
+  token alone, the platform should write `CLOUDFLARE_ACCOUNT_ID` alongside the
+  token (platform-side follow-up). An absent/empty secret must not break the
+  token-only path.
+- **First thing testbed E2E must check:** that `d1 migrations apply` / `deploy`
+  can resolve the Cloudflare account with the credentials present in the
+  fabricated repo's Actions secrets.
 
 ## Concurrency
 
@@ -70,7 +96,8 @@ concurrency:
 ```
 
 One deploy at a time; overlapping merges queue. A deploy must never be cancelled
-mid-flight.
+mid-flight. (This is independent of CI's cancel-in-progress converge-to-latest
+behavior above.)
 
 ## First-boot secrets
 
