@@ -1,21 +1,10 @@
 "use client";
 
-import { Extension, mergeAttributes } from "@tiptap/core";
-import { Mention as MentionExtension } from "@tiptap/extension-mention";
+import { Extension } from "@tiptap/core";
 import Placeholder from "@tiptap/extension-placeholder";
 import type { Editor, JSONContent } from "@tiptap/react";
-import { EditorContent, ReactRenderer, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import type {
-  SuggestionKeyDownProps,
-  SuggestionProps,
-} from "@tiptap/suggestion";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/shadcn/dropdown-menu";
 import {
   InputGroup,
   InputGroupButton,
@@ -33,38 +22,44 @@ import {
   type ComponentProps,
   createContext,
   type ReactNode,
+  type Ref,
+  type RefObject,
   useCallback,
   useContext,
   useEffect,
+  useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import {
+  type BaseMentionItem,
+  buildMentionExtensions,
+  type MentionConfig,
+  type MentionConfigs,
+  parseEditorContent,
+  type SelectedMentionItems,
+} from "./chat-input-mentions";
 
-export interface BaseMentionItem {
-  id: string;
-  name: string;
-}
-
-export interface MentionConfig<T extends BaseMentionItem> {
-  trigger: string;
-  items: T[] | ((query: string) => T[] | Promise<T[]>);
-  render?: (item: T, selected: boolean) => ReactNode;
-  chipClassName?: string;
-}
+export type { BaseMentionItem, MentionConfig } from "./chat-input-mentions";
 
 // Mapped + intersection shape — cannot be an interface.
 export type ChatInputParsed<Items extends Record<string, BaseMentionItem>> = {
   text: string;
 } & { [K in keyof Items]?: Items[K][] };
 
+export interface ChatInputHandle {
+  clear: () => void;
+  focus: () => void;
+  setText: (text: string) => void;
+  insertText: (text: string) => void;
+}
+
 interface ChatInputHelpers {
   clear: () => void;
   focus: () => void;
 }
-
-type MentionConfigs = Record<string, MentionConfig<BaseMentionItem>>;
 
 interface ChatInputContextValue {
   editor: Editor | null;
@@ -75,10 +70,8 @@ interface ChatInputContextValue {
   disabled: boolean;
   defaultValue?: string;
   mentions: MentionConfigs | undefined;
-  mentionsRef: React.MutableRefObject<MentionConfigs | undefined>;
-  selectedItemsRef: React.MutableRefObject<
-    Record<string, Map<string, BaseMentionItem>>
-  >;
+  mentionsRef: RefObject<MentionConfigs | undefined>;
+  selectedItemsRef: RefObject<SelectedMentionItems>;
 }
 
 const ChatInputContext = createContext<ChatInputContextValue | null>(null);
@@ -91,6 +84,16 @@ function useChatInputContext() {
   return ctx;
 }
 
+function textToDoc(text: string): JSONContent {
+  return {
+    type: "doc",
+    content: text.split("\n").map((line) => ({
+      type: "paragraph",
+      ...(line ? { content: [{ type: "text", text: line }] } : {}),
+    })),
+  };
+}
+
 type SharedChatInputProps = {
   status?: ChatStatus;
   onStop?: () => void;
@@ -98,7 +101,12 @@ type SharedChatInputProps = {
   defaultValue?: string;
   className?: string;
   children: ReactNode;
-} & Omit<ComponentProps<"div">, "children" | "onSubmit" | "defaultValue">;
+  /** Imperative handle (clear/focus/setText/insertText), not the DOM node. */
+  ref?: Ref<ChatInputHandle>;
+} & Omit<
+  ComponentProps<"div">,
+  "children" | "onSubmit" | "defaultValue" | "ref"
+>;
 
 type ChatInputPropsWithMentions<Items extends Record<string, BaseMentionItem>> =
   SharedChatInputProps & {
@@ -132,6 +140,7 @@ export function ChatInput({
   defaultValue,
   className,
   children,
+  ref,
   ...props
 }: SharedChatInputProps & {
   mentions?: MentionConfigs;
@@ -145,9 +154,7 @@ export function ChatInput({
   const mentionsRef = useRef(mentions);
   const onSubmitRef = useRef(onSubmit);
   const onParsedChangeRef = useRef(onParsedChange);
-  const selectedItemsRef = useRef<Record<string, Map<string, BaseMentionItem>>>(
-    {}
-  );
+  const selectedItemsRef = useRef<SelectedMentionItems>({});
 
   mentionsRef.current = mentions;
   onSubmitRef.current = onSubmit;
@@ -180,6 +187,21 @@ export function ChatInput({
     const parsed = parse();
     onSubmitRef.current(parsed, { clear, focus });
   }, [clear, disabled, focus, parse]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      clear,
+      focus,
+      setText: (text) => {
+        editor?.commands.setContent(textToDoc(text));
+      },
+      insertText: (text) => {
+        editor?.chain().focus().insertContent(text).run();
+      },
+    }),
+    [clear, editor, focus]
+  );
 
   useEffect(() => {
     if (!(editor && onParsedChangeRef.current)) {
@@ -237,338 +259,6 @@ const SubmitEnter = Extension.create({
   },
 });
 
-function filterStaticItems<T extends BaseMentionItem>(
-  items: T[],
-  query: string
-): T[] {
-  const q = query.toLowerCase();
-  return items.filter((item) => item.name.toLowerCase().startsWith(q));
-}
-
-function resolveMentionItems<T extends BaseMentionItem>(
-  config: MentionConfig<T>,
-  query: string
-): T[] | Promise<T[]> {
-  if (typeof config.items === "function") {
-    return config.items(query);
-  }
-  return filterStaticItems(config.items, query);
-}
-
-interface MentionListProps<T extends BaseMentionItem> {
-  items: T[];
-  loading?: boolean;
-  command: (item: { id: string; label: string }) => void;
-  renderItem?: (item: T, selected: boolean) => ReactNode;
-  onSelectItem?: (item: T) => void;
-  ref?: React.Ref<MentionListHandle>;
-}
-
-interface MentionListHandle {
-  onKeyDown: (props: SuggestionKeyDownProps) => boolean;
-}
-
-function MentionList<T extends BaseMentionItem>({
-  items,
-  loading,
-  command,
-  renderItem,
-  onSelectItem,
-  ref,
-}: MentionListProps<T>) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const selectedIndexRef = useRef(0);
-  selectedIndexRef.current = selectedIndex;
-
-  useEffect(() => {
-    setSelectedIndex(0);
-    itemRefs.current = itemRefs.current.slice(0, items.length);
-  }, [items]);
-
-  const selectItem = useCallback(
-    (index: number) => {
-      const item = items[index];
-      if (!item) {
-        return;
-      }
-      onSelectItem?.(item);
-      command({ id: item.id, label: item.name });
-    },
-    [command, items, onSelectItem]
-  );
-
-  const scrollToItem = useCallback((index: number) => {
-    itemRefs.current[index]?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
-  }, []);
-
-  const selectItemRef = useRef(selectItem);
-  selectItemRef.current = selectItem;
-  const itemsLengthRef = useRef(items.length);
-  itemsLengthRef.current = items.length;
-
-  useEffect(() => {
-    if (!ref) {
-      return;
-    }
-    const handle: MentionListHandle = {
-      onKeyDown: ({ event }) => {
-        const length = itemsLengthRef.current;
-        if (event.key === "ArrowUp") {
-          setSelectedIndex((prev) => {
-            const next = (prev + length - 1) % Math.max(length, 1);
-            scrollToItem(next);
-            return next;
-          });
-          return true;
-        }
-        if (event.key === "ArrowDown") {
-          setSelectedIndex((prev) => {
-            const next = (prev + 1) % Math.max(length, 1);
-            scrollToItem(next);
-            return next;
-          });
-          return true;
-        }
-        if (event.key === "Enter") {
-          selectItemRef.current(selectedIndexRef.current);
-          return true;
-        }
-        return false;
-      },
-    };
-    if (typeof ref === "function") {
-      const assign = ref as (value: MentionListHandle | null) => void;
-      assign(handle);
-      return () => {
-        assign(null);
-      };
-    }
-    ref.current = handle;
-    return () => {
-      ref.current = null;
-    };
-  }, [ref, scrollToItem]);
-
-  if (loading && items.length === 0) {
-    return (
-      <div className="min-w-48 rounded-md bg-popover px-2 py-1.5 text-muted-foreground text-sm shadow-md ring-1 ring-foreground/10">
-        Loading…
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex max-h-48 min-w-48 max-w-64 flex-col overflow-y-auto overflow-x-hidden rounded-md bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10">
-      {items.length ? (
-        items.map((item, index) => (
-          <button
-            className={cn(
-              "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-hidden [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-              selectedIndex === index && "bg-accent text-accent-foreground"
-            )}
-            key={item.id}
-            onClick={() => selectItem(index)}
-            ref={(el) => {
-              itemRefs.current[index] = el;
-            }}
-            type="button"
-          >
-            {renderItem ? (
-              renderItem(item, selectedIndex === index)
-            ) : (
-              <span className="truncate">{item.name}</span>
-            )}
-          </button>
-        ))
-      ) : (
-        <div className="px-2 py-1.5 text-muted-foreground text-sm">
-          No results found
-        </div>
-      )}
-    </div>
-  );
-}
-
-function createMentionSuggestion(
-  key: string,
-  mentionsRef: React.MutableRefObject<MentionConfigs | undefined>,
-  selectedItemsRef: React.MutableRefObject<
-    Record<string, Map<string, BaseMentionItem>>
-  >
-) {
-  return {
-    items: ({ query }: { query: string }) => {
-      const config = mentionsRef.current?.[key];
-      if (!config) {
-        return [];
-      }
-      return resolveMentionItems(config, query);
-    },
-    render: () => {
-      let component: ReactRenderer<MentionListHandle> | null = null;
-      let unmount: (() => void) | undefined;
-
-      const rememberItem = (item: BaseMentionItem) => {
-        if (!selectedItemsRef.current[key]) {
-          selectedItemsRef.current[key] = new Map();
-        }
-        selectedItemsRef.current[key].set(item.id, item);
-      };
-
-      return {
-        onStart: (props: SuggestionProps<BaseMentionItem>) => {
-          const config = mentionsRef.current?.[key];
-          component = new ReactRenderer(MentionList, {
-            props: {
-              items: props.items,
-              loading: props.loading,
-              command: props.command,
-              renderItem: config?.render,
-              onSelectItem: rememberItem,
-            },
-            editor: props.editor,
-          });
-          // The mount wrapper is the positioned element (appended to body,
-          // position:absolute, no z-index) — without this it stacks below
-          // elevated surfaces like the z-50 chat dock.
-          component.element.style.zIndex = "50";
-          unmount = props.mount(component.element);
-        },
-        onUpdate: (props: SuggestionProps<BaseMentionItem>) => {
-          const config = mentionsRef.current?.[key];
-          component?.updateProps({
-            items: props.items,
-            loading: props.loading,
-            command: props.command,
-            renderItem: config?.render,
-            onSelectItem: rememberItem,
-          });
-        },
-        onKeyDown: (props: SuggestionKeyDownProps) => {
-          if (props.event.key === "Escape") {
-            unmount?.();
-            unmount = undefined;
-            return true;
-          }
-          return component?.ref?.onKeyDown(props) ?? false;
-        },
-        onExit: () => {
-          unmount?.();
-          unmount = undefined;
-          component?.destroy();
-          component = null;
-        },
-      };
-    },
-  };
-}
-
-function buildMentionExtensions(
-  keys: string[],
-  mentionsRef: React.MutableRefObject<MentionConfigs | undefined>,
-  selectedItemsRef: React.MutableRefObject<
-    Record<string, Map<string, BaseMentionItem>>
-  >,
-  initialMentions: MentionConfigs | undefined
-) {
-  return keys.map((key) => {
-    const initial = initialMentions?.[key];
-    const MentionPlugin = MentionExtension.extend({
-      name: `${key}-mention`,
-      renderHTML({ node, HTMLAttributes }) {
-        const chipClassName = mentionsRef.current?.[key]?.chipClassName;
-        const trigger =
-          mentionsRef.current?.[key]?.trigger ?? initial?.trigger ?? "@";
-        return [
-          "span",
-          mergeAttributes(HTMLAttributes, {
-            class: cn(
-              "rounded-sm bg-primary px-1 py-0.5 text-primary-foreground no-underline",
-              chipClassName
-            ),
-          }),
-          `${trigger}${node.attrs.label ?? node.attrs.id}`,
-        ];
-      },
-    });
-
-    return MentionPlugin.configure({
-      suggestion: {
-        char: initial?.trigger ?? "@",
-        ...createMentionSuggestion(key, mentionsRef, selectedItemsRef),
-      },
-    });
-  });
-}
-
-function appendMentionFromNode(
-  node: JSONContent,
-  mentions: MentionConfigs | undefined,
-  selectedItems: Record<string, Map<string, BaseMentionItem>>,
-  buckets: Record<string, BaseMentionItem[]>
-): string {
-  const key = (node.type ?? "").slice(0, -"-mention".length);
-  const config = mentions?.[key];
-  const attrs = node.attrs ?? {};
-  const id = String(attrs.id ?? "");
-  const label = String(attrs.label ?? "");
-  const trigger = config?.trigger ?? "";
-
-  const cached = selectedItems[key]?.get(id);
-  const item: BaseMentionItem = cached ?? { id, name: label };
-  if (!buckets[key]) {
-    buckets[key] = [];
-  }
-  if (!buckets[key].some((existing) => existing.id === id)) {
-    buckets[key].push(item);
-  }
-  return `${trigger}${label}`;
-}
-
-function parseEditorContent(
-  json: JSONContent,
-  mentions: MentionConfigs | undefined,
-  selectedItems: Record<string, Map<string, BaseMentionItem>>
-) {
-  let text = "";
-  const buckets: Record<string, BaseMentionItem[]> = {};
-
-  function recurse(node: JSONContent) {
-    if (node.type === "text" && node.text) {
-      text += node.text;
-      return;
-    }
-    if (node.type === "hardBreak") {
-      text += "\n";
-      return;
-    }
-    if (node.type?.endsWith("-mention")) {
-      text += appendMentionFromNode(node, mentions, selectedItems, buckets);
-      return;
-    }
-    if (node.content) {
-      for (const child of node.content) {
-        recurse(child);
-      }
-      if (node.type === "paragraph") {
-        text += "\n\n";
-      }
-    }
-  }
-
-  if (json.content) {
-    for (const node of json.content) {
-      recurse(node);
-    }
-  }
-
-  return { text: text.trim(), ...buckets };
-}
-
 export function ChatInputEditor({
   placeholder = "Type a message...",
   className,
@@ -588,11 +278,6 @@ export function ChatInputEditor({
     selectedItemsRef,
   } = useChatInputContext();
 
-  const mentionKeysRef = useRef<string[] | null>(null);
-  if (mentionKeysRef.current === null) {
-    mentionKeysRef.current = mentions ? Object.keys(mentions) : [];
-  }
-  const mentionKeys = mentionKeysRef.current;
   const initialMentionsRef = useRef(mentions);
   const placeholderRef = useRef(placeholder);
   placeholderRef.current = placeholder;
@@ -613,13 +298,12 @@ export function ChatInputEditor({
         orderedList: false,
       }),
       Placeholder.configure({
-        placeholder: ({ editor: _editor }) => placeholderRef.current,
+        placeholder: () => placeholderRef.current,
       }),
       SubmitEnter.configure({
         getOnEnter: () => onEnterRef.current,
       }),
       ...buildMentionExtensions(
-        mentionKeys,
         mentionsRef,
         selectedItemsRef,
         initialMentionsRef.current
@@ -675,6 +359,7 @@ export function ChatInputEditor({
 export function ChatInputSubmitButton({
   className,
   disabled,
+  children,
   ...props
 }: ComponentProps<typeof InputGroupButton>) {
   const {
@@ -684,15 +369,14 @@ export function ChatInputSubmitButton({
     disabled: contextDisabled,
   } = useChatInputContext();
 
-  const effectiveDisabled = disabled ?? contextDisabled;
   const isInFlight = status === "submitted" || status === "streaming";
   const actAsStop = isInFlight && onStop !== undefined;
 
   let icon = <ArrowUpIcon className="size-4" />;
-  if (status === "submitted") {
-    icon = <Loader2Icon className="size-4 animate-spin" />;
-  } else if (status === "streaming") {
+  if (actAsStop) {
     icon = <SquareIcon className="size-4" />;
+  } else if (isInFlight) {
+    icon = <Loader2Icon className="size-4 animate-spin" />;
   } else if (status === "error") {
     icon = <XIcon className="size-4" />;
   }
@@ -701,71 +385,54 @@ export function ChatInputSubmitButton({
     <InputGroupButton
       aria-label={actAsStop ? "Stop" : "Send"}
       className={className}
-      disabled={effectiveDisabled && !actAsStop}
-      onClick={
-        actAsStop
-          ? (event) => {
-              event.preventDefault();
-              onStop();
-            }
-          : (event) => {
-              event.preventDefault();
-              submit();
-            }
-      }
+      disabled={(disabled ?? contextDisabled) || (isInFlight && !actAsStop)}
+      onClick={(event) => {
+        event.preventDefault();
+        if (actAsStop) {
+          onStop();
+        } else {
+          submit();
+        }
+      }}
       size="icon-sm"
       type="button"
       variant="default"
       {...props}
     >
-      {icon}
+      {children ?? icon}
       <span className="sr-only">{actAsStop ? "Stop" : "Send"}</span>
     </InputGroupButton>
   );
 }
 
 export function ChatInputMentionButton({
+  trigger,
   className,
+  children,
   ...props
-}: ComponentProps<typeof InputGroupButton>) {
-  const { mentions, editor } = useChatInputContext();
+}: ComponentProps<typeof InputGroupButton> & { trigger?: string }) {
+  const { editor, mentions } = useChatInputContext();
 
-  if (!mentions || Object.keys(mentions).length === 0) {
+  const configs = mentions ? Object.values(mentions) : [];
+  const resolvedTrigger = trigger ?? configs[0]?.trigger;
+  if (!resolvedTrigger) {
     return null;
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <InputGroupButton
-            aria-label="Insert mention"
-            className={cn("shrink-0", className)}
-            size="icon-sm"
-            type="button"
-            variant="outline"
-            {...props}
-          />
-        }
-      >
-        <AtSignIcon className="size-4" />
-        <span className="sr-only">Insert mention</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-48" side="top">
-        {Object.entries(mentions).map(([key, config]) => (
-          <DropdownMenuItem
-            key={key}
-            onClick={() => {
-              if (editor) {
-                editor.commands.insertContent(config.trigger);
-                editor.commands.focus();
-              }
-            }}
-          >
-            {config.trigger} {key}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <InputGroupButton
+      aria-label={`Insert ${resolvedTrigger}`}
+      className={cn("shrink-0", className)}
+      onClick={() => {
+        editor?.chain().focus().insertContent(resolvedTrigger).run();
+      }}
+      size="icon-sm"
+      type="button"
+      variant="outline"
+      {...props}
+    >
+      {children ?? <AtSignIcon className="size-4" />}
+      <span className="sr-only">Insert {resolvedTrigger}</span>
+    </InputGroupButton>
   );
 }

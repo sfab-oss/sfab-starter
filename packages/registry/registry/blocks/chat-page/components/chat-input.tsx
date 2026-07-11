@@ -3,6 +3,7 @@
 import {
   ChatInput,
   ChatInputEditor,
+  type ChatInputHandle,
   ChatInputMentionButton,
   ChatInputSubmitButton,
 } from "@workspace/ui/components/ai-elements/chat-input";
@@ -53,9 +54,8 @@ function ChatInputInner({
   status: ChatStatus;
 }) {
   const [files, setFiles] = useState<ComposerFile[]>([]);
-  const [composerKey, setComposerKey] = useState(0);
-  const [seedText, setSeedText] = useState("");
   const textRef = useRef("");
+  const inputRef = useRef<ChatInputHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const textController = {
@@ -64,13 +64,11 @@ function ChatInputInner({
     },
     setInput: (value: string) => {
       textRef.current = value;
-      setSeedText(value);
-      setComposerKey((key) => key + 1);
+      inputRef.current?.setText(value);
     },
     clear: () => {
       textRef.current = "";
-      setSeedText("");
-      setComposerKey((key) => key + 1);
+      inputRef.current?.clear();
     },
   };
 
@@ -115,9 +113,7 @@ function ChatInputInner({
       />
       <ChatInput
         className="rounded-2xl"
-        defaultValue={seedText}
         disabled={disabled}
-        key={composerKey}
         mentions={{
           member: {
             trigger: "@",
@@ -142,6 +138,7 @@ function ChatInputInner({
           focus();
           Promise.resolve(onSubmit(payload)).catch(() => undefined);
         }}
+        ref={inputRef}
         status={status}
       >
         {files.length > 0 ? (

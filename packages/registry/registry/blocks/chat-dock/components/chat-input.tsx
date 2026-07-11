@@ -3,6 +3,7 @@
 import {
   ChatInput,
   ChatInputEditor,
+  type ChatInputHandle,
   ChatInputMentionButton,
   ChatInputSubmitButton,
 } from "@workspace/ui/components/ai-elements/chat-input";
@@ -19,7 +20,7 @@ import {
   InputGroupButton,
 } from "@workspace/ui/components/shadcn/input-group";
 import type { ChatStatus, FileUIPart } from "ai";
-import { FileIcon, PaperclipIcon } from "lucide-react";
+import { FileIcon, PaperclipIcon, SlashIcon } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import {
   MOCK_COMMANDS,
@@ -61,9 +62,8 @@ function ChatInputInner({
   status: ChatStatus;
 }) {
   const [files, setFiles] = useState<ComposerFile[]>([]);
-  const [composerKey, setComposerKey] = useState(0);
-  const [seedText, setSeedText] = useState("");
   const textRef = useRef("");
+  const inputRef = useRef<ChatInputHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const textController = {
@@ -72,13 +72,11 @@ function ChatInputInner({
     },
     setInput: (value: string) => {
       textRef.current = value;
-      setSeedText(value);
-      setComposerKey((key) => key + 1);
+      inputRef.current?.setText(value);
     },
     clear: () => {
       textRef.current = "";
-      setSeedText("");
-      setComposerKey((key) => key + 1);
+      inputRef.current?.clear();
     },
   };
 
@@ -123,9 +121,7 @@ function ChatInputInner({
       />
       <ChatInput
         className="rounded-2xl"
-        defaultValue={seedText}
         disabled={disabled}
-        key={composerKey}
         mentions={{
           member: {
             trigger: "@",
@@ -158,7 +154,6 @@ function ChatInputInner({
           const members = parsed.member;
 
           if (commands.some((command) => command.id === "clear")) {
-            console.info("chat-dock command: clear", commands);
             onClear?.();
             clearFiles();
             clear();
@@ -167,7 +162,6 @@ function ChatInputInner({
           }
 
           if (commands.some((command) => command.id === "help")) {
-            console.info("chat-dock command: help", commands);
             const helpText = MOCK_COMMANDS.map(
               (command) => `/${command.name} — ${command.description}`
             ).join("\n");
@@ -186,7 +180,6 @@ function ChatInputInner({
           }
 
           if (commands.some((command) => command.id === "summarize")) {
-            console.info("chat-dock command: summarize", commands);
             clearFiles();
             clear();
             focus();
@@ -216,6 +209,7 @@ function ChatInputInner({
           focus();
           Promise.resolve(onSubmit(payload)).catch(() => undefined);
         }}
+        ref={inputRef}
         status={status}
       >
         {files.length > 0 ? (
@@ -245,6 +239,9 @@ function ChatInputInner({
         <ChatInputEditor placeholder={placeholder} />
         <InputGroupAddon align="block-end" className="pt-1">
           <ChatInputMentionButton />
+          <ChatInputMentionButton trigger="/">
+            <SlashIcon className="size-4" />
+          </ChatInputMentionButton>
           <InputGroupButton
             aria-label="Add files"
             onClick={() => fileInputRef.current?.click()}
