@@ -23,16 +23,13 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## ready (1)
-
-- [`ALW-489`](./ALW-489.md) — delete-product tool: silent no-op on unknown id + agent name-vs-ULID resolution
-
 ## assigned (1)
 
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
-## review (1)
+## review (2)
 
+- [`ALW-489`](./ALW-489.md) — delete-product tool: silent no-op on unknown id + agent name-vs-ULID resolution
 - [`ALW-473`](./ALW-473.md) — Spike: migrate sfab-starter to TypeScript 7
 
 ## needs-input (1)
