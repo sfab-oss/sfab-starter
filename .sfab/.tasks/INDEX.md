@@ -23,15 +23,11 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
-
-- [`ALW-481`](./ALW-481.md) — Starter public-launch pre-flight — secrets, quickstart, OG, scrub
-
 ## needs-input (1)
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 
-## merged (54)
+## merged (55)
 
 - [`ALW-548`](./ALW-548.md) — Rich chat input with typed mention/command triggers (InputGroup-native)
 - [`ALW-533`](./ALW-533.md) — Migrate chat UI off AI Elements onto shadcn
@@ -47,6 +43,7 @@ overwritten by the next sync.
 - [`ALW-495`](./ALW-495.md) — Starter: own Biome ruleset, drop Ultracite, bump Biome
 - [`ALW-492`](./ALW-492.md) — Hide TanStack Devtools behind URL flag
 - [`ALW-489`](./ALW-489.md) — delete-product tool: silent no-op on unknown id + agent name-vs-ULID resolution
+- [`ALW-481`](./ALW-481.md) — Starter public-launch pre-flight — secrets, quickstart, OG, scrub
 - [`ALW-473`](./ALW-473.md) — Spike: migrate sfab-starter to TypeScript 7
 - [`ALW-464`](./ALW-464.md) — Bump starter dependencies within minimumReleaseAge
 - [`ALW-461`](./ALW-461.md) — Template release docs: README + agent init guidance
