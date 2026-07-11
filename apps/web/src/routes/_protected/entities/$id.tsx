@@ -255,7 +255,10 @@ function EntityPage() {
                       {doc.status}
                     </Badge>
                     <span className="shrink-0 font-medium tabular-nums">
-                      {formatMoneyMinor(doc.total, doc.currencyCode)}
+                      {formatMoneyMinor(
+                        doc.status === "finalized" ? doc.balanceDue : doc.total,
+                        doc.currencyCode
+                      )}
                     </span>
                   </Link>
                 ))}
