@@ -1,15 +1,23 @@
 import { DomainError } from "@workspace/core/errors";
 import { describe, expect, it } from "vitest";
 import { PERMISSION_DENIED_MESSAGE } from "../constants";
-import { asToolResult, asToolResultFound, toolNotFound } from "./tool-result";
+import { asToolResult, requireFound } from "./tool-result";
 
-describe("toolNotFound", () => {
-  it("returns a not_found ToolErr", () => {
-    expect(toolNotFound("missing")).toEqual({
-      ok: false,
-      error: "missing",
-      code: "not_found",
-    });
+describe("requireFound", () => {
+  it("returns data when present", () => {
+    expect(requireFound({ id: "p1" })).toEqual({ id: "p1" });
+  });
+
+  it("throws DomainError not_found when null or undefined", () => {
+    expect(() => requireFound(null)).toThrow(
+      new DomainError("Not found", "not_found")
+    );
+    expect(() => requireFound(undefined)).toThrow(
+      new DomainError("Not found", "not_found")
+    );
+    expect(() => requireFound(null, "Product not found: x")).toThrow(
+      new DomainError("Product not found: x", "not_found")
+    );
   });
 });
 
@@ -53,6 +61,16 @@ describe("asToolResult", () => {
     });
   });
 
+  it("maps requireFound miss through asToolResult", async () => {
+    await expect(
+      asToolResult(async () => requireFound(null, "Product not found: x"))
+    ).resolves.toEqual({
+      ok: false,
+      error: "Product not found: x",
+      code: "not_found",
+    });
+  });
+
   it("maps permission denied to forbidden", async () => {
     await expect(
       asToolResult(() => {
@@ -74,35 +92,6 @@ describe("asToolResult", () => {
       ok: false,
       error: "boom",
       code: "unknown",
-    });
-  });
-});
-
-describe("asToolResultFound", () => {
-  it("returns not_found when execute yields null or undefined", async () => {
-    await expect(
-      asToolResultFound(async () => null, "Product not found: x")
-    ).resolves.toEqual({
-      ok: false,
-      error: "Product not found: x",
-      code: "not_found",
-    });
-
-    await expect(
-      asToolResultFound(async () => undefined, "Product not found: x")
-    ).resolves.toEqual({
-      ok: false,
-      error: "Product not found: x",
-      code: "not_found",
-    });
-  });
-
-  it("returns ok:true when data is present", async () => {
-    await expect(
-      asToolResultFound(async () => ({ id: "p1" }), "missing")
-    ).resolves.toEqual({
-      ok: true,
-      data: { id: "p1" },
     });
   });
 });

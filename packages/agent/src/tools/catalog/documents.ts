@@ -9,6 +9,7 @@ import {
 import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
 import { defineOrgTool } from "../define-org-tool";
+import { requireFound } from "../tool-result";
 
 // Read-only document access for the agent. Money/document MUTATIONS stay off the
 // agent by convention (guard.ts) — finalize/recordPayment are user-gated in the
@@ -45,9 +46,11 @@ export const createDocumentTools = (
       description:
         "Get one business document by ID with its line items and totals — including its settlement projection (payment status and amount paid). Amounts are integer minor units.",
       inputSchema: z.object({ id: z.string() }),
-      requireData: true,
-      notFoundMessage: ({ id }) => `Document not found: ${id}`,
-      execute: async ({ id }) => getDocumentWithLines(id, orgId),
+      execute: async ({ id }) =>
+        requireFound(
+          await getDocumentWithLines(id, orgId),
+          `Document not found: ${id}`
+        ),
     }),
   };
 };

@@ -2,6 +2,7 @@ import { getEntity, listEntities } from "@workspace/core/transaction";
 import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
 import { defineOrgTool } from "../define-org-tool";
+import { requireFound } from "../tool-result";
 
 // Read-only entity (customer / counterparty) tools (ALW-402). An entity carries
 // its cached AR `balance` projection, `creditBalance`, and optional
@@ -32,9 +33,8 @@ export const createEntityReadTools = (
       description:
         "Get one entity (customer / counterparty) by ID: its AR balance, store-credit balance, and credit limit. Amounts are integer minor units.",
       inputSchema: z.object({ id: z.string() }),
-      requireData: true,
-      notFoundMessage: ({ id }) => `Entity not found: ${id}`,
-      execute: async ({ id }) => getEntity(id, orgId),
+      execute: async ({ id }) =>
+        requireFound(await getEntity(id, orgId), `Entity not found: ${id}`),
     }),
   };
 };

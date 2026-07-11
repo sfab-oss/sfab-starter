@@ -14,6 +14,7 @@ import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
 import { defineOrgTool } from "../define-org-tool";
 import { assertCan } from "../guard";
+import { requireFound } from "../tool-result";
 
 const productRefSchema = z
   .string()
@@ -32,9 +33,8 @@ export const createProductReadTools = (
     get_product: defineOrgTool({
       description: "Get details of a specific product by ID.",
       inputSchema: z.object({ id: z.string() }),
-      requireData: true,
-      notFoundMessage: ({ id }) => `Product not found: ${id}`,
-      execute: async ({ id }) => getProduct(id, orgId),
+      execute: async ({ id }) =>
+        requireFound(await getProduct(id, orgId), `Product not found: ${id}`),
     }),
   };
 };

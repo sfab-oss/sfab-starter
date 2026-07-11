@@ -16,7 +16,7 @@ implementation details are specific to this starter + Think/codemode stack.
 packages/agent/src/tools/
 ├── compose-org-tools.ts   # getOrgAgentTools / ReadOnly / Display
 ├── define-org-tool.ts     # thin helper wrapping asToolResult
-├── tool-result.ts         # ToolResult types + asToolResult
+├── tool-result.ts         # ToolResult types + requireFound + asToolResult
 ├── guard.ts               # assertCan RBAC
 ├── display.ts             # top-level display_* (UI echoes)
 ├── catalog/               # products, documents
@@ -112,14 +112,13 @@ type ToolResult<T> = ToolOk<T> | ToolErr;
 - other `Error` → `{ ok: false, code: "unknown" }`
 - success → `{ ok: true, data }`
 
-**Getters:** `null` / `undefined` from core must become
-`{ ok: false, code: "not_found", error: "…" }` — use `defineOrgTool` with
-`requireData: true` or `asToolResultFound`. **Lists:** empty arrays stay
-`{ ok: true, data: [] }`.
+**Getters:** when core returns `null` / `undefined`, call `requireFound(data, detail)`
+inside `execute` — it throws `DomainError("…", "not_found")`, which `asToolResult`
+maps to `{ ok: false, code: "not_found", error: detail }`. **Lists:** empty arrays
+stay `{ ok: true, data: [] }`.
 
-Prefer `defineOrgTool` (`define-org-tool.ts`) — it applies `asToolResult`,
-optional `requireData`, and `toModelOutput` (`error-text` on fail, `json` on
-success).
+Prefer `defineOrgTool` (`define-org-tool.ts`) — it applies `asToolResult` and
+`toModelOutput` (`error-text` on fail, `json` on success).
 
 The system prompt tells the model to check `ok` before using `data`.
 
@@ -227,7 +226,8 @@ Author snake_case tool names so sandbox identifiers match without rename.
 
 1. Add `defineOrgTool` in the right domain file (`catalog/`, `transaction/`).
 2. Close over `organizationId` from context; put ids/filters in `inputSchema`.
-3. For single-row getters: `requireData: true` + `notFoundMessage`.
+3. For single-row getters: `requireFound(await getFoo(...), "Foo not found: …")`
+   inside `execute`.
 4. Export from the domain index; compose in `getOrgAgentTools` and
    `getOrgAgentReadOnlyTools` if sub-agent should see it.
 
@@ -263,7 +263,8 @@ For day-to-day “add `get_foo`,” skip the grill and follow **Adding a new too
 
 ## Tests
 
-- Unit: `packages/agent/src/tools/tool-result.test.ts` — `asToolResult` mapping.
+- Unit: `packages/agent/src/tools/tool-result.test.ts` — `requireFound` and
+  `asToolResult` mapping.
 - Agent: `packages/agent/src/tools/catalog/products.test.ts` — execute returns
   `ToolResult`, no throw on miss.
 - Workerd: `apps/web/src/workerd-test/tool-approvals.workerd.test.ts` —

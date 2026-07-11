@@ -20,8 +20,14 @@ export interface ToolErr {
 }
 export type ToolResult<T> = ToolOk<T> | ToolErr;
 
-export function toolNotFound(error: string): ToolErr {
-  return { ok: false, error, code: "not_found" };
+export function requireFound<T>(
+  data: T | null | undefined,
+  detail = "Not found"
+): T {
+  if (data === null || data === undefined) {
+    throw new DomainError(detail, "not_found");
+  }
+  return data;
 }
 
 function mapDomainErrorCode(code: DomainError["code"]): ToolErrorCode {
@@ -62,17 +68,6 @@ export async function asToolResult<T>(
       code: "unknown",
     };
   }
-}
-
-export async function asToolResultFound<T>(
-  fn: () => Promise<T | null | undefined>,
-  notFoundMessage: string
-): Promise<ToolResult<T>> {
-  const data = await fn();
-  if (data === null || data === undefined) {
-    return toolNotFound(notFoundMessage);
-  }
-  return { ok: true, data };
 }
 
 export function toolResultToModelOutput(result: ToolResult<unknown>) {

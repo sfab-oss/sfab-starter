@@ -5,6 +5,7 @@ import {
 import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
 import { defineOrgTool } from "../define-org-tool";
+import { requireFound } from "../tool-result";
 
 // Read-only payment tools over the transaction core (ALW-402). They need only
 // `organizationId`, so they compose for the parent chat AND the read-only
@@ -41,9 +42,11 @@ export const createPaymentReadTools = (
       description:
         "Get a single payment with its allocations — the documents (invoices/orders) it was applied to and how much went to each.",
       inputSchema: z.object({ id: z.string() }),
-      requireData: true,
-      notFoundMessage: ({ id }) => `Payment not found: ${id}`,
-      execute: async ({ id }) => getPaymentWithAllocations(id, orgId),
+      execute: async ({ id }) =>
+        requireFound(
+          await getPaymentWithAllocations(id, orgId),
+          `Payment not found: ${id}`
+        ),
     }),
   };
 };
