@@ -6,12 +6,6 @@ full-stack monorepo you can clone and run.
 
 ![SFab Starter — invoice with org agent](docs/assets/og-invoice-chat.png)
 
-**Copy → ask → reshape.** The usual path is clone, run it, then (often with an
-AI agent) turn the neutral hub into *your* product. For that first pass, see
-[`docs/template-init.md`](docs/template-init.md) — suggested questions and a
-light plan → transform path. Day-to-day agent conventions live in
-[`AGENTS.md`](AGENTS.md).
-
 ## Getting started
 
 **Prerequisites:** Node 20+ and pnpm 11+ (this repo pins
@@ -59,24 +53,39 @@ To deploy: `pnpm build`, then `wrangler deploy` from `apps/web` (set Worker
 secrets with `wrangler secret put`, and migrate the remote D1 database before
 serving traffic).
 
+## Hand it to an AI agent
+
+**Copy → ask → reshape.** Clone and run it, then point an AI coding agent at the
+repo and turn the working hub into *your* product.
+
+- [`docs/template-init.md`](docs/template-init.md) — suggested questions and a
+  light plan → transform path for that first pass.
+- [`AGENTS.md`](AGENTS.md) — commands and conventions once you are working in
+  the repo (the file agents should read first).
+
 ## What's included
 
-A real, working app, not a blank page. Run it and you get:
+A real, working app, not a blank page:
 
 - **Authentication and organizations** (Better Auth with the organization
   plugin): sign-in, multi-tenant orgs, and org-scoped access wired through every
   layer.
-- **A built-in AI agent** (the `agent` package): a durable, per-organization
-  agent with chat that works from your data and business context. This is the
-  AI-native part, and it is foundation rather than a demo. It is the kind of
-  thing you keep when building, say, an ERP that comes with its own agent.
-- **An end-to-end type-safe stack** with no code generation, from the database to
-  the UI.
+- **Catalog** — products with integer-minor-unit pricing (see
+  `packages/core/src/money.ts`).
+- **Documents** — quotes, orders, and invoices end-to-end: draft, line items,
+  finalize (folio), activity log. Design notes:
+  [`docs/architecture/transaction-core.md`](docs/architecture/transaction-core.md).
+- **Pay-on-document** — record payments on finalized invoices and bills;
+  payment status on the documents list and detail.
+- **A built-in org agent** — chat over your data. It can read catalog,
+  documents, and activity, and can create/update products. Money and document
+  mutations stay on the UI.
+- **An end-to-end type-safe stack** with no code generation, from the database
+  to the UI.
 
-These are patterns to keep and make your own. Remove what you do not need, but the
-wired-up auth, org-scoping, and agent are the point of the starter. See the worked
-example in [`docs/architecture.md`](docs/architecture.md) for how a feature flows
-through the layers.
+Remove what you do not need; keep auth, org-scoping, and the agent unless you
+have a clear reason not to. A worked feature walkthrough is in
+[`docs/architecture.md`](docs/architecture.md).
 
 ## Stack
 
@@ -91,38 +100,6 @@ through the layers.
 | **Email** | [Resend](https://resend.com/) + [React Email](https://react.email/) |
 | **Tooling** | Turbo, pnpm, Biome, TypeScript |
 | **Deployment** | Cloudflare Workers via Wrangler |
-
-## The base contract
-
-The starter ships a **country-neutral transaction hub** — not a vertical demo.
-Catalog (products) and Documents (quotes, orders, invoices) work end-to-end:
-create a product, draft an invoice, add lines, finalize to draw a folio and freeze
-the totals, then record a payment against the balance due. This is the base; you
-build your domain on top of it.
-
-**What ships in the base:**
-
-- **Catalog** — products with integer-minor-unit pricing (the money convention;
-  see `packages/core/src/money.ts`).
-- **Documents** — draft → finalize with folio-atomic sequences, an activity log,
-  and pack seams. Design:
-  [`docs/architecture/transaction-core.md`](docs/architecture/transaction-core.md).
-- **Pay-on-document** — record payments on finalized invoices and bills; payment
-  status shows on the documents list and detail.
-- **The AI agent** — can read catalog, documents, and activity, and can
-  create/update products. Money and document mutations stay on the UI by
-  convention.
-
-**What the base deliberately leaves out** (packs or follow-on work; do not edit
-the hub to add them):
-
-- A dedicated wallet / payments hub UI — settlement and customer credit live in
-  core/API; operator surfaces stay document- and entity-centric.
-- Inventory / GL posting — the `shouldAffectStock` gate and `afterCommit` seam
-  are in place; the handler is pack-owned.
-
-New projects clone, `pnpm install`, run migrations, and have a working neutral
-app — nothing to delete before building a domain on top.
 
 ## Project layout
 
