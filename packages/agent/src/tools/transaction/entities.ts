@@ -1,7 +1,7 @@
 import { getEntity, listEntities } from "@workspace/core/transaction";
-import { tool } from "ai";
 import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
+import { defineOrgTool } from "../define-org-tool";
 
 // Read-only entity (customer / counterparty) tools (ALW-402). An entity carries
 // its cached AR `balance` projection, `creditBalance`, and optional
@@ -12,7 +12,7 @@ export const createEntityReadTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    list_entities: tool({
+    list_entities: defineOrgTool({
       description:
         "List entities (customers / counterparties) with their cached AR balance, credit balance, and optional credit limit.",
       inputSchema: z.object({
@@ -28,10 +28,12 @@ export const createEntityReadTools = (
       execute: async ({ limit }) =>
         (await listEntities(orgId)).slice(0, limit ?? 50),
     }),
-    get_entity: tool({
+    get_entity: defineOrgTool({
       description:
         "Get one entity (customer / counterparty) by ID: its AR balance, store-credit balance, and credit limit. Amounts are integer minor units.",
       inputSchema: z.object({ id: z.string() }),
+      requireData: true,
+      notFoundMessage: ({ id }) => `Entity not found: ${id}`,
       execute: async ({ id }) => getEntity(id, orgId),
     }),
   };

@@ -4,7 +4,6 @@ export {
 } from "./codemode-output";
 export { DISPLAY_TOOL_NAMES, type DisplayToolName } from "./constants";
 export {
-  getOrgAgentApprovalTools,
   getOrgAgentDisplayTools,
   getOrgAgentReadOnlyTools,
   getOrgAgentTools,

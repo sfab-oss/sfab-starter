@@ -6,9 +6,9 @@ import {
   getDocumentWithLines,
   listDocuments,
 } from "@workspace/core/transaction";
-import { tool } from "ai";
 import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
+import { defineOrgTool } from "../define-org-tool";
 
 // Read-only document access for the agent. Money/document MUTATIONS stay off the
 // agent by convention (guard.ts) — finalize/recordPayment are user-gated in the
@@ -18,7 +18,7 @@ export const createDocumentTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    list_documents: tool({
+    list_documents: defineOrgTool({
       description:
         "List business documents (quotes, orders, invoices, etc.). Optional type filter.",
       inputSchema: z.object({
@@ -41,10 +41,12 @@ export const createDocumentTools = (
         }));
       },
     }),
-    get_document: tool({
+    get_document: defineOrgTool({
       description:
         "Get one business document by ID with its line items and totals — including its settlement projection (payment status and amount paid). Amounts are integer minor units.",
       inputSchema: z.object({ id: z.string() }),
+      requireData: true,
+      notFoundMessage: ({ id }) => `Document not found: ${id}`,
       execute: async ({ id }) => getDocumentWithLines(id, orgId),
     }),
   };

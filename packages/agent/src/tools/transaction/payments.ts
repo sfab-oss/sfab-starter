@@ -2,9 +2,9 @@ import {
   getPaymentWithAllocations,
   listPayments,
 } from "@workspace/core/transaction";
-import { tool } from "ai";
 import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
+import { defineOrgTool } from "../define-org-tool";
 
 // Read-only payment tools over the transaction core (ALW-402). They need only
 // `organizationId`, so they compose for the parent chat AND the read-only
@@ -16,7 +16,7 @@ export const createPaymentReadTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    list_payments: tool({
+    list_payments: defineOrgTool({
       description:
         "List recorded payments (money received/applied), newest first. Optionally filter to one customer/entity. Amounts are integer minor units.",
       inputSchema: z.object({
@@ -37,10 +37,12 @@ export const createPaymentReadTools = (
       execute: async ({ entityId, limit }) =>
         (await listPayments(orgId, { entityId })).slice(0, limit ?? 50),
     }),
-    get_payment: tool({
+    get_payment: defineOrgTool({
       description:
         "Get a single payment with its allocations — the documents (invoices/orders) it was applied to and how much went to each.",
       inputSchema: z.object({ id: z.string() }),
+      requireData: true,
+      notFoundMessage: ({ id }) => `Payment not found: ${id}`,
       execute: async ({ id }) => getPaymentWithAllocations(id, orgId),
     }),
   };

@@ -26,6 +26,29 @@ interface LooseTool {
 }
 const EXEC_OPTS = { toolCallId: "test", messages: [] };
 
+interface ToolResultShape<T> {
+  ok: boolean;
+  data?: T;
+  error?: string;
+  code?: string;
+}
+
+function unwrapToolResult<T>(result: unknown): T {
+  if (
+    result &&
+    typeof result === "object" &&
+    "ok" in result &&
+    typeof (result as ToolResultShape<T>).ok === "boolean"
+  ) {
+    const toolResult = result as ToolResultShape<T>;
+    if (!toolResult.ok) {
+      return null as T;
+    }
+    return toolResult.data as T;
+  }
+  return result as T;
+}
+
 async function run<T>(
   tools: Record<string, unknown>,
   name: string,
@@ -35,7 +58,7 @@ async function run<T>(
   if (!exec) {
     throw new Error(`tool "${name}" has no execute`);
   }
-  return (await exec(input, EXEC_OPTS)) as T;
+  return unwrapToolResult<T>(await exec(input, EXEC_OPTS));
 }
 
 const MUTATING_TOOL_NAME = /create|update|delete|write|void|reverse/;

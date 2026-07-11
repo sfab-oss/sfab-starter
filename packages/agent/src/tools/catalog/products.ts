@@ -10,9 +10,9 @@ import {
   resolveProductRef,
   updateProduct,
 } from "@workspace/core/catalog";
-import { tool } from "ai";
 import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
+import { defineOrgTool } from "../define-org-tool";
 import { assertCan } from "../guard";
 
 const productRefSchema = z
@@ -24,14 +24,16 @@ export const createProductReadTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    list_products: tool({
+    list_products: defineOrgTool({
       description: "List all catalog products.",
       inputSchema: z.object({}),
       execute: async () => getProducts(orgId),
     }),
-    get_product: tool({
+    get_product: defineOrgTool({
       description: "Get details of a specific product by ID.",
       inputSchema: z.object({ id: z.string() }),
+      requireData: true,
+      notFoundMessage: ({ id }) => `Product not found: ${id}`,
       execute: async ({ id }) => getProduct(id, orgId),
     }),
   };
@@ -40,7 +42,7 @@ export const createProductReadTools = (
 export const createProductWriteTools = (ctx: AgentToolsContext) => {
   const orgId = ctx.organizationId;
   return {
-    create_product: tool({
+    create_product: defineOrgTool({
       description: "Create a new catalog product.",
       inputSchema: createProductSchema,
       execute: async (input) => {
@@ -49,7 +51,7 @@ export const createProductWriteTools = (ctx: AgentToolsContext) => {
         return result[0];
       },
     }),
-    update_product: tool({
+    update_product: defineOrgTool({
       description: "Update an existing product.",
       inputSchema: z.object({
         id: productRefSchema,
@@ -68,7 +70,7 @@ export const createProductWriteTools = (ctx: AgentToolsContext) => {
 export const createProductApprovalTools = (ctx: AgentToolsContext) => {
   const orgId = ctx.organizationId;
   return {
-    delete_product: tool({
+    delete_product: defineOrgTool({
       description: "Delete a product. Requires explicit user approval.",
       inputSchema: z.object({ id: productRefSchema }),
       needsApproval: true,

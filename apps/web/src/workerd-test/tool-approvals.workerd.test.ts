@@ -1,18 +1,17 @@
 import { ToolSetConnector } from "@cloudflare/codemode/ai";
-import { getOrgAgentApprovalTools, getOrgAgentTools } from "@workspace/agent";
+import { getOrgAgentTools } from "@workspace/agent";
 import { type ToolSet, tool } from "ai";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 /**
- * ALW-348 / ALW-456 — human-approval-gated agent writes.
+ * ALW-348 / ALW-456 / ALW-524 — human-approval-gated agent writes.
  *
  * AC-1: confirm, against the INSTALLED codemode, that a `needsApproval` tool is
  * NOT silently stripped (the old 0.3.8 bug) — the `ToolSetConnector` that
  * `createExecuteTool` builds maps it to codemode `requiresApproval: true` (a
  * durable pause). AC-4: the gated write (`delete_product`) lives IN the
- * codemode set with `needsApproval` (ALW-456); top-level approval tools are
- * an empty deprecated stub.
+ * codemode set with `needsApproval` (ALW-456).
  *
  * The live end-to-end (model calls the tool → chat renders Approve/Reject →
  * `approveExecution` resumes) needs a real facet + model and is verified in
@@ -81,10 +80,6 @@ describe("in-codemode approval-gated writes (AC-4 / ALW-456)", () => {
       (codemodeTools.create_product as { needsApproval?: unknown })
         .needsApproval
     ).toBeUndefined();
-  });
-
-  it("top-level approval tools are an empty deprecated stub", () => {
-    expect(getOrgAgentApprovalTools(ctx)).toEqual({});
   });
 
   it("delete_product maps through ToolSetConnector with requiresApproval", () => {
