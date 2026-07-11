@@ -66,6 +66,11 @@ const def: RegistryItemDef = {
         type: "registry:lib",
         target: "src/features/assistant/lib/mock-workspace-tree.ts",
       },
+      {
+        path: "lib/mock-members.ts",
+        type: "registry:lib",
+        target: "src/features/assistant/lib/mock-members.ts",
+      },
     ],
   },
   preview: "page",
