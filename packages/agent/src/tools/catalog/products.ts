@@ -7,12 +7,17 @@ import {
   deleteProduct,
   getProduct,
   getProducts,
+  resolveProductRef,
   updateProduct,
 } from "@workspace/core/catalog";
 import { tool } from "ai";
 import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
 import { assertCan } from "../guard";
+
+const productRefSchema = z
+  .string()
+  .describe("Product id (ULID), or exact product name, or exact SKU");
 
 export const createProductReadTools = (
   ctx: Pick<AgentToolsContext, "organizationId">
@@ -47,12 +52,13 @@ export const createProductWriteTools = (ctx: AgentToolsContext) => {
     update_product: tool({
       description: "Update an existing product.",
       inputSchema: z.object({
-        id: z.string(),
+        id: productRefSchema,
         data: updateProductSchema,
       }),
       execute: async ({ id, data }) => {
         await assertCan("catalog:write", ctx);
-        return updateProduct(id, orgId, data);
+        const product = await resolveProductRef(orgId, id);
+        return updateProduct(product.id, orgId, data);
       },
     }),
   };
@@ -64,11 +70,12 @@ export const createProductApprovalTools = (ctx: AgentToolsContext) => {
   return {
     delete_product: tool({
       description: "Delete a product. Requires explicit user approval.",
-      inputSchema: z.object({ id: z.string() }),
+      inputSchema: z.object({ id: productRefSchema }),
       needsApproval: true,
       execute: async ({ id }) => {
         await assertCan("catalog:write", ctx);
-        return deleteProduct(id, orgId);
+        const product = await resolveProductRef(orgId, id);
+        return deleteProduct(product.id, orgId);
       },
     }),
   };

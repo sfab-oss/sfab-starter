@@ -55,7 +55,10 @@ Choose the **lowest** class that's still safe:
    and resumes with `approveExecution` / `rejectExecution`. **RBAC still
    applies** post-approval — approval is not authorization. Use for
    destructive / hard-to-reverse writes: **`delete_product`**
-   (`createProductApprovalTools` → `getOrgAgentTools`). Tool names are
+   (`createProductApprovalTools` → `getOrgAgentTools`). `delete_product` and
+   `update_product` accept a product id, exact name, or exact SKU via
+   `resolveProductRef`; misses and ambiguous refs throw so codemode does not
+   report success. Tool names are
    authored in **snake_case** so they match sandbox identifiers without
    relying on hyphen→underscore sanitization.
 
