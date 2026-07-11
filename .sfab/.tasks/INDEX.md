@@ -27,10 +27,6 @@ overwritten by the next sync.
 
 - [`ALW-548`](./ALW-548.md) — Rich chat input with typed mention/command triggers (InputGroup-native)
 
-## assigned (1)
-
-- [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
-
 ## needs-input (1)
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
@@ -91,12 +87,13 @@ overwritten by the next sync.
 - [`ALW-298`](./ALW-298.md) — Rename project identity from simple-monorepo-starter to sfab-starter
 - [`ALW-218`](./ALW-218.md) — Bring in the Think-based organization ERP agent (OrgAgent + OrgChat DO pattern from sfab)
 
-## done (9)
+## done (10)
 
 - [`ALW-480`](./ALW-480.md) — Verify destructive-approval path on main (post-ALW-456)
 - [`ALW-441`](./ALW-441.md) — Filter accepted invitations out of Pending Invitations table
 - [`ALW-440`](./ALW-440.md) — Wire settings sub-routes (/settings/members, /settings/general)
 - [`ALW-436`](./ALW-436.md) — Org switcher: remove or wire ⌘1..N shortcut labels
+- [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 - [`ALW-424`](./ALW-424.md) — QA: auth, onboarding & org lifecycle — incl. RBAC gating
 - [`ALW-423`](./ALW-423.md) — QA: shell, navigation & command-K palette (desktop + mobile)
 - [`ALW-327`](./ALW-327.md) — Directory / package structure (Tier-1 foundation)
