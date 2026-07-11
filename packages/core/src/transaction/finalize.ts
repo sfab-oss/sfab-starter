@@ -49,7 +49,6 @@ export async function finalizeDocument(
   orgId: string,
   opts: { actorId?: string; bypassCreditLimit?: boolean } = {}
 ): Promise<FinalizeResult> {
-  // 1. READ (before batch assembly).
   const [doc] = await db
     .select()
     .from(documents)
@@ -104,9 +103,6 @@ export async function finalizeDocument(
     },
   };
 
-  // 3. ASSEMBLE the atomic batch — folio assignment + freeze.
-  // (a) ensure the sequence row exists; (b) freeze the doc + assign folio via
-  //     an in-batch subquery (race-free); (c) increment the counter.
   const ensureSeq = db
     .insert(sequences)
     .values({ organizationId: orgId, key: seqKey, next: 1 })

@@ -95,7 +95,6 @@ export function useWorkspaceTree(): WorkspaceTree {
     [readWorkspaceFile]
   );
 
-  // Load the root directory on mount.
   useEffect(() => {
     loadDir(ROOT);
   }, [loadDir]);
@@ -120,7 +119,6 @@ export function useWorkspaceTree(): WorkspaceTree {
         const next = { ...prev, [dir]: !prev[dir] };
         return next;
       });
-      // Load on first expand (fire-and-forget; guarded by the loaded set).
       if (!(expanded[dir] || loadedDirsRef.current.has(dir))) {
         loadDir(dir);
       }

@@ -63,3 +63,13 @@ Run from the **monorepo root** (not inside a package):
 
 This project uses **Biome** for formatting and linting. Fix with `pnpm lint:fix`;
 verify with `pnpm typecheck` and `pnpm lint:check`. Run from the root.
+
+- **Self-descriptive code first** — names and types should carry the *what*; comments
+  only for non-inherent *why* (invariants, races, platform quirks, ADR/ALW links).
+- **No narration** — drop section banners, JSX region labels, name-echo JSDoc, and
+  step labels that restate the next line.
+- **Prefer refactor over clarifying comments** when the code is unclear (rename /
+  extract in a separate change; hygiene passes are REMOVE-only).
+- **Keep** money/RBAC/security notes, directive suppressions with reasons, and
+  schema comments that encode real constraints — see
+  [`docs/guides/comment-hygiene.md`](docs/guides/comment-hygiene.md).

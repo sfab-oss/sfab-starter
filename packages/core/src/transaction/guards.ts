@@ -34,7 +34,6 @@ export function assertCanFinalize(doc: Document): DocumentFamily {
   return family;
 }
 
-/** A document needs at least one line to finalize. */
 export function assertHasLines(lines: LineItem[], docId: string): void {
   if (lines.length === 0) {
     throw new DomainError(

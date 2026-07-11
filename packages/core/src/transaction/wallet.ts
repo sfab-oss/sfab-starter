@@ -49,10 +49,6 @@ import { entityBalanceUpdate } from "./projections";
  * @see docs/architecture/transaction-core.md §4
  */
 
-// ---------------------------------------------------------------------------
-// depositCredit
-// ---------------------------------------------------------------------------
-
 export interface DepositCreditResult {
   entryId: string;
   paymentId: string;
@@ -192,10 +188,6 @@ async function logDepositEvent(
   });
 }
 
-// ---------------------------------------------------------------------------
-// redeemCredit
-// ---------------------------------------------------------------------------
-
 export interface RedeemCreditResult {
   completedSales: string[];
   entryId: string;
@@ -286,10 +278,6 @@ export async function redeemCredit(
     touchedDocuments: result.touchedDocuments,
   };
 }
-
-// ---------------------------------------------------------------------------
-// redeemCreditByReference (walk-in C3 — balanced transfer)
-// ---------------------------------------------------------------------------
 
 /**
  * Redeem walk-in credit by presenting the claim-reference token.
@@ -406,7 +394,6 @@ export async function redeemCreditByReference(
             reference: input.reference,
             type: "claim",
           }),
-          // Ordinary wallet redemption for the requested amount.
           db.insert(customerCredit).values({
             amount: -input.amount,
             entityId: input.entityId,
@@ -440,10 +427,6 @@ export async function redeemCreditByReference(
     throw err;
   }
 }
-
-// ---------------------------------------------------------------------------
-// reverseCreditEntry
-// ---------------------------------------------------------------------------
 
 /**
  * Reverse a wallet entry by writing a **compensating row** (never UPDATE in
@@ -491,10 +474,6 @@ export async function reverseCreditEntry(
   return { reversalEntryId: reversalId };
 }
 
-// ---------------------------------------------------------------------------
-// Reads
-// ---------------------------------------------------------------------------
-
 export async function listCreditEntries(
   orgId: string,
   filter?: { entityId?: string }
@@ -529,10 +508,6 @@ export async function getCreditBalance(
     );
   return row?.total ?? 0;
 }
-
-// ---------------------------------------------------------------------------
-// Validation + idempotency helpers
-// ---------------------------------------------------------------------------
 
 function validateWalletTarget(
   doc: typeof documents.$inferSelect,

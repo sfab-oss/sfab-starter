@@ -34,10 +34,6 @@ import {
  * @see docs/architecture/transaction-core.md §4
  */
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 type BatchStmt = Parameters<typeof db.batch>[0][number];
 
 export type { BatchStmt };
@@ -234,10 +230,6 @@ function detectNewlyCompletedSales(
   return completed;
 }
 
-// ---------------------------------------------------------------------------
-// recordPayment
-// ---------------------------------------------------------------------------
-
 export interface RecordPaymentResult {
   completedSales: string[];
   paymentId: string;
@@ -263,7 +255,6 @@ export async function recordPayment(
     extraStmts?: BatchStmt[];
   } = {}
 ): Promise<RecordPaymentResult> {
-  // 1. READ: validate all target documents are fiscal + finalized.
   const docIds = [...new Set(input.allocations.map((a) => a.documentId))];
   if (docIds.length !== input.allocations.length) {
     throw new DomainError(
@@ -296,7 +287,6 @@ export async function recordPayment(
   validateAllocationTargets(docs);
   const completedSales = detectNewlyCompletedSales(docs, input.allocations);
 
-  // 2. IDEMPOTENCY: if a key is provided, return the existing payment.
   if (input.idempotencyKey) {
     const replay = await replayIdempotentPayment(
       orgId,
@@ -308,15 +298,12 @@ export async function recordPayment(
     }
   }
 
-  // 3. PRE-GENERATE IDs (so allocation rows reference the payment in-batch).
   const paymentId = opts.paymentId ?? createId("pmt");
   const now = new Date().toISOString();
   const paidAt = input.paidAt ?? now;
 
-  // 4. ASSEMBLE the batch: payment + allocations + projection updates.
   const stmts: BatchStmt[] = [];
 
-  // (a) Payment header.
   stmts.push(
     db.insert(payments).values({
       amount: input.amount,
@@ -358,7 +345,6 @@ export async function recordPayment(
     );
   }
 
-  // (c) Document projection updates.
   for (const docId of docIds) {
     stmts.push(docProjectionUpdate(docId, orgId, now, paymentId));
   }
@@ -391,7 +377,6 @@ export async function recordPayment(
     return catchIdempotentRace(err, orgId, input.idempotencyKey, input.amount);
   }
 
-  // 6. POST-BATCH events (best-effort, same pattern as finalize).
   await runBatch(
     buildPaymentEventStmts(
       orgId,
@@ -405,10 +390,6 @@ export async function recordPayment(
 
   return { completedSales, paymentId, touchedDocuments: docIds };
 }
-
-// ---------------------------------------------------------------------------
-// reversePayment
-// ---------------------------------------------------------------------------
 
 /**
  * Reverse a payment by writing **compensating rows** (C6): a reversal payment
@@ -426,7 +407,6 @@ export async function reversePayment(
   orgId: string,
   opts: { actorId?: string; reason?: string } = {}
 ): Promise<{ reversalPaymentId: string; touchedDocuments: string[] }> {
-  // 1. READ the original payment + allocations.
   const [payment] = await db
     .select()
     .from(payments)
@@ -438,7 +418,6 @@ export async function reversePayment(
     throw new DomainError("Cannot reverse a reversal payment", "conflict");
   }
 
-  // Check if already reversed.
   const [existing] = await db
     .select({ id: payments.id })
     .from(payments)
@@ -465,7 +444,6 @@ export async function reversePayment(
       )
     );
 
-  // Read entityIds of the touched documents for balance updates.
   const touchedDocRows = allocations.length
     ? await db
         .select({ entityId: documents.entityId })
@@ -481,15 +459,12 @@ export async function reversePayment(
         )
     : [];
 
-  // 2. PRE-GENERATE IDs.
   const reversalPaymentId = createId("pmt");
   const now = new Date().toISOString();
   const touchedDocIds = new Set<string>();
 
-  // 3. ASSEMBLE the batch.
   const stmts: BatchStmt[] = [];
 
-  // (a) Reversal payment header (negated amount).
   stmts.push(
     db.insert(payments).values({
       amount: -payment.amount,
@@ -503,7 +478,6 @@ export async function reversePayment(
     })
   );
 
-  // (b) Compensating allocations (negated) + mark originals reversedAt.
   for (const alloc of allocations) {
     touchedDocIds.add(alloc.documentId);
     stmts.push(
@@ -524,12 +498,10 @@ export async function reversePayment(
     );
   }
 
-  // (c) Document projection updates.
   for (const docId of touchedDocIds) {
     stmts.push(docProjectionUpdate(docId, orgId, now));
   }
 
-  // (d) Entity balance updates — for every entity that owns a reversed doc.
   const entityIds = [
     ...new Set(touchedDocRows.map((d) => d.entityId).filter(Boolean)),
   ] as string[];
@@ -554,7 +526,6 @@ export async function reversePayment(
     throw err;
   }
 
-  // 5. POST-BATCH event.
   await db.insert(activityLog).values({
     actorId: opts.actorId ?? null,
     createdAt: now,
@@ -572,10 +543,6 @@ export async function reversePayment(
     touchedDocuments: [...touchedDocIds],
   };
 }
-
-// ---------------------------------------------------------------------------
-// Reads
-// ---------------------------------------------------------------------------
 
 export async function listPayments(
   orgId: string,

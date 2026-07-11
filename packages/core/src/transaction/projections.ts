@@ -43,10 +43,6 @@ export function derivePaymentStatus(
   return "unpaid";
 }
 
-// ---------------------------------------------------------------------------
-// Batch-statement builders — shared by recordPayment, reversePayment, finalize
-// ---------------------------------------------------------------------------
-
 /** Build the SQL subquery that sums live allocations for a document. */
 export function allocSumSubquery(docId: string, orgId: string) {
   // No `reversed_at IS NULL` filter: compensating rows (reversals) cancel
@@ -202,7 +198,6 @@ export async function rebuildEntityProjections(
   return { balance: row?.balance ?? 0, creditBalance: row?.creditBalance ?? 0 };
 }
 
-/** Rebuild and return the entity's NET balance (AR − creditBalance). */
 export async function rebuildEntityBalance(
   entityId: string,
   orgId: string

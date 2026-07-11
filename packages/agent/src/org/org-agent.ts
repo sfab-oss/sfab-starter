@@ -149,7 +149,6 @@ export class OrgAgent extends Agent<Cloudflare.Env> {
     this.sql`DELETE FROM chat_meta WHERE id = ${id}`;
   }
 
-  // --- Read-only workspace surface for the client file viewer ---------------
   // The generic fs methods below are internal (used by codemode tools + the
   // SharedWorkspace proxy) and intentionally NOT `@callable()`. These two thin
   // wrappers are the only workspace methods the browser can reach: read-only,

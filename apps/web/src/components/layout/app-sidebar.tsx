@@ -30,12 +30,10 @@ export function AppSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
-            {/* Logo Area */}
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <LogoMark className="h-5 w-5" />
             </div>
 
-            {/* App Title (Visible when expanded) */}
             <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
               <span className="block truncate font-semibold">Acme Inc.</span>
               <span className="block truncate text-muted-foreground text-xs">
@@ -43,7 +41,6 @@ export function AppSidebar() {
               </span>
             </div>
 
-            {/* Top Actions (Search + Toggle) */}
             <div className="flex items-center gap-1 group-data-[collapsible=icon]:hidden">
               <SidebarMenuButton
                 className="h-8 w-8"
@@ -61,7 +58,6 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
 
-        {/* Collapsed Mode: Search + Toggle Buttons */}
         <SidebarMenu className="hidden group-data-[collapsible=icon]:flex">
           <SidebarMenuItem>
             <SidebarTrigger className="h-8 w-8" />

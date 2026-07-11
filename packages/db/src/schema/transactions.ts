@@ -22,8 +22,6 @@ import { createdAt, id, moneyMinor, timestamps, updatedAt } from "../utils";
  * @see docs/architecture/transaction-core.md §1–§3
  */
 
-// --- Document types, families, and their link (C9) ---------------------------
-
 export const DOCUMENT_TYPES = [
   "quote",
   "sales_order",
@@ -69,8 +67,6 @@ const familyTypeCheck = sql`(${sql.raw(
     .map(([t, f]) => `type = '${t}' AND family = '${f}'`)
     .join(" OR ")
 )})`;
-
-// --- documents ---------------------------------------------------------------
 
 export const DOCUMENT_DIRECTIONS = ["sales", "purchase"] as const;
 export type DocumentDirection = (typeof DOCUMENT_DIRECTIONS)[number];
@@ -173,8 +169,6 @@ export const documents = sqliteTable(
   ]
 );
 
-// --- line_items ---------------------------------------------------------------
-
 export const FULFILLMENT_MODES = [
   "stock",
   "drop_ship",
@@ -235,8 +229,6 @@ export const lineItems = sqliteTable(
   ]
 );
 
-// --- sequences (folios) -------------------------------------------------------
-
 /**
  * Per-(org, key) folio counter, bumped atomically at finalize (§5). `key` is
  * open (per series/type/register) so a project configures its folio scheme.
@@ -255,8 +247,6 @@ export const sequences = sqliteTable(
     uniqueIndex("sequences_org_key_uniq").on(table.organizationId, table.key),
   ]
 );
-
-// --- entities (counterparty) -------------------------------------------------
 
 export const ENTITY_TYPES = ["customer", "supplier", "walk_in"] as const;
 export type EntityType = (typeof ENTITY_TYPES)[number];
@@ -304,8 +294,6 @@ export const entities = sqliteTable(
     index("entities_org_type_idx").on(table.organizationId, table.type),
   ]
 );
-
-// --- payments + payment_allocations ------------------------------------------
 
 /**
  * A payment — the tender/receipt (§4). Signed `amount` (positive = received,
@@ -385,8 +373,6 @@ export const paymentAllocations = sqliteTable(
   ]
 );
 
-// --- customer_credit (wallet) ------------------------------------------------
-
 export const CREDIT_ENTRY_TYPES = [
   "deposit",
   "overpay",
@@ -463,8 +449,6 @@ export const customerCredit = sqliteTable(
     ),
   ]
 );
-
-// --- type exports ------------------------------------------------------------
 
 export type Document = typeof documents.$inferSelect;
 export type NewDocument = typeof documents.$inferInsert;

@@ -25,7 +25,6 @@ export const createEntityReadTools = (
           .optional()
           .describe("Max rows to return (default 50)."),
       }),
-      // Cap the rows handed back to the model (context safety); read stays org-scoped.
       execute: async ({ limit }) =>
         (await listEntities(orgId)).slice(0, limit ?? 50),
     }),

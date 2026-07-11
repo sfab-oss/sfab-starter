@@ -106,8 +106,6 @@ export type CreateableDocumentType = z.infer<
   typeof createableDocumentTypeSchema
 >;
 
-// --- Settlement (§4) ----------------------------------------------------------
-
 export const creditNoteDispositionSchema = z.enum([
   "cash_refund",
   "store_credit",
@@ -151,8 +149,6 @@ export const reversePaymentSchema = z.object({
   reason: z.string().optional(),
 });
 export type ReversePaymentInput = z.infer<typeof reversePaymentSchema>;
-
-// --- Wallet (§4 — customer_credit) -------------------------------------------
 
 export const depositCreditSchema = z.object({
   entityId: z.string().nullable().optional(),
@@ -215,8 +211,6 @@ export const listEntitiesQuerySchema = paginationQuerySchema.extend({
     .transform((v) => v === true || v === "true"),
 });
 export type ListEntitiesQuery = z.infer<typeof listEntitiesQuerySchema>;
-
-// --- Summary shapes (lists / agent) -------------------------------------------
 
 export const documentListItemSchema = z.object({
   id: z.string(),
