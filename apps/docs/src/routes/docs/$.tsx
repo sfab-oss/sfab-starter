@@ -60,7 +60,7 @@ export const Route = createFileRoute("/docs/$")({
 });
 
 const serverLoader = createServerFn({ method: "GET" })
-  .inputValidator((slugs: string[]) => slugs)
+  .validator((slugs: string[]) => slugs)
   .handler(async ({ data: slugs }) => {
     const path = slugs.join("/");
     if (path in LEGACY_BLOCK_REDIRECTS) {
