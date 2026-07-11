@@ -32,9 +32,16 @@ const entityPickerValueSchema = z.union([
   }),
 ]);
 
+const ISO_CURRENCY_CODE = /^[A-Za-z]{3}$/;
+
 const documentCreateFormSchema = z.object({
   entity: entityPickerValueSchema,
-  currencyCode: z.string().trim().optional(),
+  currencyCode: z
+    .string()
+    .trim()
+    .refine((value) => value === "" || ISO_CURRENCY_CODE.test(value), {
+      message: "Use a 3-letter ISO currency code",
+    }),
   series: z.string().trim().optional(),
 });
 

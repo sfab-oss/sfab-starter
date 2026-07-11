@@ -16,6 +16,8 @@ import {
   type DocumentCreateFormValues,
 } from "./document-create-form";
 
+const ISO_CURRENCY_CODE = /^[A-Z]{3}$/;
+
 interface CreateDocumentDialogProps {
   open: boolean;
   type: CreateableDocumentType | null;
@@ -36,9 +38,10 @@ export function CreateDocumentDialog({
     }
     const direction = type === "bill" ? "purchase" : "sales";
     const entity = data.entity;
+    const currencyCode = data.currencyCode?.trim().toUpperCase() ?? "";
     const optional = {
-      ...(data.currencyCode?.trim()
-        ? { currencyCode: data.currencyCode.trim() }
+      ...(currencyCode && ISO_CURRENCY_CODE.test(currencyCode)
+        ? { currencyCode }
         : {}),
       ...(data.series?.trim() ? { series: data.series.trim() } : {}),
     };

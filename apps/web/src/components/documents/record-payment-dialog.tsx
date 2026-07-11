@@ -9,7 +9,6 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/shadcn/dialog";
 import { formatMoneyMinor, majorToMinor } from "@workspace/ui/lib/money";
-import { useState } from "react";
 import { useRecordPayment } from "@/hooks/use-documents";
 import {
   DOCUMENT_PAYMENT_FORM_ID,
@@ -41,23 +40,17 @@ export function RecordPaymentDialog({
   currencyCode,
 }: RecordPaymentDialogProps) {
   const recordPayment = useRecordPayment();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (data: DocumentPaymentFormValues) => {
     const amount = majorToMinor(data.amountMajor, currencyCode);
-    setIsSubmitting(true);
-    try {
-      await recordPayment.mutateAsync({
-        input: {
-          amount,
-          method: data.method,
-          allocations: [{ documentId: docId, amount }],
-        },
-      });
-      onOpenChange(false);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await recordPayment.mutateAsync({
+      input: {
+        amount,
+        method: data.method,
+        allocations: [{ documentId: docId, amount }],
+      },
+    });
+    onOpenChange(false);
   };
 
   return (
@@ -82,12 +75,12 @@ export function RecordPaymentDialog({
               Cancel
             </Button>
             <Button
-              disabled={isSubmitting || recordPayment.isPending}
+              disabled={recordPayment.isPending}
               form={DOCUMENT_PAYMENT_FORM_ID}
               size="sm"
               type="submit"
             >
-              {isSubmitting || recordPayment.isPending ? "Saving…" : "Pay"}
+              {recordPayment.isPending ? "Saving…" : "Pay"}
             </Button>
           </div>
         </DialogHeader>
