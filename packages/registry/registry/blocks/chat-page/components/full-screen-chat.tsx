@@ -1,12 +1,6 @@
 "use client";
 
 import {
-  Conversation,
-  ConversationContent,
-  ConversationScrollButton,
-} from "@workspace/ui/components/ai-elements/conversation";
-import type { PromptInputMessage } from "@workspace/ui/components/ai-elements/prompt-input";
-import {
   ShellHeader,
   ShellHeaderSidebarTrigger,
 } from "@workspace/ui/components/brand/shell";
@@ -19,6 +13,21 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
 import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/shadcn/empty";
+import {
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerProvider,
+  MessageScrollerViewport,
+} from "@workspace/ui/components/shadcn/message-scroller";
+import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
@@ -27,6 +36,7 @@ import { type ChatStatus, isTextUIPart } from "ai";
 import {
   BotIcon,
   ClipboardCopyIcon,
+  MessageCircleDashedIcon,
   MoreHorizontalIcon,
   PanelRightIcon,
   Trash2Icon,
@@ -38,9 +48,27 @@ import {
   type GalleryChatMessage,
   MOCK_CHAT_MESSAGES,
 } from "../lib/mock-chat-messages";
-import { GalleryChatInput } from "./chat-input";
+import { GalleryChatInput, type GalleryPromptMessage } from "./chat-input";
 import { ChatMessageRow } from "./chat-message-parts";
 import { ChatSidePanel } from "./chat-side-panel";
+
+function EmptyConversation() {
+  return (
+    <Empty className="h-full border-0">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <MessageCircleDashedIcon />
+        </EmptyMedia>
+        <EmptyTitle>How can I help?</EmptyTitle>
+        <EmptyDescription>
+          Ask about balances, inventory, or documents — I can pull data and
+          draft actions.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+}
+
 export function FullScreenChat() {
   const [messages, setMessages] = useState(MOCK_CHAT_MESSAGES);
   const [status, setStatus] = useState<ChatStatus>("ready");
@@ -59,7 +87,7 @@ export function FullScreenChat() {
     setActiveTabId,
   } = useChatSidePanel();
   const handleSubmit = useCallback(
-    async (message: PromptInputMessage) => {
+    async (message: GalleryPromptMessage) => {
       const text = message.text.trim();
       const hasAttachments = Boolean(message.files?.length);
       if (!(text || hasAttachments)) {
@@ -175,18 +203,31 @@ export function FullScreenChat() {
             )}
           </ShellHeader>
 
-          <Conversation className="min-h-0 flex-1">
-            <ConversationContent className="mx-auto w-full max-w-3xl gap-6">
-              {messages.map((message) => (
-                <ChatMessageRow
-                  isStreaming={streamingMessageId === message.id}
-                  key={message.id}
-                  message={message}
-                />
-              ))}
-            </ConversationContent>
-            <ConversationScrollButton />
-          </Conversation>
+          <MessageScrollerProvider autoScroll>
+            <MessageScroller className="min-h-0 flex-1">
+              <MessageScrollerViewport>
+                <MessageScrollerContent className="mx-auto w-full max-w-3xl gap-6 p-4">
+                  {messages.length === 0 ? (
+                    <EmptyConversation />
+                  ) : (
+                    messages.map((message) => (
+                      <MessageScrollerItem
+                        key={message.id}
+                        messageId={message.id}
+                        scrollAnchor={message.role === "user"}
+                      >
+                        <ChatMessageRow
+                          isStreaming={streamingMessageId === message.id}
+                          message={message}
+                        />
+                      </MessageScrollerItem>
+                    ))
+                  )}
+                </MessageScrollerContent>
+              </MessageScrollerViewport>
+              <MessageScrollerButton />
+            </MessageScroller>
+          </MessageScrollerProvider>
 
           <GalleryChatInput onSubmit={handleSubmit} status={status} />
         </ResizablePanel>

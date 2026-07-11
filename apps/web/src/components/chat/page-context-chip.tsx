@@ -1,9 +1,15 @@
 "use client";
 
 import type { ChatContext } from "@workspace/contract/ai";
-import { cn } from "@workspace/ui/lib/utils";
+import {
+  ChatToken,
+  ChatTokenAction,
+  ChatTokenIcon,
+  ChatTokenLabel,
+  ChatTokenRemove,
+} from "@workspace/ui/components/shadcn/chat-token";
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Package, Pin, PinOff, X } from "lucide-react";
+import { LayoutDashboard, Package, Pin, PinOff } from "lucide-react";
 
 type PageConfig = NonNullable<ChatContext["page"]>;
 
@@ -49,15 +55,13 @@ export function PageContextChip({
 }: PageContextChipProps) {
   if (dismissed || !context) {
     return (
-      <div className="mb-2 flex items-center px-1">
-        <button
-          className="text-muted-foreground text-xs underline-offset-4 hover:text-foreground hover:underline"
-          onClick={onRestore}
-          type="button"
-        >
-          Add context
-        </button>
-      </div>
+      <button
+        className="text-[11px] text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        onClick={onRestore}
+        type="button"
+      >
+        Add context
+      </button>
     );
   }
 
@@ -65,37 +69,21 @@ export function PageContextChip({
   const summary = summaryFrom(context);
 
   return (
-    <div
-      className={cn(
-        "mb-2 flex items-center gap-2 rounded-full bg-muted/50 px-3 py-1.5 text-muted-foreground text-xs"
-      )}
-    >
-      <Icon aria-hidden="true" className="size-3.5 shrink-0" />
-      <span className="min-w-0 flex-1 truncate" title={summary}>
-        {summary}
-      </span>
-      <div className="flex shrink-0 items-center gap-0.5">
-        <button
-          aria-label={pinned ? "Unpin page context" : "Pin page context"}
-          className="rounded p-0.5 hover:bg-muted hover:text-foreground"
-          onClick={onPinToggle}
-          type="button"
-        >
-          {pinned ? (
-            <PinOff className="size-3.5" />
-          ) : (
-            <Pin className="size-3.5" />
-          )}
-        </button>
-        <button
-          aria-label="Remove page context from next message"
-          className="rounded p-0.5 hover:bg-muted hover:text-foreground"
-          onClick={onDismiss}
-          type="button"
-        >
-          <X className="size-3.5" />
-        </button>
-      </div>
-    </div>
+    <ChatToken title={summary}>
+      <ChatTokenIcon>
+        <Icon aria-hidden="true" />
+      </ChatTokenIcon>
+      <ChatTokenLabel>{summary}</ChatTokenLabel>
+      <ChatTokenAction
+        aria-label={pinned ? "Unpin page context" : "Pin page context"}
+        onClick={onPinToggle}
+      >
+        {pinned ? <PinOff /> : <Pin />}
+      </ChatTokenAction>
+      <ChatTokenRemove
+        label="Remove page context from next message"
+        onClick={onDismiss}
+      />
+    </ChatToken>
   );
 }

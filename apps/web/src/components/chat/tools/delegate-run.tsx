@@ -1,11 +1,11 @@
 "use client";
 
-import { MessageResponse } from "@workspace/ui/components/ai-elements/message";
 import { Tool, ToolContent } from "@workspace/ui/components/ai-elements/tool";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { CollapsibleTrigger } from "@workspace/ui/components/shadcn/collapsible";
 import { useIsMobile } from "@workspace/ui/hooks/use-mobile";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   BotIcon,
   CheckCircleIcon,
@@ -16,6 +16,7 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import { memo, type ReactNode } from "react";
+import { Streamdown } from "streamdown";
 import { useChatOrgConnection } from "@/components/chat/connection/chat-org-connection";
 import { useChatTabsStore } from "@/components/chat/dock/chat-tabs-store";
 import { MessagePart } from "@/components/chat/parts/message-part";
@@ -264,7 +265,15 @@ function DelegateBody({
     );
   }
   if (summary) {
-    return <MessageResponse className="text-sm">{summary}</MessageResponse>;
+    return (
+      <Streamdown
+        className={cn(
+          "size-full text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+        )}
+      >
+        {summary}
+      </Streamdown>
+    );
   }
   return (
     <p className="py-1 text-muted-foreground text-xs">

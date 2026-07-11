@@ -1,6 +1,6 @@
 "use client";
 
-import { PromptInputButton } from "@workspace/ui/components/ai-elements/prompt-input";
+import { InputGroupButton } from "@workspace/ui/components/shadcn/input-group";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { cn } from "@workspace/ui/lib/utils";
 import { Loader2, MicIcon, Square } from "lucide-react";
@@ -513,7 +513,7 @@ export function ChatVoiceButton({
   };
 
   return (
-    <PromptInputButton
+    <InputGroupButton
       aria-label={getAriaLabel()}
       aria-pressed={uiState === "recording"}
       className={cn(
@@ -533,6 +533,6 @@ export function ChatVoiceButton({
       {...props}
     >
       {getButtonContent()}
-    </PromptInputButton>
+    </InputGroupButton>
   );
 }

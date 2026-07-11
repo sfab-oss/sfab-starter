@@ -1,16 +1,20 @@
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: Streaming message parts do not have stable IDs */
 
-import { ConversationEmptyState } from "@workspace/ui/components/ai-elements/conversation";
-import {
-  Attachment,
-  AttachmentContent,
-  AttachmentDescription,
-  AttachmentGroup,
-  AttachmentMedia,
-  AttachmentTitle,
-} from "@workspace/ui/components/shadcn/attachment";
 import { Bubble, BubbleContent } from "@workspace/ui/components/shadcn/bubble";
 import { Button } from "@workspace/ui/components/shadcn/button";
+import {
+  ChatToken,
+  ChatTokenGroup,
+  ChatTokenIcon,
+  ChatTokenLabel,
+} from "@workspace/ui/components/shadcn/chat-token";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/shadcn/empty";
 import {
   Marker,
   MarkerContent,
@@ -34,6 +38,7 @@ import {
   AlertCircleIcon,
   FileIcon,
   HistoryIcon,
+  MessageCircleDashedIcon,
   PaperclipIcon,
   RefreshCcwIcon,
 } from "lucide-react";
@@ -59,38 +64,21 @@ interface ChatMessagesProps {
   sendError: string | null;
 }
 
-function AttachmentMediaIcon({ part }: { part: FileUIPart }) {
-  if (part.mediaType?.includes("pdf")) {
-    return <FileIcon />;
-  }
-  return <PaperclipIcon />;
-}
-
-function FileAttachment({ part }: { part: FileUIPart }) {
+function FileToken({ part }: { part: FileUIPart }) {
   const isImage = Boolean(part.mediaType?.startsWith("image/") && part.url);
   const name = part.filename || (isImage ? "Image" : "Attachment");
-  const mediaLabel = part.mediaType?.split("/").pop()?.toUpperCase();
+  let icon = <PaperclipIcon />;
+  if (isImage) {
+    icon = <img alt="" height={14} src={part.url} width={14} />;
+  } else if (part.mediaType?.includes("pdf")) {
+    icon = <FileIcon />;
+  }
 
   return (
-    <Attachment
-      orientation={isImage ? "vertical" : "horizontal"}
-      size="sm"
-      state="done"
-    >
-      <AttachmentMedia variant={isImage ? "image" : "icon"}>
-        {isImage ? (
-          <img alt={name} height={96} src={part.url} width={96} />
-        ) : (
-          <AttachmentMediaIcon part={part} />
-        )}
-      </AttachmentMedia>
-      <AttachmentContent>
-        <AttachmentTitle>{name}</AttachmentTitle>
-        {mediaLabel ? (
-          <AttachmentDescription>{mediaLabel}</AttachmentDescription>
-        ) : null}
-      </AttachmentContent>
-    </Attachment>
+    <ChatToken title={name}>
+      <ChatTokenIcon>{icon}</ChatTokenIcon>
+      <ChatTokenLabel>{name}</ChatTokenLabel>
+    </ChatToken>
   );
 }
 
@@ -140,16 +128,15 @@ function ChatMessage({
   return (
     <Message align={align}>
       <MessageContent>
-        {pageContext ? <MessageContextBadge pageContext={pageContext} /> : null}
-        {fileParts.length > 0 ? (
-          <AttachmentGroup className="mb-1 max-w-full">
+        {pageContext || fileParts.length > 0 ? (
+          <ChatTokenGroup>
+            {pageContext ? (
+              <MessageContextBadge pageContext={pageContext} />
+            ) : null}
             {fileParts.map((part, partIndex) => (
-              <FileAttachment
-                key={`${message.id}-file-${partIndex}`}
-                part={part}
-              />
+              <FileToken key={`${message.id}-file-${partIndex}`} part={part} />
             ))}
-          </AttachmentGroup>
+          </ChatTokenGroup>
         ) : null}
         {otherParts.map((part, partIndex) => (
           <MessagePart
@@ -271,7 +258,7 @@ function ChatMessagesInternal({
 }: ChatMessagesProps) {
   if (!helpers) {
     if (!pending) {
-      return <ConversationEmptyState />;
+      return <EmptyConversation />;
     }
     const pendingMessage = pendingMessageView(pending);
     return (
@@ -293,7 +280,7 @@ function ChatMessagesInternal({
   const hasTurnError = status === "error" || Boolean(error);
 
   if (messages.length === 0 && !pending && !hasTurnError) {
-    return isHydrating ? <MessagesAreaSkeleton /> : <ConversationEmptyState />;
+    return isHydrating ? <MessagesAreaSkeleton /> : <EmptyConversation />;
   }
 
   const hasUserInMessages = messages.some((m) => m.role === "user");
@@ -332,6 +319,22 @@ function ChatMessagesInternal({
         </MessageScrollerItem>
       ) : null}
     </TranscriptScroller>
+  );
+}
+
+function EmptyConversation() {
+  return (
+    <Empty className="h-full border-0">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <MessageCircleDashedIcon />
+        </EmptyMedia>
+        <EmptyTitle>No messages yet</EmptyTitle>
+        <EmptyDescription>
+          Start a conversation to see messages here
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   );
 }
 

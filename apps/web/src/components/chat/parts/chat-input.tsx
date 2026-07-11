@@ -1,29 +1,49 @@
 import type { ChatContext } from "@workspace/contract/ai";
 import { ChatVoiceButton } from "@workspace/ui/components/ai-elements/chat-voice-button";
 import {
-  PromptInput,
-  PromptInputActionAddAttachments,
-  PromptInputActionMenu,
-  PromptInputActionMenuContent,
-  PromptInputActionMenuTrigger,
-  PromptInputAttachment,
-  PromptInputAttachments,
-  PromptInputBody,
-  PromptInputFooter,
-  type PromptInputMessage,
-  PromptInputProvider,
-  PromptInputSubmit,
-  PromptInputTextarea,
-  PromptInputTools,
-  usePromptInputController,
-} from "@workspace/ui/components/ai-elements/prompt-input";
+  ChatToken,
+  ChatTokenGroup,
+  ChatTokenIcon,
+  ChatTokenLabel,
+  ChatTokenRemove,
+} from "@workspace/ui/components/shadcn/chat-token";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/shadcn/dropdown-menu";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@workspace/ui/components/shadcn/input-group";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
-import type { ChatStatus } from "ai";
-import { useCallback, useEffect, useState } from "react";
+import type { ChatStatus, FileUIPart } from "ai";
+import {
+  ArrowUpIcon,
+  FileIcon,
+  Loader2Icon,
+  PaperclipIcon,
+  PlusIcon,
+  SquareIcon,
+  XIcon,
+} from "lucide-react";
+import {
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { OutgoingMessage } from "@/components/chat/dock/chat-tabs-store";
 import { PageContextChip } from "@/components/chat/page-context-chip";
 import { usePageContext } from "@/components/providers/page-context";
 import { useChatCapabilities } from "@/hooks/use-chat-capabilities";
+
+type ComposerFile = FileUIPart & { id: string };
 
 function handleSendError(error: unknown) {
   console.error("Failed to send message:", error);
@@ -62,6 +82,59 @@ function toOutgoingPageContext(
   };
 }
 
+function filePartsFromList(fileList: FileList | File[]): ComposerFile[] {
+  return Array.from(fileList).map((file) => ({
+    id: crypto.randomUUID(),
+    type: "file" as const,
+    filename: file.name,
+    mediaType: file.type,
+    url: URL.createObjectURL(file),
+  }));
+}
+
+function ChatSubmitButton({
+  disabled,
+  onStop,
+  status,
+}: {
+  disabled?: boolean;
+  onStop?: () => void;
+  status: ChatStatus;
+}) {
+  const isInFlight = status === "submitted" || status === "streaming";
+  const actAsStop = isInFlight && onStop !== undefined;
+
+  let icon = <ArrowUpIcon className="size-4" />;
+  if (status === "submitted") {
+    icon = <Loader2Icon className="size-4 animate-spin" />;
+  } else if (status === "streaming") {
+    icon = <SquareIcon className="size-4" />;
+  } else if (status === "error") {
+    icon = <XIcon className="size-4" />;
+  }
+
+  return (
+    <InputGroupButton
+      aria-label={actAsStop ? "Stop" : "Send"}
+      disabled={disabled && !actAsStop}
+      onClick={
+        actAsStop
+          ? (event) => {
+              event.preventDefault();
+              onStop();
+            }
+          : undefined
+      }
+      size="icon-sm"
+      type={actAsStop ? "button" : "submit"}
+      variant="default"
+    >
+      {icon}
+      <span className="sr-only">{actAsStop ? "Stop" : "Send"}</span>
+    </InputGroupButton>
+  );
+}
+
 interface ChatInputInnerProps {
   disabled: boolean;
   onStop?: () => void;
@@ -78,14 +151,20 @@ function ChatInputInner({
   status,
 }: ChatInputInnerProps) {
   const livePageContext = usePageContext();
-  const controller = usePromptInputController();
   const { data: capabilities } = useChatCapabilities();
-  // Default closed until capabilities load — avoids a flash of attach on
-  // text-only providers (zai-coding-plan / workers-ai).
   const supportsImageInput = capabilities?.supportsImageInput === true;
+  const [text, setText] = useState("");
+  const [files, setFiles] = useState<ComposerFile[]>([]);
   const [pinned, setPinned] = useState(false);
   const [pinnedContext, setPinnedContext] = useState(livePageContext);
   const [dismissed, setDismissed] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const textController = {
+    value: text,
+    setInput: setText,
+    clear: () => setText(""),
+  };
 
   useEffect(() => {
     if (!pinned && livePageContext) {
@@ -97,64 +176,117 @@ function ChatInputInner({
   const effectivePageContext =
     dismissed || !displayContext ? undefined : displayContext;
 
-  const handleSubmit = useCallback(
-    (message: PromptInputMessage) => {
-      if (disabled) {
-        return;
+  const clearFiles = useCallback(() => {
+    setFiles((prev) => {
+      for (const file of prev) {
+        if (file.url) {
+          URL.revokeObjectURL(file.url);
+        }
       }
+      return [];
+    });
+  }, []);
 
-      const { text, files } = message;
-      const hasText = Boolean(text);
-      const hasAttachments = Boolean(files?.length);
-
-      if (!(hasText || hasAttachments)) {
-        return;
-      }
-
-      // Client-side gate (ALW-453): never hit the API with parts the active
-      // provider rejects. Mirrors `gateChatAttachments` on the server.
-      if (hasAttachments && !supportsImageInput) {
+  const addFiles = useCallback(
+    (list: FileList | File[]) => {
+      const incoming = Array.from(list);
+      if (!supportsImageInput) {
         toast.error(
           "This chat model only accepts text. Remove attachments and try again."
         );
         return;
       }
-      if (
-        hasAttachments &&
-        files.some((file) => !file.mediaType?.startsWith("image/"))
-      ) {
+      const images = incoming.filter((file) => file.type.startsWith("image/"));
+      if (incoming.length > 0 && images.length === 0) {
         toast.error(
           "Only image attachments are supported. Remove other file types and try again."
         );
         return;
       }
-
-      controller.attachments.clear();
-      controller.textInput.clear();
-
-      const outgoing: OutgoingMessage = {
-        role: "user",
-        parts: [
-          { type: "text", text: text || "Sent with attachments" },
-          ...(files || []),
-        ],
-      };
-      if (effectivePageContext) {
-        outgoing.metadata = {
-          pageContext: toOutgoingPageContext(effectivePageContext),
-        };
-      }
-
-      onSubmit(outgoing).catch(handleSendError);
+      setFiles((prev) => [...prev, ...filePartsFromList(images)]);
     },
-    [
-      disabled,
-      onSubmit,
-      controller.attachments,
-      controller.textInput,
-      effectivePageContext,
-      supportsImageInput,
-    ]
+    [supportsImageInput]
+  );
+
+  const removeFile = useCallback((id: string) => {
+    setFiles((prev) => {
+      const found = prev.find((file) => file.id === id);
+      if (found?.url) {
+        URL.revokeObjectURL(found.url);
+      }
+      return prev.filter((file) => file.id !== id);
+    });
+  }, []);
+
+  const submit = useCallback(() => {
+    if (disabled) {
+      return;
+    }
+
+    const trimmed = text.trim();
+    const hasAttachments = files.length > 0;
+    if (!(trimmed || hasAttachments)) {
+      return;
+    }
+
+    if (hasAttachments && !supportsImageInput) {
+      toast.error(
+        "This chat model only accepts text. Remove attachments and try again."
+      );
+      return;
+    }
+    if (
+      hasAttachments &&
+      files.some((file) => !file.mediaType?.startsWith("image/"))
+    ) {
+      toast.error(
+        "Only image attachments are supported. Remove other file types and try again."
+      );
+      return;
+    }
+
+    const outgoing: OutgoingMessage = {
+      role: "user",
+      parts: [
+        { type: "text", text: trimmed || "Sent with attachments" },
+        ...files.map(({ id: _id, ...file }) => file),
+      ],
+    };
+    if (effectivePageContext) {
+      outgoing.metadata = {
+        pageContext: toOutgoingPageContext(effectivePageContext),
+      };
+    }
+
+    setText("");
+    clearFiles();
+    onSubmit(outgoing).catch(handleSendError);
+  }, [
+    clearFiles,
+    disabled,
+    effectivePageContext,
+    files,
+    onSubmit,
+    supportsImageInput,
+    text,
+  ]);
+
+  const handleFormSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      submit();
+    },
+    [submit]
+  );
+
+  const handleKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        submit();
+      }
+    },
+    [submit]
   );
 
   const handlePinToggle = useCallback(() => {
@@ -169,61 +301,100 @@ function ChatInputInner({
   }, [pinned, displayContext]);
 
   return (
-    <>
-      {displayContext || dismissed ? (
-        <PageContextChip
-          context={displayContext ?? null}
-          dismissed={dismissed}
-          onDismiss={() => setDismissed(true)}
-          onPinToggle={handlePinToggle}
-          onRestore={() => setDismissed(false)}
-          pinned={pinned}
-        />
-      ) : null}
-      <PromptInput
+    <form className="w-full" onSubmit={handleFormSubmit}>
+      <input
         accept={supportsImageInput ? "image/*" : undefined}
-        className="rounded-2xl"
-        globalDrop={supportsImageInput}
+        className="hidden"
         multiple
-        onError={(err) => {
-          if (err.code === "accept") {
-            toast.error(
-              "Only image attachments are supported for this chat model."
-            );
-            return;
+        onChange={(event) => {
+          if (event.currentTarget.files?.length) {
+            addFiles(event.currentTarget.files);
           }
-          toast.error(err.message);
+          event.currentTarget.value = "";
         }}
-        onSubmit={handleSubmit}
-      >
-        <PromptInputAttachments>
-          {(attachment) => <PromptInputAttachment data={attachment} />}
-        </PromptInputAttachments>
-        <PromptInputBody>
-          <PromptInputTextarea placeholder={placeholder} />
-        </PromptInputBody>
-        <PromptInputFooter>
-          <PromptInputTools>
-            {supportsImageInput ? (
-              <PromptInputActionMenu>
-                <PromptInputActionMenuTrigger />
-                <PromptInputActionMenuContent>
-                  <PromptInputActionAddAttachments label="Add images" />
-                </PromptInputActionMenuContent>
-              </PromptInputActionMenu>
-            ) : null}
-          </PromptInputTools>
-          <PromptInputTools className="gap-2">
-            <ChatVoiceButton controller={controller} />
-            <PromptInputSubmit
+        ref={fileInputRef}
+        type="file"
+      />
+      <InputGroup className="rounded-2xl">
+        {displayContext || dismissed || files.length > 0 ? (
+          <InputGroupAddon
+            align="block-start"
+            className="flex-wrap gap-1.5 pb-0"
+          >
+            <ChatTokenGroup>
+              {displayContext || dismissed ? (
+                <PageContextChip
+                  context={displayContext ?? null}
+                  dismissed={dismissed}
+                  onDismiss={() => setDismissed(true)}
+                  onPinToggle={handlePinToggle}
+                  onRestore={() => setDismissed(false)}
+                  pinned={pinned}
+                />
+              ) : null}
+              {files.map((file) => (
+                <ChatToken key={file.id}>
+                  <ChatTokenIcon>
+                    {file.mediaType?.startsWith("image/") && file.url ? (
+                      <img alt="" height={14} src={file.url} width={14} />
+                    ) : (
+                      <FileIcon />
+                    )}
+                  </ChatTokenIcon>
+                  <ChatTokenLabel>
+                    {file.filename ?? "Attachment"}
+                  </ChatTokenLabel>
+                  <ChatTokenRemove
+                    label={`Remove ${file.filename ?? "attachment"}`}
+                    onClick={() => removeFile(file.id)}
+                  />
+                </ChatToken>
+              ))}
+            </ChatTokenGroup>
+          </InputGroupAddon>
+        ) : null}
+        <InputGroupTextarea
+          className="max-h-60 overflow-y-auto"
+          disabled={disabled}
+          onChange={(event) => setText(event.currentTarget.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          value={text}
+        />
+        <InputGroupAddon align="block-end" className="pt-1">
+          {supportsImageInput ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <InputGroupButton
+                    aria-label="Add images"
+                    size="icon-sm"
+                    type="button"
+                    variant="outline"
+                  />
+                }
+              >
+                <PlusIcon />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-44" side="top">
+                <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                  <PaperclipIcon />
+                  Add images
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+          <div className="ml-auto flex items-center gap-2">
+            <ChatVoiceButton controller={{ textInput: textController }} />
+            <ChatSubmitButton
               disabled={disabled}
               onStop={onStop}
               status={status}
             />
-          </PromptInputTools>
-        </PromptInputFooter>
-      </PromptInput>
-    </>
+          </div>
+        </InputGroupAddon>
+      </InputGroup>
+    </form>
   );
 }
 
@@ -243,15 +414,13 @@ export function ChatInput({
   return (
     <div className="relative bottom-0 z-10 w-full bg-background pt-2">
       <div className="mx-auto w-full p-2 @[500px]:px-4 @[500px]:pb-4 md:max-w-3xl @[500px]:md:pb-6">
-        <PromptInputProvider>
-          <ChatInputInner
-            disabled={disabled}
-            onStop={onStop}
-            onSubmit={onSubmit}
-            placeholder={placeholder}
-            status={status}
-          />
-        </PromptInputProvider>
+        <ChatInputInner
+          disabled={disabled}
+          onStop={onStop}
+          onSubmit={onSubmit}
+          placeholder={placeholder}
+          status={status}
+        />
       </div>
     </div>
   );

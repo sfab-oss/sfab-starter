@@ -1,9 +1,13 @@
-import {
-  MessageAction,
-  MessageActions as MessageActionsContainer,
-} from "@workspace/ui/components/ai-elements/message";
+import { Button } from "@workspace/ui/components/shadcn/button";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/shadcn/tooltip";
 import { useIsMobile } from "@workspace/ui/hooks/use-mobile";
+import { cn } from "@workspace/ui/lib/utils";
 import { Copy, RefreshCw } from "lucide-react";
 import { memo, useMemo } from "react";
 import { useChatConnection } from "@/components/chat/window/chat-window";
@@ -51,29 +55,56 @@ export function PureMessageActions({
 
   return (
     <div className="flex items-center gap-2">
-      <MessageActionsContainer
-        className={
-          showActionsWithoutHover
-            ? ""
-            : "opacity-0 transition-opacity duration-150 focus-within:opacity-100 hover:opacity-100 group-hover/message:opacity-100 group-hover:opacity-100"
-        }
-      >
-        <MessageAction
-          className="h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-          onClick={copyToClipboard}
-          tooltip="Copy"
+      <TooltipProvider>
+        <div
+          className={cn(
+            "flex items-center gap-1",
+            showActionsWithoutHover
+              ? ""
+              : "opacity-0 transition-opacity duration-150 focus-within:opacity-100 hover:opacity-100 group-hover/message:opacity-100 group-hover:opacity-100"
+          )}
         >
-          <Copy className="size-4" />
-        </MessageAction>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  className="h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  onClick={copyToClipboard}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                />
+              }
+            >
+              <Copy className="size-4" />
+              <span className="sr-only">Copy</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Copy</p>
+            </TooltipContent>
+          </Tooltip>
 
-        <MessageAction
-          className="h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-          onClick={() => regenerate({ messageId })}
-          tooltip="Regenerate"
-        >
-          <RefreshCw className="size-4" />
-        </MessageAction>
-      </MessageActionsContainer>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  className="h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => regenerate({ messageId })}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                />
+              }
+            >
+              <RefreshCw className="size-4" />
+              <span className="sr-only">Regenerate</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Regenerate</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
     </div>
   );
 }

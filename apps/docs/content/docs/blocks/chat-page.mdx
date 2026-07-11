@@ -4,16 +4,17 @@ description: Full-screen ERP assistant chat inside the app shell with mock conve
 ---
 
 Full-screen chat block: `Shell` sidebar frame with the inset filled by assistant
-UI — header chrome, scrollable conversation (`ai-elements`), and `PromptInput`.
-Messages are mocked; swap the submit handler for `ChatOrgConnection` when wiring
-the live org agent.
+UI — header chrome, shadcn `MessageScroller` transcript, and `InputGroup`
+composer. Messages are mocked; swap the submit handler for `ChatOrgConnection`
+when wiring the live org agent.
 
 <BlockViewer name="chat-page" />
 
 ## What it demonstrates
 
 - **Shell** — sidebar + inset; chat owns the full inset (no `ShellPage` header).
-- **Full-screen chat** — route-style header, `Reasoning`, tool calls, plan steps, markdown via `MessageResponse`, message actions.
+- **Full-screen chat** — route-style header, `Reasoning`, tool calls, plan steps, markdown via Streamdown inside shadcn `Bubble`, message actions.
+- **Empty state** — shadcn `Empty` when the thread is cleared.
 - **Mock data** — `lib/mock-chat-messages.ts` seeds the thread; replies cycle canned text.
 
 ## Source

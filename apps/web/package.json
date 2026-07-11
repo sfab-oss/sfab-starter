@@ -61,6 +61,7 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-hook-form": "^7.81.0",
+    "streamdown": "^2.5.0",
     "tailwindcss": "^4.3.2",
     "use-debounce": "^10.1.1",
     "zod": "4.3.5",
