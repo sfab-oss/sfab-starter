@@ -141,7 +141,7 @@ function ChatInputInner({
             trigger: "/",
             items: MOCK_COMMANDS,
             render: (item, selected) => (
-              <div className="flex min-w-0 flex-col px-2 text-left">
+              <div className="flex min-w-0 flex-col text-left">
                 <span className="font-medium text-sm">/{item.name}</span>
                 <span
                   className={

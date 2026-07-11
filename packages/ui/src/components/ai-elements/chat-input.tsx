@@ -10,7 +10,6 @@ import type {
   SuggestionKeyDownProps,
   SuggestionProps,
 } from "@tiptap/suggestion";
-import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -356,36 +355,34 @@ function MentionList<T extends BaseMentionItem>({
 
   if (loading && items.length === 0) {
     return (
-      <div className="min-w-48 rounded-lg border border-border bg-popover px-2 py-1.5 text-muted-foreground text-sm shadow-md">
+      <div className="min-w-48 rounded-md bg-popover px-2 py-1.5 text-muted-foreground text-sm shadow-md ring-1 ring-foreground/10">
         Loading…
       </div>
     );
   }
 
   return (
-    <div className="flex max-h-48 min-w-48 max-w-64 flex-col gap-1 overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md">
+    <div className="flex max-h-48 min-w-48 max-w-64 flex-col overflow-y-auto overflow-x-hidden rounded-md bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10">
       {items.length ? (
         items.map((item, index) => (
-          <Button
+          <button
             className={cn(
-              "flex justify-start gap-2 px-1 py-2",
-              selectedIndex === index && "bg-accent"
+              "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-hidden [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+              selectedIndex === index && "bg-accent text-accent-foreground"
             )}
             key={item.id}
             onClick={() => selectItem(index)}
             ref={(el) => {
               itemRefs.current[index] = el;
             }}
-            size="sm"
             type="button"
-            variant="ghost"
           >
             {renderItem ? (
               renderItem(item, selectedIndex === index)
             ) : (
-              <span className="px-2">{item.name}</span>
+              <span className="truncate">{item.name}</span>
             )}
-          </Button>
+          </button>
         ))
       ) : (
         <div className="px-2 py-1.5 text-muted-foreground text-sm">
@@ -435,6 +432,10 @@ function createMentionSuggestion(
             },
             editor: props.editor,
           });
+          // The mount wrapper is the positioned element (appended to body,
+          // position:absolute, no z-index) — without this it stacks below
+          // elevated surfaces like the z-50 chat dock.
+          component.element.style.zIndex = "50";
           unmount = props.mount(component.element);
         },
         onUpdate: (props: SuggestionProps<BaseMentionItem>) => {
