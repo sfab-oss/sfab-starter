@@ -25,7 +25,7 @@ overwritten by the next sync.
 
 ## ready (1)
 
-- [`ALW-533`](./ALW-533.md) — Spike: hybrid slash actions on chat-dock input
+- [`ALW-533`](./ALW-533.md) — Migrate chat UI off AI Elements onto shadcn
 
 ## assigned (1)
 
