@@ -27,16 +27,15 @@ overwritten by the next sync.
 
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
-## review (2)
+## review (1)
 
-- [`ALW-489`](./ALW-489.md) — delete-product tool: silent no-op on unknown id + agent name-vs-ULID resolution
 - [`ALW-473`](./ALW-473.md) — Spike: migrate sfab-starter to TypeScript 7
 
 ## needs-input (1)
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 
-## merged (44)
+## merged (45)
 
 - [`ALW-505`](./ALW-505.md) — Launch docs honesty pass — README quickstart + operator-ux build-state
 - [`ALW-504`](./ALW-504.md) — Settings: wire destructive confirms (remove/leave, cancel invite, delete org)
@@ -44,6 +43,7 @@ overwritten by the next sync.
 - [`ALW-500`](./ALW-500.md) — Invalidate React Query after agent tool mutations
 - [`ALW-495`](./ALW-495.md) — Starter: own Biome ruleset, drop Ultracite, bump Biome
 - [`ALW-492`](./ALW-492.md) — Hide TanStack Devtools behind URL flag
+- [`ALW-489`](./ALW-489.md) — delete-product tool: silent no-op on unknown id + agent name-vs-ULID resolution
 - [`ALW-464`](./ALW-464.md) — Bump starter dependencies within minimumReleaseAge
 - [`ALW-461`](./ALW-461.md) — Template release docs: README + agent init guidance
 - [`ALW-460`](./ALW-460.md) — Migrate shadcn wrappers from Radix to Base UI
