@@ -43,6 +43,7 @@ import {
 } from "@/components/documents/document-type";
 import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
 import { useSetPageContext } from "@/components/providers/page-context";
+import { PayFromCreditForm } from "@/components/wallet/pay-from-credit-form";
 import {
   useAcceptDocument,
   useActivity,
@@ -55,6 +56,7 @@ import {
   useRemoveLineItem,
   useUpdateLineItem,
 } from "@/hooks/use-documents";
+import { useEntity } from "@/hooks/use-entities";
 import { useProducts } from "@/hooks/use-products";
 
 export const Route = createFileRoute("/_protected/documents/$id")({
@@ -84,18 +86,27 @@ function DocumentEntityLabel({
 
 function RecordPaymentForm({
   docId,
+  docType,
+  entityId,
   balanceDue,
   currencyCode,
 }: {
   docId: string;
+  docType: string;
+  entityId: string | null;
   balanceDue: number;
   currencyCode: string;
 }) {
   const recordPayment = useRecordPayment();
+  const { data: entity } = useEntity(entityId ?? "");
   const [method, setMethod] = useState("cash");
   const [amountMajor, setAmountMajor] = useState(
     minorToMajorInput(balanceDue, currencyCode)
   );
+
+  const creditBalance = entity?.creditBalance ?? 0;
+  const showPayFromCredit =
+    docType === "invoice" && Boolean(entityId) && creditBalance > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,51 +124,62 @@ function RecordPaymentForm({
   };
 
   return (
-    <form className="space-y-2 rounded-lg border p-4" onSubmit={handleSubmit}>
-      <h3 className="font-medium text-sm">Record payment</h3>
-      <p className="text-muted-foreground text-xs">
-        Balance due {formatMoneyMinor(balanceDue, currencyCode)}. Amount cannot
-        exceed balance due.
-      </p>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Select
-          onValueChange={(value) => {
-            if (value != null) {
-              setMethod(value);
+    <div className="space-y-3">
+      <form className="space-y-2 rounded-lg border p-4" onSubmit={handleSubmit}>
+        <h3 className="font-medium text-sm">Record payment</h3>
+        <p className="text-muted-foreground text-xs">
+          Balance due {formatMoneyMinor(balanceDue, currencyCode)}. Amount
+          cannot exceed balance due.
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Select
+            onValueChange={(value) => {
+              if (value != null) {
+                setMethod(value);
+              }
+            }}
+            value={method}
+          >
+            <SelectTrigger className="w-full sm:w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="cash">Cash</SelectItem>
+              <SelectItem value="transfer">Transfer</SelectItem>
+              <SelectItem value="card">Card</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input
+            className="flex-1"
+            max={minorToMajor(balanceDue, currencyCode)}
+            min={0}
+            onChange={(e) => setAmountMajor(Number(e.target.value) || 0)}
+            step="0.01"
+            type="number"
+            value={formatMajorInputValue(amountMajor, currencyCode)}
+          />
+          <Button
+            disabled={
+              recordPayment.isPending ||
+              amountMajor <= 0 ||
+              majorToMinor(amountMajor, currencyCode) > balanceDue
             }
-          }}
-          value={method}
-        >
-          <SelectTrigger className="w-full sm:w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="cash">Cash</SelectItem>
-            <SelectItem value="transfer">Transfer</SelectItem>
-            <SelectItem value="card">Card</SelectItem>
-          </SelectContent>
-        </Select>
-        <Input
-          className="flex-1"
-          max={minorToMajor(balanceDue, currencyCode)}
-          min={0}
-          onChange={(e) => setAmountMajor(Number(e.target.value) || 0)}
-          step="0.01"
-          type="number"
-          value={formatMajorInputValue(amountMajor, currencyCode)}
+            type="submit"
+          >
+            Pay
+          </Button>
+        </div>
+      </form>
+      {showPayFromCredit && entityId ? (
+        <PayFromCreditForm
+          balanceDue={balanceDue}
+          creditBalance={creditBalance}
+          currencyCode={currencyCode}
+          docId={docId}
+          entityId={entityId}
         />
-        <Button
-          disabled={
-            recordPayment.isPending ||
-            amountMajor <= 0 ||
-            majorToMinor(amountMajor, currencyCode) > balanceDue
-          }
-          type="submit"
-        >
-          Pay
-        </Button>
-      </div>
-    </form>
+      ) : null}
+    </div>
   );
 }
 
@@ -680,6 +702,8 @@ function DocumentPage() {
                 balanceDue={doc.balanceDue}
                 currencyCode={doc.currencyCode}
                 docId={id}
+                docType={doc.type}
+                entityId={doc.entityId}
               />
             )}
 

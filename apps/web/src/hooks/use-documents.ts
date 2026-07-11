@@ -478,6 +478,7 @@ export const useRedeemCredit = () => {
       queryClient.invalidateQueries({
         queryKey: getDocumentKey(variables.documentId),
       });
+      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["entities"] });
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
@@ -508,6 +509,7 @@ export const useRedeemCreditByReference = () => {
       queryClient.invalidateQueries({
         queryKey: getDocumentKey(variables.documentId),
       });
+      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["entities"] });
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
       queryClient.invalidateQueries({ queryKey: ["activity"] });

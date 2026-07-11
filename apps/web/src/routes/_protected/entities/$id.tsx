@@ -34,6 +34,7 @@ import {
   type EntityFormValues,
 } from "@/components/entities/entity-form";
 import { useSetPageContext } from "@/components/providers/page-context";
+import { WalletCard } from "@/components/wallet/wallet-card";
 import { useDocuments } from "@/hooks/use-documents";
 import {
   useArchiveEntity,
@@ -254,7 +255,10 @@ function EntityPage() {
                       {doc.status}
                     </Badge>
                     <span className="shrink-0 font-medium tabular-nums">
-                      {formatMoneyMinor(doc.total, doc.currencyCode)}
+                      {formatMoneyMinor(
+                        doc.status === "finalized" ? doc.balanceDue : doc.total,
+                        doc.currencyCode
+                      )}
                     </span>
                   </Link>
                 ))}
@@ -262,6 +266,12 @@ function EntityPage() {
             )}
           </div>
         </div>
+
+        <WalletCard
+          creditBalance={entity.creditBalance}
+          entityId={entityId}
+          isArchived={isArchived}
+        />
       </div>
 
       <AlertDialog
