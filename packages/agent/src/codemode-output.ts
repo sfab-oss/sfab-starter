@@ -6,7 +6,13 @@ export function codemodeFailureMessage(result: unknown): string | undefined {
   if (!result || typeof result !== "object" || Array.isArray(result)) {
     return;
   }
-  const error = (result as Record<string, unknown>).error;
+  const record = result as Record<string, unknown>;
+  // ToolResult soft failures (`{ ok: false, error }`) are intentional — not
+  // outer codemode execution errors.
+  if ("ok" in record && typeof record.ok === "boolean") {
+    return;
+  }
+  const error = record.error;
   if (typeof error === "string" && error.trim().length > 0) {
     return error;
   }

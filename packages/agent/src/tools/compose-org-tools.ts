@@ -8,17 +8,12 @@ import {
 import { createDisplayTools } from "./display";
 import { createTransactionReadTools } from "./transaction";
 
-/** Codemode-bound ERP tools. Approval classes: `docs/guides/agent-tool-approvals.md`. */
+/** Codemode-bound ERP tools. Authoring guide: `docs/guides/writing-agent-tools.md`. */
 export const getOrgAgentTools = (ctx: AgentToolsContext): ToolSet => ({
   ...createProductTools(ctx),
   ...createDocumentTools(ctx),
   ...createTransactionReadTools(ctx),
 });
-
-/** @deprecated Gated writes live in {@link getOrgAgentTools}. */
-export const getOrgAgentApprovalTools = (
-  _ctx: AgentToolsContext
-): ToolSet => ({});
 
 export const getOrgAgentDisplayTools = (ctx: AgentToolsContext): ToolSet =>
   createDisplayTools(ctx);

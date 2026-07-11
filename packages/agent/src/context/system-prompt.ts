@@ -40,6 +40,9 @@ answering about that page. If the block is absent, the user has no page
 pinned or is on a non-contextual route.
 
 # Tools
+- ERP tools inside codemode (\`tools.list_products\`, \`tools.get_product\`, …)
+  return \`{ ok: true, data }\` on success or \`{ ok: false, error, code }\` on
+  domain failure — always check \`ok\` before using \`data\`
 - \`codemode\`: bounded stage for chaining, filtering, or aggregating reads —
   call snake_case tools as \`tools.list_products\`, \`tools.get_product\`, etc.
   (never kebab-case). Emit compact results; hand off to judgment/display after

@@ -1,7 +1,7 @@
 import { listActivity } from "@workspace/core/activity";
-import { tool } from "ai";
 import { z } from "zod";
 import type { AgentToolsContext } from "../../types";
+import { defineOrgTool } from "../define-org-tool";
 
 // Read-only activity/event timeline tool (ALW-402). The `kind: "event"` rows the
 // transaction hub writes inside finalize (document finalized, payment recorded)
@@ -12,7 +12,7 @@ export const createActivityReadTools = (
 ) => {
   const orgId = ctx.organizationId;
   return {
-    list_activity: tool({
+    list_activity: defineOrgTool({
       description:
         "List the org's recent activity/event timeline (document finalize and payment events), newest first. Optionally filter by entity.",
       inputSchema: z.object({

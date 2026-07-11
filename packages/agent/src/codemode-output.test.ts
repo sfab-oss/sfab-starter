@@ -27,6 +27,16 @@ describe("codemodeFailureMessage", () => {
     expect(codemodeFailureMessage({ error: "   " })).toBeUndefined();
   });
 
+  it("ignores ToolResult-shaped soft failures", () => {
+    expect(
+      codemodeFailureMessage({
+        ok: false,
+        error: "Product not found: prod_missing",
+        code: "not_found",
+      })
+    ).toBeUndefined();
+  });
+
   it("does not treat arbitrary values as failures", () => {
     expect(codemodeFailureMessage(null)).toBeUndefined();
     expect(codemodeFailureMessage("failed")).toBeUndefined();
@@ -49,6 +59,16 @@ describe("codemodeDisplayStatus", () => {
       codemodeDisplayStatus("completed", {
         id: "prod_abc",
         name: "Widget",
+      })
+    ).toBe("completed");
+  });
+
+  it("keeps completed when the result is a ToolResult soft failure", () => {
+    expect(
+      codemodeDisplayStatus("completed", {
+        ok: false,
+        error: "Product not found",
+        code: "not_found",
       })
     ).toBe("completed");
   });
@@ -81,6 +101,19 @@ describe("codemodeCompletedAsErrorIfFailed", () => {
       codemodeCompletedAsErrorIfFailed({
         status: "completed",
         result: { id: "prod_abc" },
+      })
+    ).toBeNull();
+  });
+
+  it("returns null for ToolResult soft failure inside completed output", () => {
+    expect(
+      codemodeCompletedAsErrorIfFailed({
+        status: "completed",
+        result: {
+          ok: false,
+          error: "Product not found",
+          code: "not_found",
+        },
       })
     ).toBeNull();
   });
