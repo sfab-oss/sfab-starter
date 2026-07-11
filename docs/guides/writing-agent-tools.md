@@ -1,10 +1,14 @@
 # Writing org-agent ERP tools
 
 How to author, compose, and test the snake_case `tools.*` surface the org agent
-exposes inside **codemode**. Covers layout, context vs parameters, the
-`ToolResult` fail contract, approval gates, sandbox field reach, and common
-gotchas. Supersedes the narrower approval-only guide (see stub at
+exposes inside **codemode**. Covers layout, context vs parameters, tool *design*
+principles, the `ToolResult` fail contract, approval gates, sandbox field reach,
+and common gotchas. Supersedes the narrower approval-only guide (see stub at
 `agent-tool-approvals.md`).
+
+Design principles below are adapted from Korra’s `platform-tool-design`
+methodology (agent-facing contract, composability, shape matching); the
+implementation details are specific to this starter + Think/codemode stack.
 
 ## Layout: catalog, transaction, display
 
@@ -42,6 +46,48 @@ own return shapes — do not block ERP work on wrapping them.
 Reads take `Pick<AgentToolsContext, "organizationId">` so sub-agents work
 without an acting user. Writes need full context for RBAC.
 
+## Design before you wrap
+
+Wrapping every `@workspace/core` function one-to-one is almost always wrong:
+too many tools, the wrong granularity, and “tools” that are just two other
+tools glued together.
+
+**Composability rule:** a tool earns its place only if it grants a capability
+the agent **cannot already compose** — an atomic write, an irreducible guard /
+transaction, or (later) an external/async job. If the candidate is “read X,
+then write Y” with nothing lost in between, **don’t build it**; teach the
+sequence in a skill or system-prompt note instead.
+
+Name the cut:
+
+| Cut | Meaning | Example |
+|-----|---------|---------|
+| **Composability drop** | Agent can compose it → drop permanently | Hypothetical “create product then list” mega-tool |
+| **Scope defer** | Irreducible but not needed for the current goal → defer explicitly | Money/doc mutations (UI-only today) |
+
+**Bundle** only when a sequence is obligatory, has **no intermediate decision**,
+and intermediate ids are pure plumbing. Prefer separate tools when the model
+must choose or inspect between steps.
+
+Ground every cut in the **real** core function (signature, cascades, sync vs
+async) — not assumptions.
+
+## Match shape to the step
+
+Not every domain is CRUD. Pick the shape before naming tools:
+
+| Shape | When | Starter pattern |
+|-------|------|-----------------|
+| **CRUD + lifecycle** | Draft you author, then lock/delete | `list`/`get`/`create`/`update` + gated `delete_*` |
+| **Pure persist** | Config with no cascade | upsert-style write + reads |
+| **Approval-gated destructive** | Irreversible / hard to undo | `needsApproval: true` (codemode pause) + RBAC in `execute` |
+| **No agent tool** | Money/doc mutations, or pure UI flows | Hand off to the real screen |
+| **Pipeline trigger + poll** | Async external work (future) | `trigger_*` + `get_*_status` + `get_*` — don’t lead with the override upsert |
+
+**Finalize / delete as their own verbs.** Don’t bury a one-way transition in a
+boolean on a generic `update` (e.g. `update(..., deleted: true)`). We already
+treat `delete_product` as a separate approval-gated tool for that reason.
+
 ## Result contract + `asToolResult`
 
 ERP tools return a discriminated union — never throw for expected domain misses:
@@ -76,6 +122,52 @@ optional `requireData`, and `toModelOutput` (`error-text` on fail, `json` on
 success).
 
 The system prompt tells the model to check `ok` before using `data`.
+
+**Errors are an interface:** the `error` string is what the model reads to
+self-correct. Prefer actionable text with a recovery hint (“Product not found:
+no match for id, name, or sku …”; “ambiguous product ref: N matches …”) over
+generic “failed”. Surface meaningful `DomainError` messages; don’t flatten them.
+
+## Agent-facing contract
+
+At runtime the model sees **name, description, params, output, and `error`** —
+not your composability ledger. Design that contract deliberately.
+
+### Naming
+
+- **snake_case**, `verb_object` / `verb_domain_object`
+  (`list_products`, `get_credit_balance`, `delete_product`).
+- Consistent domain prefixes so related tools cluster for selection.
+- Match sandbox identifiers (no reliance on hyphen→underscore sanitization).
+
+### Descriptions (write them for the model)
+
+In 1–3 sentences cover: **what it does, when to use it, what it returns, what
+to do next.** Include what types alone don’t say:
+
+- **Units / formats** — money is integer **minor units**; dates ISO if relevant.
+- **Chaining hint** — “returns the new product `id`; pass it to `get_product`
+  or `update_product`.”
+- **Preconditions** — “only works on an existing product; ambiguous name →
+  `conflict`.”
+- **Destructiveness** — say so for gated tools (“Requires explicit user
+  approval”; destructive delete).
+
+### Params
+
+- One-line `.describe()` on non-obvious fields; **enums** over free strings when
+  the set is closed.
+- **Explicit ids** — no hidden “current product”; pair with `list_*` / `get_*`
+  (and ref resolution where we intentionally allow name/SKU).
+- Only ask for fields that change (unless the service is full-replace — then say
+  so).
+
+### Outputs
+
+- **Lean lists** — enough to *choose* (id, name, sku, …) with limits/filters as
+  needed; **fat gets** — enough to *act*.
+- Return **chainable ids** from every create/update.
+- Same units in as out so values round-trip without conversion.
 
 ## `needsApproval` ↔ codemode pause / approve
 
@@ -120,7 +212,11 @@ Author snake_case tool names so sandbox identifiers match without rename.
   stay UI-gated.
 - **`assertCan` on every write** — approval does not grant permission.
 - **Product refs:** `update_product` / `delete_product` accept id, exact name, or
-  SKU via `resolveProductRef`; ambiguous refs → `conflict`.
+  SKU via `resolveProductRef`; ambiguous refs → `conflict` (an **ask-point**:
+  don’t silently pick one match).
+- **Verify after write:** a successful `{ ok: true }` means the mutation landed;
+  still re-read (or rely on UI invalidation) before telling the user “done” if
+  downstream views can lag.
 - **Codemode outer status:** intentional `{ ok: false }` from a tool must **not**
   rewrite completed codemode to `status: "error"` — only legacy throw-shaped
   `{ error: string }` without `ok` triggers that path (`codemode-output.ts`).
@@ -150,6 +246,20 @@ Author snake_case tool names so sandbox identifiers match without rename.
 3. Compose into `getOrgAgentTools` only — not as a top-level sibling of
    codemode.
 4. Extend `tool-approvals.workerd.test.ts` if you add a new gated tool.
+
+## Designing a new domain (optional grill)
+
+When adding a **whole new domain** (not a single CRUD tool), don’t dump a full
+toolset in one shot:
+
+1. Read the real core functions first (`file:line`).
+2. State the **shape** of the step (table above).
+3. Ask **one** decision with a recommendation (which tools / bundle vs compose /
+   defer), then wait.
+4. Record a ledger: step → tools → composability drop vs scope defer.
+5. Next step.
+
+For day-to-day “add `get_foo`,” skip the grill and follow **Adding a new tool**.
 
 ## Tests
 
