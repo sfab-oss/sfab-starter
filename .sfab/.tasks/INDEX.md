@@ -27,18 +27,15 @@ overwritten by the next sync.
 
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
-## review (1)
-
-- [`ALW-530`](./ALW-530.md) — Wide-dialog create + detail-page edit for product and entity forms
-
 ## needs-input (1)
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 
-## merged (52)
+## merged (53)
 
 - [`ALW-533`](./ALW-533.md) — Migrate chat UI off AI Elements onto shadcn
 - [`ALW-531`](./ALW-531.md) — Document create + line editor + payment wide-dialog forms
+- [`ALW-530`](./ALW-530.md) — Wide-dialog create + detail-page edit for product and entity forms
 - [`ALW-527`](./ALW-527.md) — Replace deprecated createServerFn().inputValidator() with .validator()
 - [`ALW-526`](./ALW-526.md) — Comment hygiene: docs + REMOVE-only scrub
 - [`ALW-524`](./ALW-524.md) — Org-agent tools: ToolResult fail contract + authoring guide
