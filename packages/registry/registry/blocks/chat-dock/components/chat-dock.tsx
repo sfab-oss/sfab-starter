@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  Conversation,
-  ConversationContent,
-  ConversationScrollButton,
-} from "@workspace/ui/components/ai-elements/conversation";
-import type { PromptInputMessage } from "@workspace/ui/components/ai-elements/prompt-input";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Drawer,
@@ -21,6 +15,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/shadcn/empty";
+import {
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerProvider,
+  MessageScrollerViewport,
+} from "@workspace/ui/components/shadcn/message-scroller";
 import {
   Popover,
   PopoverContent,
@@ -47,6 +56,7 @@ import {
   FolderTreeIcon,
   HistoryIcon,
   MaximizeIcon,
+  MessageCircleDashedIcon,
   MessagesSquareIcon,
   MinimizeIcon,
   MinusIcon,
@@ -62,6 +72,7 @@ import { useChatSidePanel } from "../hooks/use-chat-side-panel";
 import type { GalleryChatMessage } from "../lib/mock-chat-messages";
 import type { MockChat } from "../lib/mock-chats";
 import { ChatHistoryPanel } from "./chat-history-panel";
+import type { ChatDockPromptMessage } from "./chat-input";
 import { GalleryChatInput } from "./chat-input";
 import { ChatMessageRow } from "./chat-message-parts";
 import { ChatSidePanel } from "./chat-side-panel";
@@ -257,40 +268,53 @@ function DockConversation({
   messages: GalleryChatMessage[];
   status: ChatStatus;
   streamingMessageId: string | null;
-  onSubmit: (message: PromptInputMessage) => void | Promise<void>;
+  onSubmit: (message: ChatDockPromptMessage) => void | Promise<void>;
 }) {
   return (
     <>
-      <Conversation className="min-h-0 flex-1">
-        <ConversationContent className="mx-auto w-full max-w-3xl gap-6">
-          {messages.length === 0 ? (
-            <EmptyConversation />
-          ) : (
-            messages.map((message) => (
-              <ChatMessageRow
-                isStreaming={streamingMessageId === message.id}
-                key={message.id}
-                message={message}
-              />
-            ))
-          )}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
+      <MessageScrollerProvider autoScroll>
+        <MessageScroller className="min-h-0 flex-1">
+          <MessageScrollerViewport>
+            <MessageScrollerContent className="mx-auto w-full max-w-3xl gap-6 p-4">
+              {messages.length === 0 ? (
+                <EmptyConversation />
+              ) : (
+                messages.map((message) => (
+                  <MessageScrollerItem
+                    key={message.id}
+                    messageId={message.id}
+                    scrollAnchor={message.role === "user"}
+                  >
+                    <ChatMessageRow
+                      isStreaming={streamingMessageId === message.id}
+                      message={message}
+                    />
+                  </MessageScrollerItem>
+                ))
+              )}
+            </MessageScrollerContent>
+          </MessageScrollerViewport>
+          <MessageScrollerButton />
+        </MessageScroller>
+      </MessageScrollerProvider>
       <GalleryChatInput onSubmit={onSubmit} status={status} />
     </>
   );
 }
 function EmptyConversation() {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 py-10 text-center">
-      <SparklesIcon className="size-6 text-muted-foreground" />
-      <p className="font-medium text-sm">How can I help?</p>
-      <p className="max-w-xs text-muted-foreground text-xs">
-        Ask about balances, inventory, or documents — I can pull data and draft
-        actions.
-      </p>
-    </div>
+    <Empty className="h-full border-0">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <MessageCircleDashedIcon />
+        </EmptyMedia>
+        <EmptyTitle>How can I help?</EmptyTitle>
+        <EmptyDescription>
+          Ask about balances, inventory, or documents — I can pull data and
+          draft actions.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   );
 }
 function PanelMenu({ chat, dock }: PanelChromeProps) {

@@ -1,6 +1,5 @@
 "use client";
 
-import { MessageResponse } from "@workspace/ui/components/ai-elements/message";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -10,7 +9,27 @@ import {
   Loader2Icon,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Streamdown } from "streamdown";
 import { useOrgMemory } from "@/hooks/use-org-memory";
+
+function MarkdownBody({
+  children,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) {
+  return (
+    <Streamdown
+      className={cn(
+        "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        className
+      )}
+    >
+      {children}
+    </Streamdown>
+  );
+}
 
 const COLLAPSED_MAX_HEIGHT = "8rem";
 
@@ -100,7 +119,7 @@ function MemoryBody({
     <>
       {variant === "dialog" ? (
         <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-4 py-3">
-          <MessageResponse>{content}</MessageResponse>
+          <MarkdownBody>{content}</MarkdownBody>
         </div>
       ) : (
         <CollapsibleMemoryContent content={content} />
@@ -140,7 +159,7 @@ function CollapsibleMemoryContent({ content }: { content: string }) {
     return (
       <>
         <div className="scrollbar-thin max-h-96 overflow-y-auto px-4 py-3">
-          <MessageResponse>{content}</MessageResponse>
+          <MarkdownBody>{content}</MarkdownBody>
         </div>
         <ToggleButton expanded onClick={() => setExpanded(false)} />
       </>
@@ -155,7 +174,7 @@ function CollapsibleMemoryContent({ content }: { content: string }) {
           ref={collapsedRef}
           style={{ maxHeight: COLLAPSED_MAX_HEIGHT }}
         >
-          <MessageResponse>{content}</MessageResponse>
+          <MarkdownBody>{content}</MarkdownBody>
         </div>
         {canExpand ? (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card to-transparent" />

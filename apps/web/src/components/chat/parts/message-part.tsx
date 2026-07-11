@@ -1,5 +1,4 @@
 import type { AIDataPart } from "@workspace/contract/ai";
-import { MessageResponse } from "@workspace/ui/components/ai-elements/message";
 import {
   Reasoning,
   ReasoningContent,
@@ -15,11 +14,31 @@ import {
   type UITools,
 } from "ai";
 import { CheckIcon, CircleIcon } from "lucide-react";
+import { Streamdown } from "streamdown";
 import { DefaultTool } from "@/components/chat/tools/default-tool";
 import {
   getDisplayToolRenderer,
   getLiveToolRenderer,
 } from "@/components/chat/tools/tool-registry";
+
+function MarkdownBody({
+  children,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) {
+  return (
+    <Streamdown
+      className={cn(
+        "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        className
+      )}
+    >
+      {children}
+    </Streamdown>
+  );
+}
 
 export function MessagePart({
   part,
@@ -41,7 +60,7 @@ export function MessagePart({
       return (
         <Bubble align="end" variant="secondary">
           <BubbleContent>
-            <MessageResponse className="text-base">{part.text}</MessageResponse>
+            <MarkdownBody className="text-base">{part.text}</MarkdownBody>
           </BubbleContent>
         </Bubble>
       );
@@ -49,7 +68,7 @@ export function MessagePart({
     return (
       <Bubble variant="ghost">
         <BubbleContent className="w-full max-w-full">
-          <MessageResponse className="text-base">{part.text}</MessageResponse>
+          <MarkdownBody className="text-base">{part.text}</MarkdownBody>
         </BubbleContent>
       </Bubble>
     );

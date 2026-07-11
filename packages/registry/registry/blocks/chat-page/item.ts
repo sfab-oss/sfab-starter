@@ -7,7 +7,18 @@ const def: RegistryItemDef = {
     title: "Chat page",
     description:
       "Full-screen assistant chat inside the app shell — conversation, prompt input, and mock replies.",
-    registryDependencies: ["button", "sidebar", "input"],
+    registryDependencies: [
+      "bubble",
+      "button",
+      "dropdown-menu",
+      "empty",
+      "input-group",
+      "message",
+      "message-scroller",
+      "resizable",
+      "sidebar",
+    ],
+    dependencies: ["streamdown"],
     meta: { sfabKind: "block", iframeHeight: 900 },
     files: [
       {

@@ -8,15 +8,22 @@ const def: RegistryItemDef = {
     description:
       "Bottom-docked assistant widget — a launcher that opens a compact chat window and expands into a large view with the workspace file viewer.",
     registryDependencies: [
+      "badge",
+      "bubble",
       "button",
       "collapsible",
       "drawer",
       "dropdown-menu",
+      "empty",
+      "input-group",
+      "message",
+      "message-scroller",
       "popover",
       "resizable",
       "sheet",
       "sidebar",
     ],
+    dependencies: ["streamdown"],
     meta: { sfabKind: "block", iframeHeight: 900 },
     files: [
       {

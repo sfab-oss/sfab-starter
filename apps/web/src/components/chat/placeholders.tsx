@@ -1,8 +1,7 @@
 import {
-  PromptInputBody,
-  PromptInputProvider,
-  PromptInputTextarea,
-} from "@workspace/ui/components/ai-elements/prompt-input";
+  InputGroup,
+  InputGroupTextarea,
+} from "@workspace/ui/components/shadcn/input-group";
 import { AlertCircle } from "lucide-react";
 
 export function ChatHistoryError() {
@@ -23,11 +22,13 @@ export function ChatInputPlaceholder({ note }: { note?: string }) {
         {note ? (
           <p className="mb-1.5 px-1 text-muted-foreground text-xs">{note}</p>
         ) : null}
-        <PromptInputProvider>
-          <PromptInputBody>
-            <PromptInputTextarea disabled placeholder="Type a message..." />
-          </PromptInputBody>
-        </PromptInputProvider>
+        <InputGroup className="rounded-2xl">
+          <InputGroupTextarea
+            className="max-h-60 overflow-y-auto"
+            disabled
+            placeholder="Type a message..."
+          />
+        </InputGroup>
       </div>
     </div>
   );

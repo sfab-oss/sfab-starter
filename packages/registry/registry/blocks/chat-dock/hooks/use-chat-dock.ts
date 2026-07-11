@@ -1,8 +1,8 @@
 "use client";
 
-import type { PromptInputMessage } from "@workspace/ui/components/ai-elements/prompt-input";
 import { type ChatStatus, isTextUIPart } from "ai";
 import { useCallback, useMemo, useState } from "react";
+import type { ChatDockPromptMessage } from "../components/chat-input";
 import {
   createMockAssistantReply,
   type GalleryChatMessage,
@@ -133,17 +133,19 @@ export function useChatDock() {
   );
 
   const sendMessage = useCallback(
-    async (id: string, message: PromptInputMessage) => {
+    async (id: string, message: ChatDockPromptMessage) => {
       const text = message.text.trim();
       const hasAttachments = Boolean(message.files?.length);
       if (!(text || hasAttachments)) {
         return;
       }
 
+      const body = text || (hasAttachments ? "Sent with attachments" : "");
+
       const userMessage: GalleryChatMessage = {
         id: crypto.randomUUID(),
         role: "user",
-        parts: [{ type: "text", text: text || "Sent with attachments" }],
+        parts: body ? [{ type: "text", text: body }] : [],
       };
 
       // Promote an unsent draft into a real chat on its first message: it gains

@@ -250,6 +250,9 @@ importers:
       react-hook-form:
         specifier: ^7.81.0
         version: 7.81.0(react@19.2.7)
+      streamdown:
+        specifier: ^2.5.0
+        version: 2.5.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       tailwindcss:
         specifier: ^4.3.2
         version: 4.3.2
@@ -562,6 +565,9 @@ importers:
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      streamdown:
+        specifier: ^2.5.0
+        version: 2.5.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       zod:
         specifier: 4.3.5
         version: 4.3.5
@@ -730,9 +736,6 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
-      use-stick-to-bottom:
-        specifier: ^1.1.6
-        version: 1.1.6(react@19.2.7)
       vaul:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -9567,11 +9570,6 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
-
-  use-stick-to-bottom@1.1.6:
-    resolution: {integrity: sha512-z3Up8jYQGTkUCsGBnwg6/wj70KgXoW5Kz1AAc1j8MtQuYMBo6ZsdhrIXoegxa7gaMMilgQYyTohTrt3p94jHog==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   use-sync-external-store@1.6.0:
     resolution: {integrity: sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==}
@@ -19760,10 +19758,6 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.2.17
-
-  use-stick-to-bottom@1.1.6(react@19.2.7):
-    dependencies:
-      react: 19.2.7
 
   use-sync-external-store@1.6.0(react@19.2.7):
     dependencies:
