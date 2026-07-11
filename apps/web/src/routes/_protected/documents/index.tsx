@@ -437,7 +437,7 @@ function DocumentsPage() {
               {NEW_DOCUMENT_TYPES.map((type) => (
                 <DropdownMenuItem
                   key={type}
-                  onSelect={() => {
+                  onClick={() => {
                     setCreateType(type);
                   }}
                 >
