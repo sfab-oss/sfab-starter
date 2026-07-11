@@ -1,0 +1,155 @@
+# Deploy contract (Option Y / ADR-0015): this workflow is the unit the SFAB
+# platform observes via GitHub `workflow_run` events. Keep `name:` stable —
+# that string (not the filename alone) is what `workflow_run.workflows` matches.
+# See docs/architecture/deploy-contract.md.
+name: Deploy
+
+# Gated on green CI: CI runs on push to main; we start only after that run
+# succeeds. Preferring `workflow_run` over "push + re-check status" keeps one
+# deploy run per green main SHA and leaves this workflow's own
+# queued/in_progress/completed events as the observation signal.
+#
+# `branches: [main]` is evaluated against the triggering CI run's head branch,
+# so PR-branch CI completions never create a Deploy run. The job `if` below is
+# belt-and-suspenders (push + success). When the gate fails, the sole job is
+# skipped and the Deploy run concludes `skipped` — not success (verified via
+# GitHub Actions API; see deploy-contract.md).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+# One deploy at a time. Overlapping merges QUEUE — never cancel a deploy mid-flight.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: .
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: pnpm --filter web build
+
+      # Optional: narrow deploy tokens may not list /accounts. When the platform
+      # writes CLOUDFLARE_ACCOUNT_ID alongside the token, export it; when absent
+      # or empty, leave unset so wrangler resolves the account from the token.
+      - name: Optional Cloudflare account id
+        env:
+          RAW_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        working-directory: .
+        run: |
+          if [ -n "$RAW_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_ACCOUNT_ID=$RAW_ACCOUNT_ID" >> "$GITHUB_ENV"
+            echo "CLOUDFLARE_ACCOUNT_ID present — wrangler will use it"
+          else
+            echo "CLOUDFLARE_ACCOUNT_ID absent/empty — wrangler resolves account from the deploy token"
+          fi
+
+      # Migrations before deploy: additive-only (ALW-111), so old Worker code on
+      # a new schema is safe; new code on an old schema is not.
+      # Address D1 by binding name `DB` (stable across fabrication); the
+      # provisioner rewrites `database_name` per project.
+      - name: Apply D1 migrations
+        run: pnpm exec wrangler d1 migrations apply DB --remote
+
+      # --no-x-provision: missing D1/R2/KV must fail loudly — CI never provisions
+      # (resource IDs are committed in wrangler.jsonc by the platform provisioner).
+      - name: Deploy Worker
+        run: pnpm exec wrangler deploy --no-x-provision
+
+      # Secrets after deploy: `wrangler secret` 404s before the script exists;
+      # secrets persist across deploys — this is first-deploy bootstrap + drift
+      # correction. Names match apps/web/.dev.vars.example 1:1 with Actions
+      # secrets (no prefix). Absent/empty Actions secrets are skipped, not failed.
+      - name: Sync Worker secrets
+        env:
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          MOCK_SEND_EMAIL: ${{ secrets.MOCK_SEND_EMAIL }}
+          ORG_CHAT_PROVIDER: ${{ secrets.ORG_CHAT_PROVIDER }}
+          ORG_CHAT_MODEL: ${{ secrets.ORG_CHAT_MODEL }}
+          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          WORKERS_AI_API_TOKEN: ${{ secrets.WORKERS_AI_API_TOKEN }}
+          CF_AIG_GATEWAY_ID: ${{ secrets.CF_AIG_GATEWAY_ID }}
+          CF_AIG_TOKEN: ${{ secrets.CF_AIG_TOKEN }}
+        run: |
+          node --input-type=commonjs <<'NODE'
+          const { writeFileSync, unlinkSync } = require("node:fs");
+          const { spawnSync } = require("node:child_process");
+          const names = [
+            "BETTER_AUTH_SECRET",
+            "BETTER_AUTH_URL",
+            "RESEND_API_KEY",
+            "EMAIL_SENDER",
+            "MOCK_SEND_EMAIL",
+            "ORG_CHAT_PROVIDER",
+            "ORG_CHAT_MODEL",
+            "AI_GATEWAY_API_KEY",
+            "ZAI_API_KEY",
+            "CF_ACCOUNT_ID",
+            "WORKERS_AI_API_TOKEN",
+            "CF_AIG_GATEWAY_ID",
+            "CF_AIG_TOKEN",
+          ];
+          const payload = {};
+          for (const name of names) {
+            const value = process.env[name];
+            if (value === undefined || value === "") {
+              console.log(`Skipping ${name} (absent or empty in Actions secrets)`);
+              continue;
+            }
+            payload[name] = value;
+          }
+          const synced = Object.keys(payload);
+          if (synced.length === 0) {
+            console.log("No Worker secrets to sync");
+            process.exit(0);
+          }
+          const file = `${process.env.RUNNER_TEMP}/worker-secrets.json`;
+          writeFileSync(file, JSON.stringify(payload));
+          console.log(`Syncing ${synced.length} secret(s): ${synced.join(", ")}`);
+          const result = spawnSync(
+            "pnpm",
+            ["exec", "wrangler", "secret", "bulk", file],
+            { stdio: "inherit", shell: false }
+          );
+          try {
+            unlinkSync(file);
+          } catch {
+            // best-effort cleanup of the temp secrets file
+          }
+          process.exit(result.status ?? 1);
+          NODE
