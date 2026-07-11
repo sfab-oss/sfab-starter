@@ -54,20 +54,17 @@ function ChatInputInner({
   status: ChatStatus;
 }) {
   const [files, setFiles] = useState<ComposerFile[]>([]);
-  const textRef = useRef("");
   const inputRef = useRef<ChatInputHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const textController = {
     get value() {
-      return textRef.current;
+      return inputRef.current?.getText() ?? "";
     },
     setInput: (value: string) => {
-      textRef.current = value;
       inputRef.current?.setText(value);
     },
     clear: () => {
-      textRef.current = "";
       inputRef.current?.clear();
     },
   };
@@ -119,9 +116,6 @@ function ChatInputInner({
             trigger: "@",
             items: MOCK_MEMBERS,
           },
-        }}
-        onParsedChange={(parsed) => {
-          textRef.current = parsed.text;
         }}
         onSubmit={(parsed, { clear, focus }) => {
           const trimmed = parsed.text.trim();

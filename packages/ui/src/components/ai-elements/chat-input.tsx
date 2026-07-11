@@ -64,6 +64,7 @@ export type ChatInputParsed<Items extends Record<string, BaseMentionItem>> = {
 export interface ChatInputHandle {
   clear: () => void;
   focus: () => void;
+  getText: () => string;
   setText: (text: string) => void;
   insertText: (text: string) => void;
 }
@@ -409,7 +410,7 @@ type SharedChatInputProps = {
   defaultValue?: string;
   className?: string;
   children: ReactNode;
-  /** Imperative handle (clear/focus/setText/insertText), not the DOM node. */
+  /** Imperative handle (clear/focus/getText/setText/insertText), not the DOM node. */
   ref?: Ref<ChatInputHandle>;
 } & Omit<
   ComponentProps<"div">,
@@ -423,13 +424,11 @@ type ChatInputPropsWithMentions<Items extends Record<string, BaseMentionItem>> =
       parsed: ChatInputParsed<Items>,
       helpers: ChatInputHelpers
     ) => void;
-    onParsedChange?: (parsed: ChatInputParsed<Items>) => void;
   };
 
 type ChatInputPropsWithoutMentions = SharedChatInputProps & {
   mentions?: undefined;
   onSubmit: (parsed: { text: string }, helpers: ChatInputHelpers) => void;
-  onParsedChange?: (parsed: { text: string }) => void;
 };
 
 export function ChatInput<Items extends Record<string, BaseMentionItem>>(
@@ -441,7 +440,6 @@ export function ChatInput(
 export function ChatInput({
   mentions,
   onSubmit,
-  onParsedChange,
   status,
   onStop,
   disabled = false,
@@ -455,18 +453,14 @@ export function ChatInput({
   // Runtime parse is untyped; overloads restore Items at the call site.
   // biome-ignore lint/suspicious/noExplicitAny: overload boundary
   onSubmit: (parsed: any, helpers: ChatInputHelpers) => void;
-  // biome-ignore lint/suspicious/noExplicitAny: overload boundary
-  onParsedChange?: (parsed: any) => void;
 }) {
   const [editor, setEditor] = useState<Editor | null>(null);
   const mentionsRef = useRef(mentions);
   const onSubmitRef = useRef(onSubmit);
-  const onParsedChangeRef = useRef(onParsedChange);
   const selectedItemsRef = useRef<SelectedMentionItems>({});
 
   mentionsRef.current = mentions;
   onSubmitRef.current = onSubmit;
-  onParsedChangeRef.current = onParsedChange;
 
   const parse = useCallback(() => {
     if (!editor) {
@@ -501,6 +495,7 @@ export function ChatInput({
     () => ({
       clear,
       focus,
+      getText: () => parse().text,
       setText: (text) => {
         editor?.commands.setContent(textToDoc(text));
       },
@@ -508,22 +503,8 @@ export function ChatInput({
         editor?.chain().focus().insertContent(text).run();
       },
     }),
-    [clear, editor, focus]
+    [clear, editor, focus, parse]
   );
-
-  useEffect(() => {
-    if (!(editor && onParsedChangeRef.current)) {
-      return;
-    }
-    const handleUpdate = () => {
-      onParsedChangeRef.current?.(parse());
-    };
-    editor.on("update", handleUpdate);
-    handleUpdate();
-    return () => {
-      editor.off("update", handleUpdate);
-    };
-  }, [editor, parse]);
 
   const contextValue = useMemo<ChatInputContextValue>(
     () => ({

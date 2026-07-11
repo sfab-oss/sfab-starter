@@ -67,20 +67,17 @@ function ChatInputInner({
   status: ChatStatus;
 }) {
   const [files, setFiles] = useState<ComposerFile[]>([]);
-  const textRef = useRef("");
   const inputRef = useRef<ChatInputHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const textController = {
     get value() {
-      return textRef.current;
+      return inputRef.current?.getText() ?? "";
     },
     setInput: (value: string) => {
-      textRef.current = value;
       inputRef.current?.setText(value);
     },
     clear: () => {
-      textRef.current = "";
       inputRef.current?.clear();
     },
   };
@@ -151,51 +148,42 @@ function ChatInputInner({
             ),
           },
         }}
-        onParsedChange={(parsed) => {
-          textRef.current = parsed.text;
-        }}
         onSubmit={(parsed, { clear, focus }) => {
           const commands = parsed.command ?? [];
           const members = parsed.member;
-
-          if (commands.some((command) => command.id === "clear")) {
-            onClear?.();
+          const hasCommand = (id: string) =>
+            commands.some((command) => command.id === id);
+          const reset = () => {
             clearFiles();
             clear();
             focus();
+          };
+          const send = (message: ChatDockPromptMessage) => {
+            reset();
+            Promise.resolve(onSubmit(message)).catch(() => undefined);
+          };
+
+          if (hasCommand("clear")) {
+            onClear?.();
+            reset();
             return;
           }
 
-          if (commands.some((command) => command.id === "help")) {
+          if (hasCommand("help")) {
             const helpText = MOCK_COMMANDS.map(
               (command) => `/${command.name} — ${command.description}`
             ).join("\n");
-            clearFiles();
-            clear();
-            focus();
-            Promise.resolve(
-              onSubmit({
-                text: `Help\n${helpText}`,
-                files: [],
-                commands,
-                members,
-              })
-            ).catch(() => undefined);
+            send({ text: `Help\n${helpText}`, files: [], commands, members });
             return;
           }
 
-          if (commands.some((command) => command.id === "summarize")) {
-            clearFiles();
-            clear();
-            focus();
-            Promise.resolve(
-              onSubmit({
-                text: "Summarize this conversation.",
-                files: [],
-                commands,
-                members,
-              })
-            ).catch(() => undefined);
+          if (hasCommand("summarize")) {
+            send({
+              text: "Summarize this conversation.",
+              files: [],
+              commands,
+              members,
+            });
             return;
           }
 
@@ -203,16 +191,12 @@ function ChatInputInner({
           if (!(trimmed || files.length > 0)) {
             return;
           }
-          const payload: ChatDockPromptMessage = {
+          send({
             text: trimmed,
             files: files.map(({ id: _id, ...file }) => file),
             members,
             commands: commands.length > 0 ? commands : undefined,
-          };
-          clearFiles();
-          clear();
-          focus();
-          Promise.resolve(onSubmit(payload)).catch(() => undefined);
+          });
         }}
         ref={inputRef}
         status={status}
