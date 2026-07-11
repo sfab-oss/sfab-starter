@@ -24,6 +24,7 @@ import { ImageUpload } from "./image-upload";
 export type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductFormProps {
+  mode?: "create" | "edit";
   defaultValues?: Partial<ProductFormValues>;
   onSubmit: (data: ProductFormValues) => void;
   isLoading?: boolean;
@@ -31,6 +32,7 @@ interface ProductFormProps {
 }
 
 export function ProductForm({
+  mode = "create",
   defaultValues,
   onSubmit,
   isLoading,
@@ -48,15 +50,20 @@ export function ProductForm({
     },
   });
 
+  const { isDirty } = form.formState;
+  const submitDisabled = Boolean(isLoading) || (mode === "edit" && !isDirty);
+
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
-      <FieldGroup>
+      <FieldGroup className="gap-4">
         <Controller
           control={form.control}
           name="imageUrl"
           render={({ field }) => (
             <Field>
-              <FieldLabel>Product Image</FieldLabel>
+              <FieldLabel className="text-muted-foreground">
+                Product Image
+              </FieldLabel>
               <ImageUpload onChange={field.onChange} value={field.value} />
             </Field>
           )}
@@ -68,7 +75,12 @@ export function ProductForm({
             name="name"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+                <FieldLabel
+                  className="text-muted-foreground"
+                  htmlFor={field.name}
+                >
+                  Name
+                </FieldLabel>
                 <FieldContent>
                   <Input
                     {...field}
@@ -89,7 +101,12 @@ export function ProductForm({
             name="sku"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>SKU</FieldLabel>
+                <FieldLabel
+                  className="text-muted-foreground"
+                  htmlFor={field.name}
+                >
+                  SKU
+                </FieldLabel>
                 <FieldContent>
                   <Input
                     {...field}
@@ -112,7 +129,12 @@ export function ProductForm({
             name="price"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Price</FieldLabel>
+                <FieldLabel
+                  className="text-muted-foreground"
+                  htmlFor={field.name}
+                >
+                  Price
+                </FieldLabel>
                 <FieldContent>
                   <Input
                     {...field}
@@ -138,7 +160,12 @@ export function ProductForm({
             name="minStockLevel"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Low Stock Alert</FieldLabel>
+                <FieldLabel
+                  className="text-muted-foreground"
+                  htmlFor={field.name}
+                >
+                  Low Stock Alert
+                </FieldLabel>
                 <FieldContent>
                   <Input
                     {...field}
@@ -167,7 +194,12 @@ export function ProductForm({
           name="description"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+              <FieldLabel
+                className="text-muted-foreground"
+                htmlFor={field.name}
+              >
+                Description
+              </FieldLabel>
               <FieldContent>
                 <Textarea
                   {...field}
@@ -185,8 +217,8 @@ export function ProductForm({
           )}
         />
 
-        <div className="flex justify-end pt-2">
-          <Button disabled={isLoading} type="submit">
+        <div className="flex justify-end pt-1">
+          <Button disabled={submitDisabled} type="submit">
             {isLoading ? "Saving..." : submitLabel}
           </Button>
         </div>

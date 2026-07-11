@@ -263,6 +263,7 @@ function ProductPage() {
                   imageUrl: product.imageUrl || null,
                 }}
                 isLoading={updateProduct.isPending}
+                mode="edit"
                 onSubmit={handleUpdate}
                 submitLabel="Save Changes"
               />

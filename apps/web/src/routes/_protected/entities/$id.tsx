@@ -181,6 +181,7 @@ function EntityPage() {
                     creditLimit: entity.creditLimit,
                   }}
                   isLoading={updateEntity.isPending}
+                  mode="edit"
                   onSubmit={onSubmit}
                   submitLabel="Save changes"
                 />
