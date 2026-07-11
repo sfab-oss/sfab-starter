@@ -2,7 +2,7 @@ import {
   type BaseMentionItem,
   type MentionConfigs,
   parseEditorContent,
-} from "@workspace/ui/components/ai-elements/chat-input-mentions";
+} from "@workspace/ui/components/ai-elements/chat-input";
 import { describe, expect, it } from "vitest";
 
 type JSONContent = Parameters<typeof parseEditorContent>[0];
