@@ -8,7 +8,8 @@
     "./constants": "./src/constants.ts",
     "./inference": "./src/inference/chat-models.ts",
     "./org": "./src/org/index.ts",
-    "./org/chat": "./src/org/chat/index.ts"
+    "./org/chat": "./src/org/chat/index.ts",
+    "./codemode-output": "./src/codemode-output.ts"
   },
   "scripts": {
     "test": "vitest run",

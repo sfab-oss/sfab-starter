@@ -23,6 +23,7 @@ import {
   type ToolSet,
 } from "ai";
 import { z } from "zod";
+import { codemodeCompletedAsErrorIfFailed } from "../../codemode-output";
 import { AGENT_WRITE_TOOL_NAMES } from "../../constants";
 import { buildOrgContext } from "../../context/assemble";
 import {
@@ -49,6 +50,50 @@ type OrgAgentParent = Pick<
   OrgAgent,
   "readOrgMemory" | "writeOrgMemory" | "touchChat"
 >;
+
+interface CodemodeExecutionLogEntry {
+  state: string;
+  method: string;
+  args?: unknown;
+}
+
+async function codemodeOutputWithAppliedWrites(
+  output: {
+    status?: string;
+    result?: unknown;
+    executionId?: string;
+    appliedWrites?: unknown[];
+  },
+  runtime: {
+    executions: () => Promise<
+      Array<{ id: string; log: CodemodeExecutionLogEntry[] }>
+    >;
+  },
+  writeNames: Set<string>
+): Promise<unknown> {
+  const failed = codemodeCompletedAsErrorIfFailed(output);
+  if (failed) {
+    return failed;
+  }
+  const executionId = output.executionId;
+  if (!executionId) {
+    return output;
+  }
+  const executions = await runtime.executions();
+  const execution = executions.find((row) => row.id === executionId);
+  if (!execution) {
+    return output;
+  }
+  const appliedWrites = execution.log
+    .filter(
+      (entry) => entry.state === "applied" && writeNames.has(entry.method)
+    )
+    .map((entry) => ({
+      method: entry.method,
+      args: entry.args,
+    }));
+  return { ...output, appliedWrites };
+}
 
 export class OrgChat extends Think<Cloudflare.Env> {
   override maxSteps = 50;
@@ -355,27 +400,16 @@ export class OrgChat extends Think<Cloudflare.Env> {
                 typeof output === "object" &&
                 (output as { status?: string }).status === "completed"
               ) {
-                const executionId = (output as { executionId?: string })
-                  .executionId;
-                if (executionId) {
-                  const executions = await runtime.executions();
-                  const execution = executions.find(
-                    (row) => row.id === executionId
-                  );
-                  if (execution) {
-                    const appliedWrites = execution.log
-                      .filter(
-                        (entry) =>
-                          entry.state === "applied" &&
-                          writeNames.has(entry.method)
-                      )
-                      .map((entry) => ({
-                        method: entry.method,
-                        args: entry.args,
-                      }));
-                    return { ...output, appliedWrites };
-                  }
-                }
+                return codemodeOutputWithAppliedWrites(
+                  output as {
+                    status?: string;
+                    result?: unknown;
+                    executionId?: string;
+                    appliedWrites?: unknown[];
+                  },
+                  runtime,
+                  writeNames
+                );
               }
               return output;
             },
