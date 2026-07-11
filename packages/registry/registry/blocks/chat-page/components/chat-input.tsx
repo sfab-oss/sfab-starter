@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  ChatInput,
+  ChatInputEditor,
+  ChatInputMentionButton,
+  ChatInputSubmitButton,
+} from "@workspace/ui/components/ai-elements/chat-input";
 import { ChatVoiceButton } from "@workspace/ui/components/ai-elements/chat-voice-button";
 import {
   ChatToken,
@@ -15,60 +21,21 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
 import {
-  InputGroup,
   InputGroupAddon,
   InputGroupButton,
-  InputGroupTextarea,
 } from "@workspace/ui/components/shadcn/input-group";
 import type { ChatStatus, FileUIPart } from "ai";
-import {
-  ArrowUpIcon,
-  FileIcon,
-  Loader2Icon,
-  PaperclipIcon,
-  PlusIcon,
-} from "lucide-react";
-import {
-  type FormEvent,
-  type KeyboardEvent as ReactKeyboardEvent,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import { FileIcon, PaperclipIcon, PlusIcon } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { MOCK_MEMBERS, type MockMember } from "../lib/mock-members";
 
 export interface GalleryPromptMessage {
   text: string;
   files: FileUIPart[];
+  members?: MockMember[];
 }
 
 type ComposerFile = FileUIPart & { id: string };
-
-function ChatSubmitButton({
-  disabled,
-  status,
-}: {
-  disabled?: boolean;
-  status: ChatStatus;
-}) {
-  const isInFlight = status === "submitted" || status === "streaming";
-  const icon = isInFlight ? (
-    <Loader2Icon className="size-4 animate-spin" />
-  ) : (
-    <ArrowUpIcon className="size-4" />
-  );
-  return (
-    <InputGroupButton
-      aria-label="Send"
-      disabled={disabled || isInFlight}
-      size="icon-sm"
-      type="submit"
-      variant="default"
-    >
-      {icon}
-      <span className="sr-only">Send</span>
-    </InputGroupButton>
-  );
-}
 
 function filePartsFromList(fileList: FileList | File[]): ComposerFile[] {
   return Array.from(fileList).map((file) => ({
@@ -91,13 +58,26 @@ function ChatInputInner({
   placeholder: string;
   status: ChatStatus;
 }) {
-  const [text, setText] = useState("");
   const [files, setFiles] = useState<ComposerFile[]>([]);
+  const [composerKey, setComposerKey] = useState(0);
+  const [seedText, setSeedText] = useState("");
+  const textRef = useRef("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const textController = {
-    value: text,
-    setInput: setText,
-    clear: () => setText(""),
+    get value() {
+      return textRef.current;
+    },
+    setInput: (value: string) => {
+      textRef.current = value;
+      setSeedText(value);
+      setComposerKey((key) => key + 1);
+    },
+    clear: () => {
+      textRef.current = "";
+      setSeedText("");
+      setComposerKey((key) => key + 1);
+    },
   };
 
   const clearFiles = useCallback(() => {
@@ -125,43 +105,8 @@ function ChatInputInner({
     });
   }, []);
 
-  const submit = useCallback(() => {
-    if (disabled) {
-      return;
-    }
-    const trimmed = text.trim();
-    if (!(trimmed || files.length > 0)) {
-      return;
-    }
-    const payload: GalleryPromptMessage = {
-      text: trimmed,
-      files: files.map(({ id: _id, ...file }) => file),
-    };
-    setText("");
-    clearFiles();
-    Promise.resolve(onSubmit(payload)).catch(() => undefined);
-  }, [clearFiles, disabled, files, onSubmit, text]);
-
-  const handleFormSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      submit();
-    },
-    [submit]
-  );
-
-  const handleKeyDown = useCallback(
-    (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        submit();
-      }
-    },
-    [submit]
-  );
-
   return (
-    <form className="w-full" onSubmit={handleFormSubmit}>
+    <div className="w-full">
       <input
         className="hidden"
         multiple
@@ -174,7 +119,37 @@ function ChatInputInner({
         ref={fileInputRef}
         type="file"
       />
-      <InputGroup className="rounded-2xl">
+      <ChatInput
+        className="rounded-2xl"
+        defaultValue={seedText}
+        disabled={disabled}
+        key={composerKey}
+        mentions={{
+          member: {
+            trigger: "@",
+            items: MOCK_MEMBERS,
+          },
+        }}
+        onParsedChange={(parsed) => {
+          textRef.current = parsed.text;
+        }}
+        onSubmit={(parsed, { clear, focus }) => {
+          const trimmed = parsed.text.trim();
+          if (!(trimmed || files.length > 0)) {
+            return;
+          }
+          const payload: GalleryPromptMessage = {
+            text: trimmed,
+            files: files.map(({ id: _id, ...file }) => file),
+            members: parsed.member,
+          };
+          clearFiles();
+          clear();
+          focus();
+          Promise.resolve(onSubmit(payload)).catch(() => undefined);
+        }}
+        status={status}
+      >
         {files.length > 0 ? (
           <InputGroupAddon align="block-start" className="pb-0">
             <ChatTokenGroup>
@@ -199,15 +174,9 @@ function ChatInputInner({
             </ChatTokenGroup>
           </InputGroupAddon>
         ) : null}
-        <InputGroupTextarea
-          className="max-h-60 overflow-y-auto"
-          disabled={disabled}
-          onChange={(event) => setText(event.currentTarget.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          value={text}
-        />
+        <ChatInputEditor placeholder={placeholder} />
         <InputGroupAddon align="block-end" className="pt-1">
+          <ChatInputMentionButton />
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -230,11 +199,11 @@ function ChatInputInner({
           </DropdownMenu>
           <div className="ml-auto flex items-center gap-2">
             <ChatVoiceButton controller={{ textInput: textController }} />
-            <ChatSubmitButton disabled={disabled} status={status} />
+            <ChatInputSubmitButton />
           </div>
         </InputGroupAddon>
-      </InputGroup>
-    </form>
+      </ChatInput>
+    </div>
   );
 }
 

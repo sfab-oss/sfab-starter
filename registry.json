@@ -122,6 +122,11 @@
           "path": "packages/registry/registry/blocks/chat-dock/lib/mock-workspace-tree.ts",
           "type": "registry:lib",
           "target": "src/features/assistant-dock/lib/mock-workspace-tree.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-dock/lib/mock-members.ts",
+          "type": "registry:lib",
+          "target": "src/features/assistant-dock/lib/mock-members.ts"
         }
       ]
     },
@@ -191,6 +196,11 @@
           "path": "packages/registry/registry/blocks/chat-page/lib/mock-workspace-tree.ts",
           "type": "registry:lib",
           "target": "src/features/assistant/lib/mock-workspace-tree.ts"
+        },
+        {
+          "path": "packages/registry/registry/blocks/chat-page/lib/mock-members.ts",
+          "type": "registry:lib",
+          "target": "src/features/assistant/lib/mock-members.ts"
         }
       ]
     },

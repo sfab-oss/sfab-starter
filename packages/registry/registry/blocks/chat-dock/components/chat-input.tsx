@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  ChatInput,
+  ChatInputEditor,
+  ChatInputMentionButton,
+  ChatInputSubmitButton,
+} from "@workspace/ui/components/ai-elements/chat-input";
 import { ChatVoiceButton } from "@workspace/ui/components/ai-elements/chat-voice-button";
 import {
   ChatToken,
@@ -15,60 +21,27 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
 import {
-  InputGroup,
   InputGroupAddon,
   InputGroupButton,
-  InputGroupTextarea,
 } from "@workspace/ui/components/shadcn/input-group";
 import type { ChatStatus, FileUIPart } from "ai";
+import { FileIcon, PaperclipIcon, PlusIcon } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 import {
-  ArrowUpIcon,
-  FileIcon,
-  Loader2Icon,
-  PaperclipIcon,
-  PlusIcon,
-} from "lucide-react";
-import {
-  type FormEvent,
-  type KeyboardEvent as ReactKeyboardEvent,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+  MOCK_COMMANDS,
+  MOCK_MEMBERS,
+  type MockCommand,
+  type MockMember,
+} from "../lib/mock-members";
 
 export interface ChatDockPromptMessage {
   text: string;
   files: FileUIPart[];
+  members?: MockMember[];
+  commands?: MockCommand[];
 }
 
 type ComposerFile = FileUIPart & { id: string };
-
-function ChatSubmitButton({
-  disabled,
-  status,
-}: {
-  disabled?: boolean;
-  status: ChatStatus;
-}) {
-  const isInFlight = status === "submitted" || status === "streaming";
-  const icon = isInFlight ? (
-    <Loader2Icon className="size-4 animate-spin" />
-  ) : (
-    <ArrowUpIcon className="size-4" />
-  );
-  return (
-    <InputGroupButton
-      aria-label="Send"
-      disabled={disabled || isInFlight}
-      size="icon-sm"
-      type="submit"
-      variant="default"
-    >
-      {icon}
-      <span className="sr-only">Send</span>
-    </InputGroupButton>
-  );
-}
 
 function filePartsFromList(fileList: FileList | File[]): ComposerFile[] {
   return Array.from(fileList).map((file) => ({
@@ -82,22 +55,37 @@ function filePartsFromList(fileList: FileList | File[]): ComposerFile[] {
 
 function ChatInputInner({
   disabled,
+  onClear,
   onSubmit,
   placeholder,
   status,
 }: {
   disabled: boolean;
+  onClear?: () => void;
   onSubmit: (message: ChatDockPromptMessage) => void | Promise<void>;
   placeholder: string;
   status: ChatStatus;
 }) {
-  const [text, setText] = useState("");
   const [files, setFiles] = useState<ComposerFile[]>([]);
+  const [composerKey, setComposerKey] = useState(0);
+  const [seedText, setSeedText] = useState("");
+  const textRef = useRef("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const textController = {
-    value: text,
-    setInput: setText,
-    clear: () => setText(""),
+    get value() {
+      return textRef.current;
+    },
+    setInput: (value: string) => {
+      textRef.current = value;
+      setSeedText(value);
+      setComposerKey((key) => key + 1);
+    },
+    clear: () => {
+      textRef.current = "";
+      setSeedText("");
+      setComposerKey((key) => key + 1);
+    },
   };
 
   const clearFiles = useCallback(() => {
@@ -125,43 +113,8 @@ function ChatInputInner({
     });
   }, []);
 
-  const submit = useCallback(() => {
-    if (disabled) {
-      return;
-    }
-    const trimmed = text.trim();
-    if (!(trimmed || files.length > 0)) {
-      return;
-    }
-    const payload: ChatDockPromptMessage = {
-      text: trimmed,
-      files: files.map(({ id: _id, ...file }) => file),
-    };
-    setText("");
-    clearFiles();
-    Promise.resolve(onSubmit(payload)).catch(() => undefined);
-  }, [clearFiles, disabled, files, onSubmit, text]);
-
-  const handleFormSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      submit();
-    },
-    [submit]
-  );
-
-  const handleKeyDown = useCallback(
-    (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        submit();
-      }
-    },
-    [submit]
-  );
-
   return (
-    <form className="w-full" onSubmit={handleFormSubmit}>
+    <div className="w-full">
       <input
         className="hidden"
         multiple
@@ -174,7 +127,103 @@ function ChatInputInner({
         ref={fileInputRef}
         type="file"
       />
-      <InputGroup className="rounded-2xl">
+      <ChatInput
+        className="rounded-2xl"
+        defaultValue={seedText}
+        disabled={disabled}
+        key={composerKey}
+        mentions={{
+          member: {
+            trigger: "@",
+            items: MOCK_MEMBERS,
+          },
+          command: {
+            trigger: "/",
+            items: MOCK_COMMANDS,
+            render: (item, selected) => (
+              <div className="flex min-w-0 flex-col px-2 text-left">
+                <span className="font-medium text-sm">/{item.name}</span>
+                <span
+                  className={
+                    selected
+                      ? "text-accent-foreground/70 text-xs"
+                      : "text-muted-foreground text-xs"
+                  }
+                >
+                  {item.description}
+                </span>
+              </div>
+            ),
+          },
+        }}
+        onParsedChange={(parsed) => {
+          textRef.current = parsed.text;
+        }}
+        onSubmit={(parsed, { clear, focus }) => {
+          const commands = parsed.command ?? [];
+          const members = parsed.member;
+
+          if (commands.some((command) => command.id === "clear")) {
+            console.info("chat-dock command: clear", commands);
+            onClear?.();
+            clearFiles();
+            clear();
+            focus();
+            return;
+          }
+
+          if (commands.some((command) => command.id === "help")) {
+            console.info("chat-dock command: help", commands);
+            const helpText = MOCK_COMMANDS.map(
+              (command) => `/${command.name} — ${command.description}`
+            ).join("\n");
+            clearFiles();
+            clear();
+            focus();
+            Promise.resolve(
+              onSubmit({
+                text: `Help\n${helpText}`,
+                files: [],
+                commands,
+                members,
+              })
+            ).catch(() => undefined);
+            return;
+          }
+
+          if (commands.some((command) => command.id === "summarize")) {
+            console.info("chat-dock command: summarize", commands);
+            clearFiles();
+            clear();
+            focus();
+            Promise.resolve(
+              onSubmit({
+                text: "Summarize this conversation.",
+                files: [],
+                commands,
+                members,
+              })
+            ).catch(() => undefined);
+            return;
+          }
+
+          const trimmed = parsed.text.trim();
+          if (!(trimmed || files.length > 0)) {
+            return;
+          }
+          const payload: ChatDockPromptMessage = {
+            text: trimmed,
+            files: files.map(({ id: _id, ...file }) => file),
+            members,
+            commands: commands.length > 0 ? commands : undefined,
+          };
+          clearFiles();
+          clear();
+          focus();
+          Promise.resolve(onSubmit(payload)).catch(() => undefined);
+        }}
+        status={status}
+      >
         {files.length > 0 ? (
           <InputGroupAddon align="block-start" className="pb-0">
             <ChatTokenGroup>
@@ -199,15 +248,9 @@ function ChatInputInner({
             </ChatTokenGroup>
           </InputGroupAddon>
         ) : null}
-        <InputGroupTextarea
-          className="max-h-60 overflow-y-auto"
-          disabled={disabled}
-          onChange={(event) => setText(event.currentTarget.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          value={text}
-        />
+        <ChatInputEditor placeholder={placeholder} />
         <InputGroupAddon align="block-end" className="pt-1">
+          <ChatInputMentionButton />
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -230,21 +273,23 @@ function ChatInputInner({
           </DropdownMenu>
           <div className="ml-auto flex items-center gap-2">
             <ChatVoiceButton controller={{ textInput: textController }} />
-            <ChatSubmitButton disabled={disabled} status={status} />
+            <ChatInputSubmitButton />
           </div>
         </InputGroupAddon>
-      </InputGroup>
-    </form>
+      </ChatInput>
+    </div>
   );
 }
 
 export function GalleryChatInput({
   disabled = false,
+  onClear,
   onSubmit,
   placeholder = "Ask anything about your organization...",
   status,
 }: {
   disabled?: boolean;
+  onClear?: () => void;
   onSubmit: (message: ChatDockPromptMessage) => void | Promise<void>;
   placeholder?: string;
   status: ChatStatus;
@@ -254,6 +299,7 @@ export function GalleryChatInput({
       <div className="mx-auto w-full p-2 @[500px]:px-4 @[500px]:pb-4 md:max-w-3xl @[500px]:md:pb-6">
         <ChatInputInner
           disabled={disabled}
+          onClear={onClear}
           onSubmit={onSubmit}
           placeholder={placeholder}
           status={status}

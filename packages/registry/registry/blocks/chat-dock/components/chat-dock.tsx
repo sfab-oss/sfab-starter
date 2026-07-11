@@ -263,11 +263,13 @@ function DockConversation({
   messages,
   status,
   streamingMessageId,
+  onClear,
   onSubmit,
 }: {
   messages: GalleryChatMessage[];
   status: ChatStatus;
   streamingMessageId: string | null;
+  onClear?: () => void;
   onSubmit: (message: ChatDockPromptMessage) => void | Promise<void>;
 }) {
   return (
@@ -297,7 +299,7 @@ function DockConversation({
           <MessageScrollerButton />
         </MessageScroller>
       </MessageScrollerProvider>
-      <GalleryChatInput onSubmit={onSubmit} status={status} />
+      <GalleryChatInput onClear={onClear} onSubmit={onSubmit} status={status} />
     </>
   );
 }
@@ -419,6 +421,7 @@ function CompactWindow({ chat, dock }: PanelChromeProps) {
       />
       <DockConversation
         messages={chat.messages}
+        onClear={() => dock.clearConversation(chat.id)}
         onSubmit={(message) => dock.sendMessage(chat.id, message)}
         status={dock.status}
         streamingMessageId={dock.streamingMessageId}
@@ -478,6 +481,7 @@ function BigWindow({ chat, dock }: PanelChromeProps) {
             />
             <DockConversation
               messages={chat.messages}
+              onClear={() => dock.clearConversation(chat.id)}
               onSubmit={(message) => dock.sendMessage(chat.id, message)}
               status={dock.status}
               streamingMessageId={dock.streamingMessageId}
@@ -741,6 +745,7 @@ function MobileChatSheet({ chat, dock }: PanelChromeProps) {
             />
             <DockConversation
               messages={chat.messages}
+              onClear={() => dock.clearConversation(chat.id)}
               onSubmit={(message) => dock.sendMessage(chat.id, message)}
               status={dock.status}
               streamingMessageId={dock.streamingMessageId}
