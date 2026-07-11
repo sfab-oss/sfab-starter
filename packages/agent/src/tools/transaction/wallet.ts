@@ -39,7 +39,6 @@ export const createWalletReadTools = (
           .optional()
           .describe("Max rows to return (default 50)."),
       }),
-      // Cap the rows handed back to the model (context safety); read stays org-scoped.
       execute: async ({ entityId, limit }) =>
         (await listCreditEntries(orgId, { entityId })).slice(0, limit ?? 50),
     }),

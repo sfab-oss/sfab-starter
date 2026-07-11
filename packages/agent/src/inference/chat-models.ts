@@ -84,7 +84,6 @@ export interface OrgChatModelCapabilities {
   /** Bare model id (e.g. `google/gemini-3-flash`) — same as message metadata. */
   entryId: string;
   inputModalities: readonly OrgChatInputModality[];
-  /** True when `image` is in `inputModalities`. */
   supportsImageInput: boolean;
 }
 
@@ -193,7 +192,6 @@ export type OrgChatModelConfig = {
       providerName: string;
       baseURL: string;
       apiKey?: string;
-      /** True when the base URL points at a Cloudflare AI Gateway endpoint. */
       cloudflareGateway: boolean;
       /** Extra request headers (the `cf-aig-authorization` gateway token). */
       headers?: Record<string, string>;
@@ -314,7 +312,6 @@ function selectOffering(
   return def;
 }
 
-/** The Cloudflare AI Gateway base, or null when the gateway is not configured. */
 function cloudflareGatewayBase(env: OrgInferenceEnv): string | null {
   if (env.CF_ACCOUNT_ID && env.CF_AIG_GATEWAY_ID && env.CF_AIG_TOKEN) {
     return `https://gateway.ai.cloudflare.com/v1/${env.CF_ACCOUNT_ID}/${env.CF_AIG_GATEWAY_ID}`;
@@ -345,7 +342,6 @@ function apiKeyFor(
   }
 }
 
-/** Effective base URL for an openai-compatible provider, honouring the CF gateway. */
 function effectiveBaseURL(
   provider: OrgChatProvider,
   build: Extract<ProviderBuild, { kind: "openai-compatible" }>,
@@ -417,7 +413,7 @@ export function resolveOrgChatModelConfig(
   };
 }
 
-/** Build the AI SDK model from a resolved config. Exported for test coverage. */
+/** Exported for test coverage. */
 export function buildOrgChatModel(config: OrgChatModelConfig): LanguageModel {
   let model: LanguageModel;
   if (config.kind === "gateway") {

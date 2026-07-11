@@ -178,7 +178,6 @@ function TreeLoading({ className }: { className?: string }) {
   );
 }
 
-/** Directories first, then files, each alphabetically. */
 function sortEntries(entries: WorkspaceFileInfo[]): WorkspaceFileInfo[] {
   return [...entries].sort((a, b) => {
     const aDir = a.type === "directory";

@@ -23,9 +23,7 @@ import { ChatConnectionContext } from "@/components/chat/window/chat-window";
  * If we ever want to converse *with* a sub-agent directly, this is where a
  * composer would mount — the connection already supports sending.
  */
-const noop = () => {
-  // view-only: no retry/send affordances
-};
+const noop = () => undefined;
 
 function RunConnection({ run }: { run: ActiveSubAgentRun }) {
   const { organizationId } = useChatOrgConnection();

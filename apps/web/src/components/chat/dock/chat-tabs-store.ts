@@ -59,10 +59,8 @@ interface ChatTabsState {
   closeFilesPanel: () => void;
   closeTab: (organizationId: string, tabKey: string) => void;
   focusTab: (organizationId: string, tabKey: string) => void;
-  /** Which view the expanded-window side panel is showing. */
   inspectorTab: InspectorTab;
   isBodyOpen: boolean;
-  /** Whether the expanded-window side panel (files/runs inspector) is open. */
   isFilesPanelOpen: boolean;
   openBody: () => void;
   openFilesPanel: () => void;
