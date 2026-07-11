@@ -6,6 +6,7 @@ import {
   Field,
   FieldError,
   FieldGroup,
+  FieldLabel,
 } from "@workspace/ui/components/shadcn/field";
 import { Input } from "@workspace/ui/components/shadcn/input";
 import {
@@ -34,7 +35,7 @@ import { LineItemRow } from "./line-item-row";
 const LINE_GRID =
   "grid grid-cols-1 gap-2 sm:grid-cols-[1fr_5rem_7rem_5rem_auto] sm:items-center";
 const ADD_GRID =
-  "grid grid-cols-1 gap-2 sm:grid-cols-[8rem_1fr_5rem_7rem_5rem_auto] sm:items-start";
+  "grid grid-cols-1 gap-2 sm:grid-cols-[8rem_1fr_5rem_7rem_5rem_auto] sm:items-end";
 
 interface DraftLineEditorProps {
   docId: string;
@@ -133,25 +134,30 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
           control={form.control}
           name="productId"
           render={({ field }) => (
-            <Select
-              onValueChange={(value) => {
-                if (value != null) {
-                  pickProduct(value);
-                }
-              }}
-              value={field.value || undefined}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Product" />
-              </SelectTrigger>
-              <SelectContent>
-                {(productsResp?.data ?? []).map((product) => (
-                  <SelectItem key={product.id} value={product.id}>
-                    {product.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Field className="gap-1">
+              <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
+                Product
+              </FieldLabel>
+              <Select
+                onValueChange={(value) => {
+                  if (value != null) {
+                    pickProduct(value);
+                  }
+                }}
+                value={field.value || undefined}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Product" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(productsResp?.data ?? []).map((product) => (
+                    <SelectItem key={product.id} value={product.id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
           )}
         />
 
@@ -161,6 +167,9 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
             name="description"
             render={({ field, fieldState }) => (
               <Field className="gap-1" data-invalid={fieldState.invalid}>
+                <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
+                  Description
+                </FieldLabel>
                 <Input
                   {...field}
                   aria-invalid={fieldState.invalid}
@@ -179,6 +188,9 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
             name="quantity"
             render={({ field, fieldState }) => (
               <Field className="gap-1" data-invalid={fieldState.invalid}>
+                <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
+                  Qty
+                </FieldLabel>
                 <Input
                   aria-invalid={fieldState.invalid}
                   aria-label="Quantity"
@@ -199,6 +211,9 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
             name="unitPriceMajor"
             render={({ field, fieldState }) => (
               <Field className="gap-1" data-invalid={fieldState.invalid}>
+                <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
+                  Unit price
+                </FieldLabel>
                 <Input
                   aria-invalid={fieldState.invalid}
                   aria-label="Unit price"
@@ -221,6 +236,9 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
             name="taxPercent"
             render={({ field, fieldState }) => (
               <Field className="gap-1" data-invalid={fieldState.invalid}>
+                <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
+                  Tax %
+                </FieldLabel>
                 <Input
                   aria-invalid={fieldState.invalid}
                   aria-label="Tax percent"
@@ -239,12 +257,9 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
           />
         </FieldGroup>
 
-        <Button
-          aria-label="Add line"
-          disabled={addLineItem.isPending}
-          type="submit"
-        >
+        <Button disabled={addLineItem.isPending} type="submit">
           <Plus className="size-4" />
+          Add
         </Button>
       </form>
     </div>
