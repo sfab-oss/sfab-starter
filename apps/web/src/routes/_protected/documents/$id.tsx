@@ -16,7 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/shadcn/dialog";
-import { Input } from "@workspace/ui/components/shadcn/input";
 import {
   Select,
   SelectContent,
@@ -24,40 +23,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/shadcn/select";
-import {
-  formatMajorInputValue,
-  formatMoneyMinor,
-  majorToMinor,
-  minorToMajor,
-  minorToMajorInput,
-} from "@workspace/ui/lib/money";
+import { formatMoneyMinor } from "@workspace/ui/lib/money";
 import { format } from "date-fns";
-import { Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   bpsToPercent,
   DocumentTypeBadge,
   documentFolioLabel,
   documentTypeLabel,
-  percentToBps,
 } from "@/components/documents/document-type";
+import { DraftLineEditor } from "@/components/documents/draft-line-editor";
 import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
+import { RecordPaymentDialog } from "@/components/documents/record-payment-dialog";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { PayFromCreditForm } from "@/components/wallet/pay-from-credit-form";
 import {
   useAcceptDocument,
   useActivity,
-  useAddLineItem,
   useApplyDisposition,
   useCreateSuccessor,
   useDocument,
   useFinalizeDocument,
-  useRecordPayment,
-  useRemoveLineItem,
-  useUpdateLineItem,
 } from "@/hooks/use-documents";
 import { useEntity } from "@/hooks/use-entities";
-import { useProducts } from "@/hooks/use-products";
 
 export const Route = createFileRoute("/_protected/documents/$id")({
   component: DocumentPage,
@@ -82,338 +70,6 @@ function DocumentEntityLabel({
     );
   }
   return <>{entityName ?? "Walk-in"}</>;
-}
-
-function RecordPaymentForm({
-  docId,
-  docType,
-  entityId,
-  balanceDue,
-  currencyCode,
-}: {
-  docId: string;
-  docType: string;
-  entityId: string | null;
-  balanceDue: number;
-  currencyCode: string;
-}) {
-  const recordPayment = useRecordPayment();
-  const { data: entity } = useEntity(entityId ?? "");
-  const [method, setMethod] = useState("cash");
-  const [amountMajor, setAmountMajor] = useState(
-    minorToMajorInput(balanceDue, currencyCode)
-  );
-
-  const creditBalance = entity?.creditBalance ?? 0;
-  const showPayFromCredit =
-    docType === "invoice" && Boolean(entityId) && creditBalance > 0;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const amount = majorToMinor(amountMajor, currencyCode);
-    if (amount <= 0 || amount > balanceDue) {
-      return;
-    }
-    await recordPayment.mutateAsync({
-      input: {
-        amount,
-        method,
-        allocations: [{ documentId: docId, amount }],
-      },
-    });
-  };
-
-  return (
-    <div className="space-y-3">
-      <form className="space-y-2 rounded-lg border p-4" onSubmit={handleSubmit}>
-        <h3 className="font-medium text-sm">Record payment</h3>
-        <p className="text-muted-foreground text-xs">
-          Balance due {formatMoneyMinor(balanceDue, currencyCode)}. Amount
-          cannot exceed balance due.
-        </p>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Select
-            onValueChange={(value) => {
-              if (value != null) {
-                setMethod(value);
-              }
-            }}
-            value={method}
-          >
-            <SelectTrigger className="w-full sm:w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="cash">Cash</SelectItem>
-              <SelectItem value="transfer">Transfer</SelectItem>
-              <SelectItem value="card">Card</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input
-            className="flex-1"
-            max={minorToMajor(balanceDue, currencyCode)}
-            min={0}
-            onChange={(e) => setAmountMajor(Number(e.target.value) || 0)}
-            step="0.01"
-            type="number"
-            value={formatMajorInputValue(amountMajor, currencyCode)}
-          />
-          <Button
-            disabled={
-              recordPayment.isPending ||
-              amountMajor <= 0 ||
-              majorToMinor(amountMajor, currencyCode) > balanceDue
-            }
-            type="submit"
-          >
-            Pay
-          </Button>
-        </div>
-      </form>
-      {showPayFromCredit && entityId ? (
-        <PayFromCreditForm
-          balanceDue={balanceDue}
-          creditBalance={creditBalance}
-          currencyCode={currencyCode}
-          docId={docId}
-          entityId={entityId}
-        />
-      ) : null}
-    </div>
-  );
-}
-
-function DraftLineEditor({
-  docId,
-  currencyCode,
-}: {
-  docId: string;
-  currencyCode: string;
-}) {
-  const addLineItem = useAddLineItem();
-  const updateLineItem = useUpdateLineItem();
-  const removeLineItem = useRemoveLineItem();
-  const { data: productsResp } = useProducts({
-    page: 1,
-    pageSize: 50,
-    sortOrder: "asc",
-  });
-  const { data } = useDocument(docId);
-  const lines = data?.lines ?? [];
-
-  const [draft, setDraft] = useState({
-    productId: "",
-    description: "",
-    quantity: 1,
-    unitPriceMajor: 0,
-    taxPercent: 0,
-  });
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!draft.description.trim()) {
-      return;
-    }
-    await addLineItem.mutateAsync({
-      id: docId,
-      data: {
-        productId: draft.productId || undefined,
-        description: draft.description,
-        quantity: draft.quantity,
-        unitPrice: majorToMinor(draft.unitPriceMajor, currencyCode),
-        taxRate: percentToBps(draft.taxPercent),
-      },
-    });
-    setDraft({
-      productId: "",
-      description: "",
-      quantity: 1,
-      unitPriceMajor: 0,
-      taxPercent: 0,
-    });
-  };
-
-  const pickProduct = (productId: string) => {
-    const product = productsResp?.data.find((p) => p.id === productId);
-    if (!product) {
-      setDraft((s) => ({ ...s, productId: "" }));
-      return;
-    }
-    setDraft((s) => ({
-      ...s,
-      productId,
-      description: product.name,
-      unitPriceMajor: minorToMajorInput(product.price ?? 0, currencyCode),
-    }));
-  };
-
-  return (
-    <div className="space-y-3">
-      <h3 className="font-medium text-sm">Line items</h3>
-      <div className="divide-y rounded-lg border">
-        {lines.map((line) => (
-          <div
-            className="grid grid-cols-1 gap-2 px-3 py-2 sm:grid-cols-[1fr_5rem_7rem_5rem_auto] sm:items-center"
-            key={line.id}
-          >
-            <Input
-              defaultValue={line.description}
-              onBlur={(e) => {
-                const description = e.target.value.trim();
-                if (description && description !== line.description) {
-                  updateLineItem.mutate({
-                    id: docId,
-                    lineId: line.id,
-                    data: { description },
-                  });
-                }
-              }}
-            />
-            <Input
-              defaultValue={Math.abs(line.quantity)}
-              min={1}
-              onBlur={(e) => {
-                const quantity = Math.abs(Number(e.target.value) || 1);
-                if (quantity !== Math.abs(line.quantity)) {
-                  updateLineItem.mutate({
-                    id: docId,
-                    lineId: line.id,
-                    data: { quantity },
-                  });
-                }
-              }}
-              type="number"
-            />
-            <Input
-              defaultValue={formatMajorInputValue(
-                minorToMajor(line.unitPrice, currencyCode),
-                currencyCode
-              )}
-              min={0}
-              onBlur={(e) => {
-                const unitPrice = majorToMinor(
-                  Number(e.target.value) || 0,
-                  currencyCode
-                );
-                if (unitPrice !== line.unitPrice) {
-                  updateLineItem.mutate({
-                    id: docId,
-                    lineId: line.id,
-                    data: { unitPrice },
-                  });
-                }
-              }}
-              step="0.01"
-              type="number"
-            />
-            <Input
-              defaultValue={bpsToPercent(line.taxRate)}
-              min={0}
-              onBlur={(e) => {
-                const taxRate = percentToBps(Number(e.target.value) || 0);
-                if (taxRate !== line.taxRate) {
-                  updateLineItem.mutate({
-                    id: docId,
-                    lineId: line.id,
-                    data: { taxRate },
-                  });
-                }
-              }}
-              step="0.01"
-              type="number"
-            />
-            <Button
-              aria-label="Remove line"
-              onClick={() =>
-                removeLineItem.mutate({ id: docId, lineId: line.id })
-              }
-              size="icon"
-              variant="ghost"
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
-        ))}
-        {lines.length === 0 && (
-          <div className="px-4 py-6 text-center text-muted-foreground text-xs">
-            No lines yet.
-          </div>
-        )}
-      </div>
-
-      <form
-        className="grid grid-cols-1 gap-2 rounded-lg border p-3 sm:grid-cols-[8rem_1fr_5rem_7rem_5rem_auto]"
-        onSubmit={handleAdd}
-      >
-        <Select
-          onValueChange={(value) => {
-            if (value != null) {
-              pickProduct(value);
-            }
-          }}
-          value={draft.productId || undefined}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Product" />
-          </SelectTrigger>
-          <SelectContent>
-            {(productsResp?.data ?? []).map((product) => (
-              <SelectItem key={product.id} value={product.id}>
-                {product.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input
-          onChange={(e) =>
-            setDraft((s) => ({ ...s, description: e.target.value }))
-          }
-          placeholder="Description"
-          value={draft.description}
-        />
-        <Input
-          min={1}
-          onChange={(e) =>
-            setDraft((s) => ({
-              ...s,
-              quantity: Number(e.target.value) || 1,
-            }))
-          }
-          type="number"
-          value={draft.quantity}
-        />
-        <Input
-          min={0}
-          onChange={(e) =>
-            setDraft((s) => ({
-              ...s,
-              unitPriceMajor: Number(e.target.value) || 0,
-            }))
-          }
-          placeholder="Price"
-          step="0.01"
-          type="number"
-          value={formatMajorInputValue(draft.unitPriceMajor, currencyCode)}
-        />
-        <Input
-          min={0}
-          onChange={(e) =>
-            setDraft((s) => ({
-              ...s,
-              taxPercent: Number(e.target.value) || 0,
-            }))
-          }
-          placeholder="Tax %"
-          step="0.01"
-          type="number"
-          value={draft.taxPercent}
-        />
-        <Button disabled={addLineItem.isPending} type="submit">
-          <Plus className="size-4" />
-        </Button>
-      </form>
-    </div>
-  );
 }
 
 function DocumentHeaderActions({
@@ -512,6 +168,68 @@ function FrozenLineItems({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function PaymentActions({
+  docId,
+  docType,
+  entityId,
+  entityName,
+  folioLabel,
+  total,
+  amountPaid,
+  balanceDue,
+  currencyCode,
+}: {
+  docId: string;
+  docType: string;
+  entityId: string | null;
+  entityName: string | null;
+  folioLabel: string;
+  total: number;
+  amountPaid: number;
+  balanceDue: number;
+  currencyCode: string;
+}) {
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const { data: entity } = useEntity(entityId ?? "");
+  const creditBalance = entity?.creditBalance ?? 0;
+  const showPayFromCredit =
+    docType === "invoice" && Boolean(entityId) && creditBalance > 0;
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-lg border p-4">
+        <h3 className="mb-1 font-medium text-sm">Record payment</h3>
+        <p className="mb-3 text-muted-foreground text-xs">
+          Balance due {formatMoneyMinor(balanceDue, currencyCode)}.
+        </p>
+        <Button className="w-full" onClick={() => setPaymentOpen(true)}>
+          Record payment
+        </Button>
+      </div>
+      {showPayFromCredit && entityId ? (
+        <PayFromCreditForm
+          balanceDue={balanceDue}
+          creditBalance={creditBalance}
+          currencyCode={currencyCode}
+          docId={docId}
+          entityId={entityId}
+        />
+      ) : null}
+      <RecordPaymentDialog
+        amountPaid={amountPaid}
+        balanceDue={balanceDue}
+        currencyCode={currencyCode}
+        docId={docId}
+        entityName={entityName}
+        folioLabel={folioLabel}
+        onOpenChange={setPaymentOpen}
+        open={paymentOpen}
+        total={total}
+      />
     </div>
   );
 }
@@ -698,12 +416,16 @@ function DocumentPage() {
           {doc.status === "finalized" &&
             (doc.type === "invoice" || doc.type === "bill") &&
             doc.balanceDue > 0 && (
-              <RecordPaymentForm
+              <PaymentActions
+                amountPaid={doc.amountPaid}
                 balanceDue={doc.balanceDue}
                 currencyCode={doc.currencyCode}
                 docId={id}
                 docType={doc.type}
                 entityId={doc.entityId}
+                entityName={doc.entityName}
+                folioLabel={documentFolioLabel(doc)}
+                total={doc.total}
               />
             )}
 
