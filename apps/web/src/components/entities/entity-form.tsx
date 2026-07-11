@@ -25,6 +25,7 @@ import { Controller, useForm } from "react-hook-form";
 export type EntityFormValues = ContractEntityFormValues;
 
 interface EntityFormProps {
+  mode?: "create" | "edit";
   defaultValues?: Partial<EntityFormValues>;
   onSubmit: (data: EntityFormValues) => void;
   isLoading?: boolean;
@@ -32,6 +33,7 @@ interface EntityFormProps {
 }
 
 export function EntityForm({
+  mode = "create",
   defaultValues,
   onSubmit,
   isLoading,
@@ -46,15 +48,23 @@ export function EntityForm({
     },
   });
 
+  const { isDirty } = form.formState;
+  const submitDisabled = Boolean(isLoading) || (mode === "edit" && !isDirty);
+
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
-      <FieldGroup>
+      <FieldGroup className="gap-4">
         <Controller
           control={form.control}
           name="name"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+              <FieldLabel
+                className="text-muted-foreground"
+                htmlFor={field.name}
+              >
+                Name
+              </FieldLabel>
               <Input
                 {...field}
                 aria-invalid={fieldState.invalid}
@@ -71,7 +81,7 @@ export function EntityForm({
           name="type"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>Type</FieldLabel>
+              <FieldLabel className="text-muted-foreground">Type</FieldLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
@@ -92,7 +102,10 @@ export function EntityForm({
           name="creditLimit"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
+              <FieldLabel
+                className="text-muted-foreground"
+                htmlFor={field.name}
+              >
                 Credit limit (minor units)
               </FieldLabel>
               <Input
@@ -112,9 +125,11 @@ export function EntityForm({
           )}
         />
 
-        <Button disabled={isLoading} type="submit">
-          {isLoading ? "Saving…" : submitLabel}
-        </Button>
+        <div className="flex justify-end pt-1">
+          <Button disabled={submitDisabled} type="submit">
+            {isLoading ? "Saving…" : submitLabel}
+          </Button>
+        </div>
       </FieldGroup>
     </form>
   );

@@ -30,7 +30,7 @@ export function CreateEntityDialog() {
         <Plus className="mr-2 h-4 w-4" />
         Add Entity
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[440px]">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Add Entity</DialogTitle>
           <DialogDescription>
@@ -39,6 +39,7 @@ export function CreateEntityDialog() {
         </DialogHeader>
         <EntityForm
           isLoading={createEntity.isPending}
+          mode="create"
           onSubmit={onSubmit}
           submitLabel="Create Entity"
         />

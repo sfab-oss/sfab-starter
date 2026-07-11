@@ -30,14 +30,18 @@ export function CreateProductDialog() {
         <Plus className="mr-2 h-4 w-4" />
         Add Product
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
           <DialogDescription>
             Create a new product record in your catalog.
           </DialogDescription>
         </DialogHeader>
-        <ProductForm isLoading={createProduct.isPending} onSubmit={onSubmit} />
+        <ProductForm
+          isLoading={createProduct.isPending}
+          mode="create"
+          onSubmit={onSubmit}
+        />
       </DialogContent>
     </Dialog>
   );
