@@ -32,9 +32,9 @@ import {
 } from "./document-line-form";
 import { LineItemRow } from "./line-item-row";
 
-/** Shared column tracks with LineItemRow — keep identical. */
+/** Shared column tracks with LineItemRow — fixed action col so Add vs trash align. */
 const LINE_GRID =
-  "grid grid-cols-1 gap-2 sm:grid-cols-[1fr_5rem_7rem_5rem_auto] sm:items-end";
+  "grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_5rem_7rem_5rem_6rem] sm:items-end";
 
 interface DraftLineEditorProps {
   docId: string;
@@ -262,7 +262,11 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
               />
             </FieldGroup>
 
-            <Button disabled={addLineItem.isPending} type="submit">
+            <Button
+              className="w-full"
+              disabled={addLineItem.isPending}
+              type="submit"
+            >
               <Plus className="size-4" />
               Add
             </Button>

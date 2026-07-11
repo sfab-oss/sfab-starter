@@ -34,7 +34,7 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
   const removeLineItem = useRemoveLineItem();
 
   return (
-    <div className="grid grid-cols-1 gap-2 px-3 py-2 sm:grid-cols-[1fr_5rem_7rem_5rem_auto] sm:items-end">
+    <div className="grid grid-cols-1 gap-2 px-3 py-2 sm:grid-cols-[minmax(0,1fr)_5rem_7rem_5rem_6rem] sm:items-end">
       <div className="grid gap-1">
         <span className="text-muted-foreground text-xs sm:hidden">
           Description
@@ -147,7 +147,7 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
       </div>
       <Button
         aria-label="Remove line"
-        className="justify-self-end sm:justify-self-auto"
+        className="w-full"
         onClick={() => removeLineItem.mutate({ id: docId, lineId: line.id })}
         size="icon"
         variant="ghost"
