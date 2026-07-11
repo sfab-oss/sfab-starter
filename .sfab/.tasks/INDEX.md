@@ -23,16 +23,13 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
-
-- [`ALW-548`](./ALW-548.md) — Rich chat input with typed mention/command triggers (InputGroup-native)
-
 ## needs-input (1)
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 
-## merged (53)
+## merged (54)
 
+- [`ALW-548`](./ALW-548.md) — Rich chat input with typed mention/command triggers (InputGroup-native)
 - [`ALW-533`](./ALW-533.md) — Migrate chat UI off AI Elements onto shadcn
 - [`ALW-531`](./ALW-531.md) — Document create + line editor + payment wide-dialog forms
 - [`ALW-530`](./ALW-530.md) — Wide-dialog create + detail-page edit for product and entity forms
