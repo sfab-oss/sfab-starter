@@ -27,6 +27,7 @@ import { useCallback, useMemo } from "react";
 import { CreateProductDialog } from "@/components/catalog/create-product-dialog";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type Product, useProducts } from "@/hooks/use-products";
+import { pickListPageView } from "@/lib/page-context-view";
 import { getUploadUrl } from "@/lib/uploads";
 
 export const Route = createFileRoute("/_protected/catalog/")({
@@ -92,8 +93,9 @@ function CatalogPage() {
         description: "Product catalog",
         entityType: "products",
         entityId: "list",
+        view: pickListPageView(searchParams),
       }),
-      []
+      [searchParams]
     )
   );
 

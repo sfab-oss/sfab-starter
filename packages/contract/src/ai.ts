@@ -1,6 +1,13 @@
 import type { LanguageModelUsage } from "ai";
 import { z } from "zod";
 
+export const pageViewSchema = z.record(
+  z.string(),
+  z.union([z.string(), z.number(), z.boolean()])
+);
+
+export type PageView = z.infer<typeof pageViewSchema>;
+
 export const aiMetadataSchema = z.object({
   createdAt: z.iso.datetime(),
   status: z.enum(["pending", "success", "error"]),
@@ -15,6 +22,7 @@ export const aiMetadataSchema = z.object({
         entityType: z.string().optional(),
         entityId: z.string().optional(),
         title: z.string().optional(),
+        view: pageViewSchema.optional(),
       }),
     })
     .optional(),
@@ -47,6 +55,7 @@ export interface ChatContext {
     description?: string;
     entityType?: string;
     entityId?: string;
+    view?: PageView;
     data?: Record<string, unknown>;
   };
 }

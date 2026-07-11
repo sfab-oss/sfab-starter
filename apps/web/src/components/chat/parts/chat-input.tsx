@@ -57,6 +57,7 @@ function toOutgoingPageContext(
       entityType: config.entityType,
       entityId: config.entityId,
       title: config.title,
+      view: config.view,
     },
   };
 }

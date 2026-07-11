@@ -35,6 +35,15 @@ export function buildPageContextSection(ctx: OrgPageContext): string {
   if (params.title) {
     lines.push(`- Title: ${params.title}`);
   }
+  if (params.view && Object.keys(params.view).length > 0) {
+    const viewSummary = Object.entries(params.view)
+      .map(([key, value]) => `${key}=${String(value)}`)
+      .join(" ");
+    lines.push(`- View: ${viewSummary}`);
+    lines.push(
+      "- This view fingerprint mirrors the user's visible list filters (URL-backed). Use it when answering about what they are looking at; fetch rows via list_* tools — do not assume row payloads here."
+    );
+  }
   // Prerequisite retrieval for every contextual page (not product-only).
   // Keep lightweight: type/id/title here; full state via tools.
   if (params.entityId) {

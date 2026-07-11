@@ -31,5 +31,6 @@ export interface OrgPageContext {
     entityType?: string;
     entityId?: string;
     title?: string;
+    view?: Record<string, string | number | boolean>;
   };
 }
