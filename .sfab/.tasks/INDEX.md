@@ -27,16 +27,15 @@ overwritten by the next sync.
 
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
-## review (2)
+## review (1)
 
 - [`ALW-473`](./ALW-473.md) — Spike: migrate sfab-starter to TypeScript 7
-- [`ALW-434`](./ALW-434.md) — Customer-credit wallet UI — balance, ledger, deposit/redeem on the entity page
 
 ## needs-input (1)
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 
-## merged (48)
+## merged (49)
 
 - [`ALW-527`](./ALW-527.md) — Replace deprecated createServerFn().inputValidator() with .validator()
 - [`ALW-526`](./ALW-526.md) — Comment hygiene: docs + REMOVE-only scrub
@@ -59,6 +58,7 @@ overwritten by the next sync.
 - [`ALW-442`](./ALW-442.md) — Add email password-reset flow (forgot-password + completion)
 - [`ALW-439`](./ALW-439.md) — Remove or implement forgot-password route (dead link on login)
 - [`ALW-435`](./ALW-435.md) — Documents experience v1 — composer redesign + type system (quote / invoice / credit note / bill)
+- [`ALW-434`](./ALW-434.md) — Customer-credit wallet UI — balance, ledger, deposit/redeem on the entity page
 - [`ALW-433`](./ALW-433.md) — Entities (customers/suppliers) UI — directory, detail, create/edit + document picker
 - [`ALW-429`](./ALW-429.md) — Command-K palette: wire real global search (pages + catalog + documents)
 - [`ALW-426`](./ALW-426.md) — QA: documents & money loop — invoice → finalize → payment → allocations
