@@ -25,20 +25,11 @@ import { SortableHeader } from "@workspace/ui/components/brand/sortable-header";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/shadcn/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
-import { Field, FieldLabel } from "@workspace/ui/components/shadcn/field";
 import { formatMoneyMinor } from "@workspace/ui/lib/money";
 import {
   getColumnFilterValue,
@@ -47,22 +38,15 @@ import {
 import { format } from "date-fns";
 import { ChevronDown, Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+import { CreateDocumentDialog } from "@/components/documents/create-document-dialog";
 import {
   DocumentTypeBadge,
   documentFolioLabel,
   documentTypeLabel,
 } from "@/components/documents/document-type";
 import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
-import {
-  EntityPicker,
-  type EntityPickerValue,
-} from "@/components/entities/entity-picker";
 import { useSetPageContext } from "@/components/providers/page-context";
-import {
-  type DocumentRow,
-  useCreateDocument,
-  useDocumentsList,
-} from "@/hooks/use-documents";
+import { type DocumentRow, useDocumentsList } from "@/hooks/use-documents";
 import { pickListPageView } from "@/lib/page-context-view";
 export const Route = createFileRoute("/_protected/documents/")({
   component: DocumentsPage,
@@ -156,14 +140,9 @@ function DocumentsPage() {
     from: Route.fullPath,
   });
   const { data: docsResponse, isLoading } = useDocumentsList(searchParams);
-  const createDocument = useCreateDocument();
   const [createType, setCreateType] = useState<
     (typeof NEW_DOCUMENT_TYPES)[number] | null
   >(null);
-  const [entityValue, setEntityValue] = useState<EntityPickerValue>({
-    kind: "walk_in",
-    name: "Walk-in",
-  });
   useSetPageContext(
     useMemo(
       () => ({
@@ -342,33 +321,6 @@ function DocumentsPage() {
       </div>
     );
   })();
-  const handleCreate = async () => {
-    if (!createType) {
-      return;
-    }
-    const direction = createType === "bill" ? "purchase" : "sales";
-    const payload =
-      entityValue?.kind === "entity"
-        ? {
-            type: createType,
-            direction: direction as "sales" | "purchase",
-            entityId: entityValue.entity.id,
-          }
-        : {
-            type: createType,
-            direction: direction as "sales" | "purchase",
-            entityName:
-              entityValue?.kind === "walk_in" ? entityValue.name : "Walk-in",
-          };
-    const doc = await createDocument.mutateAsync(payload);
-    setCreateType(null);
-    navigate({
-      to: "/documents/$id",
-      params: {
-        id: doc.id,
-      },
-    });
-  };
   const columns: ColumnDef<DocumentRow>[] = [
     {
       id: "folio",
@@ -485,11 +437,7 @@ function DocumentsPage() {
               {NEW_DOCUMENT_TYPES.map((type) => (
                 <DropdownMenuItem
                   key={type}
-                  onSelect={() => {
-                    setEntityValue({
-                      kind: "walk_in",
-                      name: "Walk-in",
-                    });
+                  onClick={() => {
                     setCreateType(type);
                   }}
                 >
@@ -526,37 +474,15 @@ function DocumentsPage() {
         )}
       </ShellContent>
 
-      <Dialog
+      <CreateDocumentDialog
         onOpenChange={(open) => {
           if (!open) {
             setCreateType(null);
           }
         }}
         open={createType !== null}
-      >
-        <DialogContent className="sm:max-w-[420px]">
-          <DialogHeader>
-            <DialogTitle>
-              New {createType ? documentTypeLabel(createType) : "document"}
-            </DialogTitle>
-            <DialogDescription>
-              Pick an existing entity or keep Walk-in for an ad-hoc name.
-            </DialogDescription>
-          </DialogHeader>
-          <Field>
-            <FieldLabel>Customer / entity</FieldLabel>
-            <EntityPicker onChange={setEntityValue} value={entityValue} />
-          </Field>
-          <DialogFooter>
-            <Button
-              disabled={createDocument.isPending || !createType}
-              onClick={handleCreate}
-            >
-              {createDocument.isPending ? "Creating…" : "Create"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        type={createType}
+      />
     </ShellPage>
   );
 }
