@@ -27,6 +27,23 @@ What ships in this template now:
 
 Prefer reading those docs over rediscovering structure from file trees.
 
+## Drop `.sfab/` (public template only)
+
+This clone may include a `.sfab/` folder. That is SFab **platform** scaffolding
+(task mirrors, fabrication manifests). It is not part of the product you are
+building, and adopters do not need anything inside it.
+
+When a project is created through the factory, `.sfab/` is stripped
+automatically. This public template cannot do that for you, so delete it early:
+
+```bash
+rm -rf .sfab
+```
+
+Do not edit files under `.sfab/` — remove the directory. Skip this step only if
+you already know you are working inside a factory-managed project that still
+needs the folder.
+
 ## Before you change much
 
 Confirm the app actually runs for the user (or you) with the README getting
@@ -90,9 +107,10 @@ plan:
 
 Not mandatory order — a shape that tends to work:
 
-1. **Orient** — skim README (what ships), this file, then the architecture map.
-   Open one end-to-end capability that exists today (e.g. catalog or documents)
-   across layers so the feature-key pattern is concrete.
+1. **Orient** — drop `.sfab/` if it is still present (see above), skim README
+   (what ships), this file, then the architecture map. Open one end-to-end
+   capability that exists today (e.g. catalog or documents) across layers so
+   the feature-key pattern is concrete.
 2. **Interview** — the questions above, one or a few at a time. Prefer decisions
    that unblock the first vertical slice over boiling the ocean.
 3. **Plan** — write a short plan the user can approve in *their* language
@@ -132,6 +150,8 @@ Not mandatory order — a shape that tends to work:
 - Dump a huge questionnaire up front or imply there is only one correct
   transformation sequence.
 - Duplicate architecture ADRs into this file — link out instead.
+- Edit or "clean up" files under `.sfab/` — delete the folder instead (see
+  above).
 
 ## Pointers
 

@@ -12,8 +12,10 @@ In 2026 the usual path is to hand this repo to an AI coding agent. Use this
 template on GitHub or clone it, open the folder in Cursor / Claude Code /
 Codex, or paste the repo URL into ChatGPT or Claude. Ask it to read
 [`docs/template-init.md`](docs/template-init.md) and reshape the starter into
-your product. [`AGENTS.md`](AGENTS.md) is what agents should read for day-to-day
-commands and conventions once they are working in the repo.
+your product. That guide includes deleting `.sfab/` (platform scaffolding the
+factory would strip for you; the public template leaves it in place).
+[`AGENTS.md`](AGENTS.md) is what agents should read for day-to-day commands and
+conventions once they are working in the repo.
 
 To run the app you need Node 20+ and pnpm 11+. This repo pins
 `packageManager: pnpm@11.5.2`. If needed, run `corepack enable`.

@@ -55,9 +55,9 @@ Run from the **monorepo root** (not inside a package):
 - **Procedural domain knowledge, loaded on demand** → `.agents/skills/`
   (`cloudflare`, `ai-sdk`, `wrangler`, `durable-objects`, `workers-best-practices`,
   `agent-browser`). Use the relevant skill when a task matches its domain.
-- **Adopting / transforming the template** (suggested interview + reshape path)
-  → [`docs/template-init.md`](docs/template-init.md). Setup, env, and run →
-  [`README.md`](README.md).
+- **Adopting / transforming the template** (drop `.sfab/` on the public-template
+  path, then interview + reshape) → [`docs/template-init.md`](docs/template-init.md).
+  Setup, env, and run → [`README.md`](README.md).
 
 ## Code standards
 
