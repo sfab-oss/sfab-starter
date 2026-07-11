@@ -45,7 +45,7 @@
     "fumadocs-mdx": "^15.1.0",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.2",
-    "typescript": "^5.9.3",
+    "typescript": "7.0.2",
     "vite": "^7.3.6",
     "vite-tsconfig-paths": "^5.1.4",
     "wrangler": "^4.107.1"
