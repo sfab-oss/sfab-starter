@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  codemodeDisplayStatus,
+  codemodeFailureMessage,
+} from "@workspace/agent/codemode-output";
+import {
   Tool,
   ToolContent,
   ToolHeader,
@@ -97,6 +101,12 @@ export function PausedExecutionCard({
 
   const title = humanizeMethod(action?.method);
   const argsPreview = action?.args ?? null;
+  const displayStatus = codemodeDisplayStatus(status, output.result);
+  const failureMessage = codemodeFailureMessage(output.result);
+  const errorText =
+    displayStatus === "error"
+      ? (output.error ?? failureMessage ?? "Execution failed")
+      : undefined;
 
   async function onApprove() {
     if (!executionId || busy) {
@@ -125,7 +135,7 @@ export function PausedExecutionCard({
   return (
     <Tool defaultOpen={status === "paused"}>
       <ToolHeader
-        state={toolStateForStatus(status)}
+        state={toolStateForStatus(displayStatus)}
         title={title}
         type="tool-codemode"
       />
@@ -163,25 +173,22 @@ export function PausedExecutionCard({
           </div>
         ) : null}
 
-        {status === "completed" ? (
+        {displayStatus === "completed" ? (
           <ToolOutput
             errorText={undefined}
             output={output.result ?? { status: "completed", executionId }}
           />
         ) : null}
 
-        {status === "rejected" ? (
+        {displayStatus === "rejected" ? (
           <ToolOutput
             errorText={output.reason ?? output.error ?? "Rejected by user"}
             output={undefined}
           />
         ) : null}
 
-        {status === "error" ? (
-          <ToolOutput
-            errorText={output.error ?? "Execution failed"}
-            output={undefined}
-          />
+        {displayStatus === "error" ? (
+          <ToolOutput errorText={errorText} output={undefined} />
         ) : null}
       </ToolContent>
     </Tool>
