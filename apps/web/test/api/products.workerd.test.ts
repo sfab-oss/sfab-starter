@@ -175,6 +175,15 @@ describe("PUT /api/protected/catalog/products/:id", () => {
     const data = (await res.json()) as { name: string };
     expect(data.name).toBe("Updated");
   });
+
+  it("returns 404 when updating non-existent product", async () => {
+    const res = await SELF.fetch(`${API}/non-existent`, {
+      method: "PUT",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Nope" }),
+    });
+    expect(res.status).toBe(404);
+  });
 });
 
 describe("DELETE /api/protected/catalog/products/:id", () => {
@@ -197,5 +206,13 @@ describe("DELETE /api/protected/catalog/products/:id", () => {
       headers: { Cookie: cookie },
     });
     expect(getRes.status).toBe(404);
+  });
+
+  it("returns 404 when deleting non-existent product", async () => {
+    const res = await SELF.fetch(`${API}/non-existent`, {
+      method: "DELETE",
+      headers: { Cookie: cookie },
+    });
+    expect(res.status).toBe(404);
   });
 });

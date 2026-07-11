@@ -1,3 +1,4 @@
+import { DomainError } from "@workspace/core/errors";
 import { beforeEach, describe, expect, it } from "vitest";
 import { seedOrganization, seedProduct, seedUser } from "../helpers/seed";
 
@@ -105,12 +106,14 @@ describe("updateProduct", () => {
     expect(updated.name).toBe("Updated");
   });
 
-  it("returns undefined when updating non-existent product", async () => {
+  it("throws when updating non-existent product", async () => {
     const { updateProduct } = await import("@workspace/core/catalog");
-    const result = await updateProduct("non-existent", orgId, {
-      name: "Nope",
-    });
-    expect(result).toBeUndefined();
+    await expect(
+      updateProduct("non-existent", orgId, { name: "Nope" })
+    ).rejects.toThrow(DomainError);
+    await expect(
+      updateProduct("non-existent", orgId, { name: "Nope" })
+    ).rejects.toMatchObject({ code: "not_found" });
   });
 
   it("cannot update another org's product", async () => {
@@ -123,8 +126,9 @@ describe("updateProduct", () => {
     const { updateProduct, getProduct } = await import(
       "@workspace/core/catalog"
     );
-    const result = await updateProduct(seeded.id, orgId, { name: "Hacked" });
-    expect(result).toBeUndefined();
+    await expect(
+      updateProduct(seeded.id, orgId, { name: "Hacked" })
+    ).rejects.toThrow(DomainError);
 
     const unchanged = await getProduct(seeded.id, otherOrg.id);
     expect(unchanged.name).toBe("Other Org Product");
@@ -144,10 +148,14 @@ describe("deleteProduct", () => {
     expect(found).toBeUndefined();
   });
 
-  it("returns undefined when deleting non-existent product", async () => {
+  it("throws when deleting non-existent product", async () => {
     const { deleteProduct } = await import("@workspace/core/catalog");
-    const result = await deleteProduct("non-existent", orgId);
-    expect(result).toBeUndefined();
+    await expect(deleteProduct("non-existent", orgId)).rejects.toThrow(
+      DomainError
+    );
+    await expect(deleteProduct("non-existent", orgId)).rejects.toMatchObject({
+      code: "not_found",
+    });
   });
 
   it("cannot delete another org's product", async () => {
@@ -158,10 +166,62 @@ describe("deleteProduct", () => {
     const { deleteProduct, getProduct } = await import(
       "@workspace/core/catalog"
     );
-    const result = await deleteProduct(seeded.id, orgId);
-    expect(result).toBeUndefined();
+    await expect(deleteProduct(seeded.id, orgId)).rejects.toThrow(DomainError);
 
     const stillExists = await getProduct(seeded.id, otherOrg.id);
     expect(stillExists).toBeDefined();
+  });
+});
+
+describe("resolveProductRef", () => {
+  it("resolves by product id", async () => {
+    const seeded = await seedProduct(orgId, {
+      name: "By Id",
+      sku: "BY-ID",
+    });
+    const { resolveProductRef } = await import("@workspace/core/catalog");
+    const product = await resolveProductRef(orgId, seeded.id);
+    expect(product.id).toBe(seeded.id);
+  });
+
+  it("resolves by exact product name", async () => {
+    await seedProduct(orgId, { name: "Widget Pro", sku: "WP-001" });
+    const { resolveProductRef } = await import("@workspace/core/catalog");
+    const product = await resolveProductRef(orgId, "Widget Pro");
+    expect(product.name).toBe("Widget Pro");
+  });
+
+  it("resolves by exact sku", async () => {
+    await seedProduct(orgId, { name: "Gadget", sku: "GAD-99" });
+    const { resolveProductRef } = await import("@workspace/core/catalog");
+    const product = await resolveProductRef(orgId, "GAD-99");
+    expect(product.sku).toBe("GAD-99");
+  });
+
+  it("throws not_found when ref matches nothing", async () => {
+    const { resolveProductRef } = await import("@workspace/core/catalog");
+    await expect(resolveProductRef(orgId, "missing-ref")).rejects.toMatchObject(
+      {
+        code: "not_found",
+      }
+    );
+  });
+
+  it("throws conflict when name is ambiguous", async () => {
+    await seedProduct(orgId, { name: "Duplicate", sku: "DUP-A" });
+    await seedProduct(orgId, { name: "Duplicate", sku: "DUP-B" });
+    const { resolveProductRef } = await import("@workspace/core/catalog");
+    await expect(resolveProductRef(orgId, "Duplicate")).rejects.toMatchObject({
+      code: "conflict",
+    });
+  });
+
+  it("throws conflict when sku is ambiguous", async () => {
+    await seedProduct(orgId, { name: "Item A", sku: "SAME-SKU" });
+    await seedProduct(orgId, { name: "Item B", sku: "SAME-SKU" });
+    const { resolveProductRef } = await import("@workspace/core/catalog");
+    await expect(resolveProductRef(orgId, "SAME-SKU")).rejects.toMatchObject({
+      code: "conflict",
+    });
   });
 });
