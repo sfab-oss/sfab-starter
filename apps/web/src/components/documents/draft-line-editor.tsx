@@ -32,10 +32,9 @@ import {
 } from "./document-line-form";
 import { LineItemRow } from "./line-item-row";
 
+/** Shared column tracks with LineItemRow — keep identical. */
 const LINE_GRID =
-  "grid grid-cols-1 gap-2 sm:grid-cols-[1fr_5rem_7rem_5rem_auto] sm:items-center";
-const ADD_GRID =
-  "grid grid-cols-1 gap-2 sm:grid-cols-[8rem_1fr_5rem_7rem_5rem_auto] sm:items-end";
+  "grid grid-cols-1 gap-2 sm:grid-cols-[1fr_5rem_7rem_5rem_auto] sm:items-end";
 
 interface DraftLineEditorProps {
   docId: string;
@@ -124,144 +123,152 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
             No lines yet.
           </div>
         )}
+
+        <form
+          className="space-y-2 px-3 py-3"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
+          <Controller
+            control={form.control}
+            name="productId"
+            render={({ field }) => (
+              <Field className="max-w-xs gap-1">
+                <FieldLabel className="text-muted-foreground text-xs">
+                  Product (optional)
+                </FieldLabel>
+                <Select
+                  onValueChange={(value) => {
+                    if (value != null) {
+                      pickProduct(value);
+                    }
+                  }}
+                  value={field.value || undefined}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pick a product to fill fields" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(productsResp?.data ?? []).map((product) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        {product.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            )}
+          />
+
+          <div className={LINE_GRID}>
+            <FieldGroup className="contents">
+              <Controller
+                control={form.control}
+                name="description"
+                render={({ field, fieldState }) => (
+                  <Field className="gap-1" data-invalid={fieldState.invalid}>
+                    <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
+                      Description
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      aria-invalid={fieldState.invalid}
+                      aria-label="Description"
+                      placeholder="Description"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                control={form.control}
+                name="quantity"
+                render={({ field, fieldState }) => (
+                  <Field className="gap-1" data-invalid={fieldState.invalid}>
+                    <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
+                      Qty
+                    </FieldLabel>
+                    <Input
+                      aria-invalid={fieldState.invalid}
+                      aria-label="Quantity"
+                      min={1}
+                      onChange={(e) =>
+                        field.onChange(Number(e.target.value) || 1)
+                      }
+                      type="number"
+                      value={field.value}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                control={form.control}
+                name="unitPriceMajor"
+                render={({ field, fieldState }) => (
+                  <Field className="gap-1" data-invalid={fieldState.invalid}>
+                    <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
+                      Unit price
+                    </FieldLabel>
+                    <Input
+                      aria-invalid={fieldState.invalid}
+                      aria-label="Unit price"
+                      min={0}
+                      onChange={(e) =>
+                        field.onChange(Number(e.target.value) || 0)
+                      }
+                      placeholder="Price"
+                      step="0.01"
+                      type="number"
+                      value={formatMajorInputValue(field.value, currencyCode)}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                control={form.control}
+                name="taxPercent"
+                render={({ field, fieldState }) => (
+                  <Field className="gap-1" data-invalid={fieldState.invalid}>
+                    <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
+                      Tax %
+                    </FieldLabel>
+                    <Input
+                      aria-invalid={fieldState.invalid}
+                      aria-label="Tax percent"
+                      min={0}
+                      onChange={(e) =>
+                        field.onChange(Number(e.target.value) || 0)
+                      }
+                      placeholder="Tax %"
+                      step="0.01"
+                      type="number"
+                      value={field.value}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </FieldGroup>
+
+            <Button disabled={addLineItem.isPending} type="submit">
+              <Plus className="size-4" />
+              Add
+            </Button>
+          </div>
+        </form>
       </div>
-
-      <form
-        className={`rounded-lg border p-3 ${ADD_GRID}`}
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
-        <Controller
-          control={form.control}
-          name="productId"
-          render={({ field }) => (
-            <Field className="gap-1">
-              <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
-                Product
-              </FieldLabel>
-              <Select
-                onValueChange={(value) => {
-                  if (value != null) {
-                    pickProduct(value);
-                  }
-                }}
-                value={field.value || undefined}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Product" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(productsResp?.data ?? []).map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          )}
-        />
-
-        <FieldGroup className="contents">
-          <Controller
-            control={form.control}
-            name="description"
-            render={({ field, fieldState }) => (
-              <Field className="gap-1" data-invalid={fieldState.invalid}>
-                <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
-                  Description
-                </FieldLabel>
-                <Input
-                  {...field}
-                  aria-invalid={fieldState.invalid}
-                  aria-label="Description"
-                  placeholder="Description"
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="quantity"
-            render={({ field, fieldState }) => (
-              <Field className="gap-1" data-invalid={fieldState.invalid}>
-                <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
-                  Qty
-                </FieldLabel>
-                <Input
-                  aria-invalid={fieldState.invalid}
-                  aria-label="Quantity"
-                  min={1}
-                  onChange={(e) => field.onChange(Number(e.target.value) || 1)}
-                  type="number"
-                  value={field.value}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="unitPriceMajor"
-            render={({ field, fieldState }) => (
-              <Field className="gap-1" data-invalid={fieldState.invalid}>
-                <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
-                  Unit price
-                </FieldLabel>
-                <Input
-                  aria-invalid={fieldState.invalid}
-                  aria-label="Unit price"
-                  min={0}
-                  onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                  placeholder="Price"
-                  step="0.01"
-                  type="number"
-                  value={formatMajorInputValue(field.value, currencyCode)}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="taxPercent"
-            render={({ field, fieldState }) => (
-              <Field className="gap-1" data-invalid={fieldState.invalid}>
-                <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
-                  Tax %
-                </FieldLabel>
-                <Input
-                  aria-invalid={fieldState.invalid}
-                  aria-label="Tax percent"
-                  min={0}
-                  onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                  placeholder="Tax %"
-                  step="0.01"
-                  type="number"
-                  value={field.value}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        </FieldGroup>
-
-        <Button disabled={addLineItem.isPending} type="submit">
-          <Plus className="size-4" />
-          Add
-        </Button>
-      </form>
     </div>
   );
 }
