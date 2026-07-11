@@ -27,7 +27,6 @@ import {
   Loader2Icon,
   PaperclipIcon,
   PlusIcon,
-  SquareIcon,
 } from "lucide-react";
 import {
   type FormEvent,
@@ -51,18 +50,16 @@ function ChatSubmitButton({
   disabled?: boolean;
   status: ChatStatus;
 }) {
-  const isSubmitted = status === "submitted";
-  const isStreaming = status === "streaming";
-  let icon = <ArrowUpIcon className="size-4" />;
-  if (isSubmitted) {
-    icon = <Loader2Icon className="size-4 animate-spin" />;
-  } else if (isStreaming) {
-    icon = <SquareIcon className="size-4" />;
-  }
+  const isInFlight = status === "submitted" || status === "streaming";
+  const icon = isInFlight ? (
+    <Loader2Icon className="size-4 animate-spin" />
+  ) : (
+    <ArrowUpIcon className="size-4" />
+  );
   return (
     <InputGroupButton
       aria-label="Send"
-      disabled={disabled || isSubmitted}
+      disabled={disabled || isInFlight}
       size="icon-sm"
       type="submit"
       variant="default"
