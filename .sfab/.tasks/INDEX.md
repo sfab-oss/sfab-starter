@@ -31,17 +31,17 @@ overwritten by the next sync.
 
 - [`ALW-427`](./ALW-427.md) — QA: org-agent chat & approvals wiring — dock, tools, memory, files, mobile
 
-## review (2)
+## review (1)
 
-- [`ALW-527`](./ALW-527.md) — Replace deprecated createServerFn().inputValidator() with .validator()
 - [`ALW-473`](./ALW-473.md) — Spike: migrate sfab-starter to TypeScript 7
 
 ## needs-input (1)
 
 - [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 
-## merged (47)
+## merged (48)
 
+- [`ALW-527`](./ALW-527.md) — Replace deprecated createServerFn().inputValidator() with .validator()
 - [`ALW-526`](./ALW-526.md) — Comment hygiene: docs + REMOVE-only scrub
 - [`ALW-524`](./ALW-524.md) — Org-agent tools: ToolResult fail contract + authoring guide
 - [`ALW-505`](./ALW-505.md) — Launch docs honesty pass — README quickstart + operator-ux build-state
