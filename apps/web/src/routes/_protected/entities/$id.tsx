@@ -34,6 +34,7 @@ import {
   type EntityFormValues,
 } from "@/components/entities/entity-form";
 import { useSetPageContext } from "@/components/providers/page-context";
+import { WalletCard } from "@/components/wallet/wallet-card";
 import { useDocuments } from "@/hooks/use-documents";
 import {
   useArchiveEntity,
@@ -262,6 +263,12 @@ function EntityPage() {
             )}
           </div>
         </div>
+
+        <WalletCard
+          creditBalance={entity.creditBalance}
+          entityId={entityId}
+          isArchived={isArchived}
+        />
       </div>
 
       <AlertDialog
