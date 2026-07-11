@@ -4,80 +4,72 @@ An AI-native app foundation: every app you build on it ships with an AI agent
 that works on your own data and business context. It is a complete Cloudflare
 full-stack monorepo you can clone and run.
 
-![SFab Starter — invoice with org agent](docs/assets/og-invoice-chat.png)
+![SFab Starter invoice with org agent](docs/assets/og-invoice-chat.png)
 
 ## Getting started
 
-**Prerequisites:** Node 20+ and pnpm 11+ (this repo pins
-`packageManager: pnpm@11.5.2`). If needed: `corepack enable`.
+In 2026 the usual path is to hand this repo to an AI coding agent. Use this
+template on GitHub or clone it, open the folder in Cursor / Claude Code /
+Codex, or paste the repo URL into ChatGPT or Claude. Ask it to read
+[`docs/template-init.md`](docs/template-init.md) and reshape the starter into
+your product. [`AGENTS.md`](AGENTS.md) is what agents should read for day-to-day
+commands and conventions once they are working in the repo.
 
-Clone (or click **Use this template** on GitHub):
+To run the app you need Node 20+ and pnpm 11+. This repo pins
+`packageManager: pnpm@11.5.2`. If needed, run `corepack enable`.
+
+Clone or use the template, then install dependencies:
 
 ```bash
 git clone https://github.com/sfab-oss/sfab-starter.git
 cd sfab-starter
 pnpm install
+```
 
-# Configure local env
+Copy the example env file and fill in the values it documents. Set a
+`BETTER_AUTH_SECRET`; see the [Better Auth installation](https://www.better-auth.com/docs/installation)
+docs if you need help generating one.
+
+The built-in AI agent needs an inference provider. The default is
+[Vercel AI Gateway](https://vercel.com/docs/ai-gateway); you can also use
+Cloudflare Workers AI or [z.ai](https://z.ai/). Sign-in works without a
+provider; chat does not. Setup details:
+[`docs/guides/org-agent-inference-providers.md`](docs/guides/org-agent-inference-providers.md).
+
+```bash
 cp apps/web/.dev.vars.example apps/web/.dev.vars
-# Fill in apps/web/.dev.vars — the file documents each var.
-# BETTER_AUTH_SECRET: at least 32 characters, e.g.
-#   openssl rand -base64 32
-# AI_GATEWAY_API_KEY: required for the org agent chat (Vercel AI Gateway —
-#   https://vercel.com/docs/ai-gateway). Sign-in works without it; chat does not.
-# Other providers: see docs/guides/org-agent-inference-providers.md
+```
 
-# Set up the local database
+Migrate the local database and start the app:
+
+```bash
 pnpm db:migrate
-
-# Seed a demo user + organization (recommended for the path below)
-pnpm db:seed
-
-# Run it
 pnpm dev
 ```
 
-Open http://localhost:4011. After seeding, sign in with:
+Open http://localhost:4011 and create an account at `/signup`.
 
-| Field | Value |
-|-------|-------|
-| **Email** | `demo@sfab.dev` |
-| **Password** | `demo1234` |
+Want sample data instead? Run `pnpm db:seed`. Local only.
 
-Or skip seed and create an account at `/signup`.
-
-`pnpm db:seed` is idempotent and **local-only** — safe to re-run, and it never
-touches a remote/production database.
-
-To deploy: `pnpm build`, then `wrangler deploy` from `apps/web` (set Worker
+To deploy: run `pnpm build`, then `wrangler deploy` from `apps/web`. Set Worker
 secrets with `wrangler secret put`, and migrate the remote D1 database before
-serving traffic).
-
-## Hand it to an AI agent
-
-**Copy → ask → reshape.** Clone and run it, then point an AI coding agent at the
-repo and turn the working hub into *your* product.
-
-- [`docs/template-init.md`](docs/template-init.md) — suggested questions and a
-  light plan → transform path for that first pass.
-- [`AGENTS.md`](AGENTS.md) — commands and conventions once you are working in
-  the repo (the file agents should read first).
+serving traffic.
 
 ## What's included
 
 A real, working app, not a blank page:
 
-- **Authentication and organizations** (Better Auth with the organization
-  plugin): sign-in, multi-tenant orgs, and org-scoped access wired through every
+- **Authentication and organizations** via Better Auth with the organization
+  plugin: sign-in, multi-tenant orgs, and org-scoped access wired through every
   layer.
-- **Catalog** — products with integer-minor-unit pricing (see
-  `packages/core/src/money.ts`).
-- **Documents** — quotes, orders, and invoices end-to-end: draft, line items,
-  finalize (folio), activity log. Design notes:
+- **Catalog.** Products with integer-minor-unit pricing. See
+  `packages/core/src/money.ts`.
+- **Documents.** Quotes, orders, and invoices end-to-end: draft, line items,
+  finalize with a folio, activity log. Design notes:
   [`docs/architecture/transaction-core.md`](docs/architecture/transaction-core.md).
-- **Pay-on-document** — record payments on finalized invoices and bills;
+- **Pay-on-document.** Record payments on finalized invoices and bills;
   payment status on the documents list and detail.
-- **A built-in org agent** — chat over your data. It can read catalog,
+- **A built-in org agent.** Chat over your data. It can read catalog,
   documents, and activity, and can create/update products. Money and document
   mutations stay on the UI.
 - **An end-to-end type-safe stack** with no code generation, from the database
@@ -91,11 +83,11 @@ have a clear reason not to. A worked feature walkthrough is in
 
 | Layer | Technology |
 |-------|-----------|
-| **Framework** | [TanStack Start](https://tanstack.com/start) (full-stack React) |
+| **Framework** | [TanStack Start](https://tanstack.com/start), full-stack React |
 | **API** | [Hono](https://hono.dev/) RPC, type-safe from route to client |
 | **Database** | [Drizzle ORM](https://orm.drizzle.team/) + [Cloudflare D1](https://developers.cloudflare.com/d1/) |
 | **Auth** | [Better Auth](https://www.better-auth.com/) with the organization plugin |
-| **AI** | a built-in org agent on the [Vercel AI SDK](https://sdk.vercel.ai/) (streaming, tools) |
+| **AI** | Built-in org agent on the [Vercel AI SDK](https://sdk.vercel.ai/) |
 | **UI** | [shadcn/ui](https://ui.shadcn.com/) + [Base UI](https://base-ui.com/) + [Tailwind CSS v4](https://tailwindcss.com/) |
 | **Email** | [Resend](https://resend.com/) + [React Email](https://react.email/) |
 | **Tooling** | Turbo, pnpm, Biome, TypeScript |
@@ -103,15 +95,15 @@ have a clear reason not to. A worked feature walkthrough is in
 
 ## Project layout
 
-A layer-sliced monorepo: one app in `apps/web`, with capabilities split
-into packages (`core`, `db`, `auth`, `agent`, `ui`, and more). Find one slice
-and you know where the rest live. The full map, the feature-key model, and a
-worked example are in [`docs/architecture.md`](docs/architecture.md).
+A layer-sliced monorepo: one app in `apps/web`, with capabilities split into
+packages such as `core`, `db`, `auth`, `agent`, and `ui`. Find one slice and
+you know where the rest live. The full map, the feature-key model, and a worked
+example are in [`docs/architecture.md`](docs/architecture.md).
 
 ## Where to go next
 
-- [`docs/template-init.md`](docs/template-init.md): adopting / transforming the template (agent-oriented guidance).
-- [`AGENTS.md`](AGENTS.md): commands + conventions once you are working in the repo.
+- [`docs/template-init.md`](docs/template-init.md): first-pass reshape guidance.
+- [`AGENTS.md`](AGENTS.md): commands and conventions once you are working in the repo.
 - [`docs/architecture.md`](docs/architecture.md): the layer map and a worked feature example.
 - [`docs/guides/`](docs/guides/): code-anchored how-tos.
 - [`docs/decisions/`](docs/decisions/): the architecture decision records.
