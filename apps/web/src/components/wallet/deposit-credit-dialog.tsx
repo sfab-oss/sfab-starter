@@ -20,6 +20,7 @@ import {
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useDepositCredit } from "@/hooks/use-wallet";
+import { m } from "@/paraglide/messages.js";
 
 export function DepositCreditDialog({
   entityId,
@@ -78,20 +79,21 @@ export function DepositCreditDialog({
         }
       >
         <Plus className="mr-2 size-4" />
-        Deposit
+        {m.wallet_deposit()}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[440px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Deposit store credit</DialogTitle>
+            <DialogTitle>{m.wallet_deposit_title()}</DialogTitle>
             <DialogDescription>
-              Add prepaid balance to this entity&apos;s wallet. Credit can be
-              applied to open invoices later.
+              {m.wallet_deposit_description()}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="deposit-amount">Amount</Label>
+              <Label htmlFor="deposit-amount">
+                {m.documents_payment_amount()}
+              </Label>
               <Input
                 id="deposit-amount"
                 min={0}
@@ -103,11 +105,11 @@ export function DepositCreditDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="deposit-notes">Notes (optional)</Label>
+              <Label htmlFor="deposit-notes">{m.wallet_notes()}</Label>
               <Input
                 id="deposit-notes"
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g. Prepayment for upcoming order"
+                placeholder={m.wallet_notes_placeholder()}
                 value={notes}
               />
             </div>
@@ -121,7 +123,7 @@ export function DepositCreditDialog({
               }
               type="submit"
             >
-              Deposit credit
+              {m.wallet_deposit_submit()}
             </Button>
           </DialogFooter>
         </form>

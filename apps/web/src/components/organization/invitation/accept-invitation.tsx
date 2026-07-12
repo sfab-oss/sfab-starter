@@ -17,6 +17,7 @@ import {
   useInvitation,
   useRejectInvitation,
 } from "@/hooks/use-organization";
+import { m } from "@/paraglide/messages.js";
 import { InvitationError } from "./invitation-error-card";
 
 export default function AcceptInvitation({
@@ -64,21 +65,21 @@ export default function AcceptInvitation({
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Invitation</CardTitle>
+          <CardTitle>{m.invite_accept_title()}</CardTitle>
           <p className="text-muted-foreground text-sm">
-            You&apos;ve been invited to join an organization
+            {m.invite_accept_subtitle()}
           </p>
         </CardHeader>
         <CardContent>
           {invitationStatus === "pending" && (
             <div className="space-y-4">
               <p>
-                <strong>{invitation.inviter?.email}</strong> has invited you to
-                join <strong>{invitation.organization?.name}</strong>.
+                {m.invite_accept_body({
+                  email: invitation.inviter?.email ?? "",
+                  org: invitation.organization?.name ?? "",
+                })}
               </p>
-              <p>
-                This invitation was sent to <strong>{invitation.email}</strong>.
-              </p>
+              <p>{m.invite_accept_sent_to({ email: invitation.email })}</p>
             </div>
           )}
           {invitationStatus === "accepted" && (
@@ -87,12 +88,11 @@ export default function AcceptInvitation({
                 <CheckIcon className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
               <h2 className="text-center font-bold text-2xl">
-                Welcome to {invitation.organization?.name}!
+                {m.invite_accept_welcome({
+                  name: invitation.organization?.name ?? "",
+                })}
               </h2>
-              <p className="text-center">
-                You&apos;ve successfully joined the organization. We&apos;re
-                excited to have you on board!
-              </p>
+              <p className="text-center">{m.invite_accept_joined()}</p>
             </div>
           )}
           {invitationStatus === "rejected" && (
@@ -101,11 +101,12 @@ export default function AcceptInvitation({
                 <XIcon className="h-8 w-8 text-red-600 dark:text-red-400" />
               </div>
               <h2 className="text-center font-bold text-2xl">
-                Invitation Declined
+                {m.invite_declined_title()}
               </h2>
               <p className="text-center">
-                You&apos;ve declined the invitation to join{" "}
-                {invitation.organization?.name}.
+                {m.invite_declined_body({
+                  name: invitation.organization?.name ?? "",
+                })}
               </p>
             </div>
           )}
@@ -117,10 +118,10 @@ export default function AcceptInvitation({
               onClick={handleReject}
               variant="outline"
             >
-              Decline
+              {m.invite_decline()}
             </Button>
             <Button disabled={acceptMutation.isPending} onClick={handleAccept}>
-              Accept invitation
+              {m.invite_accept()}
             </Button>
           </CardFooter>
         )}

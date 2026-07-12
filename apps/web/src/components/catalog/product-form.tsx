@@ -19,6 +19,7 @@ import {
 } from "@workspace/ui/lib/money";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
+import { m } from "@/paraglide/messages.js";
 import { ImageUpload } from "./image-upload";
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -36,7 +37,7 @@ export function ProductForm({
   defaultValues,
   onSubmit,
   isLoading,
-  submitLabel = "Save Product",
+  submitLabel = m.common_save(),
 }: ProductFormProps) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -62,7 +63,7 @@ export function ProductForm({
           render={({ field }) => (
             <Field>
               <FieldLabel className="text-muted-foreground">
-                Product Image
+                {m.catalog_product_image()}
               </FieldLabel>
               <ImageUpload onChange={field.onChange} value={field.value} />
             </Field>
@@ -79,14 +80,14 @@ export function ProductForm({
                   className="text-muted-foreground"
                   htmlFor={field.name}
                 >
-                  Name
+                  {m.common_name()}
                 </FieldLabel>
                 <FieldContent>
                   <Input
                     {...field}
                     aria-invalid={fieldState.invalid}
                     id={field.name}
-                    placeholder="Product Name"
+                    placeholder={m.catalog_name_placeholder()}
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -105,14 +106,14 @@ export function ProductForm({
                   className="text-muted-foreground"
                   htmlFor={field.name}
                 >
-                  SKU
+                  {m.catalog_column_sku()}
                 </FieldLabel>
                 <FieldContent>
                   <Input
                     {...field}
                     aria-invalid={fieldState.invalid}
                     id={field.name}
-                    placeholder="PROD-001"
+                    placeholder={m.catalog_sku_placeholder()}
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -133,7 +134,7 @@ export function ProductForm({
                   className="text-muted-foreground"
                   htmlFor={field.name}
                 >
-                  Price
+                  {m.catalog_column_price()}
                 </FieldLabel>
                 <FieldContent>
                   <Input
@@ -164,7 +165,7 @@ export function ProductForm({
                   className="text-muted-foreground"
                   htmlFor={field.name}
                 >
-                  Low Stock Alert
+                  {m.catalog_low_stock()}
                 </FieldLabel>
                 <FieldContent>
                   <Input
@@ -178,7 +179,7 @@ export function ProductForm({
                     value={field.value}
                   />
                   <FieldDescription>
-                    Alert when stock falls below this.
+                    {m.catalog_low_stock_hint()}
                   </FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -198,7 +199,7 @@ export function ProductForm({
                 className="text-muted-foreground"
                 htmlFor={field.name}
               >
-                Description
+                {m.common_description()}
               </FieldLabel>
               <FieldContent>
                 <Textarea
@@ -206,7 +207,7 @@ export function ProductForm({
                   aria-invalid={fieldState.invalid}
                   className="resize-none"
                   id={field.name}
-                  placeholder="Product details..."
+                  placeholder={m.catalog_description_placeholder()}
                   value={field.value ?? ""}
                 />
                 {fieldState.invalid && (
@@ -219,7 +220,7 @@ export function ProductForm({
 
         <div className="flex justify-end pt-1">
           <Button disabled={submitDisabled} type="submit">
-            {isLoading ? "Saving..." : submitLabel}
+            {isLoading ? m.common_saving() : submitLabel}
           </Button>
         </div>
       </FieldGroup>

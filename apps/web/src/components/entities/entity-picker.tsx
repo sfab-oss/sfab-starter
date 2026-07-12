@@ -20,6 +20,8 @@ import { Check, ChevronsUpDown, UserRound } from "lucide-react";
 import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { type Entity, useEntities } from "@/hooks/use-entities";
+import { m } from "@/paraglide/messages.js";
+
 export type EntityPickerValue =
   | {
       kind: "entity";
@@ -30,6 +32,20 @@ export type EntityPickerValue =
       name: string;
     }
   | null;
+
+function entityTypeLabel(type: string): string {
+  switch (type) {
+    case "customer":
+      return m.entities_type_customer();
+    case "supplier":
+      return m.entities_type_supplier();
+    case "walk_in":
+      return m.documents_walk_in();
+    default:
+      return type.replaceAll("_", " ");
+  }
+}
+
 interface EntityPickerProps {
   value: EntityPickerValue;
   onChange: (value: EntityPickerValue) => void;
@@ -37,11 +53,12 @@ interface EntityPickerProps {
   placeholder?: string;
   className?: string;
 }
+
 export function EntityPicker({
   value,
   onChange,
   disabled,
-  placeholder = "Select entity…",
+  placeholder = m.entities_select(),
   className,
 }: EntityPickerProps) {
   const [open, setOpen] = useState(false);
@@ -94,19 +111,19 @@ export function EntityPicker({
               setSearch(next);
               debouncedSetSearch(next);
             }}
-            placeholder="Search entities…"
+            placeholder={m.entities_search_placeholder()}
             value={search}
           />
           <CommandList>
             <CommandEmpty>
-              {isLoading ? "Loading…" : "No entities found"}
+              {isLoading ? m.common_loading() : m.entities_empty()}
             </CommandEmpty>
-            <CommandGroup heading="Ad-hoc">
+            <CommandGroup heading={m.entities_adhoc()}>
               <CommandItem
                 onSelect={() => {
                   onChange({
                     kind: "walk_in",
-                    name: search.trim() || "Walk-in",
+                    name: search.trim() || m.documents_walk_in(),
                   });
                   setOpen(false);
                 }}
@@ -118,7 +135,7 @@ export function EntityPicker({
                     value?.kind === "walk_in" ? "opacity-100" : "opacity-0"
                   )}
                 />
-                Walk-in
+                {m.documents_walk_in()}
                 {search.trim() ? (
                   <span className="ml-1 text-muted-foreground">
                     “{search.trim()}”
@@ -127,7 +144,7 @@ export function EntityPicker({
               </CommandItem>
             </CommandGroup>
             <CommandSeparator />
-            <CommandGroup heading="Entities">
+            <CommandGroup heading={m.entities_title()}>
               {(data?.data ?? []).map((entity) => (
                 <CommandItem
                   key={entity.id}
@@ -154,7 +171,7 @@ export function EntityPicker({
                   />
                   <span className="min-w-0 flex-1 truncate">{entity.name}</span>
                   <span className="text-muted-foreground text-xs capitalize">
-                    {entity.type.replace("_", " ")}
+                    {entityTypeLabel(entity.type)}
                   </span>
                 </CommandItem>
               ))}

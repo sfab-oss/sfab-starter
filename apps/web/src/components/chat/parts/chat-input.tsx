@@ -51,21 +51,19 @@ function handleSendError(error: unknown) {
 
   if (error instanceof Error) {
     if (error.message.includes("network") || error.message.includes("fetch")) {
-      toast.error("Network error. Please check your connection and try again.");
+      toast.error(m.chat_toast_network());
     } else if (
       error.message.includes("rate limit") ||
       error.message.includes("429")
     ) {
-      toast.error(
-        "Too many requests. Please wait a moment before trying again."
-      );
+      toast.error(m.chat_toast_rate_limit());
     } else if (error.message.includes("timeout")) {
-      toast.error("Request timed out. Please try again.");
+      toast.error(m.chat_toast_timeout());
     } else {
-      toast.error(`Failed to send message: ${error.message}`);
+      toast.error(m.chat_toast_send_failed({ message: error.message }));
     }
   } else {
-    toast.error("An unexpected error occurred. Please try again.");
+    toast.error(m.chat_toast_unexpected());
   }
 }
 

@@ -11,6 +11,7 @@ import {
 } from "@workspace/ui/components/shadcn/dialog";
 import { documentTypeLabel } from "@/components/documents/document-type";
 import { useCreateDocument } from "@/hooks/use-documents";
+import { m } from "@/paraglide/messages.js";
 import {
   DocumentCreateForm,
   type DocumentCreateFormValues,
@@ -56,7 +57,8 @@ export function CreateDocumentDialog({
         : {
             type,
             direction: direction as "sales" | "purchase",
-            entityName: entity.kind === "walk_in" ? entity.name : "Walk-in",
+            entityName:
+              entity.kind === "walk_in" ? entity.name : m.documents_walk_in(),
             ...optional,
           };
     const doc = await createDocument.mutateAsync(payload);
@@ -72,11 +74,12 @@ export function CreateDocumentDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            New {type ? documentTypeLabel(type) : "document"}
+            {m.documents_create_title({
+              type: type ? documentTypeLabel(type) : m.documents_document(),
+            })}
           </DialogTitle>
           <DialogDescription>
-            Pick an existing entity or keep Walk-in for an ad-hoc name. Optional
-            currency and series pass through when set.
+            {m.documents_create_description()}
           </DialogDescription>
         </DialogHeader>
         {type ? (
@@ -84,7 +87,7 @@ export function CreateDocumentDialog({
             isLoading={createDocument.isPending}
             key={type}
             onSubmit={handleSubmit}
-            submitLabel="Create"
+            submitLabel={m.common_create()}
           />
         ) : null}
       </DialogContent>

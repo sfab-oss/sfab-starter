@@ -33,10 +33,8 @@ export function CreateProductDialog() {
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add New Product</DialogTitle>
-          <DialogDescription>
-            Create a new product record in your catalog.
-          </DialogDescription>
+          <DialogTitle>{m.catalog_add_title()}</DialogTitle>
+          <DialogDescription>{m.catalog_add_description()}</DialogDescription>
         </DialogHeader>
         <ProductForm
           isLoading={createProduct.isPending}

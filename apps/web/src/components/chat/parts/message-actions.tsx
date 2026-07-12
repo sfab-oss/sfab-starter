@@ -11,6 +11,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Copy, RefreshCw } from "lucide-react";
 import { memo, useMemo } from "react";
 import { useChatConnection } from "@/components/chat/window/chat-window";
+import { m } from "@/paraglide/messages.js";
 
 export function PureMessageActions({
   messageId,
@@ -39,12 +40,12 @@ export function PureMessageActions({
       .trim();
 
     if (!textFromParts) {
-      toast.error("There's no text to copy!");
+      toast.error(m.chat_toast_no_text_copy());
       return;
     }
 
     await navigator.clipboard.writeText(textFromParts);
-    toast.success("Copied to clipboard!");
+    toast.success(m.chat_copied());
   };
 
   if (isLoading) {
@@ -77,10 +78,10 @@ export function PureMessageActions({
               }
             >
               <Copy className="size-4" />
-              <span className="sr-only">Copy</span>
+              <span className="sr-only">{m.chat_copy()}</span>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Copy</p>
+              <p>{m.chat_copy()}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -97,10 +98,10 @@ export function PureMessageActions({
               }
             >
               <RefreshCw className="size-4" />
-              <span className="sr-only">Regenerate</span>
+              <span className="sr-only">{m.chat_regenerate()}</span>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Regenerate</p>
+              <p>{m.chat_regenerate()}</p>
             </TooltipContent>
           </Tooltip>
         </div>

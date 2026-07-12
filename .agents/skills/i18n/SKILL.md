@@ -21,6 +21,9 @@ strings** in JSX/TS; edit catalogs instead.
 3. **No API key required** — do not invent a vendor translate step unless the user asks
 4. **Cookie only** — do not add `/es` URL prefixes or DB locale columns unless asked
 5. **App-only** — do not localize `packages/registry` here (ALW-571)
+6. **No parallel copy bags** — never add `copy-es.ts` (or similar) that duplicates
+   UI strings outside `packages/i18n`. Missing ES copy → fill the catalog key;
+   use `m.*` + the language switcher, not a hand-rolled Spanish map.
 
 ## Add a locale (Journey A)
 

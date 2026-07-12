@@ -29,6 +29,10 @@ import { format } from "date-fns";
 import { Archive, FileText, Pencil, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
+  documentStatusLabel,
+  documentTypeLabel,
+} from "@/components/documents/document-type";
+import {
   EntityForm,
   type EntityFormValues,
 } from "@/components/entities/entity-form";
@@ -48,6 +52,19 @@ export const Route = createFileRoute("/_protected/entities/$id")({
   component: EntityPage,
 });
 
+function entityTypeLabel(type: string): string {
+  switch (type) {
+    case "customer":
+      return m.entities_type_customer();
+    case "supplier":
+      return m.entities_type_supplier();
+    case "walk_in":
+      return m.documents_walk_in();
+    default:
+      return type.replaceAll("_", " ");
+  }
+}
+
 function EntityPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
@@ -63,7 +80,7 @@ function EntityPage() {
   useSetPageContext(
     useMemo(
       () => ({
-        title: entity?.name ?? "Entity",
+        title: entity?.name ?? m.entities_singular(),
         description: entity?.type,
         entityType: "entity",
         entityId,
@@ -95,7 +112,7 @@ function EntityPage() {
       <ShellPage>
         <div className="flex h-full flex-col items-center justify-center gap-4">
           <h2 className="font-semibold text-xl">
-            {isLoading ? "Loading entity..." : "Entity not found"}
+            {isLoading ? m.entities_loading() : m.entities_not_found()}
           </h2>
         </div>
       </ShellPage>
@@ -132,25 +149,25 @@ function EntityPage() {
             <>
               {!isArchived && (
                 <Button
-                  aria-label="Edit"
+                  aria-label={m.common_edit()}
                   onClick={() => setIsEditing(true)}
                   size="sm"
                   variant="outline"
                 >
                   <Pencil className="size-4" />
-                  <span className="hidden sm:inline">Edit</span>
+                  <span className="hidden sm:inline">{m.common_edit()}</span>
                 </Button>
               )}
               {!isArchived && (
                 <Button
-                  aria-label="Archive"
+                  aria-label={m.common_archive()}
                   className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => setIsArchiveDialogOpen(true)}
                   size="sm"
                   variant="outline"
                 >
                   <Archive className="size-4" />
-                  <span className="hidden sm:inline">Archive</span>
+                  <span className="hidden sm:inline">{m.common_archive()}</span>
                 </Button>
               )}
             </>
@@ -165,18 +182,20 @@ function EntityPage() {
               <div className="flex items-center gap-2">
                 <CardTitle>{entity.name}</CardTitle>
                 <Badge className="capitalize" variant="secondary">
-                  {entity.type.replace("_", " ")}
+                  {entityTypeLabel(entity.type)}
                 </Badge>
-                {isArchived && <Badge variant="outline">Archived</Badge>}
+                {isArchived && (
+                  <Badge variant="outline">{m.entities_archived()}</Badge>
+                )}
               </div>
               <CardDescription>
-                Balance{" "}
+                {m.documents_label_balance()}{" "}
                 {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY, {
                   locale: intlLocale(),
                 })}
                 {entity.creditLimit == null
                   ? ""
-                  : ` · Credit limit ${formatMoneyMinor(entity.creditLimit, DEFAULT_CURRENCY, { locale: intlLocale() })}`}
+                  : ` · ${m.entities_credit_limit()} ${formatMoneyMinor(entity.creditLimit, DEFAULT_CURRENCY, { locale: intlLocale() })}`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -190,18 +209,21 @@ function EntityPage() {
                   isLoading={updateEntity.isPending}
                   mode="edit"
                   onSubmit={onSubmit}
-                  submitLabel="Save changes"
                 />
               ) : (
                 <dl className="grid gap-3 text-sm sm:grid-cols-2">
                   <div>
-                    <dt className="text-muted-foreground">Type</dt>
+                    <dt className="text-muted-foreground">
+                      {m.entities_type()}
+                    </dt>
                     <dd className="capitalize">
-                      {entity.type.replace("_", " ")}
+                      {entityTypeLabel(entity.type)}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">AR balance</dt>
+                    <dt className="text-muted-foreground">
+                      {m.entities_ar_balance()}
+                    </dt>
                     <dd className="tabular-nums">
                       {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY, {
                         locale: intlLocale(),
@@ -209,7 +231,9 @@ function EntityPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">Store credit</dt>
+                    <dt className="text-muted-foreground">
+                      {m.entities_store_credit()}
+                    </dt>
                     <dd className="tabular-nums">
                       {formatMoneyMinor(
                         entity.creditBalance,
@@ -219,10 +243,12 @@ function EntityPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">Credit limit</dt>
+                    <dt className="text-muted-foreground">
+                      {m.entities_credit_limit()}
+                    </dt>
                     <dd className="tabular-nums">
                       {entity.creditLimit == null
-                        ? "None"
+                        ? m.common_none()
                         : formatMoneyMinor(
                             entity.creditLimit,
                             DEFAULT_CURRENCY,
@@ -236,10 +262,10 @@ function EntityPage() {
           </Card>
 
           <div className="space-y-2">
-            <h2 className="font-medium text-sm">Documents</h2>
+            <h2 className="font-medium text-sm">{m.documents_title()}</h2>
             {docs.length === 0 ? (
               <div className="rounded-lg border border-dashed py-10 text-center text-muted-foreground text-sm">
-                No documents linked to this entity yet.
+                {m.entities_no_documents()}
               </div>
             ) : (
               <div className="divide-y rounded-lg border">
@@ -253,7 +279,7 @@ function EntityPage() {
                     <FileText className="size-4 shrink-0 text-muted-foreground" />
                     <div className="min-w-0 flex-1">
                       <div className="font-medium capitalize">
-                        {doc.type.replace("_", " ")}
+                        {documentTypeLabel(doc.type)}
                         {doc.folio === null
                           ? ""
                           : ` #${doc.series ?? doc.type}-${doc.folio}`}
@@ -269,7 +295,7 @@ function EntityPage() {
                         doc.status === "finalized" ? "default" : "secondary"
                       }
                     >
-                      {doc.status}
+                      {documentStatusLabel(doc.status)}
                     </Badge>
                     <span className="shrink-0 font-medium tabular-nums">
                       {formatMoneyMinor(
@@ -298,16 +324,15 @@ function EntityPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Archive this entity?</AlertDialogTitle>
+            <AlertDialogTitle>{m.entities_archive_title()}</AlertDialogTitle>
             <AlertDialogDescription>
-              Archived entities leave the picker and default directory, but
-              historical documents keep their linked name.
+              {m.entities_archive_description()}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
             <AlertDialogAction onClick={handleArchive}>
-              Archive
+              {m.common_archive()}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

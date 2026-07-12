@@ -14,6 +14,7 @@ import {
   percentToBps,
 } from "@/components/documents/document-type";
 import { useRemoveLineItem, useUpdateLineItem } from "@/hooks/use-documents";
+import { m } from "@/paraglide/messages.js";
 
 interface LineItem {
   id: string;
@@ -46,7 +47,7 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
             const description = e.target.value.trim();
             if (!description) {
               e.target.value = line.description;
-              toast.error("Description is required");
+              toast.error(m.documents_line_description_required());
               return;
             }
             if (description !== line.description) {
@@ -69,7 +70,7 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
             const quantity = Math.abs(Number(e.target.value) || 0);
             if (quantity < 1) {
               e.target.value = String(Math.abs(line.quantity));
-              toast.error("Quantity must be at least 1");
+              toast.error(m.documents_line_qty_min());
               return;
             }
             if (quantity !== Math.abs(line.quantity)) {
@@ -103,7 +104,7 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
                   currencyCode
                 )
               );
-              toast.error("Unit price cannot be negative");
+              toast.error(m.documents_line_price_negative());
               return;
             }
             const unitPrice = majorToMinor(raw, currencyCode);
@@ -129,7 +130,7 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
             const raw = Number(e.target.value);
             if (!Number.isFinite(raw) || raw < 0 || raw > 100) {
               e.target.value = String(bpsToPercent(line.taxRate));
-              toast.error("Tax must be between 0 and 100");
+              toast.error(m.documents_line_tax_range());
               return;
             }
             const taxRate = percentToBps(raw);

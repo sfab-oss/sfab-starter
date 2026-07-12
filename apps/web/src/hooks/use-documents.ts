@@ -22,6 +22,7 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import type { InferResponseType } from "hono/client";
 import type { z } from "zod";
 import { client } from "@/lib/client";
+import { m } from "@/paraglide/messages.js";
 
 export type DocumentsListParams = Omit<ListDocumentsQuery, never> & {
   page?: number;
@@ -136,10 +137,10 @@ export const useCreateDocument = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
-      toast.success("Document created");
+      toast.success(m.documents_toast_created());
     },
     onError: () => {
-      toast.error("Failed to create document");
+      toast.error(m.documents_toast_create_failed());
     },
   });
 };
@@ -167,7 +168,7 @@ export const useAddLineItem = () => {
       });
     },
     onError: () => {
-      toast.error("Failed to add line");
+      toast.error(m.documents_toast_line_add_failed());
     },
   });
 };
@@ -198,7 +199,7 @@ export const useUpdateLineItem = () => {
       });
     },
     onError: () => {
-      toast.error("Failed to update line");
+      toast.error(m.documents_toast_line_update_failed());
     },
   });
 };
@@ -224,7 +225,7 @@ export const useRemoveLineItem = () => {
       });
     },
     onError: () => {
-      toast.error("Failed to remove line");
+      toast.error(m.documents_toast_line_remove_failed());
     },
   });
 };
@@ -247,10 +248,10 @@ export const useAcceptDocument = () => {
       queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
       queryClient.invalidateQueries({ queryKey: getActivityKey(id) });
-      toast.success("Quote accepted");
+      toast.success(m.documents_toast_quote_accepted());
     },
     onError: () => {
-      toast.error("Failed to accept document");
+      toast.error(m.documents_toast_accept_failed());
     },
   });
 };
@@ -289,12 +290,12 @@ export const useCreateSuccessor = () => {
       });
       toast.success(
         variables.data.type === "credit_note"
-          ? "Credit note created"
-          : "Invoice draft created"
+          ? m.documents_toast_credit_note_created()
+          : m.documents_toast_invoice_draft_created()
       );
     },
     onError: () => {
-      toast.error("Failed to create successor");
+      toast.error(m.documents_toast_successor_failed());
     },
   });
 };
@@ -316,10 +317,10 @@ export const useFinalizeDocument = () => {
       queryClient.invalidateQueries({ queryKey: getDocumentKey(id) });
       queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
-      toast.success("Document finalized");
+      toast.success(m.documents_toast_finalized());
     },
     onError: () => {
-      toast.error("Failed to finalize document");
+      toast.error(m.documents_toast_finalize_failed());
     },
   });
 };
@@ -358,10 +359,10 @@ export const useApplyDisposition = () => {
       }
       queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["entities"] });
-      toast.success("Disposition applied");
+      toast.success(m.documents_toast_disposition_applied());
     },
     onError: () => {
-      toast.error("Failed to apply disposition");
+      toast.error(m.documents_toast_disposition_failed());
     },
   });
 };
@@ -406,10 +407,10 @@ export const useRecordPayment = () => {
       queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
       queryClient.invalidateQueries({ queryKey: ["payments"] });
-      toast.success("Payment recorded");
+      toast.success(m.documents_toast_payment_recorded());
     },
     onError: () => {
-      toast.error("Failed to record payment");
+      toast.error(m.documents_toast_payment_failed());
     },
   });
 };
@@ -432,10 +433,10 @@ export const useReversePayment = () => {
       queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
-      toast.success("Payment reversed");
+      toast.success(m.documents_toast_payment_reversed());
     },
     onError: () => {
-      toast.error("Failed to reverse payment");
+      toast.error(m.documents_toast_payment_reverse_failed());
     },
   });
 };
@@ -455,10 +456,10 @@ export const useDepositCredit = () => {
       queryClient.invalidateQueries({ queryKey: ["entities"] });
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
-      toast.success("Credit deposited");
+      toast.success(m.wallet_toast_deposited());
     },
     onError: () => {
-      toast.error("Failed to deposit credit");
+      toast.error(m.wallet_toast_deposit_failed());
     },
   });
 };
@@ -482,10 +483,10 @@ export const useRedeemCredit = () => {
       queryClient.invalidateQueries({ queryKey: ["entities"] });
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
-      toast.success("Credit redeemed");
+      toast.success(m.wallet_toast_redeemed());
     },
     onError: () => {
-      toast.error("Failed to redeem credit");
+      toast.error(m.wallet_toast_redeem_failed());
     },
   });
 };
@@ -513,10 +514,10 @@ export const useRedeemCreditByReference = () => {
       queryClient.invalidateQueries({ queryKey: ["entities"] });
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
-      toast.success("Credit redeemed");
+      toast.success(m.wallet_toast_redeemed());
     },
     onError: () => {
-      toast.error("Failed to redeem credit");
+      toast.error(m.wallet_toast_redeem_failed());
     },
   });
 };
