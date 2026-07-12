@@ -90,32 +90,30 @@ in the plan, and keep going.
 
 ### Questions worth asking
 
-Ask only what is still unknown. Phrase these in plain language; adapt wording
-to how they talk about their business. Write each answer into the product-brief
-file as you get it.
+These are a **starting checklist of unknowns**, not a fixed script. Shape and
+order them as the conversation goes; skip anything already answered; ask
+follow-ups in their words. If you need more **business** context to plan or
+reshape confidently, ask — do **not** stop at this list’s length or wording.
 
-1. **What is this product?** — In one sentence, what are you building? What
-   problem does it solve?
-2. **Who is it for?** — Who signs in on day one (role or persona)? Are there
-   different kinds of users (e.g. staff vs customers, multiple companies)?
-3. **What should feel “yours” first?** — Product name, look and feel, and the
-   first screen or workflow that should no longer feel like a generic demo.
-4. **How do people buy / bill / track work today?** — Do they sell products or
-   services, quote and invoice, manage orders, or something else? You are
-   learning whether their world maps to what already ships (things you sell +
-   paperwork that moves through drafts → finalized) — not asking them about
-   architecture.
-5. **What is the AI assistant for?** — What should the built-in agent help with
-   first (answer questions, draft something, find records, …)? What should it
-   *not* do without a human?
-6. **Who works together in the app?** — One company, many teams, invitations,
-   roles? Stay concrete (“my ops team and my accountants”) rather than
-   “organizations plugin.”
-7. **First-version focus** — Of what they want, what matters in the first
-   version they can use? (Scope from *their* priorities, not from a checklist of
-   missing platform features.)
-8. **The smallest win** — What is the first real outcome that would make this
-   feel like *their* product, not the starter?
+Ask only what is still unknown. Phrase in plain language. Write each answer
+into the product-brief file as you get it.
+
+1. **What is this product?** — Only if still unclear from what they already
+   said. In one sentence: what are they building, and what problem does it
+   solve?
+2. **Who uses the app on day one?** — Who signs in (role or persona)? Who does
+   *not* (e.g. customers stay on phone/WhatsApp)? Solo, staff, or customers
+   too?
+3. **How does a real job run today?** — Walk one request from start → done →
+   paid in their words (not “do you invoice?”). Correct a short guess if that
+   helps.
+4. **What should v1 make true?** — The one outcome that makes this feel like
+   *their* product, not the starter. Scope from their priorities.
+5. **What do we call it — and the main things in it?** — Product / business
+   name, plus the words they use for customers, things sold, and jobs (so you
+   rename toward their language).
+6. **What should the assistant help with — and never do alone?** — First useful
+   AI jobs; hard limits (especially money / irreversible actions).
 
 If answers conflict at a product level (e.g. “solo tool” vs “invite my whole
 company”), surface that before coding. Do **not** ask them to choose technical
