@@ -21,6 +21,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Check, Circle } from "lucide-react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import { m } from "@/paraglide/messages.js";
 
 const resetPasswordSearchSchema = z.object({
   token: z.string().optional(),
@@ -37,26 +38,10 @@ const LOWERCASE_RE = /[a-z]/;
 const UPPERCASE_RE = /[A-Z]/;
 const NUMBER_RE = /[0-9]/;
 
-const resetPasswordSchema = z
-  .object({
-    password: z
-      .string({ message: "Password is required" })
-      .min(
-        MIN_PASSWORD_LENGTH,
-        `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
-      )
-      .max(100, "Password must be at most 100 characters.")
-      .regex(LOWERCASE_RE, "Password must include a lowercase letter.")
-      .regex(UPPERCASE_RE, "Password must include an uppercase letter.")
-      .regex(NUMBER_RE, "Password must include a number."),
-    confirmPassword: z.string({ message: "Please confirm your password" }),
-  })
-  .refine((values) => values.password === values.confirmPassword, {
-    message: "Passwords do not match.",
-    path: ["confirmPassword"],
-  });
-
-type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+interface ResetPasswordValues {
+  password: string;
+  confirmPassword: string;
+}
 
 interface PasswordRequirement {
   id: string;
@@ -71,27 +56,29 @@ function getPasswordRequirements(
   return [
     {
       id: "length",
-      label: `At least ${MIN_PASSWORD_LENGTH} characters`,
+      label: m.auth_password_req_length({
+        count: String(MIN_PASSWORD_LENGTH),
+      }),
       met: password.length >= MIN_PASSWORD_LENGTH,
     },
     {
       id: "lower",
-      label: "One lowercase letter",
+      label: m.auth_password_req_lower(),
       met: LOWERCASE_RE.test(password),
     },
     {
       id: "upper",
-      label: "One uppercase letter",
+      label: m.auth_password_req_upper(),
       met: UPPERCASE_RE.test(password),
     },
     {
       id: "number",
-      label: "One number",
+      label: m.auth_password_req_number(),
       met: NUMBER_RE.test(password),
     },
     {
       id: "match",
-      label: "Passwords match",
+      label: m.auth_password_req_match(),
       met:
         password.length > 0 &&
         confirmPassword.length > 0 &&
@@ -107,9 +94,9 @@ function PasswordRequirementsPanel({
 }) {
   return (
     <div>
-      <p className="font-medium text-sm">Password must include</p>
+      <p className="font-medium text-sm">{m.auth_password_must_include()}</p>
       <p className="mt-1 text-muted-foreground text-xs">
-        Requirements update as you type.
+        {m.auth_password_requirements_hint()}
       </p>
       <ul className="mt-4 space-y-2.5">
         {requirements.map((requirement) => (
@@ -133,7 +120,9 @@ function PasswordRequirementsPanel({
             )}
             <span>{requirement.label}</span>
             <span className="sr-only">
-              {requirement.met ? "met" : "not met"}
+              {requirement.met
+                ? m.auth_password_req_met()
+                : m.auth_password_req_not_met()}
             </span>
           </li>
         ))}
@@ -145,6 +134,27 @@ function PasswordRequirementsPanel({
 function ResetPasswordPage() {
   const navigate = useNavigate();
   const { token, error } = Route.useSearch();
+
+  const resetPasswordSchema = z
+    .object({
+      password: z
+        .string({ message: m.auth_password_required() })
+        .min(
+          MIN_PASSWORD_LENGTH,
+          m.auth_password_min({ count: String(MIN_PASSWORD_LENGTH) })
+        )
+        .max(100, m.auth_password_max())
+        .regex(LOWERCASE_RE, m.auth_password_lowercase())
+        .regex(UPPERCASE_RE, m.auth_password_uppercase())
+        .regex(NUMBER_RE, m.auth_password_number()),
+      confirmPassword: z.string({
+        message: m.auth_password_confirm_required(),
+      }),
+    })
+    .refine((values) => values.password === values.confirmPassword, {
+      message: m.auth_password_mismatch(),
+      path: ["confirmPassword"],
+    });
 
   const form = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -162,7 +172,7 @@ function ResetPasswordPage() {
 
   const onSubmit = async (values: ResetPasswordValues) => {
     if (!token) {
-      toast.error("This reset link is invalid or has expired.");
+      toast.error(m.auth_reset_invalid());
       return;
     }
 
@@ -172,11 +182,11 @@ function ResetPasswordPage() {
     });
 
     if (resetError) {
-      toast.error(resetError.message ?? "An error occurred");
+      toast.error(resetError.message ?? m.auth_error_generic());
       return;
     }
 
-    toast.success("Password updated. You can log in with your new password.");
+    toast.success(m.auth_reset_success());
     await navigate({ to: "/login" });
   };
 
@@ -186,30 +196,28 @@ function ResetPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle>Choose a new password</CardTitle>
+          <CardTitle>{m.auth_reset_title()}</CardTitle>
           <CardDescription>
-            {invalidLink
-              ? "This reset link is invalid or has expired."
-              : "Pick a strong password for your account. You will use it the next time you sign in."}
+            {invalidLink ? m.auth_reset_invalid() : m.auth_reset_description()}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {invalidLink ? (
             <div className="mx-auto max-w-sm space-y-4">
               <p className="text-muted-foreground text-sm">
-                Request a new reset link to try again.
+                {m.auth_reset_request_hint()}
               </p>
               <Link
                 className="inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground text-sm shadow-xs hover:bg-primary/90"
                 to="/forgot-password"
               >
-                Request new link
+                {m.auth_reset_request_link()}
               </Link>
               <Link
                 className="inline-flex h-9 w-full items-center justify-center rounded-md border border-input bg-background px-4 py-2 font-medium text-sm shadow-xs hover:bg-accent hover:text-accent-foreground"
                 to="/login"
               >
-                Back to login
+                {m.auth_forgot_back_to_login()}
               </Link>
             </div>
           ) : (
@@ -222,7 +230,7 @@ function ResetPasswordPage() {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor={field.name}>
-                          New password
+                          {m.auth_reset_new_password()}
                         </FieldLabel>
                         <Input
                           {...field}
@@ -244,7 +252,7 @@ function ResetPasswordPage() {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor={field.name}>
-                          Confirm password
+                          {m.auth_reset_confirm_password()}
                         </FieldLabel>
                         <Input
                           {...field}
@@ -268,15 +276,15 @@ function ResetPasswordPage() {
                       type="submit"
                     >
                       {form.formState.isSubmitting
-                        ? "Updating password..."
-                        : "Update password"}
+                        ? m.auth_reset_updating()
+                        : m.auth_reset_update()}
                     </Button>
                     <p className="text-center text-muted-foreground text-sm">
                       <Link
                         className="underline-offset-4 hover:underline"
                         to="/login"
                       >
-                        Back to login
+                        {m.auth_forgot_back_to_login()}
                       </Link>
                     </p>
                   </Field>

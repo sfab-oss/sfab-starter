@@ -20,19 +20,22 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/forgot-password")({
   component: ForgotPasswordPage,
 });
 
-const forgotPasswordSchema = z.object({
-  email: z.email({ message: "Email is required" }),
-});
-
-type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
+interface ForgotPasswordValues {
+  email: string;
+}
 
 function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false);
+
+  const forgotPasswordSchema = z.object({
+    email: z.email({ message: m.auth_email_required() }),
+  });
 
   const form = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -48,7 +51,7 @@ function ForgotPasswordPage() {
     });
 
     if (error) {
-      toast.error(error.message ?? "An error occurred");
+      toast.error(error.message ?? m.auth_error_generic());
       return;
     }
 
@@ -59,26 +62,24 @@ function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Reset your password</CardTitle>
+          <CardTitle>{m.auth_forgot_title()}</CardTitle>
           <CardDescription>
             {submitted
-              ? "If an account exists for that email, we sent a reset link."
-              : "Enter your email and we'll send you a link to reset your password."}
+              ? m.auth_forgot_description_sent()
+              : m.auth_forgot_description()}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {submitted ? (
             <div className="space-y-4">
               <p className="text-muted-foreground text-sm">
-                Check your email for a reset link. In local development, the
-                link is logged to the server console when email delivery is
-                mocked.
+                {m.auth_forgot_check_email()}
               </p>
               <Link
                 className="inline-flex h-9 w-full items-center justify-center rounded-md border border-input bg-background px-4 py-2 font-medium text-sm shadow-xs hover:bg-accent hover:text-accent-foreground"
                 to="/login"
               >
-                Back to login
+                {m.auth_forgot_back_to_login()}
               </Link>
             </div>
           ) : (
@@ -89,13 +90,15 @@ function ForgotPasswordPage() {
                   name="email"
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                      <FieldLabel htmlFor={field.name}>
+                        {m.auth_email()}
+                      </FieldLabel>
                       <Input
                         {...field}
                         aria-invalid={fieldState.invalid}
                         autoComplete="email"
                         id={field.name}
-                        placeholder="m@example.com"
+                        placeholder={m.auth_email_placeholder()}
                         type="email"
                       />
                       {fieldState.invalid && (
@@ -111,16 +114,16 @@ function ForgotPasswordPage() {
                     type="submit"
                   >
                     {form.formState.isSubmitting
-                      ? "Sending reset link..."
-                      : "Send reset link"}
+                      ? m.auth_forgot_sending()
+                      : m.auth_forgot_send()}
                   </Button>
                   <p className="text-center text-muted-foreground text-sm">
-                    Remember your password?{" "}
+                    {m.auth_forgot_remember()}{" "}
                     <Link
                       className="underline-offset-4 hover:underline"
                       to="/login"
                     >
-                      Log in
+                      {m.auth_log_in()}
                     </Link>
                   </p>
                 </Field>
