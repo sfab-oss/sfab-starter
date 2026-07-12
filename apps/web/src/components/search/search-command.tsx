@@ -24,7 +24,7 @@ import {
   documentFolioLabel,
   documentTypeLabel,
 } from "@/components/documents/document-type";
-import { platformNavigationItems } from "@/components/layout/platform-navigation";
+import { getPlatformNavigationItems } from "@/components/layout/platform-navigation";
 import { useCatalogSearch } from "@/hooks/use-catalog-search";
 import { useDocumentsList } from "@/hooks/use-documents";
 import { useEntities } from "@/hooks/use-entities";
@@ -76,6 +76,7 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
       entitiesSearch.isFetching);
 
   const pages = useMemo(() => {
+    const platformNavigationItems = getPlatformNavigationItems();
     const q = query.trim().toLowerCase();
     if (!q) {
       return platformNavigationItems;

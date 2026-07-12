@@ -3,13 +3,14 @@ import {
   InputGroupTextarea,
 } from "@workspace/ui/components/shadcn/input-group";
 import { AlertCircle } from "lucide-react";
+import { m } from "@/paraglide/messages.js";
 
 export function ChatHistoryError() {
   return (
     <div className="flex items-center justify-center px-2 py-4">
       <div className="flex flex-col items-center gap-2 text-muted-foreground">
         <AlertCircle className="size-6" />
-        <p className="text-xs">Failed to load chat history.</p>
+        <p className="text-xs">{m.chat_history_failed()}</p>
       </div>
     </div>
   );
@@ -26,7 +27,7 @@ export function ChatInputPlaceholder({ note }: { note?: string }) {
           <InputGroupTextarea
             className="max-h-60 overflow-y-auto"
             disabled
-            placeholder="Type a message..."
+            placeholder={m.chat_placeholder()}
           />
         </InputGroup>
       </div>

@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { app as honoApp } from "./hono";
+import { paraglideMiddleware } from "./paraglide/server.js";
 
 export { OrgAgent } from "@workspace/agent/org";
 // OrgChat and OrgSubAgent are facets (sub-agents) of OrgAgent, resolved by the
@@ -33,37 +34,49 @@ function gateOrgAgent(pathname: string, activeOrgId: string): Response | null {
   return null;
 }
 
-export default {
-  async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
-    const url = new URL(request.url);
+async function handleRequest(
+  request: Request,
+  env: Cloudflare.Env,
+  ctx: ExecutionContext
+): Promise<Response> {
+  const url = new URL(request.url);
 
-    if (url.pathname.startsWith("/agents/")) {
-      const session = await auth.api.getSession({ headers: request.headers });
-      if (!session?.user) {
-        return new Response("Unauthorized", { status: 401 });
-      }
-      const activeOrgId = session.session.activeOrganizationId;
-      if (!activeOrgId) {
-        return new Response("No active organization", { status: 403 });
-      }
-
-      if (url.pathname.startsWith("/agents/org-agent/")) {
-        const gateFailure = gateOrgAgent(url.pathname, activeOrgId);
-        if (gateFailure) {
-          return gateFailure;
-        }
-        await getAgentByName(
-          env.OrgAgent as unknown as Parameters<typeof getAgentByName>[0],
-          activeOrgId
-        );
-      }
-
-      const agentResponse = await routeAgentRequest(request, env);
-      if (agentResponse) {
-        return agentResponse;
-      }
+  if (url.pathname.startsWith("/agents/")) {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session?.user) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const activeOrgId = session.session.activeOrganizationId;
+    if (!activeOrgId) {
+      return new Response("No active organization", { status: 403 });
     }
 
-    return app.fetch(request, env, ctx);
+    if (url.pathname.startsWith("/agents/org-agent/")) {
+      const gateFailure = gateOrgAgent(url.pathname, activeOrgId);
+      if (gateFailure) {
+        return gateFailure;
+      }
+      await getAgentByName(
+        env.OrgAgent as unknown as Parameters<typeof getAgentByName>[0],
+        activeOrgId
+      );
+    }
+
+    const agentResponse = await routeAgentRequest(request, env);
+    if (agentResponse) {
+      return agentResponse;
+    }
+  }
+
+  return app.fetch(request, env, ctx);
+}
+
+export default {
+  fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
+    // Cookie strategy only — no URL locale prefixes. Middleware still scopes
+    // getLocale() per request for SSR message resolution.
+    return paraglideMiddleware(request, ({ request: localizedRequest }) =>
+      handleRequest(localizedRequest, env, ctx)
+    );
   },
 };

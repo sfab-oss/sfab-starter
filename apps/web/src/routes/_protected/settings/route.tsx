@@ -16,29 +16,36 @@ import {
   type SettingsNavSection,
   SettingsSectionLayout,
 } from "@/components/organization/settings/settings-nav";
+import { m } from "@/paraglide/messages.js";
+
 export const Route = createFileRoute("/_protected/settings")({
   component: SettingsLayout,
 });
-const ORGANIZATION_SETTINGS_SECTIONS: SettingsNavSection[] = [
-  {
-    label: "Organization",
-    items: [
-      {
-        to: "/settings/general",
-        label: "General",
-      },
-      {
-        to: "/settings/members",
-        label: "Members",
-      },
-    ],
-  },
-];
+
+function settingsSections(): SettingsNavSection[] {
+  return [
+    {
+      label: m.settings_section_organization(),
+      items: [
+        {
+          to: "/settings/general",
+          label: m.settings_general(),
+        },
+        {
+          to: "/settings/members",
+          label: m.settings_members(),
+        },
+      ],
+    },
+  ];
+}
+
 function SettingsLayout() {
   const { data: activeOrganization, isPending } =
     authClient.useActiveOrganization();
+  const sections = settingsSections();
   if (isPending) {
-    return <SettingsSkeleton />;
+    return <SettingsSkeleton sections={sections} />;
   }
   if (!activeOrganization) {
     return (
@@ -48,7 +55,7 @@ function SettingsLayout() {
           <AppBreadcrumbs
             items={[
               {
-                title: "Settings",
+                title: m.settings_title(),
               },
             ]}
           />
@@ -56,10 +63,8 @@ function SettingsLayout() {
         </ShellHeader>
         <ShellContent>
           <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
-            <p className="text-muted-foreground">No active organization</p>
-            <Button render={<Link to="/onboarding" />}>
-              Create an organization
-            </Button>
+            <p className="text-muted-foreground">{m.org_no_active()}</p>
+            <Button render={<Link to="/onboarding" />}>{m.org_create()}</Button>
           </div>
         </ShellContent>
       </ShellPage>
@@ -72,7 +77,7 @@ function SettingsLayout() {
         <AppBreadcrumbs
           items={[
             {
-              title: "Settings",
+              title: m.settings_title(),
             },
           ]}
         />
@@ -80,14 +85,14 @@ function SettingsLayout() {
       </ShellHeader>
 
       <ShellContent>
-        <SettingsSectionLayout sections={ORGANIZATION_SETTINGS_SECTIONS}>
+        <SettingsSectionLayout sections={sections}>
           <Outlet />
         </SettingsSectionLayout>
       </ShellContent>
     </ShellPage>
   );
 }
-function SettingsSkeleton() {
+function SettingsSkeleton({ sections }: { sections: SettingsNavSection[] }) {
   return (
     <ShellPage>
       <ShellHeader>
@@ -95,14 +100,14 @@ function SettingsSkeleton() {
         <AppBreadcrumbs
           items={[
             {
-              title: "Settings",
+              title: m.settings_title(),
             },
           ]}
         />
         <ShellHeaderActions />
       </ShellHeader>
       <ShellContent>
-        <SettingsSectionLayout sections={ORGANIZATION_SETTINGS_SECTIONS}>
+        <SettingsSectionLayout sections={sections}>
           <div className="space-y-2">
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-4 w-64" />

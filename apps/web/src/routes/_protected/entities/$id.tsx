@@ -41,6 +41,7 @@ import {
   useEntity,
   useUpdateEntity,
 } from "@/hooks/use-entities";
+import { intlLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/_protected/entities/$id")({
   component: EntityPage,
@@ -166,10 +167,13 @@ function EntityPage() {
                 {isArchived && <Badge variant="outline">Archived</Badge>}
               </div>
               <CardDescription>
-                Balance {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY)}
+                Balance{" "}
+                {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY, {
+                  locale: intlLocale(),
+                })}
                 {entity.creditLimit == null
                   ? ""
-                  : ` · Credit limit ${formatMoneyMinor(entity.creditLimit, DEFAULT_CURRENCY)}`}
+                  : ` · Credit limit ${formatMoneyMinor(entity.creditLimit, DEFAULT_CURRENCY, { locale: intlLocale() })}`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -196,13 +200,19 @@ function EntityPage() {
                   <div>
                     <dt className="text-muted-foreground">AR balance</dt>
                     <dd className="tabular-nums">
-                      {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY)}
+                      {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY, {
+                        locale: intlLocale(),
+                      })}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground">Store credit</dt>
                     <dd className="tabular-nums">
-                      {formatMoneyMinor(entity.creditBalance, DEFAULT_CURRENCY)}
+                      {formatMoneyMinor(
+                        entity.creditBalance,
+                        DEFAULT_CURRENCY,
+                        { locale: intlLocale() }
+                      )}
                     </dd>
                   </div>
                   <div>
@@ -212,7 +222,8 @@ function EntityPage() {
                         ? "None"
                         : formatMoneyMinor(
                             entity.creditLimit,
-                            DEFAULT_CURRENCY
+                            DEFAULT_CURRENCY,
+                            { locale: intlLocale() }
                           )}
                     </dd>
                   </div>
@@ -258,7 +269,8 @@ function EntityPage() {
                     <span className="shrink-0 font-medium tabular-nums">
                       {formatMoneyMinor(
                         doc.status === "finalized" ? doc.balanceDue : doc.total,
-                        doc.currencyCode
+                        doc.currencyCode,
+                        { locale: intlLocale() }
                       )}
                     </span>
                   </Link>

@@ -19,20 +19,23 @@ import { Input } from "@workspace/ui/components/shadcn/input";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { LanguageSwitcher } from "@/components/common/language-switcher";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
-const loginSchema = z.object({
-  email: z.email({ message: "Email is required" }),
-  password: z
-    .string({ message: "Password is required" })
-    .min(6, "Password must be at least 6 characters."),
-});
-
-type LoginValues = z.infer<typeof loginSchema>;
+interface LoginValues {
+  email: string;
+  password: string;
+}
 
 function LoginPage() {
   const navigate = useNavigate();
+
+  const loginSchema = z.object({
+    email: z.email({ message: m.auth_email() }),
+    password: z.string({ message: m.auth_password() }).min(6),
+  });
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -46,21 +49,22 @@ function LoginPage() {
     });
 
     if (result.error) {
-      toast.error(result.error.message ?? "An error occurred");
+      toast.error(result.error.message ?? m.auth_error_generic());
     } else {
-      toast.success("Login successful");
+      toast.success(m.auth_login_success());
       await navigate({ to: "/" });
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
+    <div className="relative flex min-h-screen items-center justify-center bg-muted">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
+          <CardTitle>{m.auth_login_title()}</CardTitle>
+          <CardDescription>{m.auth_login_description()}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -70,7 +74,9 @@ function LoginPage() {
                 name="email"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>
+                      {m.auth_email()}
+                    </FieldLabel>
                     <Input
                       {...field}
                       aria-invalid={fieldState.invalid}
@@ -91,12 +97,14 @@ function LoginPage() {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <div className="flex items-center">
-                      <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                      <FieldLabel htmlFor={field.name}>
+                        {m.auth_password()}
+                      </FieldLabel>
                       <Link
                         className="ml-auto text-sm underline-offset-4 hover:underline"
                         to="/forgot-password"
                       >
-                        Forgot your password?
+                        {m.auth_forgot_password()}
                       </Link>
                     </div>
                     <Input
@@ -114,15 +122,17 @@ function LoginPage() {
               />
               <Field>
                 <Button disabled={form.formState.isSubmitting} type="submit">
-                  {form.formState.isSubmitting ? "Logging in..." : "Login"}
+                  {form.formState.isSubmitting
+                    ? m.auth_login_submitting()
+                    : m.auth_login()}
                 </Button>
                 <p className="text-center text-muted-foreground text-sm">
-                  Don&apos;t have an account?{" "}
+                  {m.auth_no_account()}{" "}
                   <Link
                     className="underline-offset-4 hover:underline"
                     to="/signup"
                   >
-                    Sign up
+                    {m.auth_signup()}
                   </Link>
                 </p>
               </Field>

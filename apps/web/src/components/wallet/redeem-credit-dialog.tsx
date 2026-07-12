@@ -35,6 +35,7 @@ import {
 } from "@/components/documents/document-type";
 import type { DocumentRow } from "@/hooks/use-documents";
 import { useRedeemCredit } from "@/hooks/use-wallet";
+import { intlLocale } from "@/lib/locale";
 
 export function RedeemCreditDialog({
   entityId,
@@ -148,7 +149,10 @@ export function RedeemCreditDialog({
             <DialogTitle>Redeem store credit</DialogTitle>
             <DialogDescription>
               Apply wallet balance to an open invoice. Available credit{" "}
-              {formatMoneyMinor(creditBalance, DEFAULT_CURRENCY)}.
+              {formatMoneyMinor(creditBalance, DEFAULT_CURRENCY, {
+                locale: intlLocale(),
+              })}
+              .
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -165,7 +169,10 @@ export function RedeemCreditDialog({
                   {openInvoices.map((doc) => (
                     <SelectItem key={doc.id} value={doc.id}>
                       {documentTypeLabel(doc.type)} {documentFolioLabel(doc)} ·{" "}
-                      {formatMoneyMinor(doc.balanceDue, doc.currencyCode)} due
+                      {formatMoneyMinor(doc.balanceDue, doc.currencyCode, {
+                        locale: intlLocale(),
+                      })}{" "}
+                      due
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -186,7 +193,10 @@ export function RedeemCreditDialog({
               />
               {selected ? (
                 <p className="text-muted-foreground text-xs">
-                  Max {formatMoneyMinor(maxRedeemMinor, selected.currencyCode)}{" "}
+                  Max{" "}
+                  {formatMoneyMinor(maxRedeemMinor, selected.currencyCode, {
+                    locale: intlLocale(),
+                  })}{" "}
                   (lesser of credit and balance due).
                 </p>
               ) : null}

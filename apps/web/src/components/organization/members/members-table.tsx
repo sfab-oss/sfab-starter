@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  can,
-  ROLE_LABELS,
-  type RoleName,
-} from "@workspace/auth/access-control";
+import { can, type RoleName } from "@workspace/auth/access-control";
 import { authClient } from "@workspace/auth/client";
 import {
   AlertDialog,
@@ -34,6 +30,8 @@ import {
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useCancelInvitation, useRemoveMember } from "@/hooks/use-organization";
+import { roleMessage } from "@/lib/role-label";
+import { m } from "@/paraglide/messages.js";
 
 interface Member {
   id: string;
@@ -53,7 +51,10 @@ interface MembersTableProps {
 }
 
 // "operator" = better-auth `member` renamed in UI copy only (no schema change).
-const roleLabel = (role: string) => ROLE_LABELS[role as RoleName] ?? role;
+const roleLabel = (role: string) =>
+  role in { owner: 1, admin: 1, member: 1 }
+    ? roleMessage(role as RoleName)
+    : role;
 
 export function MembersTable({ members }: MembersTableProps) {
   const { data: session } = authClient.useSession();
@@ -145,16 +146,12 @@ export function MembersTable({ members }: MembersTableProps) {
                     className="h-auto px-2 py-1 text-destructive text-xs underline hover:no-underline"
                     disabled={isLoading || !canAct}
                     onClick={() => setMemberPendingRemoval(member)}
-                    title={
-                      canAct
-                        ? undefined
-                        : "Solo los administradores pueden quitar miembros"
-                    }
+                    title={canAct ? undefined : m.invite_remove_admin_only()}
                     variant="ghost"
                   >
                     {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-                    {!isLoading && isCurrentUser && "Leave"}
-                    {!(isLoading || isCurrentUser) && "Remove"}
+                    {!isLoading && isCurrentUser && m.members_leave()}
+                    {!(isLoading || isCurrentUser) && m.members_remove()}
                   </Button>
                 </TableCell>
               </TableRow>

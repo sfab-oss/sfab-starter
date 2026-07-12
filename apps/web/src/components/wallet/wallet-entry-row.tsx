@@ -2,6 +2,7 @@ import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { DEFAULT_CURRENCY, formatMoneyMinor } from "@workspace/ui/lib/money";
 import { format } from "date-fns";
 import type { WalletEntry } from "@/hooks/use-wallet";
+import { intlLocale } from "@/lib/locale";
 
 const TYPE_LABELS: Record<WalletEntry["type"], string> = {
   deposit: "Deposit",
@@ -34,7 +35,9 @@ export function WalletEntryRow({ entry }: { entry: WalletEntry }) {
         className={`shrink-0 font-medium tabular-nums ${isCredit ? "text-emerald-600 dark:text-emerald-400" : ""}`}
       >
         {isCredit ? "+" : ""}
-        {formatMoneyMinor(entry.amount, DEFAULT_CURRENCY)}
+        {formatMoneyMinor(entry.amount, DEFAULT_CURRENCY, {
+          locale: intlLocale(),
+        })}
       </span>
     </div>
   );

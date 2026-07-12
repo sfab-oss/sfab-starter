@@ -162,4 +162,5 @@ Not mandatory order — a shape that tends to work:
 | Layer map + worked feature | [`docs/architecture.md`](architecture.md) |
 | Transaction hub design | [`docs/architecture/transaction-core.md`](architecture/transaction-core.md) |
 | How-tos | [`docs/guides/`](guides/) |
+| Multi-language UI | [`docs/guides/i18n.md`](guides/i18n.md) + `.agents/skills/i18n` |
 | Why a choice was made | [`docs/decisions/`](decisions/) |

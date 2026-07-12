@@ -16,6 +16,7 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useUpdateOrganization } from "@/hooks/use-organization";
+import { m } from "@/paraglide/messages.js";
 
 const formSchema = z.object({
   name: z
@@ -117,13 +118,10 @@ export function OrganizationDetailsForm({
             disabled={!canEditSettings || updateOrganization.isPending}
             type="submit"
           >
-            {updateOrganization.isPending ? "Saving..." : "Save Changes"}
+            {updateOrganization.isPending ? m.common_saving() : m.common_save()}
           </Button>
           {!canEditSettings && (
-            <FieldDescription>
-              Solo los administradores pueden editar los datos de la
-              organización.
-            </FieldDescription>
+            <FieldDescription>{m.org_details_admin_only()}</FieldDescription>
           )}
         </Field>
       </FieldGroup>

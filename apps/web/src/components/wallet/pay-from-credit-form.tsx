@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/lib/money";
 import { useState } from "react";
 import { useRedeemCredit } from "@/hooks/use-wallet";
+import { intlLocale } from "@/lib/locale";
 
 export function PayFromCreditForm({
   docId,
@@ -58,8 +59,15 @@ export function PayFromCreditForm({
     <form className="space-y-2 rounded-lg border p-4" onSubmit={handleSubmit}>
       <h3 className="font-medium text-sm">Pay from store credit</h3>
       <p className="text-muted-foreground text-xs">
-        Available credit {formatMoneyMinor(creditBalance, currencyCode)}. Max
-        this payment {formatMoneyMinor(maxRedeemMinor, currencyCode)}.
+        Available credit{" "}
+        {formatMoneyMinor(creditBalance, currencyCode, {
+          locale: intlLocale(),
+        })}
+        . Max this payment{" "}
+        {formatMoneyMinor(maxRedeemMinor, currencyCode, {
+          locale: intlLocale(),
+        })}
+        .
       </p>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Input

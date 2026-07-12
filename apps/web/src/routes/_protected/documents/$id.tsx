@@ -46,6 +46,8 @@ import {
   useFinalizeDocument,
 } from "@/hooks/use-documents";
 import { useEntity } from "@/hooks/use-entities";
+import { intlLocale } from "@/lib/locale";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/documents/$id")({
   component: DocumentPage,
@@ -154,11 +156,16 @@ function FrozenLineItems({
           >
             <span className="min-w-0 flex-1 truncate">{line.description}</span>
             <span className="text-muted-foreground tabular-nums">
-              {line.quantity} × {formatMoneyMinor(line.unitPrice, currencyCode)}
+              {line.quantity} ×{" "}
+              {formatMoneyMinor(line.unitPrice, currencyCode, {
+                locale: intlLocale(),
+              })}
               {line.taxRate > 0 ? ` · ${bpsToPercent(line.taxRate)}% tax` : ""}
             </span>
             <span className="w-24 text-right font-medium tabular-nums">
-              {formatMoneyMinor(line.unitPrice * line.quantity, currencyCode)}
+              {formatMoneyMinor(line.unitPrice * line.quantity, currencyCode, {
+                locale: intlLocale(),
+              })}
             </span>
           </div>
         ))}
@@ -204,7 +211,11 @@ function PaymentActions({
       <div className="rounded-lg border p-4">
         <h3 className="mb-1 font-medium text-sm">Record payment</h3>
         <p className="mb-3 text-muted-foreground text-xs">
-          Balance due {formatMoneyMinor(balanceDue, currencyCode)}.
+          {m.documents_balance_due({
+            amount: formatMoneyMinor(balanceDue, currencyCode, {
+              locale: intlLocale(),
+            }),
+          })}
         </p>
         <Button className="w-full" onClick={() => setPaymentOpen(true)}>
           Record payment
@@ -313,7 +324,7 @@ function DocumentPage() {
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
           items={[
-            { title: "Documents", href: "/documents" },
+            { title: m.documents_title(), href: "/documents" },
             {
               title: `${documentTypeLabel(doc.type)} ${documentFolioLabel(doc)}`,
             },
@@ -379,19 +390,25 @@ function DocumentPage() {
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Subtotal</dt>
                 <dd className="tabular-nums">
-                  {formatMoneyMinor(display.subtotal, doc.currencyCode)}
+                  {formatMoneyMinor(display.subtotal, doc.currencyCode, {
+                    locale: intlLocale(),
+                  })}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Tax</dt>
                 <dd className="tabular-nums">
-                  {formatMoneyMinor(display.taxTotal, doc.currencyCode)}
+                  {formatMoneyMinor(display.taxTotal, doc.currencyCode, {
+                    locale: intlLocale(),
+                  })}
                 </dd>
               </div>
               <div className="flex justify-between font-medium">
                 <dt>Total</dt>
                 <dd className="tabular-nums">
-                  {formatMoneyMinor(display.total, doc.currencyCode)}
+                  {formatMoneyMinor(display.total, doc.currencyCode, {
+                    locale: intlLocale(),
+                  })}
                 </dd>
               </div>
               {!isDraft && isFiscalPayable && (
@@ -399,13 +416,17 @@ function DocumentPage() {
                   <div className="flex justify-between">
                     <dt className="text-muted-foreground">Amount paid</dt>
                     <dd className="tabular-nums">
-                      {formatMoneyMinor(doc.amountPaid, doc.currencyCode)}
+                      {formatMoneyMinor(doc.amountPaid, doc.currencyCode, {
+                        locale: intlLocale(),
+                      })}
                     </dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-muted-foreground">Balance due</dt>
                     <dd className="tabular-nums">
-                      {formatMoneyMinor(doc.balanceDue, doc.currencyCode)}
+                      {formatMoneyMinor(doc.balanceDue, doc.currencyCode, {
+                        locale: intlLocale(),
+                      })}
                     </dd>
                   </div>
                 </>

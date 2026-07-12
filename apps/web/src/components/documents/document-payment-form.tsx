@@ -25,6 +25,7 @@ import {
 } from "@workspace/ui/lib/money";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { intlLocale } from "@/lib/locale";
 
 export const DOCUMENT_PAYMENT_FORM_ID = "document-payment-form";
 
@@ -97,19 +98,23 @@ export function DocumentPaymentForm({
         <div>
           <dt className="text-muted-foreground">Total</dt>
           <dd className="font-medium tabular-nums">
-            {formatMoneyMinor(total, currencyCode)}
+            {formatMoneyMinor(total, currencyCode, { locale: intlLocale() })}
           </dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Paid</dt>
           <dd className="tabular-nums">
-            {formatMoneyMinor(amountPaid, currencyCode)}
+            {formatMoneyMinor(amountPaid, currencyCode, {
+              locale: intlLocale(),
+            })}
           </dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Balance</dt>
           <dd className="font-medium tabular-nums">
-            {formatMoneyMinor(balanceDue, currencyCode)}
+            {formatMoneyMinor(balanceDue, currencyCode, {
+              locale: intlLocale(),
+            })}
           </dd>
         </div>
       </dl>
@@ -156,7 +161,10 @@ export function DocumentPaymentForm({
               </FieldLabel>
               <FieldDescription>
                 Cannot exceed balance due (
-                {formatMoneyMinor(balanceDue, currencyCode)}).
+                {formatMoneyMinor(balanceDue, currencyCode, {
+                  locale: intlLocale(),
+                })}
+                ).
               </FieldDescription>
               <Input
                 aria-invalid={fieldState.invalid}

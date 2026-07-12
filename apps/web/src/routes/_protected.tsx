@@ -17,6 +17,7 @@ import {
 } from "@workspace/ui/components/brand/shell";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { AlertCircle } from "lucide-react";
+import { m } from "@/paraglide/messages.js";
 import { ChatDockMount } from "../components/chat/dock/chat-dock-mount";
 import { AppSidebar } from "../components/layout/app-sidebar";
 import { PageContextProvider } from "../components/providers/page-context";
@@ -56,18 +57,16 @@ function ProtectedErrorComponent({ error, reset }: ErrorComponentProps) {
       <ShellInset>
         <div className="flex h-full flex-col items-center justify-center gap-4 p-6">
           <AlertCircle className="h-12 w-12 text-destructive" />
-          <h2 className="font-semibold text-xl">Something went wrong</h2>
+          <h2 className="font-semibold text-xl">{m.error_page_title()}</h2>
           <p className="max-w-md text-center text-muted-foreground">
-            {error instanceof Error
-              ? error.message
-              : "An unexpected error occurred"}
+            {error instanceof Error ? error.message : m.common_unknown_error()}
           </p>
           <div className="flex gap-2">
             <Button onClick={() => reset()} variant="outline">
-              Try Again
+              {m.common_retry()}
             </Button>
             <Button onClick={() => router.navigate({ to: "/" })}>
-              Go Home
+              {m.error_go_home()}
             </Button>
           </div>
         </div>

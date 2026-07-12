@@ -43,6 +43,7 @@ import {
   useProduct,
   useUpdateProduct,
 } from "@/hooks/use-products";
+import { intlLocale } from "@/lib/locale";
 import { getUploadUrl } from "@/lib/uploads";
 export const Route = createFileRoute("/_protected/catalog/$id")({
   component: ProductPage,
@@ -225,7 +226,9 @@ function ProductPage() {
             </CardHeader>
             <CardContent>
               <div className="font-bold text-2xl">
-                {formatMoneyMinor(product.price ?? 0, DEFAULT_CURRENCY)}
+                {formatMoneyMinor(product.price ?? 0, DEFAULT_CURRENCY, {
+                  locale: intlLocale(),
+                })}
               </div>
               <p className="text-muted-foreground text-xs">Per unit</p>
             </CardContent>

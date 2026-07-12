@@ -27,23 +27,27 @@ import { useCallback, useMemo } from "react";
 import { CreateProductDialog } from "@/components/catalog/create-product-dialog";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type Product, useProducts } from "@/hooks/use-products";
+import { intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
 import { getUploadUrl } from "@/lib/uploads";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/catalog/")({
   component: CatalogPage,
   validateSearch: paginationQuerySchema,
 });
 
-const PRODUCT_FILTER_DEFINITIONS: TableFilterDefinition[] = [
-  {
-    id: "search",
-    columnId: "search",
-    label: "Search",
-    type: "text",
-    placeholder: "Name or SKU…",
-  },
-];
+function productFilterDefinitions(): TableFilterDefinition[] {
+  return [
+    {
+      id: "search",
+      columnId: "search",
+      label: m.catalog_filter_search(),
+      type: "text",
+      placeholder: m.catalog_filter_search_placeholder(),
+    },
+  ];
+}
 
 function resolveCollectionEmpty({
   isTrueEmpty,
@@ -57,9 +61,9 @@ function resolveCollectionEmpty({
   if (isTrueEmpty) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-        <p className="font-medium text-sm">No products yet</p>
+        <p className="font-medium text-sm">{m.catalog_empty_title()}</p>
         <p className="text-muted-foreground text-sm">
-          Create a product to populate the catalog.
+          {m.catalog_empty_hint()}
         </p>
       </div>
     );
@@ -68,13 +72,13 @@ function resolveCollectionEmpty({
   if (isPresetEmpty) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-        <p className="font-medium text-sm">No products match these filters</p>
+        <p className="font-medium text-sm">{m.catalog_empty_filtered()}</p>
         <button
           className="text-primary text-sm underline-offset-4 hover:underline"
           onClick={clearFilters}
           type="button"
         >
-          Clear filters
+          {m.catalog_clear_filters()}
         </button>
       </div>
     );
@@ -259,7 +263,9 @@ function CatalogPage() {
         const price = (row.getValue("price") as number | null) ?? 0;
         return (
           <div className="text-right font-medium">
-            {formatMoneyMinor(price, DEFAULT_CURRENCY)}
+            {formatMoneyMinor(price, DEFAULT_CURRENCY, {
+              locale: intlLocale(),
+            })}
           </div>
         );
       },
@@ -270,7 +276,7 @@ function CatalogPage() {
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
-        <AppBreadcrumbs items={[{ title: "Catalog" }]} />
+        <AppBreadcrumbs items={[{ title: m.catalog_title() }]} />
         <ShellHeaderActions>
           <CreateProductDialog />
         </ShellHeaderActions>
@@ -289,7 +295,7 @@ function CatalogPage() {
             columns={columns}
             data={productsResponse?.data ?? []}
             embedded
-            filterDefinitions={PRODUCT_FILTER_DEFINITIONS}
+            filterDefinitions={productFilterDefinitions()}
             filteredCount={productsResponse?.total ?? 0}
             onColumnFiltersChange={onColumnFiltersChange}
             onPaginationChange={onPaginationChange}

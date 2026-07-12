@@ -27,6 +27,7 @@ import { useCallback, useMemo } from "react";
 import { CreateEntityDialog } from "@/components/entities/create-entity-dialog";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type Entity, useEntities } from "@/hooks/use-entities";
+import { intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
 
 export const Route = createFileRoute("/_protected/entities/")({
@@ -238,7 +239,9 @@ function EntitiesPage() {
         const balance = (row.getValue("balance") as number | null) ?? 0;
         return (
           <div className="text-right font-medium tabular-nums">
-            {formatMoneyMinor(balance, DEFAULT_CURRENCY)}
+            {formatMoneyMinor(balance, DEFAULT_CURRENCY, {
+              locale: intlLocale(),
+            })}
           </div>
         );
       },

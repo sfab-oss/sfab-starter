@@ -47,7 +47,9 @@ import {
 import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type DocumentRow, useDocumentsList } from "@/hooks/use-documents";
+import { intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
+import { m } from "@/paraglide/messages.js";
 export const Route = createFileRoute("/_protected/documents/")({
   component: DocumentsPage,
   validateSearch: listDocumentsQuerySchema,
@@ -56,26 +58,26 @@ const DOCUMENT_FILTER_DEFINITIONS: TableFilterDefinition[] = [
   {
     id: "search",
     columnId: "search",
-    label: "Search",
+    label: m.documents_filter_search(),
     type: "text",
-    placeholder: "Entity, folio…",
+    placeholder: m.documents_filter_search_placeholder(),
   },
   {
     id: "type",
     columnId: "type",
-    label: "Type",
+    label: m.documents_filter_type(),
     type: "enum",
     options: [
       {
-        label: "Quote",
+        label: m.documents_type_quote(),
         value: "quote",
       },
       {
-        label: "Invoice",
+        label: m.documents_type_invoice(),
         value: "invoice",
       },
       {
-        label: "Credit note",
+        label: m.documents_type_credit_note(),
         value: "credit_note",
       },
       {
@@ -146,7 +148,7 @@ function DocumentsPage() {
   useSetPageContext(
     useMemo(
       () => ({
-        title: "Documents",
+        title: m.documents_title(),
         description: "Quotes, invoices, bills",
         entityType: "documents",
         entityId: "list",
@@ -397,7 +399,9 @@ function DocumentsPage() {
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => (
         <div className="text-right font-medium tabular-nums">
-          {formatMoneyMinor(row.original.total, row.original.currencyCode)}
+          {formatMoneyMinor(row.original.total, row.original.currencyCode, {
+            locale: intlLocale(),
+          })}
         </div>
       ),
     },
@@ -422,7 +426,7 @@ function DocumentsPage() {
         <AppBreadcrumbs
           items={[
             {
-              title: "Documents",
+              title: m.documents_title(),
             },
           ]}
         />
