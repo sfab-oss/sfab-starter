@@ -190,7 +190,6 @@ function EntityPage() {
                   isLoading={updateEntity.isPending}
                   mode="edit"
                   onSubmit={onSubmit}
-                  submitLabel="Save changes"
                 />
               ) : (
                 <dl className="grid gap-3 text-sm sm:grid-cols-2">

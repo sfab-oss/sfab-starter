@@ -30,6 +30,7 @@ import {
 } from "@workspace/ui/lib/money";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { m } from "@/paraglide/messages.js";
 
 export type EntityFormValues = ContractEntityFormValues;
 
@@ -54,7 +55,7 @@ export function EntityForm({
   defaultValues,
   onSubmit,
   isLoading,
-  submitLabel = "Save",
+  submitLabel = m.common_save(),
 }: EntityFormProps) {
   const form = useForm<EntityFormUiValues>({
     resolver: zodResolver(entityFormUiSchema),
@@ -173,7 +174,7 @@ export function EntityForm({
 
         <div className="flex justify-end pt-1">
           <Button disabled={submitDisabled} type="submit">
-            {isLoading ? "Saving…" : submitLabel}
+            {isLoading ? m.common_saving() : submitLabel}
           </Button>
         </div>
       </FieldGroup>

@@ -19,6 +19,7 @@ import {
 } from "@workspace/ui/lib/money";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
+import { m } from "@/paraglide/messages.js";
 import { ImageUpload } from "./image-upload";
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -36,7 +37,7 @@ export function ProductForm({
   defaultValues,
   onSubmit,
   isLoading,
-  submitLabel = "Save Product",
+  submitLabel = m.common_save(),
 }: ProductFormProps) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -219,7 +220,7 @@ export function ProductForm({
 
         <div className="flex justify-end pt-1">
           <Button disabled={submitDisabled} type="submit">
-            {isLoading ? "Saving..." : submitLabel}
+            {isLoading ? m.common_saving() : submitLabel}
           </Button>
         </div>
       </FieldGroup>

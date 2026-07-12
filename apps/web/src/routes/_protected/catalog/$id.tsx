@@ -271,7 +271,6 @@ function ProductPage() {
                 isLoading={updateProduct.isPending}
                 mode="edit"
                 onSubmit={handleUpdate}
-                submitLabel="Save Changes"
               />
             ) : (
               <ProductDetailsReadOnly product={product} />
