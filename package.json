@@ -20,6 +20,9 @@
     "db:seed": "pnpm --filter web db:seed",
     "db:reset": "pnpm --filter web db:reset",
     "db:list": "pnpm --filter web db:list",
+    "i18n:sync": "pnpm --filter @workspace/i18n i18n:sync",
+    "i18n:lint": "pnpm --filter @workspace/i18n i18n:lint",
+    "i18n:compile": "pnpm --filter web i18n:compile",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -30,6 +33,7 @@
     "knip": "^5.88.1",
     "lint-staged": "^16.4.0",
     "madge": "^8.0.0",
+    "tsx": "4.20.5",
     "turbo": "^2.10.4",
     "typescript": "7.0.2"
   },

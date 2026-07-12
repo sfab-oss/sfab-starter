@@ -13,6 +13,7 @@
   "dependencies": {
     "@workspace/contract": "workspace:*",
     "@workspace/db": "workspace:*",
+    "@workspace/i18n": "workspace:*",
     "drizzle-orm": "^0.44.7",
     "nanoid": "^5.1.16"
   },
