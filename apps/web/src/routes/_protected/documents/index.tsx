@@ -47,7 +47,7 @@ import {
 import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type DocumentRow, useDocumentsList } from "@/hooks/use-documents";
-import { intlLocale } from "@/lib/locale";
+import { dateFnsLocale, intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
 import { m } from "@/paraglide/messages.js";
 export const Route = createFileRoute("/_protected/documents/")({
@@ -301,24 +301,22 @@ function DocumentsPage() {
     if (hasActiveFilters) {
       return (
         <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-          <p className="font-medium text-sm">
-            No documents match these filters
-          </p>
+          <p className="font-medium text-sm">{m.documents_empty_filtered()}</p>
           <button
             className="text-primary text-sm underline-offset-4 hover:underline"
             onClick={clearFilters}
             type="button"
           >
-            Clear filters
+            {m.documents_clear_filters()}
           </button>
         </div>
       );
     }
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-        <p className="font-medium text-sm">No documents yet</p>
+        <p className="font-medium text-sm">{m.documents_empty_title()}</p>
         <p className="text-muted-foreground text-sm">
-          Create a quote, invoice, or bill to get started.
+          {m.documents_empty_hint()}
         </p>
       </div>
     );
@@ -327,7 +325,7 @@ function DocumentsPage() {
     {
       id: "folio",
       meta: {
-        label: "Folio",
+        label: m.documents_column_folio(),
       },
       accessorFn: (row) => documentFolioLabel(row),
       enableSorting: false,
@@ -347,7 +345,7 @@ function DocumentsPage() {
     {
       id: "type",
       meta: {
-        label: "Type",
+        label: m.documents_column_type(),
       },
       accessorKey: "type",
       header: ({ column }) => <SortableHeader column={column} />,
@@ -356,7 +354,7 @@ function DocumentsPage() {
     {
       id: "entityName",
       meta: {
-        label: "Entity",
+        label: m.documents_column_entity(),
       },
       accessorKey: "entityName",
       header: ({ column }) => <SortableHeader column={column} />,
@@ -365,7 +363,7 @@ function DocumentsPage() {
     {
       id: "status",
       meta: {
-        label: "Status",
+        label: m.documents_column_status(),
       },
       accessorKey: "status",
       header: ({ column }) => <SortableHeader column={column} />,
@@ -393,7 +391,7 @@ function DocumentsPage() {
     {
       id: "total",
       meta: {
-        label: "Total",
+        label: m.documents_column_total(),
       },
       accessorKey: "total",
       header: ({ column }) => <SortableHeader column={column} />,
@@ -414,7 +412,9 @@ function DocumentsPage() {
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => (
         <span className="text-muted-foreground text-sm">
-          {format(new Date(row.original.createdAt), "MMM d, yyyy")}
+          {format(new Date(row.original.createdAt), "MMM d, yyyy", {
+            locale: dateFnsLocale(),
+          })}
         </span>
       ),
     },
@@ -434,7 +434,7 @@ function DocumentsPage() {
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button size="sm" />}>
               <Plus className="mr-2 h-4 w-4" />
-              New document
+              {m.documents_create()}
               <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

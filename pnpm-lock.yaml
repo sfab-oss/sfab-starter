@@ -39,9 +39,6 @@ importers:
       madge:
         specifier: ^8.0.0
         version: 8.0.0(typescript@7.0.2)
-      tsx:
-        specifier: 4.20.5
-        version: 4.20.5
       turbo:
         specifier: ^2.10.4
         version: 2.10.4
@@ -439,9 +436,6 @@ importers:
       '@workspace/db':
         specifier: workspace:*
         version: link:../db
-      '@workspace/i18n':
-        specifier: workspace:*
-        version: link:../i18n
       drizzle-orm:
         specifier: ^0.44.7
         version: 0.44.7(@cloudflare/workers-types@4.20260702.1)(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.17)(better-sqlite3@11.10.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@7.0.2))(typescript@7.0.2))(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)(kysely@0.29.3)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.4.2(@types/react@19.2.17)(better-sqlite3@11.10.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@7.0.2))(sql.js@1.14.1)
@@ -9621,11 +9615,6 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
-
-  tsx@4.20.5:
-    resolution: {integrity: sha512-+wKjMNU9w/EaQayHXb7WA7ZaHY6hN8WgfvHNQ3t1PnU91/7O8TcTnIhCDYTZwnt8JsO9IBqZ30Ln1r7pPF52Aw==}
-    engines: {node: '>=18.0.0'}
-    hasBin: true
 
   tsx@4.23.0:
     resolution: {integrity: sha512-eUdUIaCr963q2h5u3+QwvYp0+eqPvn+egeqZUm0hwERCqqx1E3kK5ehbGCvqSE5MQAULr67ww0cA3jKc3YkM1w==}
@@ -19966,13 +19955,6 @@ snapshots:
       strip-bom: 3.0.0
 
   tslib@2.8.1: {}
-
-  tsx@4.20.5:
-    dependencies:
-      esbuild: 0.25.12
-      get-tsconfig: 4.14.0
-    optionalDependencies:
-      fsevents: 2.3.3
 
   tsx@4.23.0:
     dependencies:

@@ -41,7 +41,8 @@ import {
   useEntity,
   useUpdateEntity,
 } from "@/hooks/use-entities";
-import { intlLocale } from "@/lib/locale";
+import { dateFnsLocale, intlLocale } from "@/lib/locale";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/entities/$id")({
   component: EntityPage,
@@ -110,20 +111,20 @@ function EntityPage() {
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
           items={[
-            { title: "Entities", href: "/entities" },
+            { title: m.entities_title(), href: "/entities" },
             { title: entity.name },
           ]}
         />
         <ShellHeaderActions>
           {isEditing ? (
             <Button
-              aria-label="Cancel"
+              aria-label={m.common_cancel()}
               onClick={() => setIsEditing(false)}
               size="sm"
               variant="ghost"
             >
               <X className="size-4" />
-              <span className="hidden sm:inline">Cancel</span>
+              <span className="hidden sm:inline">{m.common_cancel()}</span>
             </Button>
           ) : (
             <>
@@ -256,7 +257,9 @@ function EntityPage() {
                           : ` #${doc.series ?? doc.type}-${doc.folio}`}
                       </div>
                       <div className="text-muted-foreground text-xs">
-                        {format(new Date(doc.createdAt), "MMM d, yyyy")}
+                        {format(new Date(doc.createdAt), "MMM d, yyyy", {
+                          locale: dateFnsLocale(),
+                        })}
                       </div>
                     </div>
                     <Badge

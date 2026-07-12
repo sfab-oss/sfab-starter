@@ -30,6 +30,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useCancelInvitation, useRemoveMember } from "@/hooks/use-organization";
+import { intlLocale } from "@/lib/locale";
 import { roleMessage } from "@/lib/role-label";
 import { m } from "@/paraglide/messages.js";
 
@@ -238,7 +239,7 @@ export function InvitationsTable({ invitations }: InvitationsTableProps) {
   const formatDate = (dateString: Date | string) => {
     const date =
       typeof dateString === "string" ? new Date(dateString) : dateString;
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(intlLocale(), {
       year: "numeric",
       month: "short",
       day: "numeric",

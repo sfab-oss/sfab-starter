@@ -21,22 +21,9 @@ export function intlLocale(locale: AppLocale = appLocale()): string {
   return INTL_LOCALE[locale];
 }
 
+/** `date-fns` locale object for `format(..., { locale })`. */
 export function dateFnsLocale(
   locale: AppLocale = appLocale()
 ): DateFnsLocale | undefined {
   return DATE_FNS_LOCALE[locale];
-}
-
-export function formatMoney(
-  amountMinor: number,
-  currencyCode: string,
-  formatMoneyMinor: (
-    amount: number,
-    currency: string,
-    options?: { locale?: string }
-  ) => string
-): string {
-  return formatMoneyMinor(amountMinor, currencyCode, {
-    locale: intlLocale(),
-  });
 }

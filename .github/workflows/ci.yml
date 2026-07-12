@@ -83,6 +83,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Paraglide outdir is gitignored — compile before vitest resolves @/paraglide/*
+      - run: pnpm i18n:compile
+
       - run: pnpm test
 
   build:

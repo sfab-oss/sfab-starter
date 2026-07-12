@@ -29,6 +29,7 @@ import { useSetPageContext } from "@/components/providers/page-context";
 import { type Entity, useEntities } from "@/hooks/use-entities";
 import { intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/entities/")({
   component: EntitiesPage,
@@ -89,7 +90,7 @@ function EntitiesPage() {
   useSetPageContext(
     useMemo(
       () => ({
-        title: "Entities",
+        title: m.entities_title(),
         description: "Customers and suppliers",
         entityType: "entities",
         entityId: "list",
@@ -252,7 +253,7 @@ function EntitiesPage() {
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
-        <AppBreadcrumbs items={[{ title: "Entities" }]} />
+        <AppBreadcrumbs items={[{ title: m.entities_title() }]} />
         <ShellHeaderActions>
           <CreateEntityDialog />
         </ShellHeaderActions>

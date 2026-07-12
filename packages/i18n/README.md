@@ -9,8 +9,8 @@ packages/i18n/
   glossary/es.md            # tone + preferred terms
   .i18n-lock.json           # EN value hashes (incremental retranslate)
   project.inlang/           # Paraglide / inlang project
-  scripts/sync.ts           # stub missing target keys
-  scripts/lint.ts           # coverage + placeholder parity
+  scripts/sync.mjs           # stub missing target keys
+  scripts/lint.mjs           # coverage + placeholder parity
 ```
 
 ## Commands (from monorepo root)

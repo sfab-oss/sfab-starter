@@ -2,7 +2,7 @@ import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { DEFAULT_CURRENCY, formatMoneyMinor } from "@workspace/ui/lib/money";
 import { format } from "date-fns";
 import type { WalletEntry } from "@/hooks/use-wallet";
-import { intlLocale } from "@/lib/locale";
+import { dateFnsLocale, intlLocale } from "@/lib/locale";
 
 const TYPE_LABELS: Record<WalletEntry["type"], string> = {
   deposit: "Deposit",
@@ -24,7 +24,9 @@ export function WalletEntryRow({ entry }: { entry: WalletEntry }) {
             {TYPE_LABELS[entry.type]}
           </Badge>
           <span className="text-muted-foreground text-xs">
-            {format(new Date(entry.createdAt), "MMM d, yyyy h:mm a")}
+            {format(new Date(entry.createdAt), "MMM d, yyyy h:mm a", {
+              locale: dateFnsLocale(),
+            })}
           </span>
         </div>
         {entry.notes ? (

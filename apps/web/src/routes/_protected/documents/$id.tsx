@@ -46,7 +46,7 @@ import {
   useFinalizeDocument,
 } from "@/hooks/use-documents";
 import { useEntity } from "@/hooks/use-entities";
-import { intlLocale } from "@/lib/locale";
+import { dateFnsLocale, intlLocale } from "@/lib/locale";
 import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/documents/$id")({
@@ -488,7 +488,10 @@ function DocumentPage() {
             )}
 
           <div className="rounded-lg border p-4 text-muted-foreground text-xs">
-            Created {format(new Date(doc.createdAt), "MMM d, yyyy h:mm a")}
+            Created{" "}
+            {format(new Date(doc.createdAt), "MMM d, yyyy h:mm a", {
+              locale: dateFnsLocale(),
+            })}
             {!isDraft && " · Lines and totals are frozen"}
           </div>
 
@@ -498,7 +501,9 @@ function DocumentPage() {
               {(activityResp?.data ?? []).map((event) => (
                 <div className="px-4 py-2 text-sm" key={event.id}>
                   <div className="text-muted-foreground text-xs">
-                    {format(new Date(event.createdAt), "MMM d, h:mm a")}
+                    {format(new Date(event.createdAt), "MMM d, h:mm a", {
+                      locale: dateFnsLocale(),
+                    })}
                   </div>
                   <div>{event.summary ?? event.eventType}</div>
                 </div>

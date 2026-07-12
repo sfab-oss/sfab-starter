@@ -231,7 +231,7 @@ function CatalogPage() {
     },
     {
       id: "name",
-      meta: { label: "Name" },
+      meta: { label: m.catalog_column_name() },
       accessorKey: "name",
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => {
@@ -249,14 +249,14 @@ function CatalogPage() {
     },
     {
       id: "sku",
-      meta: { label: "SKU" },
+      meta: { label: m.catalog_column_sku() },
       accessorKey: "sku",
       enableSorting: false,
       header: ({ column }) => <SortableHeader column={column} />,
     },
     {
       id: "price",
-      meta: { label: "Price" },
+      meta: { label: m.catalog_column_price() },
       accessorKey: "price",
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => {

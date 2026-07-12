@@ -36,6 +36,7 @@ import {
 import type { DocumentRow } from "@/hooks/use-documents";
 import { useRedeemCredit } from "@/hooks/use-wallet";
 import { intlLocale } from "@/lib/locale";
+import { m } from "@/paraglide/messages.js";
 
 export function RedeemCreditDialog({
   entityId,
@@ -148,11 +149,11 @@ export function RedeemCreditDialog({
           <DialogHeader>
             <DialogTitle>Redeem store credit</DialogTitle>
             <DialogDescription>
-              Apply wallet balance to an open invoice. Available credit{" "}
-              {formatMoneyMinor(creditBalance, DEFAULT_CURRENCY, {
-                locale: intlLocale(),
+              {m.wallet_redeem_from({
+                amount: formatMoneyMinor(creditBalance, DEFAULT_CURRENCY, {
+                  locale: intlLocale(),
+                }),
               })}
-              .
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -169,10 +170,15 @@ export function RedeemCreditDialog({
                   {openInvoices.map((doc) => (
                     <SelectItem key={doc.id} value={doc.id}>
                       {documentTypeLabel(doc.type)} {documentFolioLabel(doc)} ·{" "}
-                      {formatMoneyMinor(doc.balanceDue, doc.currencyCode, {
-                        locale: intlLocale(),
-                      })}{" "}
-                      due
+                      {m.wallet_due({
+                        amount: formatMoneyMinor(
+                          doc.balanceDue,
+                          doc.currencyCode,
+                          {
+                            locale: intlLocale(),
+                          }
+                        ),
+                      })}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -193,11 +199,15 @@ export function RedeemCreditDialog({
               />
               {selected ? (
                 <p className="text-muted-foreground text-xs">
-                  Max{" "}
-                  {formatMoneyMinor(maxRedeemMinor, selected.currencyCode, {
-                    locale: intlLocale(),
-                  })}{" "}
-                  (lesser of credit and balance due).
+                  {m.wallet_max_redeem({
+                    amount: formatMoneyMinor(
+                      maxRedeemMinor,
+                      selected.currencyCode,
+                      {
+                        locale: intlLocale(),
+                      }
+                    ),
+                  })}
                 </p>
               ) : null}
             </div>

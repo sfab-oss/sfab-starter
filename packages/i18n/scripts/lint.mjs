@@ -1,4 +1,6 @@
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   extractPlaceholders,
   hashEnValue,
@@ -8,6 +10,8 @@ import {
 } from "./lib.mjs";
 
 const JSON_EXT = /\.json$/;
+const TS_EXT = /\.(ts|tsx)$/;
+const M_CALL_RE = /\bm\.([a-z][a-z0-9_]*)\s*\(/g;
 const jsonMode = process.argv.includes("--json");
 
 const en = readMessages("en");
@@ -68,6 +72,44 @@ for (const locale of locales) {
     if (!(key in en)) {
       warnings.push({ locale, key, reason: "extra_key" });
     }
+  }
+}
+
+/** Scan apps/web for m.<key>() — unused catalog keys are hard failures. */
+const webSrc = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../../apps/web/src"
+);
+const usedKeys = new Set();
+function walk(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === "paraglide" || entry.name === "node_modules") {
+        continue;
+      }
+      walk(path);
+      continue;
+    }
+    if (!TS_EXT.test(entry.name)) {
+      continue;
+    }
+    const text = readFileSync(path, "utf8");
+    for (const match of text.matchAll(M_CALL_RE)) {
+      usedKeys.add(match[1]);
+    }
+  }
+}
+walk(webSrc);
+
+for (const key of Object.keys(en)) {
+  if (!usedKeys.has(key)) {
+    gaps.push({
+      locale: "en",
+      key,
+      reason: "unused",
+      detail: "no m.<key>() call site under apps/web/src",
+    });
   }
 }
 
