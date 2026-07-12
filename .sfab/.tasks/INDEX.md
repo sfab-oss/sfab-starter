@@ -22,12 +22,9 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
+## merged (62)
 
 - [`ALW-594`](./ALW-594.md) — Template-init interview v2 — intake contract: answers → product brief → reshape task slate
-
-## merged (61)
-
 - [`ALW-587`](./ALW-587.md) — i18n: close remaining hardcoded English app chrome (post Spanish agent bootstrap)
 - [`ALW-568`](./ALW-568.md) — Template init: persist Q&A/plan, whole-app transform, eager execution
 - [`ALW-567`](./ALW-567.md) — Template init: tell adopters to delete .sfab
