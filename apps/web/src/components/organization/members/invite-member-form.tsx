@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   can,
   hasRoleRank,
-  ROLE_LABELS,
   ROLE_RANK,
   type RoleName,
 } from "@workspace/auth/access-control";
@@ -29,13 +28,13 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useInviteMember } from "@/hooks/use-organization";
+import { roleMessage } from "@/lib/role-label";
+import { m } from "@/paraglide/messages.js";
 
-const formSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
-  role: z.enum(["member", "admin", "owner"]),
-});
-
-type InviteMemberData = z.infer<typeof formSchema>;
+interface InviteMemberData {
+  email: string;
+  role: "member" | "admin" | "owner";
+}
 
 interface InviteMemberFormProps {
   className?: string;
@@ -56,6 +55,11 @@ export function InviteMemberForm({
   // Owners may invite owners; everyone else can only invite at or below their rank.
   const canInviteOwner = hasRoleRank(currentRole, "owner");
 
+  const formSchema = z.object({
+    email: z.string().email({ message: m.invite_email_invalid() }),
+    role: z.enum(["member", "admin", "owner"]),
+  });
+
   const form = useForm<InviteMemberData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -68,10 +72,8 @@ export function InviteMemberForm({
     return (
       <FieldGroup className={className}>
         <Field>
-          <FieldLabel>Invitar miembro</FieldLabel>
-          <FieldDescription>
-            Solo los administradores pueden invitar o gestionar miembros.
-          </FieldDescription>
+          <FieldLabel>{m.invite_title()}</FieldLabel>
+          <FieldDescription>{m.invite_admin_only()}</FieldDescription>
         </Field>
       </FieldGroup>
     );
@@ -85,20 +87,21 @@ export function InviteMemberForm({
       ROLE_RANK[currentRole as RoleName] < ROLE_RANK[values.role]
     ) {
       toast.error(
-        `Como ${ROLE_LABELS[currentRole as RoleName]}, no puedes invitar a un ${ROLE_LABELS[values.role]}`
+        m.invite_rbac_denied({
+          role: roleMessage(currentRole as RoleName),
+          targetRole: roleMessage(values.role),
+        })
       );
       return;
     }
 
     try {
       await inviteMember.mutateAsync(values);
-      toast.success("Member invited successfully");
+      toast.success(m.invite_success());
       form.reset();
       onSuccess?.();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to invite member"
-      );
+      toast.error(error instanceof Error ? error.message : m.invite_failed());
     }
   }
 
@@ -114,12 +117,12 @@ export function InviteMemberForm({
                 className="min-w-0 flex-1"
                 data-invalid={fieldState.invalid}
               >
-                <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                <FieldLabel htmlFor={field.name}>{m.auth_email()}</FieldLabel>
                 <Input
                   {...field}
                   aria-invalid={fieldState.invalid}
                   id={field.name}
-                  placeholder="elon@spacex.com"
+                  placeholder={m.invite_email_placeholder()}
                   type="email"
                 />
                 {fieldState.invalid && (
@@ -136,17 +139,19 @@ export function InviteMemberForm({
                 className="w-full sm:w-40 sm:shrink-0"
                 data-invalid={fieldState.invalid}
               >
-                <FieldLabel htmlFor={field.name}>Role</FieldLabel>
+                <FieldLabel htmlFor={field.name}>{m.invite_role()}</FieldLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger className="w-full" id={field.name}>
-                    <SelectValue placeholder="Select role" />
+                    <SelectValue placeholder={m.invite_role_placeholder()}>
+                      {roleMessage(field.value as RoleName)}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {canInviteOwner && (
-                      <SelectItem value="owner">{ROLE_LABELS.owner}</SelectItem>
+                      <SelectItem value="owner">{m.role_owner()}</SelectItem>
                     )}
-                    <SelectItem value="admin">{ROLE_LABELS.admin}</SelectItem>
-                    <SelectItem value="member">{ROLE_LABELS.member}</SelectItem>
+                    <SelectItem value="admin">{m.role_admin()}</SelectItem>
+                    <SelectItem value="member">{m.role_member()}</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldState.invalid && (
@@ -162,7 +167,7 @@ export function InviteMemberForm({
             disabled={inviteMember.isPending}
             type="submit"
           >
-            {inviteMember.isPending ? "Inviting..." : "Send Invitation"}
+            {inviteMember.isPending ? m.invite_sending() : m.invite_send()}
           </Button>
         </Field>
       </FieldGroup>

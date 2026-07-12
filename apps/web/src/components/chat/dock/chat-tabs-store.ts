@@ -4,6 +4,7 @@ import type { AIDataPart, AIMetadata } from "@workspace/contract/ai";
 import type { UIMessage } from "ai";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { defaultNewChatTitle } from "@/components/chat/chat-titles";
 
 export type OrgChatMessage = UIMessage<AIMetadata, AIDataPart>;
 
@@ -223,7 +224,7 @@ export const useChatTabsStore = create<ChatTabsState>()(
             sendError: null,
             size: "popup",
             tabKey: makeTabKey(),
-            title: "New chat",
+            title: defaultNewChatTitle(),
           };
           return {
             isBodyOpen: true,

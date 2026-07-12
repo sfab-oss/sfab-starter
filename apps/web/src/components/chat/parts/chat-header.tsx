@@ -30,6 +30,10 @@ import {
   XIcon,
 } from "lucide-react";
 import { useCallback, useState } from "react";
+import {
+  defaultChatTitle,
+  isGenericChatTitle,
+} from "@/components/chat/chat-titles";
 import { useChatOrgConnection } from "@/components/chat/connection/chat-org-connection";
 import {
   type OrgChatMessage,
@@ -42,6 +46,7 @@ import {
 } from "@/components/chat/dock/use-dock-state";
 import { MemoryDialog } from "@/components/chat/memory/memory-dialog-button";
 import { useChatWindow } from "@/components/chat/window/chat-window";
+import { m } from "@/paraglide/messages.js";
 
 function formatMessagesAsJson(messages: OrgChatMessage[]): string {
   return JSON.stringify(messages, null, 2);
@@ -56,16 +61,16 @@ export function ChatHeader() {
   const title = useChatTabsStore(
     (s) =>
       s.byOrganization[organizationId]?.tabs.find((t) => t.tabKey === tabKey)
-        ?.title ?? "Chat"
+        ?.title ?? defaultChatTitle()
   );
   const canCopy = messages.length > 0;
   const handleCopyMessages = useCallback(async () => {
     if (messages.length === 0) {
-      toast.info("No messages to copy");
+      toast.info(m.chat_no_messages_copy());
       return;
     }
     await navigator.clipboard.writeText(formatMessagesAsJson(messages));
-    toast.success("Copied to clipboard");
+    toast.success(m.chat_copied());
   }, [messages]);
   const handleExpand = useCallback(() => {
     if (focusedTabId) {
@@ -115,8 +120,10 @@ export function ChatHeader() {
     <div className="flex h-10 shrink-0 items-center justify-between border-b px-3">
       <div className="flex items-center gap-2 overflow-hidden">
         <BotIcon className="size-4 shrink-0 text-muted-foreground" />
-        <span className="shrink-0 font-medium text-sm">ERP Assistant</span>
-        {title !== "Chat" && title !== "New chat" && (
+        <span className="shrink-0 font-medium text-sm">
+          {m.chat_assistant()}
+        </span>
+        {!isGenericChatTitle(title) && (
           <span className="max-w-[240px] truncate font-normal text-muted-foreground text-sm">
             · {title}
           </span>
@@ -135,7 +142,11 @@ export function ChatHeader() {
               <TooltipTrigger
                 render={
                   <Button
-                    aria-label={isFilesPanelOpen ? "Hide files" : "Show files"}
+                    aria-label={
+                      isFilesPanelOpen
+                        ? m.chat_hide_files()
+                        : m.chat_show_files()
+                    }
                     aria-pressed={isFilesPanelOpen}
                     className={cn(
                       "size-7",
@@ -150,7 +161,7 @@ export function ChatHeader() {
                 <FolderTreeIcon className="size-3.5" />
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {isFilesPanelOpen ? "Hide files" : "Files"}
+                {isFilesPanelOpen ? m.chat_hide_files() : m.chat_files()}
               </TooltipContent>
             </Tooltip>
           )}
@@ -172,7 +183,9 @@ export function ChatHeader() {
             >
               <MinusIcon className="size-3.5" />
             </TooltipTrigger>
-            <TooltipContent side="bottom">Minimize to dock</TooltipContent>
+            <TooltipContent side="bottom">
+              {m.chat_minimize_dock()}
+            </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger
@@ -187,7 +200,7 @@ export function ChatHeader() {
             >
               <XIcon className="size-3.5" />
             </TooltipTrigger>
-            <TooltipContent side="bottom">Close chat</TooltipContent>
+            <TooltipContent side="bottom">{m.chat_close()}</TooltipContent>
           </Tooltip>
         </div>
       </TooltipProvider>
@@ -215,12 +228,11 @@ function MobileChatHeader({
   setMemoryOpen: (open: boolean) => void;
   title: string;
 }) {
-  const displayTitle =
-    title === "Chat" || title === "New chat" ? "ERP Assistant" : title;
+  const displayTitle = isGenericChatTitle(title) ? m.chat_assistant() : title;
   return (
     <header className="flex h-14 shrink-0 items-center gap-1 border-b bg-background px-1.5 pt-[env(safe-area-inset-top)]">
       <Button
-        aria-label="Minimize chat"
+        aria-label={m.chat_minimize_mobile()}
         className="size-11 shrink-0"
         onClick={onMinimize}
         size="icon"
@@ -233,7 +245,9 @@ function MobileChatHeader({
         {displayTitle}
       </span>
       <Button
-        aria-label={isFilesPanelOpen ? "Hide files" : "Show files"}
+        aria-label={
+          isFilesPanelOpen ? m.chat_hide_files() : m.chat_show_files()
+        }
         aria-pressed={isFilesPanelOpen}
         className={cn(
           "size-11 shrink-0",
@@ -250,7 +264,7 @@ function MobileChatHeader({
         <DropdownMenuTrigger
           render={
             <Button
-              aria-label="More"
+              aria-label={m.chat_more()}
               className="size-11 shrink-0"
               size="icon"
               type="button"
@@ -263,17 +277,17 @@ function MobileChatHeader({
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={() => setMemoryOpen(true)}>
             <BrainIcon className="size-4" />
-            Organization memory
+            {m.chat_org_memory()}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem disabled={!canCopy} onSelect={onCopyMessages}>
             <ClipboardCopyIcon className="size-4" />
-            Copy conversation
+            {m.chat_copy_conversation()}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={onClose}>
             <XIcon className="size-4" />
-            Close chat
+            {m.chat_close()}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -302,17 +316,17 @@ function ChatMoreMenu({
         >
           <MoreHorizontalIcon className="size-3.5" />
         </TooltipTrigger>
-        <TooltipContent side="bottom">More</TooltipContent>
+        <TooltipContent side="bottom">{m.chat_more()}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onSelect={onOpenMemory}>
           <BrainIcon className="size-4" />
-          Organization memory
+          {m.chat_org_memory()}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem disabled={!canCopy} onSelect={onCopyMessages}>
           <ClipboardCopyIcon className="size-4" />
-          Copy conversation
+          {m.chat_copy_conversation()}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -347,7 +361,7 @@ function SizeToggleButton({
         )}
       </TooltipTrigger>
       <TooltipContent side="bottom">
-        {isFullscreen ? "Restore size" : "Expand"}
+        {isFullscreen ? m.chat_restore_size() : m.chat_expand()}
       </TooltipContent>
     </Tooltip>
   );

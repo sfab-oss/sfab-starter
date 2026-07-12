@@ -1,0 +1,21 @@
+{
+  "name": "@workspace/i18n",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./messages/*": "./messages/*",
+    "./locales": "./src/locales.ts"
+  },
+  "scripts": {
+    "i18n:sync": "node ./scripts/sync.mjs",
+    "i18n:lint": "node ./scripts/lint.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@inlang/plugin-m-function-matcher": "^2.2.9",
+    "@inlang/plugin-message-format": "^4.4.0",
+    "@workspace/tsconfig": "workspace:*",
+    "typescript": "7.0.2"
+  }
+}

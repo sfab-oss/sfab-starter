@@ -26,7 +26,9 @@ import {
 import { Skeleton } from "@workspace/ui/components/shadcn/skeleton";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { AlertCircle, ChevronsUpDown, LogOut, Plus } from "lucide-react";
+import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { ThemeToggle } from "@/components/common/theme-toggle";
+import { m } from "@/paraglide/messages.js";
 
 function SidebarFooterSkeleton() {
   return (
@@ -54,10 +56,10 @@ function SidebarFooterError() {
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold text-destructive">
-              Authentication Error
+              {m.org_auth_error()}
             </span>
             <span className="truncate text-muted-foreground text-xs">
-              Please sign in again
+              {m.org_auth_error_hint()}
             </span>
           </div>
         </SidebarMenuButton>
@@ -92,7 +94,7 @@ export function AppSidebarFooter() {
       };
     },
     onSuccess: ({ organizationId }) => {
-      toast.success("Organization set as active");
+      toast.success(m.org_set_active());
       navigate({
         to: "/",
       });
@@ -148,7 +150,7 @@ export function AppSidebarFooter() {
           >
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarImage
-                alt={activeOrganization?.name ?? "Organization"}
+                alt={activeOrganization?.name ?? m.org_organization()}
                 src={activeOrganization?.logo ?? undefined}
               />
               <AvatarFallback className="rounded-lg">
@@ -157,7 +159,7 @@ export function AppSidebarFooter() {
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-semibold">
-                {activeOrganization?.name ?? "No Organization"}
+                {activeOrganization?.name ?? m.org_no_organization()}
               </span>
               <span className="truncate text-xs">{user.email}</span>
             </div>
@@ -171,7 +173,7 @@ export function AppSidebarFooter() {
           >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="text-muted-foreground text-xs">
-                Organizations
+                {m.org_organizations()}
               </DropdownMenuLabel>
               {organizations?.map((organization) => (
                 <DropdownMenuItem
@@ -200,7 +202,7 @@ export function AppSidebarFooter() {
                   <Plus className="size-4" />
                 </div>
                 <div className="font-medium text-muted-foreground">
-                  Create organization
+                  {m.org_create()}
                 </div>
               </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -227,13 +229,14 @@ export function AppSidebarFooter() {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <div className="p-1">
+            <div className="flex items-center gap-1 p-1">
+              <LanguageSwitcher />
               <ThemeToggle variant="icon" />
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="mr-2 size-4" />
-              Log out
+              {m.auth_sign_out()}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

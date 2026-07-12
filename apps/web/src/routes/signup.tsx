@@ -19,24 +19,25 @@ import { Input } from "@workspace/ui/components/shadcn/input";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { LanguageSwitcher } from "@/components/common/language-switcher";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/signup")({ component: SignUpPage });
 
-const signupSchema = z.object({
-  name: z
-    .string({ message: "Name is required" })
-    .min(2, "Name must be at least 2 characters."),
-  email: z.email({ message: "Email is required" }),
-  password: z
-    .string({ message: "Password is required" })
-    .min(6, "Password must be at least 6 characters.")
-    .max(100, "Password must be at most 100 characters."),
-});
-
-type SignUpValues = z.infer<typeof signupSchema>;
+interface SignUpValues {
+  name: string;
+  email: string;
+  password: string;
+}
 
 function SignUpPage() {
   const navigate = useNavigate();
+
+  const signupSchema = z.object({
+    name: z.string({ message: m.auth_signup_name() }).min(2),
+    email: z.email({ message: m.auth_email() }),
+    password: z.string({ message: m.auth_password() }).min(6).max(100),
+  });
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signupSchema),
@@ -51,21 +52,22 @@ function SignUpPage() {
     });
 
     if (error) {
-      toast.error(error.message ?? "An error occurred");
+      toast.error(error.message ?? m.auth_error_generic());
     } else {
-      toast.success("Account created successfully");
+      toast.success(m.auth_signup_success());
       await navigate({ to: "/onboarding" });
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
+    <div className="relative flex min-h-screen items-center justify-center bg-muted">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Sign up to your account</CardTitle>
-          <CardDescription>
-            Enter your information below to create your account
-          </CardDescription>
+          <CardTitle>{m.auth_signup_title()}</CardTitle>
+          <CardDescription>{m.auth_signup_description()}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -75,7 +77,9 @@ function SignUpPage() {
                 name="name"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>
+                      {m.auth_signup_name()}
+                    </FieldLabel>
                     <Input
                       {...field}
                       aria-invalid={fieldState.invalid}
@@ -94,7 +98,9 @@ function SignUpPage() {
                 name="email"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>
+                      {m.auth_email()}
+                    </FieldLabel>
                     <Input
                       {...field}
                       aria-invalid={fieldState.invalid}
@@ -114,7 +120,9 @@ function SignUpPage() {
                 name="password"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>
+                      {m.auth_password()}
+                    </FieldLabel>
                     <Input
                       {...field}
                       aria-invalid={fieldState.invalid}
@@ -131,16 +139,16 @@ function SignUpPage() {
               <Field>
                 <Button disabled={form.formState.isSubmitting} type="submit">
                   {form.formState.isSubmitting
-                    ? "Creating account..."
-                    : "Sign up"}
+                    ? m.auth_signup_submitting()
+                    : m.auth_signup()}
                 </Button>
                 <p className="text-center text-muted-foreground text-sm">
-                  Already have an account?{" "}
+                  {m.auth_signup_have_account()}{" "}
                   <Link
                     className="underline-offset-4 hover:underline"
                     to="/login"
                   >
-                    Log in
+                    {m.auth_login()}
                   </Link>
                 </p>
               </Field>

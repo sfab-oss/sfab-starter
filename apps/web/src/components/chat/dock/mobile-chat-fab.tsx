@@ -37,6 +37,7 @@ import {
   HistorySheetSectionLabel,
 } from "@/components/chat/history/history-list-row";
 import { ChatHistoryError } from "@/components/chat/placeholders";
+import { m } from "@/paraglide/messages.js";
 
 /**
  * Mobile launcher — a slim footer bar (replacing the old floating FAB) shown
@@ -90,7 +91,7 @@ function LauncherRow() {
             <span className="truncate">{recent.title}</span>
           </button>
           <Button
-            aria-label="Ask the assistant"
+            aria-label={m.chat_ask_assistant()}
             className="size-10 shrink-0 rounded-full"
             onClick={ask}
             size="icon"
@@ -101,7 +102,7 @@ function LauncherRow() {
       ) : (
         <Button className="h-10 flex-1 gap-2 rounded-full" onClick={ask}>
           <SparklesIcon className="size-4" />
-          Ask the assistant
+          {m.chat_ask_assistant()}
         </Button>
       )}
       <MobileHistoryButton />
@@ -127,7 +128,7 @@ function MobileChatsButton({ count }: { count: number }) {
     <Drawer onOpenChange={setOpen} open={open}>
       <DrawerTrigger asChild>
         <button
-          aria-label={`Open chats (${count})`}
+          aria-label={m.chat_open_chats_count({ count })}
           className="relative flex size-10 shrink-0 items-center justify-center rounded-full border bg-background shadow-sm"
           type="button"
         >
@@ -139,7 +140,7 @@ function MobileChatsButton({ count }: { count: number }) {
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>Open chats</DrawerTitle>
+          <DrawerTitle>{m.chat_open_chats()}</DrawerTitle>
         </DrawerHeader>
         <div className="flex max-h-[60vh] flex-col gap-1 overflow-y-auto px-2 pb-6">
           {[...openChats].reverse().map((tab) => (
@@ -186,7 +187,7 @@ function MobileChatRow({
         <span className="truncate text-sm">{tab.title}</span>
       </button>
       <button
-        aria-label={`Close ${tab.title}`}
+        aria-label={m.chat_close_tab({ title: tab.title })}
         className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-destructive"
         onClick={onClose}
         type="button"
@@ -204,7 +205,7 @@ function MobileHistoryButton() {
     <Drawer onOpenChange={setOpen} open={open}>
       <DrawerTrigger asChild>
         <button
-          aria-label="Chat history"
+          aria-label={m.chat_history()}
           className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-background shadow-sm"
           type="button"
         >
@@ -213,7 +214,7 @@ function MobileHistoryButton() {
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>Chat history</DrawerTitle>
+          <DrawerTitle>{m.chat_history()}</DrawerTitle>
         </DrawerHeader>
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           <HistorySheetSectionLabel />
@@ -246,7 +247,7 @@ function MobileHistoryBody({ onSelected }: { onSelected: () => void }) {
   if (chats.length === 0) {
     return (
       <div className="py-4 text-center text-muted-foreground text-sm">
-        No chats yet.
+        {m.chat_no_chats_yet()}
       </div>
     );
   }
@@ -271,7 +272,7 @@ function MobileHistoryBody({ onSelected }: { onSelected: () => void }) {
             />
           </button>
           <button
-            aria-label={`Delete ${chat.title}`}
+            aria-label={m.chat_delete({ title: chat.title })}
             className="flex size-11 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             onClick={(event) => handleDelete(chat.id, event)}
             type="button"

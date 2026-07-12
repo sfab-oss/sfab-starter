@@ -8,6 +8,7 @@ import type {
   SortingState,
 } from "@tanstack/react-table";
 import { DataTable } from "@workspace/ui/components/brand/data-table";
+import type { TableFilterToolbarLabels } from "@workspace/ui/components/brand/table-filter-toolbar";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   DropdownMenu,
@@ -50,6 +51,7 @@ export interface ResourceTableProps<TData, TValue> {
   className?: string;
   /** Rich empty UI — keeps the filter toolbar visible on server-driven lists. */
   collectionEmpty?: React.ReactNode;
+  toolbarLabels?: TableFilterToolbarLabels;
 }
 export function ResourceTable<TData, TValue>({
   columns,
@@ -74,6 +76,7 @@ export function ResourceTable<TData, TValue>({
   embedded = false,
   className,
   collectionEmpty,
+  toolbarLabels,
 }: ResourceTableProps<TData, TValue>) {
   const hasActions = rowPrimaryAction || rowMenuActions;
   const actionColumn: ColumnDef<TData, TValue> = {
@@ -162,6 +165,7 @@ export function ResourceTable<TData, TValue>({
         pagination={pagination}
         showColumnVisibility={false}
         sorting={sorting}
+        toolbarLabels={toolbarLabels}
         totalCount={totalCount}
       />
     </div>

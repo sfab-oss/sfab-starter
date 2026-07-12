@@ -14,6 +14,7 @@ import {
   InvitationsTable,
   MembersTable,
 } from "@/components/organization/members/members-table";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/settings/members")({
   component: MembersSettingsPage,
@@ -37,11 +38,9 @@ function MembersSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Invite People to {activeOrganization.name}
+            {m.members_invite_title({ name: activeOrganization.name })}
           </CardTitle>
-          <CardDescription>
-            Invite new members to your organization
-          </CardDescription>
+          <CardDescription>{m.members_invite_description()}</CardDescription>
         </CardHeader>
         <CardContent>
           <InviteMemberForm />
@@ -51,14 +50,14 @@ function MembersSettingsPage() {
       <Separator />
 
       <div>
-        <h2 className="mb-4 font-bold text-xl">Members</h2>
+        <h2 className="mb-4 font-bold text-xl">{m.members_title()}</h2>
         <MembersTable members={members} />
       </div>
 
       <Separator />
 
       <div>
-        <h2 className="mb-4 font-bold text-xl">Pending Invitations</h2>
+        <h2 className="mb-4 font-bold text-xl">{m.members_pending_title()}</h2>
         <InvitationsTable invitations={pendingInvitations} />
       </div>
     </>

@@ -18,7 +18,6 @@ import {
   ShellContent,
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import { SortableHeader } from "@workspace/ui/components/brand/sortable-header";
@@ -42,89 +41,99 @@ import { CreateDocumentDialog } from "@/components/documents/create-document-dia
 import {
   DocumentTypeBadge,
   documentFolioLabel,
+  documentStatusLabel,
   documentTypeLabel,
 } from "@/components/documents/document-type";
 import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type DocumentRow, useDocumentsList } from "@/hooks/use-documents";
+import { dateFnsLocale, intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
+import {
+  sortableHeaderAriaLabel,
+  tableToolbarLabels,
+} from "@/lib/table-toolbar-labels";
+import { m } from "@/paraglide/messages.js";
 export const Route = createFileRoute("/_protected/documents/")({
   component: DocumentsPage,
   validateSearch: listDocumentsQuerySchema,
 });
-const DOCUMENT_FILTER_DEFINITIONS: TableFilterDefinition[] = [
-  {
-    id: "search",
-    columnId: "search",
-    label: "Search",
-    type: "text",
-    placeholder: "Entity, folio…",
-  },
-  {
-    id: "type",
-    columnId: "type",
-    label: "Type",
-    type: "enum",
-    options: [
-      {
-        label: "Quote",
-        value: "quote",
-      },
-      {
-        label: "Invoice",
-        value: "invoice",
-      },
-      {
-        label: "Credit note",
-        value: "credit_note",
-      },
-      {
-        label: "Bill",
-        value: "bill",
-      },
-    ],
-  },
-  {
-    id: "direction",
-    columnId: "direction",
-    label: "Direction",
-    type: "enum",
-    options: [
-      {
-        label: "Sales",
-        value: "sales",
-      },
-      {
-        label: "Purchase",
-        value: "purchase",
-      },
-    ],
-  },
-  {
-    id: "status",
-    columnId: "status",
-    label: "Status",
-    type: "enum",
-    options: [
-      {
-        label: "Draft",
-        value: "draft",
-      },
-      {
-        label: "Accepted",
-        value: "accepted",
-      },
-      {
-        label: "Converted",
-        value: "converted",
-      },
-      {
-        label: "Finalized",
-        value: "finalized",
-      },
-    ],
-  },
-];
+function documentFilterDefinitions(): TableFilterDefinition[] {
+  return [
+    {
+      id: "search",
+      columnId: "search",
+      label: m.documents_filter_search(),
+      type: "text",
+      placeholder: m.documents_filter_search_placeholder(),
+    },
+    {
+      id: "type",
+      columnId: "type",
+      label: m.documents_filter_type(),
+      type: "enum",
+      options: [
+        {
+          label: m.documents_type_quote(),
+          value: "quote",
+        },
+        {
+          label: m.documents_type_invoice(),
+          value: "invoice",
+        },
+        {
+          label: m.documents_type_credit_note(),
+          value: "credit_note",
+        },
+        {
+          label: m.documents_type_bill(),
+          value: "bill",
+        },
+      ],
+    },
+    {
+      id: "direction",
+      columnId: "direction",
+      label: m.documents_filter_direction(),
+      type: "enum",
+      options: [
+        {
+          label: m.documents_direction_sales(),
+          value: "sales",
+        },
+        {
+          label: m.documents_direction_purchase(),
+          value: "purchase",
+        },
+      ],
+    },
+    {
+      id: "status",
+      columnId: "status",
+      label: m.documents_filter_status(),
+      type: "enum",
+      options: [
+        {
+          label: m.documents_status_draft(),
+          value: "draft",
+        },
+        {
+          label: m.documents_status_accepted(),
+          value: "accepted",
+        },
+        {
+          label: m.documents_status_converted(),
+          value: "converted",
+        },
+        {
+          label: m.documents_status_finalized(),
+          value: "finalized",
+        },
+      ],
+    },
+  ];
+}
 function firstEnumValue(value: unknown): string | undefined {
   if (Array.isArray(value) && typeof value[0] === "string") {
     return value[0];
@@ -146,8 +155,8 @@ function DocumentsPage() {
   useSetPageContext(
     useMemo(
       () => ({
-        title: "Documents",
-        description: "Quotes, invoices, bills",
+        title: m.documents_title(),
+        description: m.documents_page_description(),
         entityType: "documents",
         entityId: "list",
         view: pickListPageView(searchParams, ["type", "direction", "status"]),
@@ -299,24 +308,22 @@ function DocumentsPage() {
     if (hasActiveFilters) {
       return (
         <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-          <p className="font-medium text-sm">
-            No documents match these filters
-          </p>
+          <p className="font-medium text-sm">{m.documents_empty_filtered()}</p>
           <button
             className="text-primary text-sm underline-offset-4 hover:underline"
             onClick={clearFilters}
             type="button"
           >
-            Clear filters
+            {m.documents_clear_filters()}
           </button>
         </div>
       );
     }
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-        <p className="font-medium text-sm">No documents yet</p>
+        <p className="font-medium text-sm">{m.documents_empty_title()}</p>
         <p className="text-muted-foreground text-sm">
-          Create a quote, invoice, or bill to get started.
+          {m.documents_empty_hint()}
         </p>
       </div>
     );
@@ -325,11 +332,16 @@ function DocumentsPage() {
     {
       id: "folio",
       meta: {
-        label: "Folio",
+        label: m.documents_column_folio(),
       },
       accessorFn: (row) => documentFolioLabel(row),
       enableSorting: false,
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => (
         <Link
           className="font-medium hover:text-primary hover:underline"
@@ -345,42 +357,62 @@ function DocumentsPage() {
     {
       id: "type",
       meta: {
-        label: "Type",
+        label: m.documents_column_type(),
       },
       accessorKey: "type",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => <DocumentTypeBadge type={row.original.type} />,
     },
     {
       id: "entityName",
       meta: {
-        label: "Entity",
+        label: m.documents_column_entity(),
       },
       accessorKey: "entityName",
-      header: ({ column }) => <SortableHeader column={column} />,
-      cell: ({ row }) => row.original.entityName ?? "Walk-in",
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
+      cell: ({ row }) => row.original.entityName ?? m.documents_walk_in(),
     },
     {
       id: "status",
       meta: {
-        label: "Status",
+        label: m.documents_column_status(),
       },
       accessorKey: "status",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => (
-        <Badge className="capitalize" variant="secondary">
-          {row.original.status}
+        <Badge variant="secondary">
+          {documentStatusLabel(row.original.status)}
         </Badge>
       ),
     },
     {
       id: "paymentStatus",
       meta: {
-        label: "Payment",
+        label: m.documents_column_payment(),
       },
       accessorKey: "paymentStatus",
       enableSorting: false,
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => {
         if (row.original.type === "quote") {
           return <span className="text-muted-foreground">—</span>;
@@ -391,26 +423,40 @@ function DocumentsPage() {
     {
       id: "total",
       meta: {
-        label: "Total",
+        label: m.documents_column_total(),
       },
       accessorKey: "total",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => (
         <div className="text-right font-medium tabular-nums">
-          {formatMoneyMinor(row.original.total, row.original.currencyCode)}
+          {formatMoneyMinor(row.original.total, row.original.currencyCode, {
+            locale: intlLocale(),
+          })}
         </div>
       ),
     },
     {
       id: "createdAt",
       meta: {
-        label: "Date",
+        label: m.documents_column_date(),
       },
       accessorKey: "createdAt",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => (
         <span className="text-muted-foreground text-sm">
-          {format(new Date(row.original.createdAt), "MMM d, yyyy")}
+          {format(new Date(row.original.createdAt), "MMM d, yyyy", {
+            locale: dateFnsLocale(),
+          })}
         </span>
       ),
     },
@@ -420,9 +466,11 @@ function DocumentsPage() {
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
           items={[
             {
-              title: "Documents",
+              title: m.documents_title(),
             },
           ]}
         />
@@ -430,7 +478,7 @@ function DocumentsPage() {
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button size="sm" />}>
               <Plus className="mr-2 h-4 w-4" />
-              New document
+              {m.documents_create()}
               <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -452,7 +500,7 @@ function DocumentsPage() {
       <ShellContent>
         {isLoading && !docsResponse ? (
           <div className="flex h-40 items-center justify-center text-muted-foreground">
-            Loading documents...
+            {m.documents_loading_list()}
           </div>
         ) : (
           <ResourceTable
@@ -462,7 +510,7 @@ function DocumentsPage() {
             columns={columns}
             data={docsResponse?.data ?? []}
             embedded
-            filterDefinitions={DOCUMENT_FILTER_DEFINITIONS}
+            filterDefinitions={documentFilterDefinitions()}
             filteredCount={docsResponse?.total ?? 0}
             onColumnFiltersChange={onColumnFiltersChange}
             onPaginationChange={onPaginationChange}
@@ -470,6 +518,7 @@ function DocumentsPage() {
             pageCount={pageCount}
             pagination={pagination}
             sorting={sorting}
+            toolbarLabels={tableToolbarLabels()}
           />
         )}
       </ShellContent>

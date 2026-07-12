@@ -14,6 +14,8 @@ declare module "@tanstack/react-table" {
 
 export type SortDirection = false | "asc" | "desc";
 
+export type SortAriaLabelFn = (label: string, sorted: SortDirection) => string;
+
 export function sortAriaLabel(label: string, sorted: SortDirection): string {
   if (sorted === "asc") {
     return `Sorted by ${label}, ascending. Click to sort descending.`;
@@ -55,13 +57,20 @@ export function SortIcon({
   );
 }
 
-export function SortableHeader<T>({ column }: { column: Column<T, unknown> }) {
+export function SortableHeader<T>({
+  column,
+  getAriaLabel = sortAriaLabel,
+}: {
+  column: Column<T, unknown>;
+  /** Locale-aware aria label; defaults to English `sortAriaLabel`. */
+  getAriaLabel?: SortAriaLabelFn;
+}) {
   const sorted = column.getIsSorted();
   const label = column.columnDef.meta?.label ?? column.id;
 
   return (
     <Button
-      aria-label={sortAriaLabel(label, sorted)}
+      aria-label={getAriaLabel(label, sorted)}
       className={cn("h-8 px-0 font-medium", sorted && "text-foreground")}
       onClick={() => column.toggleSorting(sorted === "asc")}
       variant="ghost"

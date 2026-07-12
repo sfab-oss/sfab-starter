@@ -3,7 +3,6 @@ import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import {
@@ -37,13 +36,16 @@ import {
   ProductForm,
   type ProductFormValues,
 } from "@/components/catalog/product-form";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import {
   useDeleteProduct,
   useProduct,
   useUpdateProduct,
 } from "@/hooks/use-products";
+import { intlLocale } from "@/lib/locale";
 import { getUploadUrl } from "@/lib/uploads";
+import { m } from "@/paraglide/messages.js";
 export const Route = createFileRoute("/_protected/catalog/$id")({
   component: ProductPage,
 });
@@ -169,9 +171,11 @@ function ProductPage() {
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
           items={[
             {
-              title: "Catalog",
+              title: m.catalog_title(),
               href: "/catalog",
             },
             {
@@ -225,7 +229,9 @@ function ProductPage() {
             </CardHeader>
             <CardContent>
               <div className="font-bold text-2xl">
-                {formatMoneyMinor(product.price ?? 0, DEFAULT_CURRENCY)}
+                {formatMoneyMinor(product.price ?? 0, DEFAULT_CURRENCY, {
+                  locale: intlLocale(),
+                })}
               </div>
               <p className="text-muted-foreground text-xs">Per unit</p>
             </CardContent>

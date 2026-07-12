@@ -27,6 +27,8 @@ jobs:
 
       - run: pnpm lint:check
 
+      - run: pnpm i18n:lint
+
       # Fails if registry.json / src/generated.ts are stale vs the item.ts sources.
       - run: pnpm --filter @workspace/registry generate:check
 
@@ -80,6 +82,9 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      # Paraglide outdir is gitignored — compile before vitest resolves @/paraglide/*
+      - run: pnpm i18n:compile
 
       - run: pnpm test
 

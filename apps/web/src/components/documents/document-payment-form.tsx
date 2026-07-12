@@ -25,6 +25,8 @@ import {
 } from "@workspace/ui/lib/money";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { intlLocale } from "@/lib/locale";
+import { m } from "@/paraglide/messages.js";
 
 export const DOCUMENT_PAYMENT_FORM_ID = "document-payment-form";
 
@@ -95,21 +97,29 @@ export function DocumentPaymentForm({
     >
       <dl className="grid grid-cols-3 gap-3 rounded-lg border bg-muted/30 p-3 text-sm">
         <div>
-          <dt className="text-muted-foreground">Total</dt>
+          <dt className="text-muted-foreground">
+            {m.documents_column_total()}
+          </dt>
           <dd className="font-medium tabular-nums">
-            {formatMoneyMinor(total, currencyCode)}
+            {formatMoneyMinor(total, currencyCode, { locale: intlLocale() })}
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Paid</dt>
+          <dt className="text-muted-foreground">{m.documents_label_paid()}</dt>
           <dd className="tabular-nums">
-            {formatMoneyMinor(amountPaid, currencyCode)}
+            {formatMoneyMinor(amountPaid, currencyCode, {
+              locale: intlLocale(),
+            })}
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Balance</dt>
+          <dt className="text-muted-foreground">
+            {m.documents_label_balance()}
+          </dt>
           <dd className="font-medium tabular-nums">
-            {formatMoneyMinor(balanceDue, currencyCode)}
+            {formatMoneyMinor(balanceDue, currencyCode, {
+              locale: intlLocale(),
+            })}
           </dd>
         </div>
       </dl>
@@ -120,7 +130,9 @@ export function DocumentPaymentForm({
           name="method"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel className="text-muted-foreground">Method</FieldLabel>
+              <FieldLabel className="text-muted-foreground">
+                {m.documents_payment_method()}
+              </FieldLabel>
               <Select
                 onValueChange={(value) => {
                   if (value != null) {
@@ -133,9 +145,15 @@ export function DocumentPaymentForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="transfer">Transfer</SelectItem>
-                  <SelectItem value="card">Card</SelectItem>
+                  <SelectItem value="cash">
+                    {m.documents_payment_cash()}
+                  </SelectItem>
+                  <SelectItem value="transfer">
+                    {m.documents_payment_transfer()}
+                  </SelectItem>
+                  <SelectItem value="card">
+                    {m.documents_payment_card()}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -152,11 +170,14 @@ export function DocumentPaymentForm({
                 className="text-muted-foreground"
                 htmlFor={field.name}
               >
-                Amount
+                {m.documents_payment_amount()}
               </FieldLabel>
               <FieldDescription>
-                Cannot exceed balance due (
-                {formatMoneyMinor(balanceDue, currencyCode)}).
+                {m.documents_amount_cannot_exceed({
+                  amount: formatMoneyMinor(balanceDue, currencyCode, {
+                    locale: intlLocale(),
+                  }),
+                })}
               </FieldDescription>
               <Input
                 aria-invalid={fieldState.invalid}

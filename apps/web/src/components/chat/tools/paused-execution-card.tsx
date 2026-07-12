@@ -20,6 +20,8 @@ import {
   type CodemodePendingAction,
 } from "@/lib/codemode-output";
 import { idToReadableText } from "@/lib/id-to-readable-text";
+import { toolSectionLabels, toolStatusLabels } from "@/lib/tool-labels";
+import { m } from "@/paraglide/messages.js";
 
 const METHOD_SPLIT = /[_-]/;
 
@@ -58,6 +60,8 @@ export function PausedExecutionCard({
   const output = asCodemodeOutput(part.output);
   const status = output?.status;
   const executionId = output?.executionId;
+  const statusLabels = toolStatusLabels();
+  const sections = toolSectionLabels();
 
   // Keep this card mounted after Approve (completed output looks like any
   // other codemode run). Session-only — reload of an approved run is generic.
@@ -84,12 +88,18 @@ export function PausedExecutionCard({
       <Tool defaultOpen={false}>
         <ToolHeader
           state={part.state}
+          statusLabels={statusLabels}
           title={idToReadableText("codemode", { capitalize: true })}
           type="tool-codemode"
         />
         <ToolContent>
-          <ToolInput input={part.input} />
-          <ToolOutput errorText={part.errorText} output={part.output} />
+          <ToolInput input={part.input} parametersLabel={sections.parameters} />
+          <ToolOutput
+            errorLabel={sections.error}
+            errorText={part.errorText}
+            output={part.output}
+            resultLabel={sections.result}
+          />
         </ToolContent>
       </Tool>
     );
@@ -105,7 +115,7 @@ export function PausedExecutionCard({
   const failureMessage = codemodeFailureMessage(output.result);
   const errorText =
     displayStatus === "error"
-      ? (output.error ?? failureMessage ?? "Execution failed")
+      ? (output.error ?? failureMessage ?? m.tool_execution_failed())
       : undefined;
 
   async function onApprove() {
@@ -136,6 +146,7 @@ export function PausedExecutionCard({
     <Tool defaultOpen={status === "paused"}>
       <ToolHeader
         state={toolStateForStatus(displayStatus)}
+        statusLabels={statusLabels}
         title={title}
         type="tool-codemode"
       />
@@ -143,10 +154,14 @@ export function PausedExecutionCard({
         {status === "paused" ? (
           <div className="space-y-3 p-4">
             <p className="text-muted-foreground text-sm">
-              This action needs your approval before it runs.
+              {m.tool_approval_needed()}
             </p>
             {argsPreview == null ? null : (
-              <ToolInput className="p-0" input={argsPreview} />
+              <ToolInput
+                className="p-0"
+                input={argsPreview}
+                parametersLabel={sections.parameters}
+              />
             )}
             <div className="flex gap-2">
               <button
@@ -157,7 +172,7 @@ export function PausedExecutionCard({
                 }}
                 type="button"
               >
-                {busy ? "Working…" : "Approve"}
+                {busy ? m.tool_working() : m.tool_approve()}
               </button>
               <button
                 className="rounded-md border px-3 py-1.5 font-medium text-sm disabled:opacity-50"
@@ -167,7 +182,7 @@ export function PausedExecutionCard({
                 }}
                 type="button"
               >
-                Reject
+                {m.tool_reject()}
               </button>
             </div>
           </div>
@@ -175,20 +190,31 @@ export function PausedExecutionCard({
 
         {displayStatus === "completed" ? (
           <ToolOutput
+            errorLabel={sections.error}
             errorText={undefined}
             output={output.result ?? { status: "completed", executionId }}
+            resultLabel={sections.result}
           />
         ) : null}
 
         {displayStatus === "rejected" ? (
           <ToolOutput
-            errorText={output.reason ?? output.error ?? "Rejected by user"}
+            errorLabel={sections.error}
+            errorText={
+              output.reason ?? output.error ?? m.tool_rejected_by_user()
+            }
             output={undefined}
+            resultLabel={sections.result}
           />
         ) : null}
 
         {displayStatus === "error" ? (
-          <ToolOutput errorText={errorText} output={undefined} />
+          <ToolOutput
+            errorLabel={sections.error}
+            errorText={errorText}
+            output={undefined}
+            resultLabel={sections.result}
+          />
         ) : null}
       </ToolContent>
     </Tool>

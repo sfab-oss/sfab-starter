@@ -15,6 +15,7 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { useState } from "react";
 import { TypeNameConfirmDialog } from "@/components/confirm/type-name-confirm-dialog";
 import { useDeleteOrganization } from "@/hooks/use-organization";
+import { m } from "@/paraglide/messages.js";
 
 interface OrganizationDangerZoneProps {
   organization: {
@@ -41,7 +42,7 @@ export function OrganizationDangerZone({
   const handleDelete = async () => {
     try {
       await deleteOrganization.mutateAsync(organization.id);
-      toast.success("Organization deleted");
+      toast.success(m.org_deleted());
 
       const remaining = organizations?.filter(
         (org) => org.id !== organization.id
@@ -58,7 +59,7 @@ export function OrganizationDangerZone({
       }
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to delete organization"
+        error instanceof Error ? error.message : m.org_delete_failed()
       );
     }
   };
@@ -67,10 +68,10 @@ export function OrganizationDangerZone({
     <>
       <Card className="border-destructive/50">
         <CardHeader>
-          <CardTitle className="text-destructive">Danger zone</CardTitle>
-          <CardDescription>
-            Permanently delete this organization and all of its data
-          </CardDescription>
+          <CardTitle className="text-destructive">
+            {m.org_danger_title()}
+          </CardTitle>
+          <CardDescription>{m.org_danger_description()}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button
@@ -78,19 +79,19 @@ export function OrganizationDangerZone({
             type="button"
             variant="outline"
           >
-            Delete organization
+            {m.org_delete()}
           </Button>
         </CardContent>
       </Card>
 
       <TypeNameConfirmDialog
-        confirmLabel="Delete organization"
-        description="This permanently deletes the organization, its members, and all its data. This cannot be undone."
+        confirmLabel={m.org_delete()}
+        description={m.org_delete_confirm_description()}
         onConfirm={handleDelete}
         onOpenChange={setIsDeleteDialogOpen}
         open={isDeleteDialogOpen}
         resourceName={organization.name}
-        title="Delete organization"
+        title={m.org_delete()}
       />
     </>
   );

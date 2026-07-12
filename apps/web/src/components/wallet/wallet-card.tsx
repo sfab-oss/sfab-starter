@@ -14,6 +14,8 @@ import { Wallet } from "lucide-react";
 import { useMemo } from "react";
 import { useDocuments } from "@/hooks/use-documents";
 import { useWalletEntries } from "@/hooks/use-wallet";
+import { intlLocale } from "@/lib/locale";
+import { m } from "@/paraglide/messages.js";
 import { DepositCreditDialog } from "./deposit-credit-dialog";
 import { RedeemCreditDialog } from "./redeem-credit-dialog";
 import { WalletLedger } from "./wallet-ledger";
@@ -73,8 +75,13 @@ export function WalletCard({
           </div>
         </div>
         <div>
+          <p className="text-muted-foreground text-xs">
+            {m.wallet_credit_balance()}
+          </p>
           <div className="font-bold text-2xl tabular-nums">
-            {formatMoneyMinor(creditBalance, DEFAULT_CURRENCY)}
+            {formatMoneyMinor(creditBalance, DEFAULT_CURRENCY, {
+              locale: intlLocale(),
+            })}
           </div>
           {creditBalance === 0 ? (
             <p className="mt-1 text-muted-foreground text-xs">

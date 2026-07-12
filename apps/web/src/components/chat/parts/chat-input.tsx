@@ -42,6 +42,7 @@ import type { OutgoingMessage } from "@/components/chat/dock/chat-tabs-store";
 import { PageContextChip } from "@/components/chat/page-context-chip";
 import { usePageContext } from "@/components/providers/page-context";
 import { useChatCapabilities } from "@/hooks/use-chat-capabilities";
+import { m } from "@/paraglide/messages.js";
 
 type ComposerFile = FileUIPart & { id: string };
 
@@ -115,7 +116,7 @@ function ChatSubmitButton({
 
   return (
     <InputGroupButton
-      aria-label={actAsStop ? "Stop" : "Send"}
+      aria-label={actAsStop ? m.chat_stop() : m.chat_send()}
       disabled={disabled && !actAsStop}
       onClick={
         actAsStop
@@ -130,7 +131,9 @@ function ChatSubmitButton({
       variant="default"
     >
       {icon}
-      <span className="sr-only">{actAsStop ? "Stop" : "Send"}</span>
+      <span className="sr-only">
+        {actAsStop ? m.chat_stop() : m.chat_send()}
+      </span>
     </InputGroupButton>
   );
 }
@@ -385,7 +388,26 @@ function ChatInputInner({
             </DropdownMenu>
           ) : null}
           <div className="ml-auto flex items-center gap-2">
-            <ChatVoiceButton controller={{ textInput: textController }} />
+            <ChatVoiceButton
+              controller={{ textInput: textController }}
+              labels={{
+                start: m.chat_voice_start(),
+                stop: m.chat_voice_stop(),
+                stopAria: m.chat_voice_stop_aria(),
+                processing: m.chat_voice_processing(),
+                error: m.chat_voice_error(),
+                unsupported: m.chat_voice_unsupported(),
+                cancelled: m.chat_voice_cancelled(),
+                transcriptionFailed: m.chat_voice_transcription_failed(),
+                recordingFailed: m.chat_voice_recording_failed(),
+                recordingTooShort: m.chat_voice_recording_too_short(),
+                noTranscription: m.chat_voice_no_transcription(),
+                micFailed: m.chat_voice_mic_failed(),
+                micDenied: m.chat_voice_mic_denied(),
+                micNotFound: m.chat_voice_mic_not_found(),
+                micBusy: m.chat_voice_mic_busy(),
+              }}
+            />
             <ChatSubmitButton
               disabled={disabled}
               onStop={onStop}
@@ -402,7 +424,7 @@ export function ChatInput({
   disabled = false,
   onStop,
   onSubmit,
-  placeholder = "Ask anything about your organization...",
+  placeholder = m.chat_placeholder_connected(),
   status,
 }: {
   disabled?: boolean;

@@ -41,6 +41,7 @@ import {
 } from "@/components/chat/parts/chat-messages";
 import { ChatInputPlaceholder } from "@/components/chat/placeholders";
 import { useAgentToolMutationInvalidation } from "@/hooks/use-agent-tool-mutation-invalidation";
+import { m } from "@/paraglide/messages.js";
 
 /**
  * Real WebSocket connection state, driven by the `useAgent` socket lifecycle
@@ -260,9 +261,7 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
     pending !== null || (chatId !== null && !isConnected);
 
   const placeholder =
-    chatId === null
-      ? "Start a new conversation..."
-      : "Ask anything about your organization...";
+    chatId === null ? m.chat_placeholder_new() : m.chat_placeholder_connected();
 
   const showInputPlaceholder =
     chatId !== null && !isConnected && pending === null;

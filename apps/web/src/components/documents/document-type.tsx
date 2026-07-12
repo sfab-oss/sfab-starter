@@ -1,15 +1,6 @@
 import type { DocumentType } from "@workspace/db/schema";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
-
-const TYPE_LABEL: Record<string, string> = {
-  quote: "Quote",
-  invoice: "Invoice",
-  credit_note: "Credit note",
-  bill: "Bill",
-  sales_order: "Sales order",
-  purchase_order: "Purchase order",
-  receipt: "Receipt",
-};
+import { m } from "@/paraglide/messages.js";
 
 const TYPE_VARIANT: Record<
   string,
@@ -22,7 +13,39 @@ const TYPE_VARIANT: Record<
 };
 
 export function documentTypeLabel(type: string): string {
-  return TYPE_LABEL[type] ?? type.replaceAll("_", " ");
+  switch (type) {
+    case "quote":
+      return m.documents_type_quote();
+    case "invoice":
+      return m.documents_type_invoice();
+    case "credit_note":
+      return m.documents_type_credit_note();
+    case "bill":
+      return m.documents_type_bill();
+    case "sales_order":
+      return m.documents_type_sales_order();
+    case "purchase_order":
+      return m.documents_type_purchase_order();
+    case "receipt":
+      return m.documents_type_receipt();
+    default:
+      return type.replaceAll("_", " ");
+  }
+}
+
+export function documentStatusLabel(status: string): string {
+  switch (status) {
+    case "draft":
+      return m.documents_status_draft();
+    case "finalized":
+      return m.documents_status_finalized();
+    case "accepted":
+      return m.documents_status_accepted();
+    case "converted":
+      return m.documents_status_converted();
+    default:
+      return status;
+  }
 }
 
 export function DocumentTypeBadge({ type }: { type: DocumentType | string }) {
@@ -39,7 +62,7 @@ export function documentFolioLabel(doc: {
   folio: number | null;
 }): string {
   if (doc.folio == null) {
-    return "Draft";
+    return m.documents_status_draft();
   }
   return `#${doc.series ?? doc.type}-${doc.folio}`;
 }

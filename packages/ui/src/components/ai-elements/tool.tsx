@@ -29,23 +29,32 @@ export const Tool = ({ className, ...props }: ToolProps) => (
   />
 );
 
+/** Optional overrides for tool-part status badge copy. */
+export type ToolStatusLabels = Partial<Record<ToolUIPart["state"], string>>;
+
+const DEFAULT_STATUS_LABELS: Record<ToolUIPart["state"], string> = {
+  "input-streaming": "Pending",
+  "input-available": "Running",
+  "approval-requested": "Awaiting Approval",
+  "approval-responded": "Responded",
+  "output-available": "Completed",
+  "output-error": "Error",
+  "output-denied": "Denied",
+};
+
 export interface ToolHeaderProps {
   title?: string;
   type: ToolUIPart["type"];
   state: ToolUIPart["state"];
   className?: string;
+  statusLabels?: ToolStatusLabels;
 }
 
-const getStatusBadge = (status: ToolUIPart["state"]) => {
-  const labels: Record<ToolUIPart["state"], string> = {
-    "input-streaming": "Pending",
-    "input-available": "Running",
-    "approval-requested": "Awaiting Approval",
-    "approval-responded": "Responded",
-    "output-available": "Completed",
-    "output-error": "Error",
-    "output-denied": "Denied",
-  };
+const getStatusBadge = (
+  status: ToolUIPart["state"],
+  statusLabels?: ToolStatusLabels
+) => {
+  const labels = { ...DEFAULT_STATUS_LABELS, ...statusLabels };
 
   const icons: Record<ToolUIPart["state"], ReactNode> = {
     "input-streaming": <CircleIcon className="size-4" />,
@@ -70,6 +79,7 @@ export const ToolHeader = ({
   title,
   type,
   state,
+  statusLabels,
   ...props
 }: ToolHeaderProps) => (
   <CollapsibleTrigger
@@ -84,7 +94,7 @@ export const ToolHeader = ({
       <span className="font-medium text-sm">
         {title ?? type.split("-").slice(1).join("-")}
       </span>
-      {getStatusBadge(state)}
+      {getStatusBadge(state, statusLabels)}
     </div>
     <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
   </CollapsibleTrigger>
@@ -104,12 +114,18 @@ export const ToolContent = ({ className, ...props }: ToolContentProps) => (
 
 export type ToolInputProps = ComponentProps<"div"> & {
   input: ToolUIPart["input"];
+  parametersLabel?: string;
 };
 
-export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
+export const ToolInput = ({
+  className,
+  input,
+  parametersLabel = "Parameters",
+  ...props
+}: ToolInputProps) => (
   <div className={cn("space-y-2 overflow-hidden p-4", className)} {...props}>
     <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-      Parameters
+      {parametersLabel}
     </h4>
     <div className="rounded-md bg-muted/50">
       <CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
@@ -120,12 +136,16 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 export type ToolOutputProps = ComponentProps<"div"> & {
   output: ToolUIPart["output"];
   errorText: ToolUIPart["errorText"];
+  resultLabel?: string;
+  errorLabel?: string;
 };
 
 export const ToolOutput = ({
   className,
   output,
   errorText,
+  resultLabel = "Result",
+  errorLabel = "Error",
   ...props
 }: ToolOutputProps) => {
   if (!(output || errorText)) {
@@ -145,7 +165,7 @@ export const ToolOutput = ({
   return (
     <div className={cn("space-y-2 p-4", className)} {...props}>
       <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-        {errorText ? "Error" : "Result"}
+        {errorText ? errorLabel : resultLabel}
       </h4>
       <div
         className={cn(

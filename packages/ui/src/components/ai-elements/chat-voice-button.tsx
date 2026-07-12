@@ -6,6 +6,26 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Loader2, MicIcon, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+export interface ChatVoiceButtonLabels {
+  start?: string;
+  stop?: string;
+  stopAria?: string;
+  processing?: string;
+  error?: string;
+  /** Toast when MediaRecorder / getUserMedia is unavailable. */
+  unsupported?: string;
+  /** Toast when Escape cancels an in-progress recording. */
+  cancelled?: string;
+  transcriptionFailed?: string;
+  recordingFailed?: string;
+  recordingTooShort?: string;
+  noTranscription?: string;
+  micFailed?: string;
+  micDenied?: string;
+  micNotFound?: string;
+  micBusy?: string;
+}
+
 export interface ChatVoiceButtonProps {
   onTranscriptionComplete?: (text: string) => void;
   onError?: (error: Error) => void;
@@ -20,6 +40,7 @@ export interface ChatVoiceButtonProps {
     };
   };
   className?: string;
+  labels?: ChatVoiceButtonLabels;
 }
 
 type RecordingState = "idle" | "recording" | "processing" | "error";
@@ -40,6 +61,10 @@ function useAudioRecording(options: {
   maxDuration?: number;
   onDataAvailable?: (blob: Blob) => void;
   onError?: (error: Error) => void;
+  messages?: Pick<
+    ChatVoiceButtonLabels,
+    "unsupported" | "micFailed" | "micDenied" | "micNotFound" | "micBusy"
+  >;
 }) {
   const [state, setState] = useState<AudioRecordingState>({
     isRecording: false,
@@ -71,9 +96,13 @@ function useAudioRecording(options: {
     noiseSuppression = true,
     autoGainControl = true,
     maxDuration = 300_000, // 5 minutes
+    messages,
     onDataAvailable,
     onError,
   } = options;
+
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   const getOptimalAudioFormat = useCallback((): string => {
     // Prioritize formats that work best with OpenAI Whisper
@@ -142,9 +171,10 @@ function useAudioRecording(options: {
   );
 
   const startRecording = useCallback(async () => {
+    const msg = messagesRef.current;
     if (!state.isSupported) {
       const error = new Error(
-        "Audio recording is not supported in this browser"
+        msg?.unsupported ?? "Audio recording is not supported in this browser"
       );
       onError?.(error);
       setState((prev) => ({ ...prev, error: error.message }));
@@ -217,18 +247,26 @@ function useAudioRecording(options: {
       mediaRecorder.start(250); // Collect data every 250ms
     } catch (error) {
       const err = error as Error;
-      onError?.(err);
+      const msg = messagesRef.current;
 
-      let errorMessage = "Failed to access microphone.";
+      let errorMessage = msg?.micFailed ?? "Failed to access microphone.";
       if (err.name === "NotAllowedError") {
         errorMessage =
+          msg?.micDenied ??
           "Microphone access denied. Please allow microphone permissions.";
       } else if (err.name === "NotFoundError") {
-        errorMessage = "No microphone found. Please connect a microphone.";
+        errorMessage =
+          msg?.micNotFound ??
+          "No microphone found. Please connect a microphone.";
       } else if (err.name === "NotReadableError") {
         errorMessage =
+          msg?.micBusy ??
           "Microphone is busy. Please close other applications using microphone.";
       }
+
+      const localized = new Error(errorMessage);
+      localized.name = err.name;
+      onError?.(localized);
 
       setState((prev) => ({
         ...prev,
@@ -261,20 +299,34 @@ function useAudioRecording(options: {
   };
 }
 
-function useTranscription(options: { endpoint?: string } = {}) {
-  const { endpoint = "/api/transcribe" } = options;
+function useTranscription(
+  options: {
+    endpoint?: string;
+    messages?: Pick<
+      ChatVoiceButtonLabels,
+      "recordingTooShort" | "noTranscription" | "transcriptionFailed"
+    >;
+  } = {}
+) {
+  const { endpoint = "/api/transcribe", messages } = options;
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const mutate = useCallback(
     async ({ audioBlob }: { audioBlob: Blob }): Promise<string> => {
+      const msg = messagesRef.current;
       setIsPending(true);
       setError(null);
 
       try {
         // Check if audio file is too small (less than 1KB might indicate empty recording)
         if (audioBlob.size < 1024) {
-          throw new Error("Audio recording too short. Please try again.");
+          throw new Error(
+            msg?.recordingTooShort ??
+              "Audio recording too short. Please try again."
+          );
         }
 
         // Generate appropriate filename based on actual MIME type
@@ -329,7 +381,10 @@ function useTranscription(options: { endpoint?: string } = {}) {
             error?: string;
           };
           const errorMessage =
-            errorData.error || `Transcription failed: ${response.status}`;
+            errorData.error ||
+            (msg?.transcriptionFailed
+              ? `${msg.transcriptionFailed}: ${response.status}`
+              : `Transcription failed: ${response.status}`);
           console.error("Transcription failed:", response.status, errorData);
           throw new Error(errorMessage);
         }
@@ -337,13 +392,20 @@ function useTranscription(options: { endpoint?: string } = {}) {
         const result = (await response.json()) as { text?: string };
 
         if (!result.text || typeof result.text !== "string") {
-          throw new Error("No transcription text received");
+          throw new Error(
+            msg?.noTranscription ?? "No transcription text received"
+          );
         }
 
         return result.text;
       } catch (err) {
         const error =
-          err instanceof Error ? err : new Error("Transcription failed");
+          err instanceof Error
+            ? err
+            : new Error(
+                messagesRef.current?.transcriptionFailed ??
+                  "Transcription failed"
+              );
         setError(error);
         console.error("Transcription error:", error);
         throw error;
@@ -370,10 +432,18 @@ export function ChatVoiceButton({
   transcribeEndpoint = "/api/transcribe",
   controller,
   className,
+  labels,
   ...props
 }: ChatVoiceButtonProps) {
   const recording = useAudioRecording({
     maxDuration: 300_000,
+    messages: {
+      unsupported: labels?.unsupported,
+      micFailed: labels?.micFailed,
+      micDenied: labels?.micDenied,
+      micNotFound: labels?.micNotFound,
+      micBusy: labels?.micBusy,
+    },
     onError: (error) => {
       console.error("Recording error:", error);
       toast.error(error.message);
@@ -383,6 +453,11 @@ export function ChatVoiceButton({
 
   const transcription = useTranscription({
     endpoint: transcribeEndpoint,
+    messages: {
+      recordingTooShort: labels?.recordingTooShort,
+      noTranscription: labels?.noTranscription,
+      transcriptionFailed: labels?.transcriptionFailed,
+    },
   });
 
   const [uiState, setUiState] = useState<RecordingState>("idle");
@@ -422,12 +497,20 @@ export function ChatVoiceButton({
     } catch (error) {
       console.error("Transcription error:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Transcription failed";
+        error instanceof Error
+          ? error.message
+          : (labels?.transcriptionFailed ?? "Transcription failed");
       toast.error(errorMessage);
       setUiState("error");
       setTimeout(() => setUiState("idle"), 3000);
     }
-  }, [recording, transcribe, transcription, handleTranscriptionComplete]);
+  }, [
+    recording,
+    transcribe,
+    transcription,
+    handleTranscriptionComplete,
+    labels?.transcriptionFailed,
+  ]);
 
   const handleStartRecording = useCallback(async () => {
     try {
@@ -435,17 +518,22 @@ export function ChatVoiceButton({
         await recording.startRecording();
         setUiState("recording");
       } else {
-        toast.error("Audio recording is not supported in this browser");
+        toast.error(
+          labels?.unsupported ??
+            "Audio recording is not supported in this browser"
+        );
       }
     } catch (error) {
       console.error("Recording error:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Recording failed";
+        error instanceof Error
+          ? error.message
+          : (labels?.recordingFailed ?? "Recording failed");
       toast.error(errorMessage);
       setUiState("error");
       setTimeout(() => setUiState("idle"), 3000);
     }
-  }, [recording]);
+  }, [recording, labels?.unsupported, labels?.recordingFailed]);
 
   const handleClick = useCallback(async () => {
     if (recording.isRecording) {
@@ -460,10 +548,10 @@ export function ChatVoiceButton({
       if (event.key === "Escape" && recording.isRecording) {
         recording.cleanup();
         setUiState("idle");
-        toast.info("Recording cancelled");
+        toast.info(labels?.cancelled ?? "Recording cancelled");
       }
     },
-    [recording]
+    [recording, labels?.cancelled]
   );
 
   const getButtonContent = () => {
@@ -472,28 +560,34 @@ export function ChatVoiceButton({
         return (
           <>
             <Square className="h-4 w-4" />
-            <span className="sr-only">Stop recording</span>
+            <span className="sr-only">{labels?.stop ?? "Stop recording"}</span>
           </>
         );
       case "processing":
         return (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="sr-only">Processing audio</span>
+            <span className="sr-only">
+              {labels?.processing ?? "Processing audio"}
+            </span>
           </>
         );
       case "error":
         return (
           <>
             <MicIcon className="h-4 w-4 text-destructive" />
-            <span className="sr-only">Voice input error</span>
+            <span className="sr-only">
+              {labels?.error ?? "Voice input error"}
+            </span>
           </>
         );
       default:
         return (
           <>
             <MicIcon className="h-4 w-4" />
-            <span className="sr-only">Start voice input</span>
+            <span className="sr-only">
+              {labels?.start ?? "Start voice input"}
+            </span>
           </>
         );
     }
@@ -502,13 +596,15 @@ export function ChatVoiceButton({
   const getAriaLabel = () => {
     switch (uiState) {
       case "recording":
-        return "Stop voice recording (press Escape to cancel)";
+        return (
+          labels?.stopAria ?? "Stop voice recording (press Escape to cancel)"
+        );
       case "processing":
-        return "Processing voice input";
+        return labels?.processing ?? "Processing voice input";
       case "error":
-        return "Voice input error - try again";
+        return labels?.error ?? "Voice input error - try again";
       default:
-        return "Start voice input";
+        return labels?.start ?? "Start voice input";
     }
   };
 

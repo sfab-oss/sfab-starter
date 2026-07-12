@@ -3,7 +3,6 @@ import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import {
@@ -33,6 +32,7 @@ import {
   EntityForm,
   type EntityFormValues,
 } from "@/components/entities/entity-form";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { WalletCard } from "@/components/wallet/wallet-card";
 import { useDocuments } from "@/hooks/use-documents";
@@ -41,6 +41,8 @@ import {
   useEntity,
   useUpdateEntity,
 } from "@/hooks/use-entities";
+import { dateFnsLocale, intlLocale } from "@/lib/locale";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/entities/$id")({
   component: EntityPage,
@@ -108,21 +110,23 @@ function EntityPage() {
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
           items={[
-            { title: "Entities", href: "/entities" },
+            { title: m.entities_title(), href: "/entities" },
             { title: entity.name },
           ]}
         />
         <ShellHeaderActions>
           {isEditing ? (
             <Button
-              aria-label="Cancel"
+              aria-label={m.common_cancel()}
               onClick={() => setIsEditing(false)}
               size="sm"
               variant="ghost"
             >
               <X className="size-4" />
-              <span className="hidden sm:inline">Cancel</span>
+              <span className="hidden sm:inline">{m.common_cancel()}</span>
             </Button>
           ) : (
             <>
@@ -166,10 +170,13 @@ function EntityPage() {
                 {isArchived && <Badge variant="outline">Archived</Badge>}
               </div>
               <CardDescription>
-                Balance {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY)}
+                Balance{" "}
+                {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY, {
+                  locale: intlLocale(),
+                })}
                 {entity.creditLimit == null
                   ? ""
-                  : ` · Credit limit ${formatMoneyMinor(entity.creditLimit, DEFAULT_CURRENCY)}`}
+                  : ` · Credit limit ${formatMoneyMinor(entity.creditLimit, DEFAULT_CURRENCY, { locale: intlLocale() })}`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -196,13 +203,19 @@ function EntityPage() {
                   <div>
                     <dt className="text-muted-foreground">AR balance</dt>
                     <dd className="tabular-nums">
-                      {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY)}
+                      {formatMoneyMinor(entity.balance, DEFAULT_CURRENCY, {
+                        locale: intlLocale(),
+                      })}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground">Store credit</dt>
                     <dd className="tabular-nums">
-                      {formatMoneyMinor(entity.creditBalance, DEFAULT_CURRENCY)}
+                      {formatMoneyMinor(
+                        entity.creditBalance,
+                        DEFAULT_CURRENCY,
+                        { locale: intlLocale() }
+                      )}
                     </dd>
                   </div>
                   <div>
@@ -212,7 +225,8 @@ function EntityPage() {
                         ? "None"
                         : formatMoneyMinor(
                             entity.creditLimit,
-                            DEFAULT_CURRENCY
+                            DEFAULT_CURRENCY,
+                            { locale: intlLocale() }
                           )}
                     </dd>
                   </div>
@@ -245,7 +259,9 @@ function EntityPage() {
                           : ` #${doc.series ?? doc.type}-${doc.folio}`}
                       </div>
                       <div className="text-muted-foreground text-xs">
-                        {format(new Date(doc.createdAt), "MMM d, yyyy")}
+                        {format(new Date(doc.createdAt), "MMM d, yyyy", {
+                          locale: dateFnsLocale(),
+                        })}
                       </div>
                     </div>
                     <Badge
@@ -258,7 +274,8 @@ function EntityPage() {
                     <span className="shrink-0 font-medium tabular-nums">
                       {formatMoneyMinor(
                         doc.status === "finalized" ? doc.balanceDue : doc.total,
-                        doc.currencyCode
+                        doc.currencyCode,
+                        { locale: intlLocale() }
                       )}
                     </span>
                   </Link>

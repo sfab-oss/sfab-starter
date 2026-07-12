@@ -13,7 +13,6 @@ import {
   ShellContent,
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import { SortableHeader } from "@workspace/ui/components/brand/sortable-header";
@@ -25,9 +24,16 @@ import {
 } from "@workspace/ui/lib/table-filter-types";
 import { useCallback, useMemo } from "react";
 import { CreateEntityDialog } from "@/components/entities/create-entity-dialog";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type Entity, useEntities } from "@/hooks/use-entities";
+import { intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
+import {
+  sortableHeaderAriaLabel,
+  tableToolbarLabels,
+} from "@/lib/table-toolbar-labels";
+import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/entities/")({
   component: EntitiesPage,
@@ -88,7 +94,7 @@ function EntitiesPage() {
   useSetPageContext(
     useMemo(
       () => ({
-        title: "Entities",
+        title: m.entities_title(),
         description: "Customers and suppliers",
         entityType: "entities",
         entityId: "list",
@@ -204,7 +210,12 @@ function EntitiesPage() {
       id: "name",
       meta: { label: "Name" },
       accessorKey: "name",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => {
         const entity = row.original;
         return (
@@ -222,7 +233,12 @@ function EntitiesPage() {
       id: "type",
       meta: { label: "Type" },
       accessorKey: "type",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => (
         <Badge className="capitalize" variant="secondary">
           {String(row.getValue("type")).replace("_", " ")}
@@ -233,12 +249,19 @@ function EntitiesPage() {
       id: "balance",
       meta: { label: "Balance" },
       accessorKey: "balance",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => {
         const balance = (row.getValue("balance") as number | null) ?? 0;
         return (
           <div className="text-right font-medium tabular-nums">
-            {formatMoneyMinor(balance, DEFAULT_CURRENCY)}
+            {formatMoneyMinor(balance, DEFAULT_CURRENCY, {
+              locale: intlLocale(),
+            })}
           </div>
         );
       },
@@ -249,7 +272,11 @@ function EntitiesPage() {
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
-        <AppBreadcrumbs items={[{ title: "Entities" }]} />
+        <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
+          items={[{ title: m.entities_title() }]}
+        />
         <ShellHeaderActions>
           <CreateEntityDialog />
         </ShellHeaderActions>
@@ -276,6 +303,7 @@ function EntitiesPage() {
             pageCount={pageCount}
             pagination={pagination}
             sorting={sorting}
+            toolbarLabels={tableToolbarLabels()}
           />
         )}
       </ShellContent>

@@ -51,6 +51,7 @@ import type {
 } from "@/components/chat/dock/chat-tabs-store";
 import { MessageContextBadge } from "@/components/chat/message-context-badge";
 import { ChatMessageActions } from "@/components/chat/parts/message-actions";
+import { m } from "@/paraglide/messages.js";
 import { ChatErrorMessage } from "./chat-error-message";
 import { MessagePart } from "./message-part";
 
@@ -329,10 +330,8 @@ function EmptyConversation() {
         <EmptyMedia variant="icon">
           <MessageCircleDashedIcon />
         </EmptyMedia>
-        <EmptyTitle>No messages yet</EmptyTitle>
-        <EmptyDescription>
-          Start a conversation to see messages here
-        </EmptyDescription>
+        <EmptyTitle>{m.chat_no_messages_yet()}</EmptyTitle>
+        <EmptyDescription>{m.chat_no_messages_hint()}</EmptyDescription>
       </EmptyHeader>
     </Empty>
   );

@@ -12,6 +12,8 @@ import { LockIcon } from "lucide-react";
 import { memo } from "react";
 import { useChatConnection } from "@/components/chat/window/chat-window";
 import { idToReadableText } from "@/lib/id-to-readable-text";
+import { toolSectionLabels, toolStatusLabels } from "@/lib/tool-labels";
+import { m } from "@/paraglide/messages.js";
 
 export interface DefaultToolProps {
   part: ToolUIPart | DynamicToolUIPart;
@@ -37,21 +39,29 @@ export const DefaultTool = memo(({ part }: DefaultToolProps) => {
       : part.type.slice(5);
 
   const denied = isPermissionDenied(part);
+  const statusLabels = toolStatusLabels();
+  const sections = toolSectionLabels();
 
   return (
     <Tool defaultOpen={part.state === "approval-requested"} key={part.state}>
       <ToolHeader
         state={part.state}
+        statusLabels={statusLabels}
         title={idToReadableText(toolName, { capitalize: true })}
         type={`tool-${toolName}` as ToolUIPart["type"]}
       />
       <ToolContent>
-        <ToolInput input={part.input} />
+        <ToolInput input={part.input} parametersLabel={sections.parameters} />
         {part.state === "approval-requested" && <ToolApproval part={part} />}
         {denied ? (
           <PermissionDeniedNote />
         ) : (
-          <ToolOutput errorText={part.errorText} output={part.output} />
+          <ToolOutput
+            errorLabel={sections.error}
+            errorText={part.errorText}
+            output={part.output}
+            resultLabel={sections.result}
+          />
         )}
       </ToolContent>
     </Tool>
@@ -62,10 +72,7 @@ function PermissionDeniedNote() {
   return (
     <div className="flex items-start gap-2 p-4 text-muted-foreground text-sm">
       <LockIcon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-      <span>
-        Your role doesn't allow this action, so it wasn't performed. Ask an
-        admin or owner if you need it done.
-      </span>
+      <span>{m.tool_permission_denied()}</span>
     </div>
   );
 }
@@ -85,7 +92,7 @@ function ToolApproval({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
           })
         }
       >
-        Approve
+        {m.tool_approve()}
       </Button>
       <Button
         onClick={() =>
@@ -96,7 +103,7 @@ function ToolApproval({ part }: { part: ToolUIPart | DynamicToolUIPart }) {
         }
         variant="destructive"
       >
-        Reject
+        {m.tool_reject()}
       </Button>
     </div>
   );
