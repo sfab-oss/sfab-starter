@@ -50,7 +50,10 @@ import { useSetPageContext } from "@/components/providers/page-context";
 import { type DocumentRow, useDocumentsList } from "@/hooks/use-documents";
 import { dateFnsLocale, intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
-import { tableToolbarLabels } from "@/lib/table-toolbar-labels";
+import {
+  sortableHeaderAriaLabel,
+  tableToolbarLabels,
+} from "@/lib/table-toolbar-labels";
 import { m } from "@/paraglide/messages.js";
 export const Route = createFileRoute("/_protected/documents/")({
   component: DocumentsPage,
@@ -333,7 +336,12 @@ function DocumentsPage() {
       },
       accessorFn: (row) => documentFolioLabel(row),
       enableSorting: false,
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => (
         <Link
           className="font-medium hover:text-primary hover:underline"
@@ -352,7 +360,12 @@ function DocumentsPage() {
         label: m.documents_column_type(),
       },
       accessorKey: "type",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => <DocumentTypeBadge type={row.original.type} />,
     },
     {
@@ -361,7 +374,12 @@ function DocumentsPage() {
         label: m.documents_column_entity(),
       },
       accessorKey: "entityName",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => row.original.entityName ?? m.documents_walk_in(),
     },
     {
@@ -370,7 +388,12 @@ function DocumentsPage() {
         label: m.documents_column_status(),
       },
       accessorKey: "status",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => (
         <Badge variant="secondary">
           {documentStatusLabel(row.original.status)}
@@ -384,7 +407,12 @@ function DocumentsPage() {
       },
       accessorKey: "paymentStatus",
       enableSorting: false,
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => {
         if (row.original.type === "quote") {
           return <span className="text-muted-foreground">—</span>;
@@ -398,7 +426,12 @@ function DocumentsPage() {
         label: m.documents_column_total(),
       },
       accessorKey: "total",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => (
         <div className="text-right font-medium tabular-nums">
           {formatMoneyMinor(row.original.total, row.original.currencyCode, {
@@ -413,7 +446,12 @@ function DocumentsPage() {
         label: m.documents_column_date(),
       },
       accessorKey: "createdAt",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => (
         <span className="text-muted-foreground text-sm">
           {format(new Date(row.original.createdAt), "MMM d, yyyy", {

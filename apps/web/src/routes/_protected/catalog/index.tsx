@@ -29,7 +29,10 @@ import { useSetPageContext } from "@/components/providers/page-context";
 import { type Product, useProducts } from "@/hooks/use-products";
 import { intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
-import { tableToolbarLabels } from "@/lib/table-toolbar-labels";
+import {
+  sortableHeaderAriaLabel,
+  tableToolbarLabels,
+} from "@/lib/table-toolbar-labels";
 import { getUploadUrl } from "@/lib/uploads";
 import { m } from "@/paraglide/messages.js";
 
@@ -234,7 +237,12 @@ function CatalogPage() {
       id: "name",
       meta: { label: m.catalog_column_name() },
       accessorKey: "name",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => {
         const product = row.original;
         return (
@@ -253,13 +261,23 @@ function CatalogPage() {
       meta: { label: m.catalog_column_sku() },
       accessorKey: "sku",
       enableSorting: false,
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
     },
     {
       id: "price",
       meta: { label: m.catalog_column_price() },
       accessorKey: "price",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => {
         const price = (row.getValue("price") as number | null) ?? 0;
         return (

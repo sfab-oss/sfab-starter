@@ -1,3 +1,7 @@
+import type {
+  SortAriaLabelFn,
+  SortDirection,
+} from "@workspace/ui/components/brand/sortable-header";
 import type { TableFilterToolbarLabels } from "@workspace/ui/components/brand/table-filter-toolbar";
 import { m } from "@/paraglide/messages.js";
 
@@ -29,3 +33,17 @@ export function tableToolbarLabels(): TableFilterToolbarLabels {
     },
   };
 }
+
+/** Locale-aware aria labels for `SortableHeader`. */
+export const sortableHeaderAriaLabel: SortAriaLabelFn = (
+  label: string,
+  sorted: SortDirection
+) => {
+  if (sorted === "asc") {
+    return m.table_sorted_by_asc_aria({ column: label });
+  }
+  if (sorted === "desc") {
+    return m.table_sorted_by_desc_aria({ column: label });
+  }
+  return m.table_sort_by_aria({ column: label });
+};

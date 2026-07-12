@@ -29,7 +29,10 @@ import { useSetPageContext } from "@/components/providers/page-context";
 import { type Entity, useEntities } from "@/hooks/use-entities";
 import { intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
-import { tableToolbarLabels } from "@/lib/table-toolbar-labels";
+import {
+  sortableHeaderAriaLabel,
+  tableToolbarLabels,
+} from "@/lib/table-toolbar-labels";
 import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/entities/")({
@@ -207,7 +210,12 @@ function EntitiesPage() {
       id: "name",
       meta: { label: "Name" },
       accessorKey: "name",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => {
         const entity = row.original;
         return (
@@ -225,7 +233,12 @@ function EntitiesPage() {
       id: "type",
       meta: { label: "Type" },
       accessorKey: "type",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => (
         <Badge className="capitalize" variant="secondary">
           {String(row.getValue("type")).replace("_", " ")}
@@ -236,7 +249,12 @@ function EntitiesPage() {
       id: "balance",
       meta: { label: "Balance" },
       accessorKey: "balance",
-      header: ({ column }) => <SortableHeader column={column} />,
+      header: ({ column }) => (
+        <SortableHeader
+          column={column}
+          getAriaLabel={sortableHeaderAriaLabel}
+        />
+      ),
       cell: ({ row }) => {
         const balance = (row.getValue("balance") as number | null) ?? 0;
         return (

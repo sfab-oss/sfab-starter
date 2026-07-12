@@ -142,7 +142,9 @@ export function InviteMemberForm({
                 <FieldLabel htmlFor={field.name}>{m.invite_role()}</FieldLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger className="w-full" id={field.name}>
-                    <SelectValue placeholder={m.invite_role_placeholder()} />
+                    <SelectValue placeholder={m.invite_role_placeholder()}>
+                      {roleMessage(field.value as RoleName)}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {canInviteOwner && (

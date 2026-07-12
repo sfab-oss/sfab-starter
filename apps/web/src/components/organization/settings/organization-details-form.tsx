@@ -18,21 +18,27 @@ import { z } from "zod";
 import { useUpdateOrganization } from "@/hooks/use-organization";
 import { m } from "@/paraglide/messages.js";
 
-const formSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: "Name must be at least 2 characters" })
-    .max(100, { message: "Name must be less than 100 characters" }),
-  slug: z
-    .string()
-    .min(2, { message: "Slug must be at least 2 characters" })
-    .max(50, { message: "Slug must be less than 50 characters" })
-    .regex(/^[a-z0-9-]+$/, {
-      message: "Slug can only contain lowercase letters, numbers, and hyphens",
-    }),
-});
+const SLUG_PATTERN = /^[a-z0-9-]+$/;
 
-type OrganizationDetailsData = z.infer<typeof formSchema>;
+function organizationDetailsSchema() {
+  return z.object({
+    name: z
+      .string()
+      .min(2, { message: m.org_name_min() })
+      .max(100, { message: m.org_name_max() }),
+    slug: z
+      .string()
+      .min(2, { message: m.org_slug_min() })
+      .max(50, { message: m.org_slug_max() })
+      .regex(SLUG_PATTERN, {
+        message: m.org_slug_pattern(),
+      }),
+  });
+}
+
+type OrganizationDetailsData = z.infer<
+  ReturnType<typeof organizationDetailsSchema>
+>;
 
 interface OrganizationDetailsFormProps {
   organization: {
@@ -55,7 +61,7 @@ export function OrganizationDetailsForm({
   });
 
   const form = useForm<OrganizationDetailsData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(organizationDetailsSchema()),
     defaultValues: {
       name: organization.name,
       slug: organization.slug,
@@ -65,10 +71,10 @@ export function OrganizationDetailsForm({
   async function onSubmit(values: OrganizationDetailsData) {
     try {
       await updateOrganization.mutateAsync(values);
-      toast.success("Organization details updated successfully");
+      toast.success(m.org_details_updated());
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to update organization"
+        error instanceof Error ? error.message : m.org_details_update_failed()
       );
     }
   }
@@ -81,7 +87,7 @@ export function OrganizationDetailsForm({
           name="name"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{m.org_field_name()}</FieldLabel>
               <Input
                 {...field}
                 aria-invalid={fieldState.invalid}
@@ -99,7 +105,7 @@ export function OrganizationDetailsForm({
           name="slug"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Slug</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{m.org_field_slug()}</FieldLabel>
               <Input
                 {...field}
                 aria-invalid={fieldState.invalid}
