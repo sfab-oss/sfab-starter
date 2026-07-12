@@ -20,6 +20,7 @@ import {
 } from "@workspace/ui/components/shadcn/sidebar";
 import { Menu } from "lucide-react";
 import { useState } from "react";
+import { m } from "@/paraglide/messages.js";
 export interface SettingsNavItem {
   label: string;
   to: string;
@@ -88,7 +89,7 @@ export function SettingsNav({
   );
 }
 export function SettingsMobileSectionTrigger({
-  mobileTitle = "Settings",
+  mobileTitle = m.settings_title(),
   sections,
 }: {
   mobileTitle?: string;
@@ -114,7 +115,7 @@ export function SettingsMobileSectionTrigger({
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{mobileTitle}</DrawerTitle>
-          <DrawerDescription>Pick a section</DrawerDescription>
+          <DrawerDescription>{m.settings_pick_section()}</DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-2 overflow-y-auto px-2 pb-6">
           <SettingsNav onNavigate={() => setOpen(false)} sections={sections} />
@@ -125,7 +126,7 @@ export function SettingsMobileSectionTrigger({
 }
 export function SettingsSectionLayout({
   children,
-  mobileTitle = "Settings",
+  mobileTitle = m.settings_title(),
   sections,
 }: {
   children: React.ReactNode;

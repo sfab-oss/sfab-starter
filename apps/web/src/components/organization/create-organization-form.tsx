@@ -17,19 +17,24 @@ import { slug as slugify } from "github-slugger";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { client } from "@/lib/client";
+import { m } from "@/paraglide/messages.js";
 
-export const formSchema = z.object({
-  name: z
-    .string()
-    .min(3, { message: "Name must be at least 3 characters" })
-    .max(100, { message: "Name must be less than 100 characters" }),
-  slug: z
-    .string()
-    .min(3, { message: "Tag must be at least 3 characters" })
-    .max(50, { message: "Tag must be less than 50 characters" }),
-});
+function createOrganizationSchema() {
+  return z.object({
+    name: z
+      .string()
+      .min(3, { message: m.org_create_name_min() })
+      .max(100, { message: m.org_name_max() }),
+    slug: z
+      .string()
+      .min(3, { message: m.org_create_slug_min() })
+      .max(50, { message: m.org_create_slug_max() }),
+  });
+}
 
-export type CreateOrganizationData = z.infer<typeof formSchema>;
+export type CreateOrganizationData = z.infer<
+  ReturnType<typeof createOrganizationSchema>
+>;
 
 const DIACRITICS_REGEX = /\p{Diacritic}/gu;
 const MULTIPLE_HYPHENS_REGEX = /-{2,}/g;
@@ -58,7 +63,7 @@ export function CreateOrganizationForm({
   const queryClient = useQueryClient();
 
   const form = useForm<CreateOrganizationData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(createOrganizationSchema()),
     defaultValues: {
       name: "",
       slug: "",
@@ -73,7 +78,7 @@ export function CreateOrganizationForm({
       const { available } = await response.json();
 
       if (!available) {
-        toast.error("Slug already exists");
+        toast.error(m.org_slug_exists());
         return;
       }
 
@@ -94,10 +99,10 @@ export function CreateOrganizationForm({
           onSuccess();
         }
       } else {
-        toast.error(error?.message ?? "Failed to create organization");
+        toast.error(error?.message ?? m.org_create_failed());
       }
     } catch {
-      toast.error("Failed to create organization");
+      toast.error(m.org_create_failed());
     }
   }
 
@@ -109,7 +114,7 @@ export function CreateOrganizationForm({
           name="name"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{m.org_field_name()}</FieldLabel>
               <Input
                 {...field}
                 aria-invalid={fieldState.invalid}
@@ -131,7 +136,7 @@ export function CreateOrganizationForm({
           name="slug"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Slug</FieldLabel>
+              <FieldLabel htmlFor={field.name}>{m.org_field_slug()}</FieldLabel>
               <Input
                 {...field}
                 aria-invalid={fieldState.invalid}
@@ -154,8 +159,8 @@ export function CreateOrganizationForm({
             type="submit"
           >
             {form.formState.isSubmitting
-              ? "Creating..."
-              : "Create Organization"}
+              ? m.org_creating()
+              : m.org_create_button()}
           </Button>
         </Field>
       </FieldGroup>

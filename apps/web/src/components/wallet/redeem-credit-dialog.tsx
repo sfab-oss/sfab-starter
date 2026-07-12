@@ -115,9 +115,9 @@ export function RedeemCreditDialog({
   if (disabled) {
     triggerTitle = disabledReason;
   } else if (creditBalance <= 0) {
-    triggerTitle = "No store credit to redeem";
+    triggerTitle = m.wallet_no_credit();
   } else if (openInvoices.length === 0) {
-    triggerTitle = "No open invoices to apply credit against";
+    triggerTitle = m.wallet_no_invoices();
   }
 
   return (
@@ -142,12 +142,12 @@ export function RedeemCreditDialog({
         }
       >
         <Wallet className="mr-2 size-4" />
-        Redeem
+        {m.wallet_redeem()}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[440px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Redeem store credit</DialogTitle>
+            <DialogTitle>{m.wallet_redeem_title()}</DialogTitle>
             <DialogDescription>
               {m.wallet_redeem_from({
                 amount: formatMoneyMinor(creditBalance, DEFAULT_CURRENCY, {
@@ -158,13 +158,13 @@ export function RedeemCreditDialog({
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="redeem-invoice">Open invoice</Label>
+              <Label htmlFor="redeem-invoice">{m.wallet_open_invoice()}</Label>
               <Select
                 onValueChange={handleDocumentChange}
                 value={documentId || undefined}
               >
                 <SelectTrigger className="w-full" id="redeem-invoice">
-                  <SelectValue placeholder="Select an invoice" />
+                  <SelectValue placeholder={m.wallet_select_invoice()} />
                 </SelectTrigger>
                 <SelectContent>
                   {openInvoices.map((doc) => (
@@ -185,7 +185,9 @@ export function RedeemCreditDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="redeem-amount">Amount</Label>
+              <Label htmlFor="redeem-amount">
+                {m.documents_payment_amount()}
+              </Label>
               <Input
                 disabled={!selected}
                 id="redeem-amount"
@@ -222,7 +224,7 @@ export function RedeemCreditDialog({
               }
               type="submit"
             >
-              Apply credit
+              {m.wallet_apply_credit()}
             </Button>
           </DialogFooter>
         </form>

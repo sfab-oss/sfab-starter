@@ -76,10 +76,10 @@ function ProductDetailsReadOnly({ product }: ProductDetailsReadOnlyProps) {
       )}
       <div>
         <h4 className="mb-1 font-medium text-muted-foreground text-sm">
-          Description
+          {m.common_description()}
         </h4>
         <p className="text-foreground/90 text-sm leading-relaxed">
-          {product.description || "No description provided."}
+          {product.description || m.catalog_no_description()}
         </p>
       </div>
     </div>
@@ -109,7 +109,7 @@ function ProductPage() {
               },
             }
           : {
-              title: "Product",
+              title: m.catalog_product_singular(),
               entityType: "product",
               entityId: productId,
             },
@@ -120,7 +120,7 @@ function ProductPage() {
     return (
       <ShellPage>
         <div className="flex h-full flex-col items-center justify-center gap-4">
-          <h2 className="font-semibold text-xl">Loading...</h2>
+          <h2 className="font-semibold text-xl">{m.common_loading()}</h2>
         </div>
       </ShellPage>
     );
@@ -160,8 +160,8 @@ function ProductPage() {
     return (
       <ShellPage>
         <div className="flex h-full flex-col items-center justify-center gap-4">
-          <h2 className="font-semibold text-xl">Product not found</h2>
-          <Button render={<Link to="/catalog" />}>Back to Catalog</Button>
+          <h2 className="font-semibold text-xl">{m.catalog_not_found()}</h2>
+          <Button render={<Link to="/catalog" />}>{m.catalog_back()}</Button>
         </div>
       </ShellPage>
     );
@@ -186,34 +186,34 @@ function ProductPage() {
         <ShellHeaderActions>
           {isEditing ? (
             <Button
-              aria-label="Cancel"
+              aria-label={m.common_cancel()}
               onClick={() => setIsEditing(false)}
               size="sm"
               variant="ghost"
             >
               <X className="size-4" />
-              <span className="hidden sm:inline">Cancel</span>
+              <span className="hidden sm:inline">{m.common_cancel()}</span>
             </Button>
           ) : (
             <>
               <Button
-                aria-label="Edit"
+                aria-label={m.common_edit()}
                 onClick={() => setIsEditing(true)}
                 size="sm"
                 variant="outline"
               >
                 <Pencil className="size-4" />
-                <span className="hidden sm:inline">Edit</span>
+                <span className="hidden sm:inline">{m.common_edit()}</span>
               </Button>
               <Button
-                aria-label="Delete"
+                aria-label={m.common_delete()}
                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={() => setIsDeleteDialogOpen(true)}
                 size="sm"
                 variant="outline"
               >
                 <Trash2 className="size-4" />
-                <span className="hidden sm:inline">Delete</span>
+                <span className="hidden sm:inline">{m.common_delete()}</span>
               </Button>
             </>
           )}
@@ -224,7 +224,9 @@ function ProductPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="font-medium text-sm">Price</CardTitle>
+              <CardTitle className="font-medium text-sm">
+                {m.catalog_column_price()}
+              </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -233,15 +235,17 @@ function ProductPage() {
                   locale: intlLocale(),
                 })}
               </div>
-              <p className="text-muted-foreground text-xs">Per unit</p>
+              <p className="text-muted-foreground text-xs">
+                {m.catalog_per_unit()}
+              </p>
             </CardContent>
           </Card>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Product Details</CardTitle>
-            <CardDescription>Basic information and settings.</CardDescription>
+            <CardTitle>{m.catalog_details()}</CardTitle>
+            <CardDescription>{m.catalog_details_description()}</CardDescription>
           </CardHeader>
           <CardContent>
             {isEditing ? (
@@ -285,22 +289,25 @@ function ProductPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {m.common_confirm_delete_title()}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the product{" "}
-              <strong>{product.name}</strong>. This action cannot be undone.
+              {m.catalog_delete_description({ name: product.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteProduct.isPending}>
-              Cancel
+              {m.common_cancel()}
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={deleteProduct.isPending}
               onClick={handleDelete}
             >
-              {deleteProduct.isPending ? "Deleting..." : "Delete Product"}
+              {deleteProduct.isPending
+                ? m.common_deleting()
+                : m.catalog_delete_product()}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

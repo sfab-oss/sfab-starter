@@ -16,36 +16,41 @@ import {
   EntityPicker,
   type EntityPickerValue,
 } from "@/components/entities/entity-picker";
-
-const entityPickerValueSchema = z.union([
-  z.object({
-    kind: z.literal("entity"),
-    entity: z.object({
-      id: z.string().min(1),
-      name: z.string(),
-      type: entityTypeSchema,
-    }),
-  }),
-  z.object({
-    kind: z.literal("walk_in"),
-    name: z.string().min(1, "Enter a walk-in name"),
-  }),
-]);
+import { m } from "@/paraglide/messages.js";
 
 const ISO_CURRENCY_CODE = /^[A-Za-z]{3}$/;
 
-const documentCreateFormSchema = z.object({
-  entity: entityPickerValueSchema,
-  currencyCode: z
-    .string()
-    .trim()
-    .refine((value) => value === "" || ISO_CURRENCY_CODE.test(value), {
-      message: "Use a 3-letter ISO currency code",
+function documentCreateFormSchema() {
+  const entityPickerValueSchema = z.union([
+    z.object({
+      kind: z.literal("entity"),
+      entity: z.object({
+        id: z.string().min(1),
+        name: z.string(),
+        type: entityTypeSchema,
+      }),
     }),
-  series: z.string().trim().optional(),
-});
+    z.object({
+      kind: z.literal("walk_in"),
+      name: z.string().min(1, m.documents_walk_in_name_required()),
+    }),
+  ]);
 
-export type DocumentCreateFormValues = z.infer<typeof documentCreateFormSchema>;
+  return z.object({
+    entity: entityPickerValueSchema,
+    currencyCode: z
+      .string()
+      .trim()
+      .refine((value) => value === "" || ISO_CURRENCY_CODE.test(value), {
+        message: m.documents_currency_invalid(),
+      }),
+    series: z.string().trim().optional(),
+  });
+}
+
+export type DocumentCreateFormValues = z.infer<
+  ReturnType<typeof documentCreateFormSchema>
+>;
 
 interface DocumentCreateFormProps {
   defaultEntity?: NonNullable<EntityPickerValue>;
@@ -55,13 +60,13 @@ interface DocumentCreateFormProps {
 }
 
 export function DocumentCreateForm({
-  defaultEntity = { kind: "walk_in", name: "Walk-in" },
+  defaultEntity = { kind: "walk_in", name: m.documents_walk_in() },
   onSubmit,
   isLoading,
-  submitLabel = "Create",
+  submitLabel = m.common_create(),
 }: DocumentCreateFormProps) {
   const form = useForm<DocumentCreateFormValues>({
-    resolver: zodResolver(documentCreateFormSchema),
+    resolver: zodResolver(documentCreateFormSchema()),
     defaultValues: {
       entity: defaultEntity,
       currencyCode: "",
@@ -78,7 +83,7 @@ export function DocumentCreateForm({
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel className="text-muted-foreground">
-                Customer / entity
+                {m.documents_customer_entity()}
               </FieldLabel>
               <EntityPicker onChange={field.onChange} value={field.value} />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -96,13 +101,13 @@ export function DocumentCreateForm({
                   className="text-muted-foreground"
                   htmlFor={field.name}
                 >
-                  Currency
+                  {m.documents_currency()}
                 </FieldLabel>
                 <Input
                   {...field}
                   aria-invalid={fieldState.invalid}
                   id={field.name}
-                  placeholder="USD (optional)"
+                  placeholder={m.documents_currency_placeholder()}
                   value={field.value ?? ""}
                 />
                 {fieldState.invalid && (
@@ -121,13 +126,13 @@ export function DocumentCreateForm({
                   className="text-muted-foreground"
                   htmlFor={field.name}
                 >
-                  Series
+                  {m.documents_series()}
                 </FieldLabel>
                 <Input
                   {...field}
                   aria-invalid={fieldState.invalid}
                   id={field.name}
-                  placeholder="Optional series"
+                  placeholder={m.documents_series_placeholder()}
                   value={field.value ?? ""}
                 />
                 {fieldState.invalid && (
@@ -140,7 +145,7 @@ export function DocumentCreateForm({
 
         <div className="flex justify-end pt-1">
           <Button disabled={isLoading} type="submit">
-            {isLoading ? "Creating…" : submitLabel}
+            {isLoading ? m.common_creating() : submitLabel}
           </Button>
         </div>
       </FieldGroup>

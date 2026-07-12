@@ -35,12 +35,14 @@ import { m } from "@/paraglide/messages.js";
 export type EntityFormValues = ContractEntityFormValues;
 
 /** UI schema: credit limit in major units; converted to minor before onSubmit. */
-const entityFormUiSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  type: entityTypeSchema,
-  creditLimit: z.number().nonnegative().nullable().optional(),
-});
-type EntityFormUiValues = z.infer<typeof entityFormUiSchema>;
+function entityFormUiSchema() {
+  return z.object({
+    name: z.string().min(1, m.entities_name_required()),
+    type: entityTypeSchema,
+    creditLimit: z.number().nonnegative().nullable().optional(),
+  });
+}
+type EntityFormUiValues = z.infer<ReturnType<typeof entityFormUiSchema>>;
 
 interface EntityFormProps {
   mode?: "create" | "edit";
@@ -58,7 +60,7 @@ export function EntityForm({
   submitLabel = m.common_save(),
 }: EntityFormProps) {
   const form = useForm<EntityFormUiValues>({
-    resolver: zodResolver(entityFormUiSchema),
+    resolver: zodResolver(entityFormUiSchema()),
     defaultValues: {
       name: defaultValues?.name ?? "",
       type: defaultValues?.type ?? "customer",
@@ -102,13 +104,13 @@ export function EntityForm({
                 className="text-muted-foreground"
                 htmlFor={field.name}
               >
-                Name
+                {m.common_name()}
               </FieldLabel>
               <Input
                 {...field}
                 aria-invalid={fieldState.invalid}
                 id={field.name}
-                placeholder="Customer or supplier name"
+                placeholder={m.entities_name_placeholder()}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -120,15 +122,23 @@ export function EntityForm({
           name="type"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel className="text-muted-foreground">Type</FieldLabel>
+              <FieldLabel className="text-muted-foreground">
+                {m.entities_type()}
+              </FieldLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={m.entities_type_placeholder()} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="customer">Customer</SelectItem>
-                  <SelectItem value="supplier">Supplier</SelectItem>
-                  <SelectItem value="walk_in">Walk-in</SelectItem>
+                  <SelectItem value="customer">
+                    {m.entities_type_customer()}
+                  </SelectItem>
+                  <SelectItem value="supplier">
+                    {m.entities_type_supplier()}
+                  </SelectItem>
+                  <SelectItem value="walk_in">
+                    {m.documents_walk_in()}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -145,7 +155,7 @@ export function EntityForm({
                 className="text-muted-foreground"
                 htmlFor={field.name}
               >
-                Credit limit
+                {m.entities_credit_limit()}
               </FieldLabel>
               <Input
                 aria-invalid={fieldState.invalid}
@@ -155,7 +165,7 @@ export function EntityForm({
                   const raw = e.target.value;
                   field.onChange(raw === "" ? null : Number(raw));
                 }}
-                placeholder="Optional"
+                placeholder={m.common_optional()}
                 step="0.01"
                 type="number"
                 value={
@@ -165,7 +175,9 @@ export function EntityForm({
                 }
               />
               <FieldDescription>
-                Entered in {DEFAULT_CURRENCY} (same as product price).
+                {m.entities_credit_limit_hint({
+                  currency: DEFAULT_CURRENCY,
+                })}
               </FieldDescription>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>

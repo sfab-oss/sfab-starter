@@ -12,6 +12,7 @@ import {
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useCreateEntity } from "@/hooks/use-entities";
+import { m } from "@/paraglide/messages.js";
 import { EntityForm, type EntityFormValues } from "./entity-form";
 export function CreateEntityDialog() {
   const [open, setOpen] = useState(false);
@@ -28,20 +29,20 @@ export function CreateEntityDialog() {
     <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger render={<Button size="sm" />}>
         <Plus className="mr-2 h-4 w-4" />
-        Add Entity
+        {m.entities_add()}
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Add Entity</DialogTitle>
+          <DialogTitle>{m.entities_add()}</DialogTitle>
           <DialogDescription>
-            Create a customer or supplier counterparty.
+            {m.entities_create_description()}
           </DialogDescription>
         </DialogHeader>
         <EntityForm
           isLoading={createEntity.isPending}
           mode="create"
           onSubmit={onSubmit}
-          submitLabel="Create Entity"
+          submitLabel={m.entities_create()}
         />
       </DialogContent>
     </Dialog>
