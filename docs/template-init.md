@@ -55,12 +55,44 @@ deletions. Assume the person you are talking to is a product or business owner
 about hubs, layers, or auth plugins. You translate their answers into a
 technical plan afterward.
 
-The goal is enough clarity to propose a plan — not a complete product brief.
+The goal is enough clarity to write a transform plan and execute it — not a
+complete product brief, and not permission gates between phases.
+
+### Write as you go (`docs/`)
+
+Persist the adoption work in the repo so it survives the chat:
+
+| File | What goes there |
+| --- | --- |
+| `docs/notes/YYYY-MM-DD-product-brief.md` (or similar under `docs/notes/`) | Interview Q&A in the user’s words — update as answers arrive |
+| `docs/notes/YYYY-MM-DD-transform-plan.md` (separate file) | How you will reshape the **whole** app — brand, nav/copy, kept surfaces, new slices, **AI tools + system prompt**, seed/demo data, verify steps |
+
+Do not keep the brief and the plan in one file. The brief is product context; the
+plan is your execution checklist.
+
+### When to stop and ask (business only)
+
+**Be eager.** Once you have enough business context, write the plan and carry it
+out without asking “should I continue to the next phase?” or pausing for
+technical approval.
+
+Stop and ask the user **only** when a **business / product** fact is unclear or
+conflicting (who signs in, how they sell, what the AI must not do, product name,
+what “done” means for v1). Do **not** stop for:
+
+- Technical forks (schema shape, layer placement, which package owns X)
+- Phase check-ins (“I finished branding — ready for the delivery board?”)
+- Permission to keep coding after they already said to turn this into their
+  product
+
+If you must choose a technical default, pick the sensible default below, note it
+in the plan, and keep going.
 
 ### Questions worth asking
 
 Ask only what is still unknown. Phrase these in plain language; adapt wording
-to how they talk about their business.
+to how they talk about their business. Write each answer into the product-brief
+file as you get it.
 
 1. **What is this product?** — In one sentence, what are you building? What
    problem does it solve?
@@ -103,31 +135,52 @@ plan:
 | New product name / brand | Bootstrap identity and copy early; leave stack choices alone |
 | Hosting they already care about | Default to the shipped Cloudflare Workers setup unless they clearly need something else (large fork — flag early) |
 
+Most of the shipped base stays useful even when v1 is a different workflow. Prefer
+**keep + rename + extend** over deleting early — you rarely know what to strip
+until later. What you must **not** do is leave the app half-demo: after reshape,
+nav, copy, seed data, and the agent should speak their product, not “Acme /
+Catalog / Documents.”
+
 ## A light path: answer → plan → transform
 
-Not mandatory order — a shape that tends to work:
+Not mandatory order — a shape that tends to work. Steps 3–8 run eagerly once
+business questions are answered; do not gate each step on the user.
 
 1. **Orient** — drop `.sfab/` if it is still present (see above), skim README
    (what ships), this file, then the architecture map. Open one end-to-end
    capability that exists today (e.g. catalog or documents) across layers so
    the feature-key pattern is concrete.
-2. **Interview** — the questions above, one or a few at a time. Prefer decisions
-   that unblock the first vertical slice over boiling the ocean.
-3. **Plan** — write a short plan the user can approve in *their* language
-   (product outcomes, names, first workflow). Keep technical mapping
-   (keep/rename/strip, first capability key, what not to touch) in the same
-   plan for you — not as questions they must answer.
+2. **Interview** — the questions above, one or a few at a time. Persist answers
+   in the product-brief file under `docs/notes/`. Prefer decisions that unblock
+   the first vertical slice over boiling the ocean.
+3. **Plan (whole app)** — write the **transform plan** as its own file under
+   `docs/notes/`. Cover the full product surface you will touch in this pass,
+   not only the new home screen:
+   - Brand / identity and demo framing
+   - Nav + copy on **kept** surfaces (customers, catalog/jugs, documents/billing, …)
+   - New or reshaped feature keys (full vertical slices)
+   - **AI**: system prompt, which tools stay/change/add, what the agent must not do
+   - Seed / sample data so the first run feels like their business
+   - Verify steps
+   Keep technical mapping in this file for you. A short product summary in their
+   language is fine; do not ask them to approve layer choices.
 4. **Bootstrap identity** — names, env/example copy, and obvious demo branding
-   once the direction is clear (small diff, high signal).
+   (small diff, high signal), then continue into the rest of the plan without
+   waiting.
 5. **Transform by feature keys** — add or reshape capabilities as full vertical
-   slices (`db` / `contract` / `core` / Hono / agent tools / UI). Avoid
-   inventing parallel folder schemes.
+   slices (`db` / `contract` / `core` / Hono / agent tools / UI). Avoid inventing
+   parallel folder schemes.
 6. **Extend what is here** — prefer renaming and extending catalog/documents
    (and other shipped capabilities) over rewriting them for one vertical. See
    the transaction-core doc and the README for what the base actually includes.
+   Finish the pass so nothing important still reads as the generic starter.
 7. **Verify** — `pnpm typecheck`, targeted tests, and a smoke sign-in + core
-   flow. Point the user at [`AGENTS.md`](../AGENTS.md) for the ongoing command /
-   convention index.
+   flow when env allows. Point the user at [`AGENTS.md`](../AGENTS.md) for the
+   ongoing command / convention index.
+8. **Hand back with a short tour** — in plain language, tell them what changed:
+   what’s new, what was renamed (and that the old capabilities are still there),
+   how the assistant behaves now, how to run/sign in, and what can wait for
+   later. No architecture lecture — a friendly walkthrough of *their* app.
 
 ## Sensible defaults (when the user has not decided)
 
@@ -138,12 +191,17 @@ Not mandatory order — a shape that tends to work:
 | Catalog + documents | Keep; rename/extend rather than delete |
 | Cloudflare / D1 / Workers | Keep |
 | UI system (`packages/ui`) | Keep primitives; change product components and copy |
-| Example / demo framing | Soften toward their product name once known |
+| Example / demo framing | Replace with their product name and domain language in this pass |
 
 ## What not to do by default
 
 - Treat this as a throwaway scaffold and gut auth, orgs, or the agent "to
   simplify" without an explicit ask.
+- Leave the app half-transformed (new home + old “Catalog / Documents / Acme”
+  everywhere else, or an agent prompt still aimed at the demo).
+- Stop between phases to ask whether you should continue — only stop for
+  unclear **business** context.
+- Ask the user technical questions you should decide in the plan.
 - Rewrite folder layout or invent a new layering story.
 - Steer the init around capabilities that are not in the repo yet (or promise
   future add-ons). Work from what is here and what the user wants next.
