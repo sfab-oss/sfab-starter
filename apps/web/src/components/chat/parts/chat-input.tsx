@@ -396,6 +396,16 @@ function ChatInputInner({
                 stopAria: m.chat_voice_stop_aria(),
                 processing: m.chat_voice_processing(),
                 error: m.chat_voice_error(),
+                unsupported: m.chat_voice_unsupported(),
+                cancelled: m.chat_voice_cancelled(),
+                transcriptionFailed: m.chat_voice_transcription_failed(),
+                recordingFailed: m.chat_voice_recording_failed(),
+                recordingTooShort: m.chat_voice_recording_too_short(),
+                noTranscription: m.chat_voice_no_transcription(),
+                micFailed: m.chat_voice_mic_failed(),
+                micDenied: m.chat_voice_mic_denied(),
+                micNotFound: m.chat_voice_mic_not_found(),
+                micBusy: m.chat_voice_mic_busy(),
               }}
             />
             <ChatSubmitButton

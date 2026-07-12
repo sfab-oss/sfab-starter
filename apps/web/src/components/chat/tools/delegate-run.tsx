@@ -26,6 +26,7 @@ import {
   useChatWindow,
 } from "@/components/chat/window/chat-window";
 import { idToReadableText } from "@/lib/id-to-readable-text";
+import { m } from "@/paraglide/messages.js";
 import type { ToolRenderProps } from "./tool-registry";
 
 /**
@@ -49,27 +50,27 @@ function statusMeta(status: Status): { label: string; icon: ReactNode } {
   switch (status) {
     case "completed":
       return {
-        label: "Done",
+        label: m.tool_delegate_completed(),
         icon: <CheckCircleIcon className="size-3.5 text-green-600" />,
       };
     case "error":
       return {
-        label: "Failed",
+        label: m.tool_delegate_error(),
         icon: <XCircleIcon className="size-3.5 text-red-600" />,
       };
     case "aborted":
       return {
-        label: "Stopped",
+        label: m.tool_delegate_aborted(),
         icon: <XCircleIcon className="size-3.5 text-muted-foreground" />,
       };
     case "interrupted":
       return {
-        label: "Interrupted",
+        label: m.tool_delegate_interrupted(),
         icon: <OctagonAlertIcon className="size-3.5 text-amber-600" />,
       };
     default:
       return {
-        label: "Working",
+        label: m.tool_delegate_working(),
         icon: (
           <LoaderIcon className="size-3.5 animate-spin text-muted-foreground" />
         ),
