@@ -54,79 +54,81 @@ export const Route = createFileRoute("/_protected/documents/")({
   component: DocumentsPage,
   validateSearch: listDocumentsQuerySchema,
 });
-const DOCUMENT_FILTER_DEFINITIONS: TableFilterDefinition[] = [
-  {
-    id: "search",
-    columnId: "search",
-    label: m.documents_filter_search(),
-    type: "text",
-    placeholder: m.documents_filter_search_placeholder(),
-  },
-  {
-    id: "type",
-    columnId: "type",
-    label: m.documents_filter_type(),
-    type: "enum",
-    options: [
-      {
-        label: m.documents_type_quote(),
-        value: "quote",
-      },
-      {
-        label: m.documents_type_invoice(),
-        value: "invoice",
-      },
-      {
-        label: m.documents_type_credit_note(),
-        value: "credit_note",
-      },
-      {
-        label: "Bill",
-        value: "bill",
-      },
-    ],
-  },
-  {
-    id: "direction",
-    columnId: "direction",
-    label: "Direction",
-    type: "enum",
-    options: [
-      {
-        label: "Sales",
-        value: "sales",
-      },
-      {
-        label: "Purchase",
-        value: "purchase",
-      },
-    ],
-  },
-  {
-    id: "status",
-    columnId: "status",
-    label: "Status",
-    type: "enum",
-    options: [
-      {
-        label: "Draft",
-        value: "draft",
-      },
-      {
-        label: "Accepted",
-        value: "accepted",
-      },
-      {
-        label: "Converted",
-        value: "converted",
-      },
-      {
-        label: "Finalized",
-        value: "finalized",
-      },
-    ],
-  },
-];
+function documentFilterDefinitions(): TableFilterDefinition[] {
+  return [
+    {
+      id: "search",
+      columnId: "search",
+      label: m.documents_filter_search(),
+      type: "text",
+      placeholder: m.documents_filter_search_placeholder(),
+    },
+    {
+      id: "type",
+      columnId: "type",
+      label: m.documents_filter_type(),
+      type: "enum",
+      options: [
+        {
+          label: m.documents_type_quote(),
+          value: "quote",
+        },
+        {
+          label: m.documents_type_invoice(),
+          value: "invoice",
+        },
+        {
+          label: m.documents_type_credit_note(),
+          value: "credit_note",
+        },
+        {
+          label: "Bill",
+          value: "bill",
+        },
+      ],
+    },
+    {
+      id: "direction",
+      columnId: "direction",
+      label: "Direction",
+      type: "enum",
+      options: [
+        {
+          label: "Sales",
+          value: "sales",
+        },
+        {
+          label: "Purchase",
+          value: "purchase",
+        },
+      ],
+    },
+    {
+      id: "status",
+      columnId: "status",
+      label: "Status",
+      type: "enum",
+      options: [
+        {
+          label: "Draft",
+          value: "draft",
+        },
+        {
+          label: "Accepted",
+          value: "accepted",
+        },
+        {
+          label: "Converted",
+          value: "converted",
+        },
+        {
+          label: "Finalized",
+          value: "finalized",
+        },
+      ],
+    },
+  ];
+}
 function firstEnumValue(value: unknown): string | undefined {
   if (Array.isArray(value) && typeof value[0] === "string") {
     return value[0];
@@ -466,7 +468,7 @@ function DocumentsPage() {
             columns={columns}
             data={docsResponse?.data ?? []}
             embedded
-            filterDefinitions={DOCUMENT_FILTER_DEFINITIONS}
+            filterDefinitions={documentFilterDefinitions()}
             filteredCount={docsResponse?.total ?? 0}
             onColumnFiltersChange={onColumnFiltersChange}
             onPaginationChange={onPaginationChange}
