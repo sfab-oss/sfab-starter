@@ -113,11 +113,13 @@ export function MembersTable({ members }: MembersTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Avatar</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{m.members_column_avatar()}</TableHead>
+            <TableHead>{m.members_column_name()}</TableHead>
+            <TableHead>{m.members_column_email()}</TableHead>
+            <TableHead>{m.members_column_role()}</TableHead>
+            <TableHead className="text-right">
+              {m.members_column_actions()}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -277,12 +279,14 @@ export function InvitationsTable({ invitations }: InvitationsTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Expires At</TableHead>
+            <TableHead>{m.members_column_email()}</TableHead>
+            <TableHead>{m.members_column_role()}</TableHead>
+            <TableHead>{m.members_column_status()}</TableHead>
+            <TableHead>{m.members_column_expires()}</TableHead>
             {canManageMembers && (
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">
+                {m.members_column_actions()}
+              </TableHead>
             )}
           </TableRow>
         </TableHeader>

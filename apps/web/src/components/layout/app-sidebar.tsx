@@ -57,14 +57,20 @@ export function AppSidebar() {
                 <span className="sr-only">{m.common_search()}</span>
               </SidebarMenuButton>
 
-              <SidebarTrigger className="hidden h-8 w-8 md:flex" />
+              <SidebarTrigger
+                className="hidden h-8 w-8 md:flex"
+                toggleLabel={m.sidebar_toggle()}
+              />
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
 
         <SidebarMenu className="hidden group-data-[collapsible=icon]:flex">
           <SidebarMenuItem>
-            <SidebarTrigger className="h-8 w-8" />
+            <SidebarTrigger
+              className="h-8 w-8"
+              toggleLabel={m.sidebar_toggle()}
+            />
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton

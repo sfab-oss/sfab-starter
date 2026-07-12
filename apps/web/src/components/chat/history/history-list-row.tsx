@@ -9,6 +9,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { formatHistoryTimestamp } from "@/lib/shared/format/format-history-timestamp";
+import { m } from "@/paraglide/messages.js";
 
 export function chatHistoryTimestamp(
   chat: Pick<ChatSummary, "createdAt" | "updatedAt">
@@ -20,7 +21,7 @@ export function HistoryDropdownSectionLabel() {
   return (
     <DropdownMenuGroup>
       <DropdownMenuLabel className="text-muted-foreground text-xs">
-        Organization chats · newest first
+        {m.chat_history_section()}
       </DropdownMenuLabel>
     </DropdownMenuGroup>
   );
@@ -29,7 +30,7 @@ export function HistoryDropdownSectionLabel() {
 export function HistorySheetSectionLabel() {
   return (
     <p className="mb-2 text-muted-foreground text-xs">
-      Organization chats · newest first
+      {m.chat_history_section()}
     </p>
   );
 }

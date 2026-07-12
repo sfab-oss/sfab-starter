@@ -13,7 +13,6 @@ import {
   ShellContent,
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import { SortableHeader } from "@workspace/ui/components/brand/sortable-header";
@@ -25,10 +24,12 @@ import {
 import { Package } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { CreateProductDialog } from "@/components/catalog/create-product-dialog";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type Product, useProducts } from "@/hooks/use-products";
 import { intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
+import { tableToolbarLabels } from "@/lib/table-toolbar-labels";
 import { getUploadUrl } from "@/lib/uploads";
 import { m } from "@/paraglide/messages.js";
 
@@ -207,9 +208,9 @@ function CatalogPage() {
   const columns: ColumnDef<Product>[] = [
     {
       id: "image",
-      meta: { label: "Image" },
+      meta: { label: m.catalog_column_image() },
       enableSorting: false,
-      header: () => <span className="sr-only">Image</span>,
+      header: () => <span className="sr-only">{m.catalog_column_image()}</span>,
       cell: ({ row }) => {
         const imageUrl = row.original.imageUrl;
         return (
@@ -276,7 +277,11 @@ function CatalogPage() {
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
-        <AppBreadcrumbs items={[{ title: m.catalog_title() }]} />
+        <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
+          items={[{ title: m.catalog_title() }]}
+        />
         <ShellHeaderActions>
           <CreateProductDialog />
         </ShellHeaderActions>
@@ -303,6 +308,7 @@ function CatalogPage() {
             pageCount={pageCount}
             pagination={pagination}
             sorting={sorting}
+            toolbarLabels={tableToolbarLabels()}
           />
         )}
       </ShellContent>

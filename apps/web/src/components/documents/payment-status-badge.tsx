@@ -3,6 +3,7 @@
 import type { PaymentStatus } from "@workspace/db/schema";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
 import { cn } from "@workspace/ui/lib/utils";
+import { m } from "@/paraglide/messages.js";
 
 const PAYMENT_STATUS_CLASSES: Record<PaymentStatus, string> = {
   unpaid:
@@ -12,11 +13,20 @@ const PAYMENT_STATUS_CLASSES: Record<PaymentStatus, string> = {
   paid: "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
 };
 
-const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
-  unpaid: "Unpaid",
-  partial: "Partial",
-  paid: "Paid",
-};
+function paymentStatusLabel(status: PaymentStatus): string {
+  switch (status) {
+    case "unpaid":
+      return m.documents_payment_unpaid();
+    case "partial":
+      return m.documents_payment_partial();
+    case "paid":
+      return m.documents_payment_paid();
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
+}
 
 export function PaymentStatusBadge({
   status,
@@ -31,7 +41,7 @@ export function PaymentStatusBadge({
       variant="outline"
       {...props}
     >
-      {PAYMENT_STATUS_LABELS[status]}
+      {paymentStatusLabel(status)}
     </Badge>
   );
 }

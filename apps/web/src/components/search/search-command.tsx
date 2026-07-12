@@ -28,6 +28,7 @@ import { getPlatformNavigationItems } from "@/components/layout/platform-navigat
 import { useCatalogSearch } from "@/hooks/use-catalog-search";
 import { useDocumentsList } from "@/hooks/use-documents";
 import { useEntities } from "@/hooks/use-entities";
+import { m } from "@/paraglide/messages.js";
 
 const MIN_QUERY_LENGTH = 2;
 
@@ -148,26 +149,26 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
     [resetQuery, router, setOpen]
   );
 
-  let emptyMessage = `Type at least ${MIN_QUERY_LENGTH} characters to search records…`;
+  let emptyMessage = m.search_empty_min_chars({ count: MIN_QUERY_LENGTH });
   if (query.trim().length === 0) {
-    emptyMessage = "Search pages, products, documents, entities…";
+    emptyMessage = m.search_empty_hint();
   } else if (isSearching) {
-    emptyMessage = "Searching…";
+    emptyMessage = m.search_empty_searching();
   } else if (!hasResults) {
-    emptyMessage = "No results found.";
+    emptyMessage = m.search_empty_no_results();
   }
 
   return (
     <CommandDialog
-      description="Search pages, products, documents, and entities"
+      description={m.search_description()}
       onOpenChange={handleOpenChange}
       open={open}
       shouldFilter={false}
-      title="Global Search"
+      title={m.search_title()}
     >
       <CommandInput
         onValueChange={setQuery}
-        placeholder="Search pages, products, documents…"
+        placeholder={m.search_placeholder()}
         value={query}
       />
 
@@ -175,10 +176,10 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
         {!hasResults && <CommandEmpty>{emptyMessage}</CommandEmpty>}
 
         {pages.length > 0 && (
-          <CommandGroup heading="Pages">
+          <CommandGroup heading={m.search_group_pages()}>
             {pages.map((page) => (
               <PaletteItem
-                badge="Page"
+                badge={m.search_badge_page()}
                 icon={page.icon}
                 key={page.url}
                 onSelect={() => navigateTo(page.url)}
@@ -191,10 +192,10 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
         )}
 
         {products.length > 0 && (
-          <CommandGroup heading="Products">
+          <CommandGroup heading={m.search_group_products()}>
             {products.map((product) => (
               <PaletteItem
-                badge="Product"
+                badge={m.search_badge_product()}
                 icon={Package}
                 key={product.metadata.id}
                 onSelect={() => navigateTo(product.path)}
@@ -207,14 +208,14 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
         )}
 
         {documents.length > 0 && (
-          <CommandGroup heading="Documents">
+          <CommandGroup heading={m.search_group_documents()}>
             {documents.map((doc) => (
               <PaletteItem
                 badge={documentTypeLabel(doc.type)}
                 icon={FileText}
                 key={doc.id}
                 onSelect={() => navigateTo(`/documents/${doc.id}`)}
-                subtitle={doc.entityName ?? "Walk-in"}
+                subtitle={doc.entityName ?? m.search_walk_in()}
                 title={`${documentTypeLabel(doc.type)} ${documentFolioLabel(doc)}`}
                 value={`document:${doc.id}`}
               />
@@ -223,7 +224,7 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
         )}
 
         {entities.length > 0 && (
-          <CommandGroup heading="Entities">
+          <CommandGroup heading={m.search_group_entities()}>
             {entities.map((entity) => (
               <PaletteItem
                 badge={entity.type}
@@ -241,7 +242,7 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
 
       <div className="flex h-10 items-center justify-between border-t px-3 text-muted-foreground text-xs">
         <span className="flex items-center gap-1">
-          <CornerDownLeft className="size-3" /> Open
+          <CornerDownLeft className="size-3" /> {m.search_footer_open()}
         </span>
         <span className="flex items-center gap-2">
           {isSearching && <Loader2 className="size-3 animate-spin" />}

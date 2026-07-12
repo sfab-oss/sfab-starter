@@ -27,6 +27,7 @@ import { Controller, useForm } from "react-hook-form";
 import { percentToBps } from "@/components/documents/document-type";
 import { useAddLineItem, useDocument } from "@/hooks/use-documents";
 import { useProducts } from "@/hooks/use-products";
+import { m } from "@/paraglide/messages.js";
 import {
   type AddLineFormValues,
   addLineFormSchema,
@@ -132,15 +133,15 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="font-medium text-sm">Line items</h3>
+      <h3 className="font-medium text-sm">{m.documents_line_items()}</h3>
       <div className="divide-y rounded-lg border">
         <div
           className={`hidden px-3 py-2 text-muted-foreground text-xs sm:grid ${LINE_GRID}`}
         >
-          <span>Description</span>
-          <span>Qty</span>
-          <span>Unit price</span>
-          <span>Tax %</span>
+          <span>{m.documents_line_description()}</span>
+          <span>{m.documents_line_qty()}</span>
+          <span>{m.documents_line_unit_price()}</span>
+          <span>{m.documents_line_tax_percent()}</span>
           <span className="sr-only">Actions</span>
         </div>
         {lines.map((line) => (
@@ -153,7 +154,7 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
         ))}
         {lines.length === 0 && !isComposing && (
           <div className="px-4 py-6 text-center text-muted-foreground text-xs">
-            No lines yet.
+            {m.documents_no_lines()}
           </div>
         )}
 
@@ -168,7 +169,7 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
               render={({ field }) => (
                 <Field className="max-w-xs gap-1">
                   <FieldLabel className="text-muted-foreground text-xs">
-                    Product (optional)
+                    {m.documents_line_product_optional()}
                   </FieldLabel>
                   <Select
                     onValueChange={(value) => {
@@ -179,7 +180,9 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
                     value={field.value || undefined}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Fill from catalog" />
+                      <SelectValue
+                        placeholder={m.documents_line_fill_from_catalog()}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {(productsResp?.data ?? []).map((product) => (
@@ -201,13 +204,13 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
                   render={({ field, fieldState }) => (
                     <Field className="gap-1" data-invalid={fieldState.invalid}>
                       <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
-                        Description
+                        {m.documents_line_description()}
                       </FieldLabel>
                       <Input
                         {...field}
                         aria-invalid={fieldState.invalid}
-                        aria-label="Description"
-                        placeholder="Description"
+                        aria-label={m.documents_line_description()}
+                        placeholder={m.documents_line_description()}
                         ref={(el) => {
                           field.ref(el);
                           descriptionRef.current = el;
@@ -226,11 +229,11 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
                   render={({ field, fieldState }) => (
                     <Field className="gap-1" data-invalid={fieldState.invalid}>
                       <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
-                        Qty
+                        {m.documents_line_qty()}
                       </FieldLabel>
                       <Input
                         aria-invalid={fieldState.invalid}
-                        aria-label="Quantity"
+                        aria-label={m.documents_line_qty()}
                         min={1}
                         onChange={(e) =>
                           field.onChange(Number(e.target.value) || 1)
@@ -251,16 +254,16 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
                   render={({ field, fieldState }) => (
                     <Field className="gap-1" data-invalid={fieldState.invalid}>
                       <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
-                        Unit price
+                        {m.documents_line_unit_price()}
                       </FieldLabel>
                       <Input
                         aria-invalid={fieldState.invalid}
-                        aria-label="Unit price"
+                        aria-label={m.documents_line_unit_price()}
                         min={0}
                         onChange={(e) =>
                           field.onChange(Number(e.target.value) || 0)
                         }
-                        placeholder="Price"
+                        placeholder={m.documents_line_unit_price()}
                         step="0.01"
                         type="number"
                         value={formatMajorInputValue(field.value, currencyCode)}
@@ -278,16 +281,16 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
                   render={({ field, fieldState }) => (
                     <Field className="gap-1" data-invalid={fieldState.invalid}>
                       <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
-                        Tax %
+                        {m.documents_line_tax_percent()}
                       </FieldLabel>
                       <Input
                         aria-invalid={fieldState.invalid}
-                        aria-label="Tax percent"
+                        aria-label={m.documents_line_tax_percent()}
                         min={0}
                         onChange={(e) =>
                           field.onChange(Number(e.target.value) || 0)
                         }
-                        placeholder="Tax %"
+                        placeholder={m.documents_line_tax_percent()}
                         step="0.01"
                         type="number"
                         value={field.value}
@@ -335,7 +338,7 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
           variant="ghost"
         >
           <Plus className="size-4" />
-          Add line
+          {m.documents_line_add()}
         </Button>
       )}
     </div>

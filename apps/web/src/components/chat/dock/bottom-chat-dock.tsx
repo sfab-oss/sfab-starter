@@ -49,6 +49,7 @@ import { ChatSidePanel } from "@/components/chat/side-panel/chat-side-panel";
 import { MobileFilesSheet } from "@/components/chat/side-panel/mobile-files-sheet";
 import { ChatErrorBoundary } from "@/components/chat/window/chat-error-boundary";
 import { ChatWindow } from "@/components/chat/window/chat-window";
+import { m } from "@/paraglide/messages.js";
 export function BottomChatDock() {
   return (
     <>
@@ -185,7 +186,7 @@ function DockBar() {
           <TooltipTrigger
             render={
               <Button
-                aria-label="New chat"
+                aria-label={m.chat_new()}
                 className="size-7 shrink-0"
                 onClick={() =>
                   useChatTabsStore.getState().openDraftTab(organizationId)
@@ -197,7 +198,7 @@ function DockBar() {
           >
             <PlusIcon className="size-4" />
           </TooltipTrigger>
-          <TooltipContent side="top">New chat</TooltipContent>
+          <TooltipContent side="top">{m.chat_new()}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
       <HistoryDropdown />
@@ -243,7 +244,7 @@ function ChatTab({ tab }: { tab: TabEntry }) {
         <span className="max-w-[160px] truncate">{tab.title}</span>
       </button>
       <button
-        aria-label={`Close ${tab.title}`}
+        aria-label={m.chat_close_tab({ title: tab.title })}
         className="rounded p-0.5 opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
         onClick={handleClose}
         type="button"
@@ -261,7 +262,7 @@ function OverflowMenu({ tabs }: { tabs: TabEntry[] }) {
       <DropdownMenuTrigger
         render={
           <Button
-            aria-label={`${tabs.length} more chats`}
+            aria-label={m.chat_more_chats({ count: tabs.length })}
             className="h-7 shrink-0 rounded-md px-2 text-muted-foreground text-xs"
             size="sm"
             variant="ghost"
@@ -284,7 +285,7 @@ function OverflowMenu({ tabs }: { tabs: TabEntry[] }) {
             <BotIcon className="size-3.5 shrink-0 text-muted-foreground" />
             <span className="min-w-0 flex-1 truncate">{tab.title}</span>
             <button
-              aria-label={`Close ${tab.title}`}
+              aria-label={m.chat_close_tab({ title: tab.title })}
               className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
               onClick={(e) => {
                 e.preventDefault();
@@ -323,7 +324,7 @@ function HistoryDropdownBody({
   if (chats.length === 0) {
     return (
       <div className="px-2 py-1.5 text-muted-foreground text-xs">
-        No chats yet
+        {m.chat_no_chats_yet()}
       </div>
     );
   }
@@ -339,7 +340,7 @@ function HistoryDropdownBody({
         title={chat.title}
         trailing={
           <button
-            aria-label={`Delete ${chat.title}`}
+            aria-label={m.chat_delete({ title: chat.title })}
             className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
             onClick={(e) => {
               e.preventDefault();
@@ -368,7 +369,7 @@ function HistoryDropdown() {
               <DropdownMenuTrigger
                 render={
                   <Button
-                    aria-label="Chat history"
+                    aria-label={m.chat_history()}
                     className="size-7 shrink-0"
                     size="icon"
                     variant="ghost"
@@ -379,7 +380,7 @@ function HistoryDropdown() {
           >
             <HistoryIcon className="size-4" />
           </TooltipTrigger>
-          <TooltipContent side="top">History</TooltipContent>
+          <TooltipContent side="top">{m.chat_history_tooltip()}</TooltipContent>
         </Tooltip>
         <DropdownMenuContent
           align="end"

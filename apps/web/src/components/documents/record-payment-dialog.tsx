@@ -10,6 +10,8 @@ import {
 } from "@workspace/ui/components/shadcn/dialog";
 import { formatMoneyMinor, majorToMinor } from "@workspace/ui/lib/money";
 import { useRecordPayment } from "@/hooks/use-documents";
+import { intlLocale } from "@/lib/locale";
+import { m } from "@/paraglide/messages.js";
 import {
   DOCUMENT_PAYMENT_FORM_ID,
   DocumentPaymentForm,
@@ -53,16 +55,20 @@ export function RecordPaymentDialog({
     onOpenChange(false);
   };
 
+  const balanceFormatted = formatMoneyMinor(balanceDue, currencyCode, {
+    locale: intlLocale(),
+  });
+
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader className="flex-row items-start gap-3 sm:items-center">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <DialogTitle>Record payment</DialogTitle>
+            <DialogTitle>{m.documents_record_payment()}</DialogTitle>
             <DialogDescription className="min-w-0 truncate">
               {folioLabel}
-              {entityName ? ` · ${entityName}` : ""} · Balance{" "}
-              {formatMoneyMinor(balanceDue, currencyCode)}
+              {entityName ? ` · ${entityName}` : ""} ·{" "}
+              {m.documents_payment_balance({ amount: balanceFormatted })}
             </DialogDescription>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -72,7 +78,7 @@ export function RecordPaymentDialog({
               type="button"
               variant="outline"
             >
-              Cancel
+              {m.common_cancel()}
             </Button>
             <Button
               disabled={recordPayment.isPending}
@@ -80,7 +86,7 @@ export function RecordPaymentDialog({
               size="sm"
               type="submit"
             >
-              {recordPayment.isPending ? "Saving…" : "Pay"}
+              {recordPayment.isPending ? m.common_saving() : m.documents_pay()}
             </Button>
           </div>
         </DialogHeader>

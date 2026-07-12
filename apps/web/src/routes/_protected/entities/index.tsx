@@ -13,7 +13,6 @@ import {
   ShellContent,
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import { SortableHeader } from "@workspace/ui/components/brand/sortable-header";
@@ -25,10 +24,12 @@ import {
 } from "@workspace/ui/lib/table-filter-types";
 import { useCallback, useMemo } from "react";
 import { CreateEntityDialog } from "@/components/entities/create-entity-dialog";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type Entity, useEntities } from "@/hooks/use-entities";
 import { intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
+import { tableToolbarLabels } from "@/lib/table-toolbar-labels";
 import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/entities/")({
@@ -253,7 +254,11 @@ function EntitiesPage() {
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
-        <AppBreadcrumbs items={[{ title: m.entities_title() }]} />
+        <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
+          items={[{ title: m.entities_title() }]}
+        />
         <ShellHeaderActions>
           <CreateEntityDialog />
         </ShellHeaderActions>
@@ -280,6 +285,7 @@ function EntitiesPage() {
             pageCount={pageCount}
             pagination={pagination}
             sorting={sorting}
+            toolbarLabels={tableToolbarLabels()}
           />
         )}
       </ShellContent>

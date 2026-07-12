@@ -4,7 +4,6 @@ import {
   ShellContent,
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import {
@@ -14,6 +13,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/shadcn/card";
 import { FileText, Package, Settings } from "lucide-react";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_protected/")({
@@ -51,7 +51,11 @@ function TodayPage() {
     <ShellPage>
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
-        <AppBreadcrumbs items={[{ title: m.home_title() }]} />
+        <AppBreadcrumbs
+          items={[{ title: m.home_title() }]}
+          homeLabel={m.nav_home()}
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+        />
         <ShellHeaderActions />
       </ShellHeader>
 

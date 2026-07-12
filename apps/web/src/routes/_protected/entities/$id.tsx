@@ -3,7 +3,6 @@ import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import {
@@ -33,6 +32,7 @@ import {
   EntityForm,
   type EntityFormValues,
 } from "@/components/entities/entity-form";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { WalletCard } from "@/components/wallet/wallet-card";
 import { useDocuments } from "@/hooks/use-documents";
@@ -110,6 +110,8 @@ function EntityPage() {
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
           items={[
             { title: m.entities_title(), href: "/entities" },
             { title: entity.name },

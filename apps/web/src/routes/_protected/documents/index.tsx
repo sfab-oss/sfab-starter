@@ -18,7 +18,6 @@ import {
   ShellContent,
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import { SortableHeader } from "@workspace/ui/components/brand/sortable-header";
@@ -42,13 +41,16 @@ import { CreateDocumentDialog } from "@/components/documents/create-document-dia
 import {
   DocumentTypeBadge,
   documentFolioLabel,
+  documentStatusLabel,
   documentTypeLabel,
 } from "@/components/documents/document-type";
 import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { type DocumentRow, useDocumentsList } from "@/hooks/use-documents";
 import { dateFnsLocale, intlLocale } from "@/lib/locale";
 import { pickListPageView } from "@/lib/page-context-view";
+import { tableToolbarLabels } from "@/lib/table-toolbar-labels";
 import { m } from "@/paraglide/messages.js";
 export const Route = createFileRoute("/_protected/documents/")({
   component: DocumentsPage,
@@ -82,7 +84,7 @@ function documentFilterDefinitions(): TableFilterDefinition[] {
           value: "credit_note",
         },
         {
-          label: "Bill",
+          label: m.documents_type_bill(),
           value: "bill",
         },
       ],
@@ -90,15 +92,15 @@ function documentFilterDefinitions(): TableFilterDefinition[] {
     {
       id: "direction",
       columnId: "direction",
-      label: "Direction",
+      label: m.documents_filter_direction(),
       type: "enum",
       options: [
         {
-          label: "Sales",
+          label: m.documents_direction_sales(),
           value: "sales",
         },
         {
-          label: "Purchase",
+          label: m.documents_direction_purchase(),
           value: "purchase",
         },
       ],
@@ -106,23 +108,23 @@ function documentFilterDefinitions(): TableFilterDefinition[] {
     {
       id: "status",
       columnId: "status",
-      label: "Status",
+      label: m.documents_filter_status(),
       type: "enum",
       options: [
         {
-          label: "Draft",
+          label: m.documents_status_draft(),
           value: "draft",
         },
         {
-          label: "Accepted",
+          label: m.documents_status_accepted(),
           value: "accepted",
         },
         {
-          label: "Converted",
+          label: m.documents_status_converted(),
           value: "converted",
         },
         {
-          label: "Finalized",
+          label: m.documents_status_finalized(),
           value: "finalized",
         },
       ],
@@ -151,7 +153,7 @@ function DocumentsPage() {
     useMemo(
       () => ({
         title: m.documents_title(),
-        description: "Quotes, invoices, bills",
+        description: m.documents_page_description(),
         entityType: "documents",
         entityId: "list",
         view: pickListPageView(searchParams, ["type", "direction", "status"]),
@@ -360,7 +362,7 @@ function DocumentsPage() {
       },
       accessorKey: "entityName",
       header: ({ column }) => <SortableHeader column={column} />,
-      cell: ({ row }) => row.original.entityName ?? "Walk-in",
+      cell: ({ row }) => row.original.entityName ?? m.documents_walk_in(),
     },
     {
       id: "status",
@@ -370,15 +372,15 @@ function DocumentsPage() {
       accessorKey: "status",
       header: ({ column }) => <SortableHeader column={column} />,
       cell: ({ row }) => (
-        <Badge className="capitalize" variant="secondary">
-          {row.original.status}
+        <Badge variant="secondary">
+          {documentStatusLabel(row.original.status)}
         </Badge>
       ),
     },
     {
       id: "paymentStatus",
       meta: {
-        label: "Payment",
+        label: m.documents_column_payment(),
       },
       accessorKey: "paymentStatus",
       enableSorting: false,
@@ -408,7 +410,7 @@ function DocumentsPage() {
     {
       id: "createdAt",
       meta: {
-        label: "Date",
+        label: m.documents_column_date(),
       },
       accessorKey: "createdAt",
       header: ({ column }) => <SortableHeader column={column} />,
@@ -426,6 +428,8 @@ function DocumentsPage() {
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
           items={[
             {
               title: m.documents_title(),
@@ -458,7 +462,7 @@ function DocumentsPage() {
       <ShellContent>
         {isLoading && !docsResponse ? (
           <div className="flex h-40 items-center justify-center text-muted-foreground">
-            Loading documents...
+            {m.documents_loading_list()}
           </div>
         ) : (
           <ResourceTable
@@ -476,6 +480,7 @@ function DocumentsPage() {
             pageCount={pageCount}
             pagination={pagination}
             sorting={sorting}
+            toolbarLabels={tableToolbarLabels()}
           />
         )}
       </ShellContent>

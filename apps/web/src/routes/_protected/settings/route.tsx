@@ -7,11 +7,11 @@ import {
   ShellContent,
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { Skeleton } from "@workspace/ui/components/shadcn/skeleton";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import {
   type SettingsNavSection,
   SettingsSectionLayout,
@@ -53,6 +53,8 @@ function SettingsLayout() {
         <ShellHeader>
           <ShellHeaderSidebarTrigger className="-ml-1" />
           <AppBreadcrumbs
+            ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+            homeLabel={m.nav_home()}
             items={[
               {
                 title: m.settings_title(),
@@ -75,6 +77,8 @@ function SettingsLayout() {
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
           items={[
             {
               title: m.settings_title(),
@@ -98,6 +102,8 @@ function SettingsSkeleton({ sections }: { sections: SettingsNavSection[] }) {
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
           items={[
             {
               title: m.settings_title(),

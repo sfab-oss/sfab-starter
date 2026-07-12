@@ -3,7 +3,6 @@ import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   ShellHeader,
   ShellHeaderActions,
-  ShellHeaderSidebarTrigger,
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
@@ -30,11 +29,13 @@ import {
   bpsToPercent,
   DocumentTypeBadge,
   documentFolioLabel,
+  documentStatusLabel,
   documentTypeLabel,
 } from "@/components/documents/document-type";
 import { DraftLineEditor } from "@/components/documents/draft-line-editor";
 import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
 import { RecordPaymentDialog } from "@/components/documents/record-payment-dialog";
+import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { PayFromCreditForm } from "@/components/wallet/pay-from-credit-form";
 import {
@@ -67,11 +68,11 @@ function DocumentEntityLabel({
         params={{ id: entityId }}
         to="/entities/$id"
       >
-        {entityName ?? "Entity"}
+        {entityName ?? m.documents_entity()}
       </Link>
     );
   }
-  return <>{entityName ?? "Walk-in"}</>;
+  return <>{entityName ?? m.documents_walk_in()}</>;
 }
 
 function DocumentHeaderActions({
@@ -108,7 +109,7 @@ function DocumentHeaderActions({
           onClick={() => accept.mutate(id)}
           size="sm"
         >
-          Accept quote
+          {m.documents_accept_quote()}
         </Button>
       )}
       {isDraft && !isQuote && (
@@ -117,7 +118,7 @@ function DocumentHeaderActions({
           onClick={() => finalize.mutate(id)}
           size="sm"
         >
-          Finalize
+          {m.documents_finalize()}
         </Button>
       )}
       {doc.status === "accepted" && isQuote && (
@@ -126,12 +127,12 @@ function DocumentHeaderActions({
           onClick={handleConvert}
           size="sm"
         >
-          Convert to invoice
+          {m.documents_convert_to_invoice()}
         </Button>
       )}
       {doc.status === "finalized" && doc.type === "invoice" && (
         <Button onClick={onCreateCreditNote} size="sm" variant="outline">
-          Create credit note
+          {m.documents_create_credit_note()}
         </Button>
       )}
     </ShellHeaderActions>
@@ -147,7 +148,7 @@ function FrozenLineItems({
 }) {
   return (
     <div>
-      <h3 className="mb-2 font-medium text-sm">Line items</h3>
+      <h3 className="mb-2 font-medium text-sm">{m.documents_line_items()}</h3>
       <div className="divide-y rounded-lg border">
         {lines.map((line) => (
           <div
@@ -160,7 +161,9 @@ function FrozenLineItems({
               {formatMoneyMinor(line.unitPrice, currencyCode, {
                 locale: intlLocale(),
               })}
-              {line.taxRate > 0 ? ` · ${bpsToPercent(line.taxRate)}% tax` : ""}
+              {line.taxRate > 0
+                ? ` · ${m.documents_tax_rate({ percent: String(bpsToPercent(line.taxRate)) })}`
+                : ""}
             </span>
             <span className="w-24 text-right font-medium tabular-nums">
               {formatMoneyMinor(line.unitPrice * line.quantity, currencyCode, {
@@ -171,7 +174,7 @@ function FrozenLineItems({
         ))}
         {lines.length === 0 && (
           <div className="px-4 py-6 text-center text-muted-foreground text-xs">
-            No lines yet.
+            {m.documents_no_lines()}
           </div>
         )}
       </div>
@@ -209,7 +212,9 @@ function PaymentActions({
   return (
     <div className="space-y-3">
       <div className="rounded-lg border p-4">
-        <h3 className="mb-1 font-medium text-sm">Record payment</h3>
+        <h3 className="mb-1 font-medium text-sm">
+          {m.documents_record_payment()}
+        </h3>
         <p className="mb-3 text-muted-foreground text-xs">
           {m.documents_balance_due({
             amount: formatMoneyMinor(balanceDue, currencyCode, {
@@ -218,7 +223,7 @@ function PaymentActions({
           })}
         </p>
         <Button className="w-full" onClick={() => setPaymentOpen(true)}>
-          Record payment
+          {m.documents_record_payment()}
         </Button>
       </div>
       {showPayFromCredit && entityId ? (
@@ -266,7 +271,7 @@ function DocumentPage() {
       () => ({
         title: doc
           ? `${documentTypeLabel(doc.type)} ${doc.folio ?? ""}`
-          : "Document",
+          : m.documents_document(),
         description: doc?.entityName ?? undefined,
         entityType: "document",
         entityId: id,
@@ -279,7 +284,7 @@ function DocumentPage() {
     return (
       <ShellPage>
         <div className="flex h-full flex-col items-center justify-center gap-4">
-          <h2 className="font-semibold text-xl">Loading document...</h2>
+          <h2 className="font-semibold text-xl">{m.documents_loading()}</h2>
         </div>
       </ShellPage>
     );
@@ -323,6 +328,8 @@ function DocumentPage() {
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
+          ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          homeLabel={m.nav_home()}
           items={[
             { title: m.documents_title(), href: "/documents" },
             {
@@ -348,7 +355,7 @@ function DocumentPage() {
                 </h2>
                 <DocumentTypeBadge type={doc.type} />
                 <Badge variant={isDraft ? "secondary" : "default"}>
-                  {doc.status}
+                  {documentStatusLabel(doc.status)}
                 </Badge>
                 {!isDraft && isFiscalPayable && (
                   <PaymentStatusBadge status={doc.paymentStatus} />
@@ -363,13 +370,15 @@ function DocumentPage() {
               </p>
               {doc.sourceDocumentId && (
                 <p className="mt-1 text-muted-foreground text-xs">
-                  {isCreditNote ? "Credit for" : "Converted from"}{" "}
+                  {isCreditNote
+                    ? m.documents_credit_for()
+                    : m.documents_converted_from()}{" "}
                   <Link
                     className="hover:text-primary hover:underline"
                     params={{ id: doc.sourceDocumentId }}
                     to="/documents/$id"
                   >
-                    source document
+                    {m.documents_source_document()}
                   </Link>
                 </p>
               )}
@@ -385,10 +394,12 @@ function DocumentPage() {
 
         <div className="space-y-4">
           <div className="rounded-lg border p-4">
-            <h3 className="mb-3 font-medium text-sm">Totals</h3>
+            <h3 className="mb-3 font-medium text-sm">{m.documents_totals()}</h3>
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Subtotal</dt>
+                <dt className="text-muted-foreground">
+                  {m.documents_subtotal()}
+                </dt>
                 <dd className="tabular-nums">
                   {formatMoneyMinor(display.subtotal, doc.currencyCode, {
                     locale: intlLocale(),
@@ -396,7 +407,7 @@ function DocumentPage() {
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Tax</dt>
+                <dt className="text-muted-foreground">{m.documents_tax()}</dt>
                 <dd className="tabular-nums">
                   {formatMoneyMinor(display.taxTotal, doc.currencyCode, {
                     locale: intlLocale(),
@@ -404,7 +415,7 @@ function DocumentPage() {
                 </dd>
               </div>
               <div className="flex justify-between font-medium">
-                <dt>Total</dt>
+                <dt>{m.documents_column_total()}</dt>
                 <dd className="tabular-nums">
                   {formatMoneyMinor(display.total, doc.currencyCode, {
                     locale: intlLocale(),
@@ -414,7 +425,9 @@ function DocumentPage() {
               {!isDraft && isFiscalPayable && (
                 <>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Amount paid</dt>
+                    <dt className="text-muted-foreground">
+                      {m.documents_amount_paid()}
+                    </dt>
                     <dd className="tabular-nums">
                       {formatMoneyMinor(doc.amountPaid, doc.currencyCode, {
                         locale: intlLocale(),
@@ -422,7 +435,9 @@ function DocumentPage() {
                     </dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Balance due</dt>
+                    <dt className="text-muted-foreground">
+                      {m.documents_balance_due_label()}
+                    </dt>
                     <dd className="tabular-nums">
                       {formatMoneyMinor(doc.balanceDue, doc.currencyCode, {
                         locale: intlLocale(),
@@ -454,7 +469,9 @@ function DocumentPage() {
             doc.status === "finalized" &&
             doc.balanceDue !== 0 && (
               <div className="space-y-2 rounded-lg border p-4">
-                <h3 className="font-medium text-sm">Disposition</h3>
+                <h3 className="font-medium text-sm">
+                  {m.documents_disposition()}
+                </h3>
                 <Select
                   onValueChange={(v) => {
                     if (v == null) {
@@ -470,10 +487,14 @@ function DocumentPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="store_credit">Store credit</SelectItem>
-                    <SelectItem value="cash_refund">Cash refund</SelectItem>
+                    <SelectItem value="store_credit">
+                      {m.documents_disposition_store_credit()}
+                    </SelectItem>
+                    <SelectItem value="cash_refund">
+                      {m.documents_disposition_cash_refund()}
+                    </SelectItem>
                     <SelectItem value="apply_to_document">
-                      Apply to source invoice
+                      {m.documents_disposition_apply_to_invoice()}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -482,21 +503,24 @@ function DocumentPage() {
                   disabled={applyDisposition.isPending}
                   onClick={handleApplyDisposition}
                 >
-                  Apply disposition
+                  {m.documents_apply_disposition()}
                 </Button>
               </div>
             )}
 
           <div className="rounded-lg border p-4 text-muted-foreground text-xs">
-            Created{" "}
-            {format(new Date(doc.createdAt), "MMM d, yyyy h:mm a", {
-              locale: dateFnsLocale(),
+            {m.documents_created({
+              date: format(new Date(doc.createdAt), "MMM d, yyyy h:mm a", {
+                locale: dateFnsLocale(),
+              }),
             })}
-            {!isDraft && " · Lines and totals are frozen"}
+            {!isDraft && ` · ${m.documents_lines_frozen()}`}
           </div>
 
           <div>
-            <h3 className="mb-2 font-medium text-sm">Activity</h3>
+            <h3 className="mb-2 font-medium text-sm">
+              {m.documents_activity()}
+            </h3>
             <div className="divide-y rounded-lg border">
               {(activityResp?.data ?? []).map((event) => (
                 <div className="px-4 py-2 text-sm" key={event.id}>
@@ -510,7 +534,7 @@ function DocumentPage() {
               ))}
               {(activityResp?.data ?? []).length === 0 && (
                 <div className="px-4 py-4 text-center text-muted-foreground text-xs">
-                  No activity yet.
+                  {m.documents_no_activity()}
                 </div>
               )}
             </div>
@@ -521,10 +545,9 @@ function DocumentPage() {
       <Dialog onOpenChange={setCreditOpen} open={creditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create credit note</DialogTitle>
+            <DialogTitle>{m.documents_create_credit_note()}</DialogTitle>
             <DialogDescription>
-              Creates a draft credit note with copied (reversed) lines from this
-              invoice. Choose disposition after you finalize it.
+              {m.documents_create_credit_note_description()}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -532,7 +555,7 @@ function DocumentPage() {
               disabled={createSuccessor.isPending}
               onClick={handleCreateCreditNote}
             >
-              Create draft credit note
+              {m.documents_create_draft_credit_note()}
             </Button>
           </DialogFooter>
         </DialogContent>
