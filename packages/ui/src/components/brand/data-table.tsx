@@ -545,8 +545,13 @@ function DataTableView<TData, TValue>({
       {isServerSide && !showCollectionEmpty ? (
         <div className="flex shrink-0 items-center justify-end gap-2 border-t px-4 py-3">
           <div className="flex-1 text-muted-foreground text-sm tabular-nums">
-            Page {(externalPagination?.pageIndex ?? 0) + 1} of{" "}
-            {Math.max(pageCount ?? 0, 1)}
+            {(
+              toolbarLabels?.pageOf ??
+              ((page, total) => `Page ${page} of ${total}`)
+            )(
+              (externalPagination?.pageIndex ?? 0) + 1,
+              Math.max(pageCount ?? 0, 1)
+            )}
           </div>
           <DataTablePaginationButtons
             canNext={table.getCanNextPage()}

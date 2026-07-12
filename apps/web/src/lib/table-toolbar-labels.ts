@@ -18,6 +18,8 @@ export function tableToolbarLabels(): TableFilterToolbarLabels {
         filtered: String(filtered),
         total: String(total),
       }),
+    pageOf: (page, total) =>
+      m.table_page_of({ page: String(page), total: String(total) }),
     sort: {
       sort: m.table_sort(),
       sortBy: m.table_sort_by(),

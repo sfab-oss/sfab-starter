@@ -20,6 +20,13 @@ export interface ChatVoiceButtonProps {
     };
   };
   className?: string;
+  labels?: {
+    start?: string;
+    stop?: string;
+    stopAria?: string;
+    processing?: string;
+    error?: string;
+  };
 }
 
 type RecordingState = "idle" | "recording" | "processing" | "error";
@@ -370,6 +377,7 @@ export function ChatVoiceButton({
   transcribeEndpoint = "/api/transcribe",
   controller,
   className,
+  labels,
   ...props
 }: ChatVoiceButtonProps) {
   const recording = useAudioRecording({
@@ -472,28 +480,34 @@ export function ChatVoiceButton({
         return (
           <>
             <Square className="h-4 w-4" />
-            <span className="sr-only">Stop recording</span>
+            <span className="sr-only">{labels?.stop ?? "Stop recording"}</span>
           </>
         );
       case "processing":
         return (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="sr-only">Processing audio</span>
+            <span className="sr-only">
+              {labels?.processing ?? "Processing audio"}
+            </span>
           </>
         );
       case "error":
         return (
           <>
             <MicIcon className="h-4 w-4 text-destructive" />
-            <span className="sr-only">Voice input error</span>
+            <span className="sr-only">
+              {labels?.error ?? "Voice input error"}
+            </span>
           </>
         );
       default:
         return (
           <>
             <MicIcon className="h-4 w-4" />
-            <span className="sr-only">Start voice input</span>
+            <span className="sr-only">
+              {labels?.start ?? "Start voice input"}
+            </span>
           </>
         );
     }
@@ -502,13 +516,15 @@ export function ChatVoiceButton({
   const getAriaLabel = () => {
     switch (uiState) {
       case "recording":
-        return "Stop voice recording (press Escape to cancel)";
+        return (
+          labels?.stopAria ?? "Stop voice recording (press Escape to cancel)"
+        );
       case "processing":
-        return "Processing voice input";
+        return labels?.processing ?? "Processing voice input";
       case "error":
-        return "Voice input error - try again";
+        return labels?.error ?? "Voice input error - try again";
       default:
-        return "Start voice input";
+        return labels?.start ?? "Start voice input";
     }
   };
 

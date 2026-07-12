@@ -37,13 +37,15 @@ export interface TableFilterToolbarLabels {
   row?: string;
   rows?: string;
   rowsOf?: (filtered: number, total: number) => string;
+  /** Server-side pagination footer, e.g. "Page 1 of 3". */
+  pageOf?: (page: number, total: number) => string;
   sort?: TableSortLabels;
 }
 
 const DEFAULT_TOOLBAR_LABELS: Required<
   Omit<
     TableFilterToolbarLabels,
-    "filtersActive" | "removeFilter" | "rowsOf" | "sort"
+    "filtersActive" | "removeFilter" | "rowsOf" | "pageOf" | "sort"
   >
 > & {
   filtersActive: (count: number) => string;
