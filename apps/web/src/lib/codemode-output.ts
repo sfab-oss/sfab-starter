@@ -26,21 +26,22 @@ export interface CodemodeOutput {
   reason?: string;
 }
 
-export function asCodemodeOutput(value: unknown): CodemodeOutput | null {
+export function isCodemodeOutput(value: unknown): value is CodemodeOutput {
   if (!value || typeof value !== "object") {
-    return null;
+    return false;
   }
   const o = value as Record<string, unknown>;
   if (typeof o.executionId !== "string" || typeof o.status !== "string") {
-    return null;
+    return false;
   }
-  if (
-    o.status !== "paused" &&
-    o.status !== "completed" &&
-    o.status !== "rejected" &&
-    o.status !== "error"
-  ) {
-    return null;
-  }
-  return o as unknown as CodemodeOutput;
+  return (
+    o.status === "paused" ||
+    o.status === "completed" ||
+    o.status === "rejected" ||
+    o.status === "error"
+  );
+}
+
+export function asCodemodeOutput(value: unknown): CodemodeOutput | null {
+  return isCodemodeOutput(value) ? value : null;
 }
