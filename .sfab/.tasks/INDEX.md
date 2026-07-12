@@ -22,11 +22,7 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## needs-input (1)
-
-- [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
-
-## merged (59)
+## merged (60)
 
 - [`ALW-568`](./ALW-568.md) — Template init: persist Q&A/plan, whole-app transform, eager execution
 - [`ALW-567`](./ALW-567.md) — Template init: tell adopters to delete .sfab
@@ -51,6 +47,7 @@ overwritten by the next sync.
 - [`ALW-461`](./ALW-461.md) — Template release docs: README + agent init guidance
 - [`ALW-460`](./ALW-460.md) — Migrate shadcn wrappers from Radix to Base UI
 - [`ALW-459`](./ALW-459.md) — Adopt shadcn MessageScroller/Message/Bubble/Marker/Attachment for chat (passes 1–3)
+- [`ALW-458`](./ALW-458.md) — Remove `as unknown as` cast in paused-execution-card type guard
 - [`ALW-457`](./ALW-457.md) — Multi-language support with AI-assisted translation
 - [`ALW-456`](./ALW-456.md) — Codemode mid-script approval for delete-product + pending-execution UI
 - [`ALW-453`](./ALW-453.md) — Fix chat attachment send — provider rejects non-text content types
