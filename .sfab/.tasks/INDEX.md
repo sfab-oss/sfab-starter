@@ -22,13 +22,10 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (1)
-
-- [`ALW-457`](./ALW-457.md) — Multi-language support with AI-assisted translation
-
-## review (1)
+## review (2)
 
 - [`ALW-568`](./ALW-568.md) — Template init: persist Q&A/plan, whole-app transform, eager execution
+- [`ALW-457`](./ALW-457.md) — Multi-language support with AI-assisted translation
 
 ## needs-input (1)
 
