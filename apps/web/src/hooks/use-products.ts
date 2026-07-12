@@ -15,6 +15,7 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import type { InferResponseType } from "hono/client";
 import type { z } from "zod";
 import { client } from "@/lib/client";
+import { m } from "@/paraglide/messages.js";
 
 /**
  * The outbound product row, inferred from the list endpoint's typed response
@@ -77,10 +78,10 @@ export const useCreateProduct = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getProductsKey() });
-      toast.success("Product created");
+      toast.success(m.catalog_toast_created());
     },
     onError: () => {
-      toast.error("Failed to create product");
+      toast.error(m.catalog_toast_create_failed());
     },
   });
 };
@@ -104,10 +105,10 @@ export const useUpdateProduct = () => {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: getProductsKey() });
       queryClient.invalidateQueries({ queryKey: getProductKey(variables.id) });
-      toast.success("Product updated");
+      toast.success(m.catalog_toast_updated());
     },
     onError: () => {
-      toast.error("Failed to update product");
+      toast.error(m.catalog_toast_update_failed());
     },
   });
 };
@@ -160,10 +161,10 @@ export const useDeleteProduct = () => {
           queryClient.setQueryData(queryKey, data);
         }
       }
-      toast.error("Failed to delete product");
+      toast.error(m.catalog_toast_delete_failed());
     },
     onSuccess: () => {
-      toast.success("Product deleted");
+      toast.success(m.catalog_toast_deleted());
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: getProductsKey() });

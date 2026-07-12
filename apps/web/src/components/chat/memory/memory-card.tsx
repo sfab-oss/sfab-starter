@@ -11,6 +11,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { useOrgMemory } from "@/hooks/use-org-memory";
+import { m } from "@/paraglide/messages.js";
 
 function MarkdownBody({
   children,
@@ -59,8 +60,8 @@ export function MemoryCard({
       {showHeader ? (
         <div className="flex items-center gap-1.5 border-b px-4 py-2 font-medium text-muted-foreground text-xs">
           <BrainIcon aria-hidden="true" className="size-3.5" />
-          <span>Organization memory</span>
-          <span className="ml-auto font-normal">Shared across all chats</span>
+          <span>{m.chat_org_memory()}</span>
+          <span className="ml-auto font-normal">{m.chat_memory_shared()}</span>
         </div>
       ) : null}
 
@@ -92,7 +93,7 @@ function MemoryBody({
     return (
       <div className="flex items-center gap-2 px-4 py-4 text-muted-foreground text-xs">
         <Loader2Icon aria-hidden="true" className="size-3.5 animate-spin" />
-        Loading memory…
+        {m.chat_memory_loading()}
       </div>
     );
   }
@@ -100,7 +101,7 @@ function MemoryBody({
   if (isError) {
     return (
       <p className="px-4 py-4 text-muted-foreground text-xs">
-        Couldn't load organization memory.
+        {m.chat_memory_load_failed()}
       </p>
     );
   }
@@ -108,9 +109,7 @@ function MemoryBody({
   if (!content) {
     return (
       <p className="px-4 py-4 text-muted-foreground text-xs">
-        Nothing saved yet. As we work, I'll note durable facts here — policies,
-        conventions, and constraints — so every chat in this organization shares
-        them.
+        {m.chat_memory_empty()}
       </p>
     );
   }
@@ -126,7 +125,9 @@ function MemoryBody({
       )}
       {updatedAt ? (
         <div className="border-t px-4 py-1.5 text-[11px] text-muted-foreground">
-          Updated {formatDistanceToNow(updatedAt, { addSuffix: true })}
+          {m.chat_memory_updated({
+            relative: formatDistanceToNow(updatedAt, { addSuffix: true }),
+          })}
         </div>
       ) : null}
     </>

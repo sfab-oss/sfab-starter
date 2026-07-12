@@ -17,6 +17,7 @@ import {
   useState,
 } from "react";
 import { useChatTabsStore } from "@/components/chat/dock/chat-tabs-store";
+import { m } from "@/paraglide/messages.js";
 
 export type ChatHistoryLoadState = "loading" | "ready" | "error";
 
@@ -141,7 +142,7 @@ export function ChatOrgConnection({
         }
       } catch (error) {
         console.error("[ChatOrgConnection] failed to delete chat", error);
-        toast.error("Couldn't delete chat. Please try again.");
+        toast.error(m.chat_toast_delete_failed());
       }
     },
     [orgAgent, refreshChats, closeTab, organizationId]

@@ -15,6 +15,7 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import type { InferResponseType } from "hono/client";
 import type { z } from "zod";
 import { client } from "@/lib/client";
+import { m } from "@/paraglide/messages.js";
 
 export type Entity = InferResponseType<
   (typeof client.protected.entities)["$get"],
@@ -85,10 +86,10 @@ export const useCreateEntity = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getEntitiesKey() });
-      toast.success("Entity created");
+      toast.success(m.entities_toast_created());
     },
     onError: () => {
-      toast.error("Failed to create entity");
+      toast.error(m.entities_toast_create_failed());
     },
   });
 };
@@ -113,10 +114,10 @@ export const useUpdateEntity = () => {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: getEntitiesKey() });
       queryClient.invalidateQueries({ queryKey: getEntityKey(variables.id) });
-      toast.success("Entity updated");
+      toast.success(m.entities_toast_updated());
     },
     onError: () => {
-      toast.error("Failed to update entity");
+      toast.error(m.entities_toast_update_failed());
     },
   });
 };
@@ -137,10 +138,10 @@ export const useArchiveEntity = () => {
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: getEntitiesKey() });
       queryClient.invalidateQueries({ queryKey: getEntityKey(id) });
-      toast.success("Entity archived");
+      toast.success(m.entities_toast_archived());
     },
     onError: () => {
-      toast.error("Failed to archive entity");
+      toast.error(m.entities_toast_archive_failed());
     },
   });
 };
