@@ -42,18 +42,16 @@ implemented here): fabricate tool (ALW-600), intake agent behavior (ALW-601).
 
 Prefer those docs over rediscovering structure from file trees.
 
-## Drop `.sfab/` (public template only)
+## `.sfab/` — public clone vs factory-managed
 
-This clone may include a `.sfab/` folder (platform scaffolding). Adopters do not
-need it. Factory-created projects strip it automatically; the public template
-cannot, so delete early:
+`.sfab/` is platform scaffolding. Behavior depends on how the tree was created:
 
-```bash
-rm -rf .sfab
-```
+| Tree | What to do |
+| --- | --- |
+| **Public template clone** (no factory provenance) | Adopters do not need `.sfab/`. Delete it early: `rm -rf .sfab`. Do not edit files under it — remove the directory. |
+| **Factory-managed / fabricated project** | **Keep** `.sfab/`. Fabricate injects `.sfab/template.json` with the pinned template `ref` the platform depends on; it does **not** strip the folder. Never delete `.sfab/` or `template.json` during reshape. |
 
-Do not edit under `.sfab/` — remove the directory. Skip only if you already know
-you are inside a factory-managed project that still needs the folder.
+How to tell: if `.sfab/template.json` exists with a `ref`, treat the tree as factory-managed and keep the folder. If you only see template scaffolding without a live `template.json` (this public repo’s situation), public-clone rules apply.
 
 ## Product brief contract
 
@@ -64,18 +62,22 @@ you are inside a factory-managed project that still needs the folder.
 | Pre-repo (platform path) | **Platform project document** | Intake agent at **confirm** |
 | In-repo | `docs/notes/YYYY-MM-DD-product-brief.md` | First reshape run (seeds from platform doc) **or** adopting agent during interview |
 
-The platform document is authoritative when it exists. The repo file is a
-**mirror**, not a second source. Conventions for `docs/notes/`:
+**Handoff rule:** the platform project document is authoritative **until the
+first seed** into the repo. After
+`docs/notes/YYYY-MM-DD-product-brief.md` is written, that file is the **working
+copy** for reshape unless someone intentionally re-syncs from the platform
+document. Do not silently maintain two truths. Conventions:
 [`docs/notes/README.md`](notes/README.md).
 
 ### Repo mirror lifecycle
 
 1. **Platform path** — intake fills the brief → confirm writes the platform
-   project document → fabrication creates the repo (brief is *not* required to
-   land in the tree at scaffold).
+   project document → emit the initial task slate from the mapping → fabricate
+   creates the repo (brief is *not* required to land in the tree at scaffold).
 2. **First reshape run** — read the platform brief → seed
-   `docs/notes/YYYY-MM-DD-product-brief.md` with the same fields → derive
-   `docs/notes/YYYY-MM-DD-transform-plan.md` and the initial task slate (below).
+   `docs/notes/YYYY-MM-DD-product-brief.md` with the same fields (handoff:
+   repo becomes working copy) → write
+   `docs/notes/YYYY-MM-DD-transform-plan.md` aligned to the slate.
 3. **In-repo-only path** — no platform document: interview into the brief file
    directly, then write the transform plan and execute (ALW-568 eager path).
 
@@ -238,18 +240,18 @@ Slate shape (ALW-591):
 Given a brief, emit tasks in this order. Skip a row only when its **When** is
 false. Titles are templates — substitute `naming.*` and `first_impression`.
 
-| Order | Slot | Task title template | When | Body must cover |
+| Order | Slot | Task title template | When (brief-field predicate only) | Body must cover |
 | --- | --- | --- | --- | --- |
-| 1 | Foreground | `First impression: {first_impression}` | always | Brand touch only as needed for this win; the one vertical / surface that makes v1 feel real; verify steps for that win |
-| 2 | Background | `Bootstrap identity: {product_name}` | `naming.product_name` set and not fully done inside foreground | Env/example copy, demo framing, product name in chrome |
-| 3 | Background | `Rename domain language ({customer_term} / {sold_term} / {job_term})` | any naming term ≠ starter defaults (customer / product / document) | Nav + copy on **kept** surfaces; field labels toward their words |
-| 4 | Background | `Retarget org agent for {product_name}` | `assistant.help_with` non-empty **or** agent still demo-framed | System prompt; tools stay/change/add; enforce `assistant.never_alone` |
-| 5 | Background | `Soft-pedal catalog/documents in UI` | `commercial_mode: soft_pedal_catalog_documents` | Hide or de-emphasize in nav/copy; do not delete schema/core |
-| 6 | Background | `Seed demo data for {product_name}` | always after naming known | Sample rows so first run feels like their business |
+| 1 | Foreground | `First impression: {first_impression}` | `first_impression` non-empty | Brand touch only as needed for this win; the one vertical / surface that makes v1 feel real; verify steps for that win |
+| 2 | Background | `Bootstrap identity: {product_name}` | `naming.product_name` non-empty | Env/example copy, demo framing, product name in chrome |
+| 3 | Background | `Rename domain language ({customer_term} / {sold_term} / {job_term})` | any of `naming.customer_term` / `naming.sold_term` / `naming.job_term` is set and ≠ starter default (`customer` / `product` / `document`) | Nav + copy on **kept** surfaces; field labels toward their words |
+| 4 | Background | `Retarget org agent for {product_name}` | `assistant.help_with` non-empty | System prompt; tools stay/change/add; enforce `assistant.never_alone` (use defaults table if `never_alone` empty) |
+| 5 | Background | `Soft-pedal catalog/documents in UI` | `commercial_mode` equals `soft_pedal_catalog_documents` | Hide or de-emphasize in nav/copy; do not delete schema/core |
+| 6 | Background | `Seed demo data for {product_name}` | `naming.product_name` non-empty | Sample rows so first run feels like their business |
 | 7 | Background | `Whole-app copy pass (no starter demo framing left)` | always | Remaining Acme/Catalog/Documents strings; hand-back tour notes |
 
-Foreground may **absorb** row 2 (identity) when the first impression is primarily
-branding — then skip emitting a separate identity background task.
+No absorb / skip exceptions outside the **When** column. Two agents given the same
+brief must emit the same slate.
 
 Each task stays a full vertical where code changes: `db` / `contract` / `core` /
 surfaces / agent / UI as needed — no parallel folder schemes.
@@ -302,7 +304,17 @@ keep_catalog_documents
 Keep Cloudflare hosting. Customers will not sign in for v1.
 ```
 
-Exact task slate this brief yields:
+Exact task slate this brief yields (predicate replay):
+
+| Row | When predicate | Result |
+| --- | --- | --- |
+| 1 | `first_impression` non-empty | emit — First impression: AquaRoute-branded "Today's deliveries" board: list today's jobs, mark delivered. |
+| 2 | `naming.product_name` non-empty | emit — Bootstrap identity: AquaRoute |
+| 3 | `account`/`jug`/`delivery` ≠ `customer`/`product`/`document` | emit — Rename domain language (account / jug / delivery) |
+| 4 | `assistant.help_with` non-empty | emit — Retarget org agent for AquaRoute |
+| 5 | `commercial_mode` equals `soft_pedal_catalog_documents` | **skip** (`keep_catalog_documents`) |
+| 6 | `naming.product_name` non-empty | emit — Seed demo data for AquaRoute |
+| 7 | always | emit — Whole-app copy pass (no starter demo framing left) |
 
 | # | Slot | Title |
 | --- | --- | --- |
@@ -313,20 +325,40 @@ Exact task slate this brief yields:
 | 5 | Background | Seed demo data for AquaRoute |
 | 6 | Background | Whole-app copy pass (no starter demo framing left) |
 
-Row 5 from the mapping table (`Soft-pedal catalog/documents`) is **skipped**
-because `commercial_mode` is `keep_catalog_documents`. Catalog + documents stay;
-language moves toward accounts / jugs / deliveries / invoices via tasks 3 and 6.
+Catalog + documents stay; language moves toward accounts / jugs / deliveries /
+invoices via tasks 3 and 6.
+
+## Platform path: interview → confirm → slate → fabricate
+
+Sequence for the **platform pre-fabrication intake** (ALW-591 / ALW-601). Parallel
+to the in-repo path; same brief fields and mapping rules.
+
+1. **Interview** — questions above, one at a time; write answers into the brief
+   shape (held on the platform until confirm).
+2. **Stop at minimum** — when stop conditions are met, offer confirm rather than
+   continuing the questionnaire.
+3. **Confirm** — write the authoritative **platform project document** (product
+   brief) at confirm.
+4. **Emit slate** — run the brief→task-slate mapping on that brief; attach /
+   store the slate with the project (intake concern — do not wait for first
+   reshape to invent it).
+5. **Fabricate** — scaffold the repo from the pinned template `ref`. Fabricate
+   keeps `.sfab/` and writes `.sfab/template.json`; it does not seed `docs/notes/`
+   from the brief (that is the first reshape run’s job).
 
 ## In-repo path: answer → plan → transform
 
 Not mandatory order — a shape that tends to work. After the brief meets stop
 conditions, steps 3–8 run eagerly; do not gate each step on the user.
 
-1. **Orient** — drop `.sfab/` if still present, skim README, this file, then the
-   architecture map. Open one end-to-end capability that exists today (e.g.
-   catalog or documents) across layers so the feature-key pattern is concrete.
-2. **Interview** — questions above, one at a time. Persist into the product-brief
-   file (or seed it from the platform document on first reshape).
+1. **Orient** — apply [`.sfab/` rules](#sfab--public-clone-vs-factory-managed)
+   (public clone may delete; factory-managed **must keep**, especially
+   `template.json`). Skim README, this file, then the architecture map. Open one
+   end-to-end capability that exists today (e.g. catalog or documents) across
+   layers so the feature-key pattern is concrete.
+2. **Interview / seed** — if a platform brief exists, seed
+   `docs/notes/YYYY-MM-DD-product-brief.md` from it (repo becomes working copy).
+   Otherwise interview into that file, one question at a time.
 3. **Plan (whole app)** — write the **transform plan** as its own file under
    `docs/notes/`. Cover the full product surface for this pass:
    - Brand / identity and demo framing
@@ -335,9 +367,11 @@ conditions, steps 3–8 run eagerly; do not gate each step on the user.
    - **AI**: system prompt, tools stay/change/add, hard limits
    - Seed / sample data
    - Verify steps
-   Align plan sections with the task slate; technical mapping stays in this file.
-4. **Bootstrap identity** — names, env/example copy, obvious demo branding
-   (unless absorbed into the foreground task), then continue without waiting.
+   Align plan sections with the task slate (use the platform-emitted slate when
+   present; otherwise derive it from the mapping); technical mapping stays in
+   this file.
+4. **Bootstrap identity** — names, env/example copy, obvious demo branding, then
+   continue without waiting.
 5. **Transform by feature keys** — add or reshape capabilities as full vertical
    slices. Avoid inventing parallel folder schemes.
 6. **Extend what is here** — prefer renaming/extending catalog/documents (and
@@ -381,8 +415,9 @@ clone is usually env/migrations, not architecture.
 - Fork this contract into a platform-owned copy — read this file at the pinned
   template `ref` instead (ALW-591).
 - Duplicate architecture ADRs into this file — link out instead.
-- Edit or "clean up" files under `.sfab/` — delete the folder instead (see
-  above).
+- Delete `.sfab/` (or `template.json`) in a factory-managed project — that is
+  provenance, not clutter. Public clones may remove the folder; see
+  [`.sfab/` rules](#sfab--public-clone-vs-factory-managed).
 
 ## Pointers
 

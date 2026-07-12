@@ -20,18 +20,22 @@ the brief contract.
 
 ## Lifecycle (platform vs in-repo)
 
-1. **Platform intake (pre-repo)** — the authoritative brief is a **platform
-   project document** written at confirm (ALW-591). It uses the same field
-   shape as the repo brief file.
-2. **First reshape run** — seed `YYYY-MM-DD-product-brief.md` from that
-   platform document (copy fields; set `meta.source: platform`). Then write
-   `YYYY-MM-DD-transform-plan.md` and the initial task slate from the brief.
-3. **In-repo-only** — no platform document: write the brief file during the
-   interview (`meta.source: in-repo`), then the plan, then execute eagerly.
+**Handoff rule (same as `docs/template-init.md`):** the platform project
+document is authoritative **until the first seed** into the repo. After
+`YYYY-MM-DD-product-brief.md` is written, that file is the **working copy**
+for reshape unless someone intentionally re-syncs from the platform document.
+Do not silently maintain two truths.
 
-After seed, treat the repo brief as the working copy for the reshape agent.
-If the platform document and the mirror diverge, reconcile deliberately — do
-not silently maintain two truths.
+1. **Platform intake (pre-repo)** — write the authoritative **platform project
+   document** at confirm (ALW-591); emit the task slate from the mapping; then
+   fabricate. Same field shape as the repo brief file.
+2. **First reshape run** — seed `YYYY-MM-DD-product-brief.md` from that
+   platform document (copy fields; set `meta.source: platform`). Handoff:
+   repo becomes working copy. Then write `YYYY-MM-DD-transform-plan.md`
+   aligned to the slate.
+3. **In-repo-only** — no platform document: write the brief file during the
+   interview (`meta.source: in-repo`), derive the slate, write the plan, execute
+   eagerly.
 
 ## Naming
 
