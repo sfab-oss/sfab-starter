@@ -11,15 +11,38 @@ import {
 import { Separator } from "@workspace/ui/components/shadcn/separator";
 import { Check } from "lucide-react";
 import { useState } from "react";
+
 export interface SortableColumn {
   id: string;
   label: string;
 }
+
 export interface TableSort {
   columns: SortableColumn[];
   onSortingChange: (sorting: SortingState) => void;
   sorting: SortingState;
 }
+
+export interface TableSortLabels {
+  sort?: string;
+  sortBy?: string;
+  clear?: string;
+  ascending?: string;
+  descending?: string;
+  sortedByAria?: (column: string, direction: "asc" | "desc") => string;
+}
+
+const DEFAULT_SORT_LABELS: Required<Omit<TableSortLabels, "sortedByAria">> & {
+  sortedByAria: (column: string, direction: "asc" | "desc") => string;
+} = {
+  sort: "Sort",
+  sortBy: "Sort by",
+  clear: "Clear",
+  ascending: "Ascending",
+  descending: "Descending",
+  sortedByAria: (column, direction) =>
+    `Sorted by ${column}, ${direction === "asc" ? "ascending" : "descending"}. Change sort.`,
+};
 
 /** Sortable columns from the table instance (`meta.label` on each column def). */
 export function getSortableColumns<T>(table: Table<T>): SortableColumn[] {
@@ -31,7 +54,15 @@ export function getSortableColumns<T>(table: Table<T>): SortableColumn[] {
       label: column.columnDef.meta?.label ?? column.id,
     }));
 }
-export function TableSortControl({ sort }: { sort: TableSort }) {
+
+export function TableSortControl({
+  sort,
+  labels: labelsProp,
+}: {
+  sort: TableSort;
+  labels?: TableSortLabels;
+}) {
+  const labels = { ...DEFAULT_SORT_LABELS, ...labelsProp };
   const { sorting, onSortingChange, columns } = sort;
   const [open, setOpen] = useState(false);
   const active = sorting[0];
@@ -40,8 +71,8 @@ export function TableSortControl({ sort }: { sort: TableSort }) {
     : undefined;
   const activeDirection = active?.desc ? "desc" : "asc";
   const triggerLabel = activeColumn
-    ? `Sorted by ${activeColumn.label}, ${activeDirection === "asc" ? "ascending" : "descending"}. Change sort.`
-    : "Sort";
+    ? labels.sortedByAria(activeColumn.label, activeDirection)
+    : labels.sort;
   const applySort = (nextSorting: SortingState) => {
     onSortingChange(nextSorting);
     setOpen(false);
@@ -62,7 +93,7 @@ export function TableSortControl({ sort }: { sort: TableSort }) {
       </PopoverTrigger>
       <PopoverContent align="start" className="w-56 gap-0 p-0">
         <div className="flex items-center justify-between px-4 py-3">
-          <p className="font-medium text-sm">Sort by</p>
+          <p className="font-medium text-sm">{labels.sortBy}</p>
           {active ? (
             <Button
               className="h-auto px-0 text-muted-foreground text-xs"
@@ -70,7 +101,7 @@ export function TableSortControl({ sort }: { sort: TableSort }) {
               type="button"
               variant="link"
             >
-              Clear
+              {labels.clear}
             </Button>
           ) : null}
         </div>
@@ -107,7 +138,7 @@ export function TableSortControl({ sort }: { sort: TableSort }) {
                     >
                       <span className="flex items-center gap-2">
                         <SortIcon sorted={desc ? "desc" : "asc"} />
-                        {desc ? "Descending" : "Ascending"}
+                        {desc ? labels.descending : labels.ascending}
                       </span>
                       {isActive ? (
                         <Check className="h-4 w-4 shrink-0" />

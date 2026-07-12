@@ -18,7 +18,10 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { sortAriaSort } from "@workspace/ui/components/brand/sortable-header";
-import { TableFilterToolbar } from "@workspace/ui/components/brand/table-filter-toolbar";
+import {
+  TableFilterToolbar,
+  type TableFilterToolbarLabels,
+} from "@workspace/ui/components/brand/table-filter-toolbar";
 import { getSortableColumns } from "@workspace/ui/components/brand/table-sort-control";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
@@ -344,6 +347,7 @@ interface DataTableProps<TData, TValue> {
   totalCount?: number;
   /** Rich empty UI for server-driven lists — replaces the default table empty row. */
   collectionEmpty?: ReactNode;
+  toolbarLabels?: TableFilterToolbarLabels;
 }
 export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
   const controller = useDataTableController(props);
@@ -474,6 +478,7 @@ function DataTableView<TData, TValue>({
   showClientPagination,
   collectionEmpty,
   showCollectionEmpty,
+  toolbarLabels,
 }: DataTableProps<TData, TValue> &
   ReturnType<typeof useDataTableController<TData, TValue>>) {
   return (
@@ -489,6 +494,7 @@ function DataTableView<TData, TValue>({
             columnFilters={columnFilters}
             definitions={filterDefinitions ?? []}
             filteredCount={toolbarFilteredCount}
+            labels={toolbarLabels}
             onColumnFiltersChange={setColumnFilters}
             sort={{
               sorting,
