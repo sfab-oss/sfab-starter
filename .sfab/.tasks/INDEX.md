@@ -21,10 +21,6 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (1)
-
-- [`ALW-496`](./ALW-496.md) — Starter: smell lint gates (follow platform ALW-671)
-
 ## merged (62)
 
 - [`ALW-594`](./ALW-594.md) — Template-init interview v2 — intake contract: answers → product brief → reshape task slate
@@ -103,9 +99,10 @@ overwritten by the next sync.
 - [`ALW-302`](./ALW-302.md) — Raise Node heap in pre-commit hook to prevent build OOM
 - [`ALW-301`](./ALW-301.md) — Add pre-push hook to block direct pushes to main
 
-## canceled (4)
+## canceled (5)
 
 - [`ALW-523`](./ALW-523.md) — Pre-launch: remove deprecated APIs (no compat shims)
+- [`ALW-496`](./ALW-496.md) — Starter: smell lint gates (follow platform ALW-671)
 - [`ALW-454`](./ALW-454.md) — Fix delete-product Approve path — tool call ID lost after approval
 - [`ALW-430`](./ALW-430.md) — Invoice create/edit UX redesign (dogfood B-8) — humane money input, line items, layout
 - [`ALW-303`](./ALW-303.md) — Add PR template and SFAB contributor guidance in AGENTS.md
