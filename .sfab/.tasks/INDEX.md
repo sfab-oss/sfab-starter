@@ -23,7 +23,7 @@ overwritten by the next sync.
 
 ## assigned (1)
 
-- [`ALW-496`](./ALW-496.md) — Smell lint gates (useEffect justify) — after Ultracite exit
+- [`ALW-496`](./ALW-496.md) — Starter: smell lint gates (follow platform ALW-671)
 
 ## merged (62)
 
