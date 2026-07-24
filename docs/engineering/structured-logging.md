@@ -15,6 +15,15 @@ keep raw consoles under Biome carve-outs).
 ERP / activity UI persistence is a **separate** concern (ALW-699) — this
 package does not write to D1.
 
+| | Ops (`@workspace/log`) | Domain activity (`activity_log`) |
+| --- | --- | --- |
+| Audience | Builders / Cloudflare Workers Logs | End users on a record page |
+| API | `structuredLog({ kind, … })` | `listActivity` / finalize & payment writers |
+| UI | None | Document `ActivityTimeline` on `/documents/$id` |
+| Example | `email_send_failed` | `document_finalized`, `payment_recorded` |
+
+See `packages/db/src/schema/activity.ts` and `docs/architecture/transaction-core.md` §7–§8.
+
 ---
 
 ## Helper

@@ -25,6 +25,7 @@ import {
 import { formatMoneyMinor } from "@workspace/ui/lib/money";
 import { format } from "date-fns";
 import { useMemo, useState } from "react";
+import { ActivityTimeline } from "@/components/documents/activity-timeline";
 import {
   bpsToPercent,
   DocumentTypeBadge,
@@ -47,6 +48,7 @@ import {
   useFinalizeDocument,
 } from "@/hooks/use-documents";
 import { useEntity } from "@/hooks/use-entities";
+import { mapActivityRowsToTimeline } from "@/lib/activity-timeline";
 import { dateFnsLocale, intlLocale } from "@/lib/locale";
 import { m } from "@/paraglide/messages.js";
 
@@ -260,6 +262,10 @@ function DocumentPage() {
 
   const doc = data?.doc;
   const lines = data?.lines ?? [];
+  const activityEntries = useMemo(
+    () => mapActivityRowsToTimeline(activityResp?.data ?? []),
+    [activityResp?.data]
+  );
 
   const [creditOpen, setCreditOpen] = useState(false);
   const [disposition, setDisposition] = useState<
@@ -517,28 +523,11 @@ function DocumentPage() {
             {!isDraft && ` · ${m.documents_lines_frozen()}`}
           </div>
 
-          <div>
-            <h3 className="mb-2 font-medium text-sm">
-              {m.documents_activity()}
-            </h3>
-            <div className="divide-y rounded-lg border">
-              {(activityResp?.data ?? []).map((event) => (
-                <div className="px-4 py-2 text-sm" key={event.id}>
-                  <div className="text-muted-foreground text-xs">
-                    {format(new Date(event.createdAt), "MMM d, h:mm a", {
-                      locale: dateFnsLocale(),
-                    })}
-                  </div>
-                  <div>{event.summary ?? event.eventType}</div>
-                </div>
-              ))}
-              {(activityResp?.data ?? []).length === 0 && (
-                <div className="px-4 py-4 text-center text-muted-foreground text-xs">
-                  {m.documents_no_activity()}
-                </div>
-              )}
-            </div>
-          </div>
+          <ActivityTimeline
+            emptyLabel={m.documents_no_activity()}
+            entries={activityEntries}
+            title={m.documents_activity()}
+          />
         </div>
       </div>
 
