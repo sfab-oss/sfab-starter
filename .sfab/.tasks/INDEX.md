@@ -26,7 +26,7 @@ overwritten by the next sync.
 
 ## assigned (1)
 
-- [`ALW-673`](./ALW-673.md) — Starter: decide ideal logging convention (sharpen later)
+- [`ALW-673`](./ALW-673.md) — Starter: logging convention — V1 ops light, V2 activity later
 
 ## merged (64)
 
