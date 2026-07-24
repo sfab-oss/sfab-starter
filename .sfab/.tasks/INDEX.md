@@ -5,7 +5,7 @@ overwritten by the next sync.
 
 ## draft (16)
 
-- [`ALW-672`](./ALW-672.md) — Starter: smell lint gates (follow platform ALW-671)
+- [`ALW-672`](./ALW-672.md) — Starter: useEffect smell lint gate (ALW-671 follow-up; noConsole deferred)
 - [`ALW-571`](./ALW-571.md) — i18n: localize registry block demo copy (follow-up to ALW-457)
 - [`ALW-551`](./ALW-551.md) — Experimental proposal: org chat @-mention entity grounding via rich chat input
 - [`ALW-494`](./ALW-494.md) — Own Biome ruleset — drop Ultracite, bump Biome, smell lint gates
