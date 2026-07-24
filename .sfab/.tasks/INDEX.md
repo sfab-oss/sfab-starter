@@ -24,13 +24,10 @@ overwritten by the next sync.
 
 - [`ALW-673`](./ALW-673.md) — Starter: logging convention — V1 ops light, V2 activity later
 
-## review (1)
-
-- [`ALW-699`](./ALW-699.md) — Starter: wire real activity_log to document ActivityTimeline
-
-## merged (65)
+## merged (66)
 
 - [`ALW-700`](./ALW-700.md) — Starter: @workspace/log + migrate server console + noConsole (V1 light)
+- [`ALW-699`](./ALW-699.md) — Starter: wire real activity_log to document ActivityTimeline
 - [`ALW-692`](./ALW-692.md) — Bump sfab-starter knip 5 → 6 (TS 7 peer range)
 - [`ALW-672`](./ALW-672.md) — Starter: useEffect smell lint gate (ALW-671 follow-up; noConsole deferred)
 - [`ALW-594`](./ALW-594.md) — Template-init interview v2 — intake contract: answers → product brief → reshape task slate
