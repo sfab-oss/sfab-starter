@@ -8,7 +8,7 @@ overwritten by the next sync.
 - [`ALW-695`](./ALW-695.md) — Audit biome-ignored useEffects — remove or sharpen each justification
 - [`ALW-571`](./ALW-571.md) — i18n: localize registry block demo copy (follow-up to ALW-457)
 - [`ALW-551`](./ALW-551.md) — Experimental proposal: org chat @-mention entity grounding via rich chat input
-- [`ALW-494`](./ALW-494.md) — Own Biome ruleset — drop Ultracite, bump Biome, smell lint gates
+- [`ALW-494`](./ALW-494.md) — [Group] Lint &amp; logging conventions — own Biome ruleset, smell gates, structured logging
 - [`ALW-482`](./ALW-482.md) — UX layout review — screens, dialogs, empty states
 - [`ALW-428`](./ALW-428.md) — QA: cross-cutting UX — theming, states, responsive, a11y, i18n
 - [`ALW-425`](./ALW-425.md) — QA: catalog end-to-end — ResourceTable, product CRUD, image upload
