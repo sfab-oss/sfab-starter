@@ -23,6 +23,7 @@
     "@workspace/auth": "workspace:*",
     "@workspace/contract": "workspace:*",
     "@workspace/core": "workspace:*",
+    "@workspace/log": "workspace:*",
     "agents": "0.17.3",
     "ai": "^6.0.221",
     "zod": "4.3.5"
