@@ -26,12 +26,9 @@ overwritten by the next sync.
 
 - [`ALW-673`](./ALW-673.md) — Starter: decide ideal logging convention (sharpen later)
 
-## review (1)
+## merged (63)
 
 - [`ALW-692`](./ALW-692.md) — Bump sfab-starter knip 5 → 6 (TS 7 peer range)
-
-## merged (62)
-
 - [`ALW-594`](./ALW-594.md) — Template-init interview v2 — intake contract: answers → product brief → reshape task slate
 - [`ALW-587`](./ALW-587.md) — i18n: close remaining hardcoded English app chrome (post Spanish agent bootstrap)
 - [`ALW-568`](./ALW-568.md) — Template init: persist Q&A/plan, whole-app transform, eager execution
