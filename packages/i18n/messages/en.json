@@ -277,8 +277,6 @@
   "documents_toast_line_update_failed": "Failed to update line",
   "documents_toast_payment_failed": "Failed to record payment",
   "documents_toast_payment_recorded": "Payment recorded",
-  "documents_toast_payment_reverse_failed": "Failed to reverse payment",
-  "documents_toast_payment_reversed": "Payment reversed",
   "documents_toast_quote_accepted": "Quote accepted",
   "documents_toast_successor_failed": "Failed to create successor",
   "documents_totals": "Totals",

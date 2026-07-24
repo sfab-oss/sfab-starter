@@ -48,4 +48,6 @@ export const SIDEBAR_NAVIGATION = NAVIGATION_CONFIG.filter(
   (item) => !item.commandPaletteOnly
 );
 
-export const COMMAND_PALETTE_NAVIGATION = NAVIGATION_CONFIG;
+export const COMMAND_PALETTE_NAVIGATION: NavigationItem[] = [
+  ...NAVIGATION_CONFIG,
+];

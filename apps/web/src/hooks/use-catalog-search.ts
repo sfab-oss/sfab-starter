@@ -1,15 +1,7 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import type { InferResponseType } from "hono/client";
 import { client } from "@/lib/client";
-
-export type CatalogSearchResponse = InferResponseType<
-  (typeof client.protected.catalog.search)["$get"],
-  200
->;
-
-export type CatalogSearchResult = CatalogSearchResponse["results"][number];
 
 export const getCatalogSearchKey = (query: string) => [
   "catalog",
