@@ -99,10 +99,12 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
     documents.length > 0 ||
     entities.length > 0;
 
+  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
   useEffect(() => {
     debouncedSetQuery(query);
   }, [query, debouncedSetQuery]);
 
+  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || e.key === "/") {

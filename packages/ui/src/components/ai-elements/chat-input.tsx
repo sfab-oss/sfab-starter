@@ -617,11 +617,13 @@ export function ChatInputEditor({
     },
   });
 
+  // biome-ignore lint/plugin/no-use-layout-effect: external sync — revisit per code-smells.md (ALW-672)
   useLayoutEffect(() => {
     setEditor(editor);
     return () => setEditor(null);
   }, [editor, setEditor]);
 
+  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
   useEffect(() => {
     if (editor) {
       editor.setEditable(!disabled);

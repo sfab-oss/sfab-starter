@@ -19,6 +19,20 @@
   "files": {
     "includes": ["!!packages/env/src/env.d.ts"]
   },
+  // ALW-672: ban useEffect/useLayoutEffect outside vendored shadcn
+  // (port of platform ALW-671). One pattern per .grit file — Biome's Grit
+  // compiler rejects multi-pattern files. noConsole deferred until a logging
+  // helper exists.
+  "plugins": [
+    {
+      "path": "./packages/biome-config/plugins/no-use-effect.grit",
+      "includes": ["**/*.{ts,tsx}", "!**/packages/ui/src/components/shadcn/**"]
+    },
+    {
+      "path": "./packages/biome-config/plugins/no-use-layout-effect.grit",
+      "includes": ["**/*.{ts,tsx}", "!**/packages/ui/src/components/shadcn/**"]
+    }
+  ],
   "linter": {
     "rules": {
       "performance": {

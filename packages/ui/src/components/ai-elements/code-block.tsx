@@ -84,6 +84,7 @@ export const CodeBlock = ({
   const [darkHtml, setDarkHtml] = useState<string>("");
   const mounted = useRef(false);
 
+  // biome-ignore lint/plugin/no-use-effect: 3rd-party widget / imperative DOM sync
   useEffect(() => {
     highlightCode(code, language, showLineNumbers).then(([light, dark]) => {
       if (!mounted.current) {
