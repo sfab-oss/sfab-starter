@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { errorMessage, structuredLog } from "@workspace/log";
 import { type ComponentType, createElement } from "react";
 import { Resend } from "resend";
 import {
@@ -44,14 +45,12 @@ export const sendMail = async <T extends TemplateId>(
   props: TemplateProps[T]
 ): Promise<void> => {
   if (env.MOCK_SEND_EMAIL === "true") {
-    console.log(
-      "📨 Email sent to:",
+    structuredLog({
+      kind: "email_sent",
       to,
-      "with template:",
       templateId,
-      "and props:",
-      props
-    );
+      mock: true,
+    });
     return;
   }
 
@@ -78,9 +77,19 @@ export const sendMail = async <T extends TemplateId>(
       react: emailElement,
     });
 
-    console.log("📨 Email sent to:", to, "with template:", templateId);
+    structuredLog({
+      kind: "email_sent",
+      to,
+      templateId,
+    });
   } catch (error) {
-    console.error("Failed to send email:", error);
+    structuredLog({
+      kind: "email_send_failed",
+      severity: "error",
+      to,
+      templateId,
+      error: errorMessage(error),
+    });
     throw new Error("Failed to send email", { cause: error });
   }
 };

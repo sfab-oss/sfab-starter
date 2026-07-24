@@ -7,6 +7,7 @@ import {
 } from "@cloudflare/think";
 import { createExecuteRuntime } from "@cloudflare/think/tools/execute";
 import { auth } from "@workspace/auth";
+import { errorMessage, structuredLog } from "@workspace/log";
 import {
   type Connection,
   type ConnectionContext,
@@ -178,10 +179,13 @@ export class OrgChat extends Think<Cloudflare.Env> {
         )
         .onCompactionError((error) => {
           const orgId = this.parentPath.at(-1)?.name ?? "?";
-          console.error(
-            `[OrgChat ${orgId}/${this.name}] auto-compaction failed:`,
-            error
-          );
+          structuredLog({
+            kind: "org_chat_auto_compaction_failed",
+            severity: "error",
+            organizationId: orgId,
+            chatName: this.name,
+            error: errorMessage(error),
+          });
         })
         // Primary trigger: Think's heuristic auto-compacts *before* a turn is
         // assembled once its token estimate crosses this budget, giving real
@@ -197,8 +201,12 @@ export class OrgChat extends Think<Cloudflare.Env> {
   override onChatError(error: unknown): unknown {
     const err = error instanceof Error ? error : new Error(String(error));
     const orgId = this.parentPath.at(-1)?.name ?? "?";
-    console.error(`[OrgChat ${orgId}/${this.name}] chat turn failed:`, {
-      message: err.message,
+    structuredLog({
+      kind: "org_chat_turn_failed",
+      severity: "error",
+      organizationId: orgId,
+      chatName: this.name,
+      error: err.message,
       stack: err.stack,
     });
     return super.onChatError(error);
@@ -258,10 +266,13 @@ export class OrgChat extends Think<Cloudflare.Env> {
       }
     } catch (err) {
       const orgId = this.parentPath.at(-1)?.name ?? "?";
-      console.error(
-        `[OrgChat ${orgId}/${this.name}] usage-driven compaction failed:`,
-        err
-      );
+      structuredLog({
+        kind: "org_chat_usage_compaction_failed",
+        severity: "error",
+        organizationId: orgId,
+        chatName: this.name,
+        error: errorMessage(err),
+      });
     }
   }
 
@@ -323,10 +334,13 @@ export class OrgChat extends Think<Cloudflare.Env> {
 
     this.ctx.waitUntil(
       parent.touchChat(this.name).catch((err: unknown) => {
-        console.error(
-          `[OrgChat ${organizationId}/${this.name}] touchChat failed:`,
-          err
-        );
+        structuredLog({
+          kind: "org_chat_touch_failed",
+          severity: "error",
+          organizationId,
+          chatName: this.name,
+          error: errorMessage(err),
+        });
       })
     );
 
