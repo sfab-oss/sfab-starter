@@ -21,9 +21,12 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (2)
+## assigned (1)
 
 - [`ALW-673`](./ALW-673.md) — Starter: decide ideal logging convention (sharpen later)
+
+## review (1)
+
 - [`ALW-672`](./ALW-672.md) — Starter: useEffect smell lint gate (ALW-671 follow-up; noConsole deferred)
 
 ## merged (63)
