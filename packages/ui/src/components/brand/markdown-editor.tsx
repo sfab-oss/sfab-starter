@@ -56,6 +56,7 @@ export function MarkdownEditor({
   // `value` change re-seeds the doc while typing never resets the cursor.
   const reflectedRef = useRef<string | null>(null);
 
+  // biome-ignore lint/plugin/no-use-effect: 3rd-party widget / imperative DOM sync
   useEffect(() => {
     if (reflectedRef.current === value) {
       return;

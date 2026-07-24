@@ -69,6 +69,7 @@ export function PausedExecutionCard({
   const [action, setAction] = useState<CodemodePendingAction | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
   useEffect(() => {
     if (status === "paused") {
       setWasGated(true);

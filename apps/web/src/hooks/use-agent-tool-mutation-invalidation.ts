@@ -208,6 +208,7 @@ export function useAgentToolMutationInvalidation(options: {
   const handledRef = useRef(new Set<string>());
   const pausedWritesRef = useRef(new Map<string, AgentAppliedWrite[]>());
 
+  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
   useEffect(() => {
     const paused = collectCodemodePausedWrites(messages);
     for (const [toolCallId, writes] of paused) {

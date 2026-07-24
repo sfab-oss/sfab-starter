@@ -139,6 +139,7 @@ function CollapsibleMemoryContent({ content }: { content: string }) {
   const [canExpand, setCanExpand] = useState(false);
   const collapsedRef = useRef<HTMLDivElement>(null);
 
+  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
   useEffect(() => {
     if (expanded) {
       return;

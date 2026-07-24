@@ -167,6 +167,7 @@ function ChatInputInner({
     clear: () => setText(""),
   };
 
+  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
   useEffect(() => {
     if (!pinned && livePageContext) {
       setPinnedContext(livePageContext);

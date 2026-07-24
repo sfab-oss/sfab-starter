@@ -87,6 +87,7 @@ export function ChatOrgConnection({
   const [historyLoadState, setHistoryLoadState] =
     useState<ChatHistoryLoadState>("loading");
 
+  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
   useEffect(() => {
     let cancelled = false;
     setHistoryLoadState("loading");

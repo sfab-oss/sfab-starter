@@ -95,12 +95,14 @@ export function useWorkspaceTree(): WorkspaceTree {
     [readWorkspaceFile]
   );
 
+  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
   useEffect(() => {
     loadDir(ROOT);
   }, [loadDir]);
 
   // On a workspace change, refetch every already-loaded directory plus the open
   // file so the tree and preview reflect the latest state.
+  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
   useEffect(() => {
     if (workspaceVersion === 0) {
       return;
