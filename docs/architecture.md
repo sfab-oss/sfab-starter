@@ -42,6 +42,7 @@ A capability flows top-to-bottom; dependencies only ever point *down* this list.
 | **components** | `apps/web/src/components/<cap>/` | Feature/composite components — built in-app from `ui` primitives. |
 
 Cross-cutting homes: auth = `packages/auth`; typed env = `packages/env`; app locale catalogs = `packages/i18n` (`@workspace/i18n`, leaf — not a `core` facet);
+structured ops logging = `packages/log` (`@workspace/log`, zero-dep leaf — not a `core` facet);
 shared TS config = `packages/tsconfig`. Everything uses the generic
 `@workspace/*` scope.
 

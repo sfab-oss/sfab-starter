@@ -199,15 +199,13 @@ export class OrgChat extends Think<Cloudflare.Env> {
   }
 
   override onChatError(error: unknown): unknown {
-    const err = error instanceof Error ? error : new Error(String(error));
     const orgId = this.parentPath.at(-1)?.name ?? "?";
     structuredLog({
       kind: "org_chat_turn_failed",
       severity: "error",
       organizationId: orgId,
       chatName: this.name,
-      error: err.message,
-      stack: err.stack,
+      error: errorMessage(error),
     });
     return super.onChatError(error);
   }
