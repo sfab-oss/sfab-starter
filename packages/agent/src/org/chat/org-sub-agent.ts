@@ -1,5 +1,6 @@
 import { type Session, Think, type TurnContext } from "@cloudflare/think";
 import { createExecuteTool } from "@cloudflare/think/tools/execute";
+import { errorMessage, structuredLog } from "@workspace/log";
 import { createCompactFunction } from "agents/experimental/memory/utils";
 import { generateText, type LanguageModel, type ToolSet } from "ai";
 import { buildOrgContext } from "../../context/assemble";
@@ -71,10 +72,13 @@ export class OrgSubAgent extends Think<Cloudflare.Env> {
         })
       )
       .onCompactionError((error) => {
-        console.error(
-          `[OrgSubAgent ${this.organizationId}/${this.name}] auto-compaction failed:`,
-          error
-        );
+        structuredLog({
+          kind: "org_sub_agent_auto_compaction_failed",
+          severity: "error",
+          organizationId: this.organizationId,
+          chatName: this.name,
+          error: errorMessage(error),
+        });
       })
       .compactAfter(getCompactionLimit(this.resolvedContextWindow));
   }

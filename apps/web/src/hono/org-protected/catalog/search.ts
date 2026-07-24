@@ -1,4 +1,5 @@
 import { searchCatalog } from "@workspace/core/catalog";
+import { errorMessage, structuredLog } from "@workspace/log";
 import { Hono } from "hono";
 import type { HonoContextWithAuthAndOrg } from "../../types";
 
@@ -16,7 +17,12 @@ const searchRoute = new Hono<HonoContextWithAuthAndOrg>().get(
       const results = await searchCatalog(orgId, query);
       return c.json({ results });
     } catch (e) {
-      console.error("Search error:", e);
+      structuredLog({
+        kind: "catalog_search_failed",
+        severity: "error",
+        organizationId: orgId,
+        error: errorMessage(e),
+      });
       return c.json({ error: "Failed to perform search" }, 500);
     }
   }

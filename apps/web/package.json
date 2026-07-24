@@ -52,6 +52,7 @@
     "@workspace/core": "workspace:*",
     "@workspace/db": "workspace:*",
     "@workspace/i18n": "workspace:*",
+    "@workspace/log": "workspace:*",
     "@workspace/ui": "workspace:*",
     "agents": "0.17.3",
     "ai": "^6.0.221",

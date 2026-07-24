@@ -59,3 +59,16 @@ in lockstep.
 **error** outside vendored shadcn. Legitimate external sync must use
 `// biome-ignore lint/plugin/no-use-effect: <reason>` (or
 `no-use-layout-effect`) on the call site.
+
+---
+
+## 2. Raw `console.*` in server code
+
+**Smell.** Ad-hoc `console.error("…", err)` / `console.log(…)` in Workers,
+Hono routes, email, or agent packages.
+
+**Preferred.** `structuredLog` / `errorMessage` from `@workspace/log` with a
+registered `LOG_KINDS` kind. See
+[`docs/engineering/structured-logging.md`](structured-logging.md). Biome
+`suspicious/noConsole` (ALW-700) enforces this; client UI carve-outs are
+documented in root `biome.jsonc`.

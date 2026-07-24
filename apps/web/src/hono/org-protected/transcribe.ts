@@ -1,5 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { zValidator } from "@hono/zod-validator";
+import { errorMessage, structuredLog } from "@workspace/log";
 import {
   NoOutputGeneratedError,
   experimental_transcribe as transcribe,
@@ -94,7 +95,12 @@ const transcribeRoutes = new Hono<HonoContextWithAuthAndOrg>().post(
         throw error;
       }
     } catch (error) {
-      console.error("Transcription error:", error);
+      structuredLog({
+        kind: "transcription_failed",
+        severity: "error",
+        organizationId: c.get("session").activeOrganizationId,
+        error: errorMessage(error),
+      });
       return c.json(
         { error: "Failed to transcribe audio. Please try again." },
         500

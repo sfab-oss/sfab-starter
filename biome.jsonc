@@ -21,8 +21,7 @@
   },
   // ALW-672: ban useEffect/useLayoutEffect outside vendored shadcn
   // (port of platform ALW-671). One pattern per .grit file — Biome's Grit
-  // compiler rejects multi-pattern files. noConsole deferred until a logging
-  // helper exists.
+  // compiler rejects multi-pattern files.
   "plugins": [
     {
       "path": "./packages/biome-config/plugins/no-use-effect.grit",
@@ -46,7 +45,10 @@
         "noEqualsToNull": "off",
         "noShadow": "off",
         "noUnusedExpressions": "off",
-        "noUnnecessaryConditions": "off"
+        "noUnnecessaryConditions": "off",
+        // ALW-700: fold raw-console guard into Biome. Path carve-outs below
+        // (and inherited test/scripts overrides from @workspace/biome-config).
+        "noConsole": "error"
       },
       "style": {
         "useDestructuring": "off",
@@ -61,6 +63,39 @@
         "rules": {
           "style": {
             "useFilenamingConvention": "off"
+          }
+        }
+      }
+    },
+    {
+      // ALW-700: browser-reachable web UI — not yet on structuredLog.
+      "includes": [
+        "apps/web/src/components/**",
+        "apps/web/src/routes/**",
+        "apps/web/src/hooks/**"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      // ALW-700: client / helper / scripts carve-outs.
+      // Also scripts/** + nested *.mjs (core preset's `*.mjs` only matches repo root).
+      "includes": [
+        "apps/docs/src/**",
+        "packages/ui/src/**",
+        "packages/log/src/structured-log.ts",
+        "**/scripts/**",
+        "**/*.{mjs,cjs}"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
           }
         }
       }
