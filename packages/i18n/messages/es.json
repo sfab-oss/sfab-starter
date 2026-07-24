@@ -277,8 +277,6 @@
   "documents_toast_line_update_failed": "No se pudo actualizar la línea",
   "documents_toast_payment_failed": "No se pudo registrar el pago",
   "documents_toast_payment_recorded": "Pago registrado",
-  "documents_toast_payment_reverse_failed": "No se pudo revertir el pago",
-  "documents_toast_payment_reversed": "Pago revertido",
   "documents_toast_quote_accepted": "Cotización aceptada",
   "documents_toast_successor_failed": "No se pudo crear el documento sucesor",
   "documents_totals": "Totales",
