@@ -23,10 +23,13 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (2)
+## assigned (1)
+
+- [`ALW-673`](./ALW-673.md) — Starter: logging convention — V1 ops light, V2 activity later
+
+## review (1)
 
 - [`ALW-700`](./ALW-700.md) — Starter: @workspace/log + migrate server console + noConsole (V1 light)
-- [`ALW-673`](./ALW-673.md) — Starter: logging convention — V1 ops light, V2 activity later
 
 ## merged (64)
 
