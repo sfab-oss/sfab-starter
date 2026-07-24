@@ -13,7 +13,6 @@ import type {
   ListDocumentsQuery,
   lineItemInputSchema,
   recordPaymentSchema,
-  redeemCreditByReferenceSchema,
   redeemCreditSchema,
   updateLineItemSchema,
 } from "@workspace/contract/transaction";
@@ -415,32 +414,6 @@ export const useRecordPayment = () => {
   });
 };
 
-export const useReversePayment = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (params: { id: string; reason?: string }) => {
-      const res = await client.protected.payments[":id"].reverse.$post({
-        param: { id: params.id },
-        json: params.reason ? { reason: params.reason } : {},
-      });
-      if (!res.ok) {
-        const body = (await res.json()) as { error?: string };
-        throw new Error(body.error || "Failed to reverse payment");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
-      queryClient.invalidateQueries({ queryKey: ["activity"] });
-      toast.success(m.documents_toast_payment_reversed());
-    },
-    onError: () => {
-      toast.error(m.documents_toast_payment_reverse_failed());
-    },
-  });
-};
-
 export const useDepositCredit = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -472,37 +445,6 @@ export const useRedeemCredit = () => {
       if (!res.ok) {
         const body = (await res.json()) as { error?: string };
         throw new Error(body.error || "Failed to redeem credit");
-      }
-      return res.json();
-    },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: getDocumentKey(variables.documentId),
-      });
-      queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
-      queryClient.invalidateQueries({ queryKey: ["entities"] });
-      queryClient.invalidateQueries({ queryKey: ["wallet"] });
-      queryClient.invalidateQueries({ queryKey: ["activity"] });
-      toast.success(m.wallet_toast_redeemed());
-    },
-    onError: () => {
-      toast.error(m.wallet_toast_redeem_failed());
-    },
-  });
-};
-
-export const useRedeemCreditByReference = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (
-      input: z.infer<typeof redeemCreditByReferenceSchema>
-    ) => {
-      const res = await client.protected.wallet["redeem-by-reference"].$post({
-        json: input,
-      });
-      if (!res.ok) {
-        const body = (await res.json()) as { error?: string };
-        throw new Error(body.error || "Failed to redeem credit by reference");
       }
       return res.json();
     },
