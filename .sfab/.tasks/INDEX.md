@@ -5,7 +5,7 @@ overwritten by the next sync.
 
 ## draft (17)
 
-- [`ALW-699`](./ALW-699.md) — Starter: domain activity events + entity UI (V2, after ops logging)
+- [`ALW-699`](./ALW-699.md) — Starter: wire real activity_log to document ActivityTimeline
 - [`ALW-695`](./ALW-695.md) — Audit biome-ignored useEffects — remove or sharpen each justification
 - [`ALW-571`](./ALW-571.md) — i18n: localize registry block demo copy (follow-up to ALW-457)
 - [`ALW-551`](./ALW-551.md) — Experimental proposal: org chat @-mention entity grounding via rich chat input
