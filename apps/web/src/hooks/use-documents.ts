@@ -316,6 +316,7 @@ export const useFinalizeDocument = () => {
       queryClient.invalidateQueries({ queryKey: getDocumentKey(id) });
       queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
       queryClient.invalidateQueries({ queryKey: ["activity"] });
+      queryClient.invalidateQueries({ queryKey: getActivityKey(id) });
       toast.success(m.documents_toast_finalized());
     },
     onError: () => {
@@ -379,6 +380,7 @@ export const useActivity = (entityId?: string) =>
           eventType: string | null;
           summary: string | null;
           createdAt: string;
+          actorId?: string | null;
         }>;
       };
     },
@@ -401,6 +403,9 @@ export const useRecordPayment = () => {
       for (const alloc of variables.input.allocations) {
         queryClient.invalidateQueries({
           queryKey: getDocumentKey(alloc.documentId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getActivityKey(alloc.documentId),
         });
       }
       queryClient.invalidateQueries({ queryKey: getDocumentsKey() });
