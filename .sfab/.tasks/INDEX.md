@@ -19,14 +19,11 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
-
-- [`ALW-695`](./ALW-695.md) — Audit biome-ignored useEffects — remove or sharpen each justification
-
-## merged (66)
+## merged (67)
 
 - [`ALW-700`](./ALW-700.md) — Starter: @workspace/log + migrate server console + noConsole (V1 light)
 - [`ALW-699`](./ALW-699.md) — Starter: wire real activity_log to document ActivityTimeline
+- [`ALW-695`](./ALW-695.md) — Audit biome-ignored useEffects — remove or sharpen each justification
 - [`ALW-692`](./ALW-692.md) — Bump sfab-starter knip 5 → 6 (TS 7 peer range)
 - [`ALW-672`](./ALW-672.md) — Starter: useEffect smell lint gate (ALW-671 follow-up; noConsole deferred)
 - [`ALW-594`](./ALW-594.md) — Template-init interview v2 — intake contract: answers → product brief → reshape task slate
