@@ -24,7 +24,7 @@ this `name:` string (falling back to the filename only when `name:` is omitted).
 |---|---|
 | **Start** | A `Deploy` run is `queued` / `in_progress` (or `workflow_run` `action: requested`) after CI on `main` completes |
 | **Success** | Run `conclusion == success` **and** the `deploy` job conclusion is `success` (the job actually ran). Do **not** treat run-level success alone if you also inspect jobs — prefer checking the `deploy` job. |
-| **Skipped (not a deploy)** | Run `conclusion == skipped` — the job-level gate did not pass (e.g. CI on main was not green, or was not a `push`). **Not** a successful deploy. |
+| **Skipped (not a deploy)** | Run `conclusion == skipped` — the job-level gate did not pass (e.g. CI on main was not green, was not a `push`, or the repo is the upstream template `sfab-oss/sfab-starter`). **Not** a successful deploy. |
 | **Failure** | Run `conclusion == failure` (or `cancelled` / `timed_out`), or the `deploy` job conclusion is `failure` |
 
 Verified (2026-07-11) against live GitHub Actions API data
@@ -45,8 +45,18 @@ create a GitHub Deployment entity.
 2. `Deploy` is triggered via `workflow_run` with `branches: [main]` — PR-branch
    CI completions do not create a Deploy run at all.
 3. The `deploy` job additionally requires
-   `conclusion == success`, `event == push`, and `head_branch == main`.
+   `conclusion == success`, `event == push`, `head_branch == main`, and
+   `github.repository != 'sfab-oss/sfab-starter'`.
 4. The deploy job checks out `workflow_run.head_sha` (the commit CI validated).
+
+The upstream template has no Cloudflare account, so Deploy must not attempt
+wrangler there. Job-level `if` cannot reference `secrets` (GitHub rejects
+`Unrecognized named-value: 'secrets'`), so the template skip is keyed on
+repository identity — a legal `github` context check that still yields run
+conclusion `skipped` when the sole job is gated off. Fabricated projects
+use a different `owner/name`, so they still enter the deploy job; they need
+Actions secret `CLOUDFLARE_API_TOKEN` from the provisioner for wrangler
+(missing token fails inside the job, not via this gate).
 
 ### Converge-to-latest on rapid merges
 
