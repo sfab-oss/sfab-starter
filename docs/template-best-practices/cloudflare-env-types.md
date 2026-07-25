@@ -7,7 +7,6 @@
 Run `cf-typegen` whenever you change Worker bindings in `wrangler.jsonc`:
 
 - D1, R2, KV, Durable Objects, Workflows
-- `worker_loaders` (e.g. codemode `LOADER`)
 - `vars` (non-secret config declared in wrangler)
 
 From the monorepo root:
