@@ -22,7 +22,7 @@ import {
   minorToMajorInput,
 } from "@workspace/ui/lib/money";
 import { Check, Plus, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { percentToBps } from "@/components/documents/document-type";
 import { useAddLineItem, useDocument } from "@/hooks/use-documents";
@@ -54,6 +54,8 @@ interface DraftLineEditorProps {
 export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
   const [isComposing, setIsComposing] = useState(false);
   const descriptionRef = useRef<HTMLInputElement | null>(null);
+  const focusedComposeRef = useRef(false);
+  const removeEscapeListenerRef = useRef<(() => void) | null>(null);
   const addLineItem = useAddLineItem();
   const { data: productsResp } = useProducts({
     page: 1,
@@ -68,37 +70,50 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
     defaultValues: emptyDefaults,
   });
 
-  // biome-ignore lint/plugin/no-use-effect: focus description on compose + Escape keydown to cancel
-  useEffect(() => {
-    if (!isComposing) {
-      return;
+  const clearEscapeListener = () => {
+    removeEscapeListenerRef.current?.();
+    removeEscapeListenerRef.current = null;
+  };
+
+  // Clear Escape only when the whole editor unmounts (not when the compose
+  // form remounts under Strict Mode).
+  const editorRootRef = useCallback((el: HTMLDivElement | null) => {
+    if (!el) {
+      removeEscapeListenerRef.current?.();
+      removeEscapeListenerRef.current = null;
     }
-    // Focus description after the draft row mounts.
-    const id = requestAnimationFrame(() => {
-      descriptionRef.current?.focus();
-    });
+  }, []);
+
+  const endCompose = () => {
+    clearEscapeListener();
+    focusedComposeRef.current = false;
+    form.reset(emptyDefaults);
+    setIsComposing(false);
+  };
+
+  const bindEscapeListener = () => {
+    clearEscapeListener();
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        form.reset(emptyDefaults);
-        setIsComposing(false);
+        endCompose();
       }
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => {
-      cancelAnimationFrame(id);
+    removeEscapeListenerRef.current = () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [isComposing, form]);
+  };
 
   const startCompose = () => {
     form.reset(emptyDefaults);
+    focusedComposeRef.current = false;
+    bindEscapeListener();
     setIsComposing(true);
   };
 
   const cancelCompose = () => {
-    form.reset(emptyDefaults);
-    setIsComposing(false);
+    endCompose();
   };
 
   const pickProduct = (productId: string) => {
@@ -128,12 +143,11 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
         taxRate: percentToBps(values.taxPercent),
       },
     });
-    form.reset(emptyDefaults);
-    setIsComposing(false);
+    endCompose();
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" ref={editorRootRef}>
       <h3 className="font-medium text-sm">{m.documents_line_items()}</h3>
       <div className="divide-y rounded-lg border">
         <div
@@ -215,6 +229,12 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
                         ref={(el) => {
                           field.ref(el);
                           descriptionRef.current = el;
+                          // Focus once when the compose row mounts (not on every
+                          // re-render — inline ref callbacks change identity).
+                          if (el && !focusedComposeRef.current) {
+                            focusedComposeRef.current = true;
+                            el.focus();
+                          }
                         }}
                       />
                       {fieldState.invalid && (

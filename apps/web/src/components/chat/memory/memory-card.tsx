@@ -8,7 +8,7 @@ import {
   ChevronUpIcon,
   Loader2Icon,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { useOrgMemory } from "@/hooks/use-org-memory";
 import { m } from "@/paraglide/messages.js";
@@ -137,14 +137,11 @@ function MemoryBody({
 function CollapsibleMemoryContent({ content }: { content: string }) {
   const [expanded, setExpanded] = useState(false);
   const [canExpand, setCanExpand] = useState(false);
-  const collapsedRef = useRef<HTMLDivElement>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
-  // biome-ignore lint/plugin/no-use-effect: ResizeObserver to detect collapsed overflow for expand control
-  useEffect(() => {
-    if (expanded) {
-      return;
-    }
-    const el = collapsedRef.current;
+  const setCollapsedNode = useCallback((el: HTMLDivElement | null) => {
+    resizeObserverRef.current?.disconnect();
+    resizeObserverRef.current = null;
     if (!el) {
       return;
     }
@@ -154,8 +151,8 @@ function CollapsibleMemoryContent({ content }: { content: string }) {
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
-    return () => observer.disconnect();
-  }, [expanded]);
+    resizeObserverRef.current = observer;
+  }, []);
 
   if (expanded) {
     return (
@@ -173,7 +170,7 @@ function CollapsibleMemoryContent({ content }: { content: string }) {
       <div className="relative">
         <div
           className="overflow-hidden px-4 py-3"
-          ref={collapsedRef}
+          ref={setCollapsedNode}
           style={{ maxHeight: COLLAPSED_MAX_HEIGHT }}
         >
           <MarkdownBody>{content}</MarkdownBody>
