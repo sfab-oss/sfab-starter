@@ -19,7 +19,7 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## ready (1)
+## review (1)
 
 - [`ALW-740`](./ALW-740.md) — Remove starter codemode / LOADER so fabricated apps can deploy without Dynamic Workers
 
