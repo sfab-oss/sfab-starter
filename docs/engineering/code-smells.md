@@ -70,6 +70,10 @@ debounce from `onValueChange`
 from the `isStreaming` edge
 (`packages/ui/src/components/ai-elements/reasoning.tsx:116`).
 
+**Fixed (ALW-722).** Replaced six external-sync effects with
+`useSyncExternalStore` / event handlers / callback refs — e.g. matchMedia
+breakpoint (`packages/ui/src/hooks/use-mobile.ts:20`).
+
 ---
 
 ## 2. Raw `console.*` in server code
