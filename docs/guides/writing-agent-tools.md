@@ -103,21 +103,65 @@ type ToolErrorCode =
   | "unprocessable"
   | "unknown";
 
-type ToolResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: string; code: ToolErrorCode };
+type ToolOk<T> = { ok: true; data: T };
+type ToolErr = { ok: false; error: string; code: ToolErrorCode };
+type ToolResult<T> = ToolOk<T> | ToolErr;
 ```
 
-`defineOrgTool` wraps `execute` in `asToolResult` and maps the result via
-`toModelOutput` so the model always sees a clear success/failure shape.
+`asToolResult(fn)` wraps `execute`:
 
-Use `requireFound` inside getters for missing rows. Domain misses become
-`{ ok: false, code: "not_found" }` — not thrown errors.
+- `DomainError` → `{ ok: false, error: message, code: map DomainErrorCode }`
+- `Error` with `PERMISSION_DENIED_MESSAGE` → `{ ok: false, code: "forbidden" }`
+- other `Error` → `{ ok: false, code: "unknown" }`
+- success → `{ ok: true, data }`
 
-## Inputs
+**Getters:** when core returns `null` / `undefined`, call `requireFound(data, detail)`
+inside `execute` — it throws `DomainError("…", "not_found")`, which `asToolResult`
+maps to `{ ok: false, code: "not_found", error: detail }`. **Lists:** empty arrays
+stay `{ ok: true, data: [] }`.
 
-- Prefer **ids** the agent already has (and ref resolution where we intentionally
-  allow name/SKU).
+Prefer `defineOrgTool` (`define-org-tool.ts`) — it applies `asToolResult` and
+`toModelOutput` (`error-text` on fail, `json` on success).
+
+The system prompt tells the model to check `ok` before using `data`.
+
+**Errors are an interface:** the `error` string is what the model reads to
+self-correct. Prefer actionable text with a recovery hint (“Product not found:
+no match for id, name, or sku …”; “ambiguous product ref: N matches …”) over
+generic “failed”. Surface meaningful `DomainError` messages; don’t flatten them.
+
+## Agent-facing contract
+
+At runtime the model sees **name, description, params, output, and `error`** —
+not your composability ledger. Design that contract deliberately.
+
+### Naming
+
+- **snake_case**, `verb_object` / `verb_domain_object`
+  (`list_products`, `get_credit_balance`, `delete_product`).
+- Consistent domain prefixes so related tools cluster for selection.
+- Keep identifiers stable across prompts and UI (no reliance on
+  hyphen→underscore sanitization).
+
+### Descriptions (write them for the model)
+
+In 1–3 sentences cover: **what it does, when to use it, what it returns, what
+to do next.** Include what types alone don’t say:
+
+- **Units / formats** — money is integer **minor units**; dates ISO if relevant.
+- **Chaining hint** — “returns the new product `id`; pass it to `get_product`
+  or `update_product`.”
+- **Preconditions** — “only works on an existing product; ambiguous name →
+  `conflict`.”
+- **Destructiveness** — say so for gated tools (“Requires explicit user
+  approval”; destructive delete).
+
+### Params
+
+- One-line `.describe()` on non-obvious fields; **enums** over free strings when
+  the set is closed.
+- **Explicit ids** — no hidden “current product”; pair with `list_*` / `get_*`
+  (and ref resolution where we intentionally allow name/SKU).
 - Only ask for fields that change (unless the service is full-replace — then say
   so).
 
@@ -147,8 +191,6 @@ On `@cloudflare/think` + the AI SDK tool loop:
    RBAC still runs post-approval (approval ≠ authorization).
 3. **No agent tool** — money and document **mutations** are never exposed;
    they hand off to the real screen (`guard.ts` invariant).
-
-Author snake_case tool names so identifiers stay stable across prompts and UI.
 
 ## Gotchas
 
