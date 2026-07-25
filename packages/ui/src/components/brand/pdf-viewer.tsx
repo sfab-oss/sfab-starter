@@ -3,7 +3,7 @@
 import { Button } from "@workspace/ui/components/shadcn/button";
 import { cn } from "@workspace/ui/lib/utils";
 import { FileWarning, Loader2, ZoomIn, ZoomOut } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -47,16 +47,17 @@ const PAGE_GUTTER = 32;
  * `<ClientOnly>`.
  */
 export function PdfViewer({ file, className }: PdfViewerProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1);
 
-  // Track the scroll container's width so pages can fit to it responsively.
-  // biome-ignore lint/plugin/no-use-effect: ResizeObserver on scroll container for fit-to-width scale
-  useEffect(() => {
-    const el = scrollRef.current;
+  const setScrollNode = useCallback((el: HTMLDivElement | null) => {
+    resizeObserverRef.current?.disconnect();
+    resizeObserverRef.current = null;
+    scrollRef.current = el;
     if (!el) {
       return;
     }
@@ -68,7 +69,7 @@ export function PdfViewer({ file, className }: PdfViewerProps) {
       }
     });
     observer.observe(el);
-    return () => observer.disconnect();
+    resizeObserverRef.current = observer;
   }, []);
 
   // State follows react-pdf's own load lifecycle rather than a file-watching
@@ -166,7 +167,7 @@ export function PdfViewer({ file, className }: PdfViewerProps) {
       <div
         className="flex-1 overflow-auto px-4 py-4"
         onScroll={handleScroll}
-        ref={scrollRef}
+        ref={setScrollNode}
       >
         <Document
           className="flex flex-col items-center gap-4"

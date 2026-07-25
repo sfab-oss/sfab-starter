@@ -22,7 +22,6 @@ import { cn } from "@workspace/ui/lib/utils";
 import { GripVertical } from "lucide-react";
 import {
   type PointerEvent as ReactPointerEvent,
-  useEffect,
   useRef,
   useState,
 } from "react";
@@ -62,57 +61,59 @@ export function PreviewStateDock({
   const [corner, setCorner] = useState<Corner>("top-right");
   const [drag, setDrag] = useState<DragState | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
+  const dragOffsetRef = useRef({ offsetX: 0, offsetY: 0 });
 
   function startDrag(event: ReactPointerEvent) {
     const rect = ref.current?.getBoundingClientRect();
     if (!rect) {
       return;
     }
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+    dragOffsetRef.current = { offsetX, offsetY };
+    draggingRef.current = true;
     setDrag({
       x: rect.left,
       y: rect.top,
-      offsetX: event.clientX - rect.left,
-      offsetY: event.clientY - rect.top,
+      offsetX,
+      offsetY,
+    });
+    // Capture on the grip so move/up stay on this element — no window listeners.
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function onPointerMove(event: ReactPointerEvent) {
+    if (!draggingRef.current) {
+      return;
+    }
+    const { offsetX, offsetY } = dragOffsetRef.current;
+    setDrag({
+      x: event.clientX - offsetX,
+      y: event.clientY - offsetY,
+      offsetX,
+      offsetY,
     });
   }
 
-  // biome-ignore lint/plugin/no-use-effect: window pointermove/pointerup while dragging dock
-  useEffect(() => {
-    if (!drag) {
+  function endDrag(event: ReactPointerEvent) {
+    if (!draggingRef.current) {
       return;
     }
-
-    function onMove(event: PointerEvent) {
-      setDrag((current) =>
-        current
-          ? {
-              ...current,
-              x: event.clientX - current.offsetX,
-              y: event.clientY - current.offsetY,
-            }
-          : current
-      );
+    draggingRef.current = false;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
     }
-
-    function onUp() {
-      const rect = ref.current?.getBoundingClientRect();
-      if (rect) {
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const vertical = centerY < window.innerHeight / 2 ? "top" : "bottom";
-        const horizontal = centerX < window.innerWidth / 2 ? "left" : "right";
-        setCorner(`${vertical}-${horizontal}` as Corner);
-      }
-      setDrag(null);
+    const rect = ref.current?.getBoundingClientRect();
+    if (rect) {
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const vertical = centerY < window.innerHeight / 2 ? "top" : "bottom";
+      const horizontal = centerX < window.innerWidth / 2 ? "left" : "right";
+      setCorner(`${vertical}-${horizontal}` as Corner);
     }
-
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-    };
-  }, [drag]);
+    setDrag(null);
+  }
 
   // z-[100] keeps the dock above dialog/overlay portals (shadcn dialogs sit at
   // z-50); `pointer-events-auto` keeps it clickable even when a modal marks the
@@ -131,7 +132,10 @@ export function PreviewStateDock({
         <button
           aria-label="Move preview controls"
           className="flex h-8 w-5 cursor-grab touch-none items-center justify-center rounded-sm text-muted-foreground hover:bg-muted active:cursor-grabbing"
+          onPointerCancel={endDrag}
           onPointerDown={startDrag}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
           type="button"
         >
           <GripVertical className="size-4" />

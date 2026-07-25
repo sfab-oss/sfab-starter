@@ -4,7 +4,7 @@ import { InputGroupButton } from "@workspace/ui/components/shadcn/input-group";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { cn } from "@workspace/ui/lib/utils";
 import { Loader2, MicIcon, Square } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 
 export interface ChatVoiceButtonLabels {
   start?: string;
@@ -47,9 +47,27 @@ type RecordingState = "idle" | "recording" | "processing" | "error";
 
 interface AudioRecordingState {
   isRecording: boolean;
-  isSupported: boolean;
   error: string | null;
   duration: number;
+}
+
+function subscribeMediaSupport(_onStoreChange: () => void) {
+  // Capability does not change after load; no subscription needed.
+  return () => {
+    // no-op unsubscribe
+  };
+}
+
+function getMediaSupportSnapshot() {
+  return (
+    typeof navigator !== "undefined" &&
+    !!navigator.mediaDevices?.getUserMedia &&
+    typeof MediaRecorder !== "undefined"
+  );
+}
+
+function getMediaSupportServerSnapshot() {
+  return false;
 }
 
 function useAudioRecording(options: {
@@ -66,23 +84,17 @@ function useAudioRecording(options: {
     "unsupported" | "micFailed" | "micDenied" | "micNotFound" | "micBusy"
   >;
 }) {
+  const isSupported = useSyncExternalStore(
+    subscribeMediaSupport,
+    getMediaSupportSnapshot,
+    getMediaSupportServerSnapshot
+  );
+
   const [state, setState] = useState<AudioRecordingState>({
     isRecording: false,
-    isSupported: false,
     error: null,
     duration: 0,
   });
-
-  // Check for browser support after mount to avoid hydration mismatch
-  // biome-ignore lint/plugin/no-use-effect: post-mount MediaRecorder/getUserMedia support check (hydration-safe)
-  useEffect(() => {
-    const isSupported =
-      typeof navigator !== "undefined" &&
-      !!navigator.mediaDevices?.getUserMedia &&
-      typeof MediaRecorder !== "undefined";
-
-    setState((prev) => ({ ...prev, isSupported }));
-  }, []);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -173,7 +185,7 @@ function useAudioRecording(options: {
 
   const startRecording = useCallback(async () => {
     const msg = messagesRef.current;
-    if (!state.isSupported) {
+    if (!isSupported) {
       const error = new Error(
         msg?.unsupported ?? "Audio recording is not supported in this browser"
       );
@@ -277,7 +289,7 @@ function useAudioRecording(options: {
       cleanup();
     }
   }, [
-    state.isSupported,
+    isSupported,
     sampleRate,
     channelCount,
     echoCancellation,
@@ -293,6 +305,7 @@ function useAudioRecording(options: {
 
   return {
     ...state,
+    isSupported,
     startRecording,
     stopRecording,
     cleanup,

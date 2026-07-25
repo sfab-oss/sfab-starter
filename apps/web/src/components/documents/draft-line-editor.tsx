@@ -22,8 +22,12 @@ import {
   minorToMajorInput,
 } from "@workspace/ui/lib/money";
 import { Check, Plus, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { type MutableRefObject, useCallback, useRef, useState } from "react";
+import {
+  Controller,
+  type ControllerRenderProps,
+  useForm,
+} from "react-hook-form";
 import { percentToBps } from "@/components/documents/document-type";
 import { useAddLineItem, useDocument } from "@/hooks/use-documents";
 import { useProducts } from "@/hooks/use-products";
@@ -46,6 +50,47 @@ const emptyDefaults: AddLineFormValues = {
   taxPercent: 0,
 };
 
+/**
+ * Stable callback-ref autofocus for the compose description field.
+ * Focuses on every real attach (including Strict Mode remount); identity is
+ * stable so re-renders do not detach/reattach and steal focus mid-typing.
+ */
+function ComposeDescriptionInput({
+  field,
+  invalid,
+  descriptionRef,
+}: {
+  field: ControllerRenderProps<AddLineFormValues, "description">;
+  invalid: boolean;
+  descriptionRef: MutableRefObject<HTMLInputElement | null>;
+}) {
+  const rhfRef = useRef(field.ref);
+  rhfRef.current = field.ref;
+
+  const setNode = useCallback(
+    (el: HTMLInputElement | null) => {
+      rhfRef.current(el);
+      descriptionRef.current = el;
+      if (el) {
+        el.focus();
+      }
+    },
+    [descriptionRef]
+  );
+
+  const { ref: _ignoredRef, ...fieldProps } = field;
+
+  return (
+    <Input
+      {...fieldProps}
+      aria-invalid={invalid}
+      aria-label={m.documents_line_description()}
+      placeholder={m.documents_line_description()}
+      ref={setNode}
+    />
+  );
+}
+
 interface DraftLineEditorProps {
   docId: string;
   currencyCode: string;
@@ -54,6 +99,7 @@ interface DraftLineEditorProps {
 export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
   const [isComposing, setIsComposing] = useState(false);
   const descriptionRef = useRef<HTMLInputElement | null>(null);
+  const removeEscapeListenerRef = useRef<(() => void) | null>(null);
   const addLineItem = useAddLineItem();
   const { data: productsResp } = useProducts({
     page: 1,
@@ -68,37 +114,48 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
     defaultValues: emptyDefaults,
   });
 
-  // biome-ignore lint/plugin/no-use-effect: focus description on compose + Escape keydown to cancel
-  useEffect(() => {
-    if (!isComposing) {
-      return;
+  const clearEscapeListener = () => {
+    removeEscapeListenerRef.current?.();
+    removeEscapeListenerRef.current = null;
+  };
+
+  // Clear Escape only when the whole editor unmounts (not when the compose
+  // form remounts under Strict Mode).
+  const editorRootRef = useCallback((el: HTMLDivElement | null) => {
+    if (!el) {
+      removeEscapeListenerRef.current?.();
+      removeEscapeListenerRef.current = null;
     }
-    // Focus description after the draft row mounts.
-    const id = requestAnimationFrame(() => {
-      descriptionRef.current?.focus();
-    });
+  }, []);
+
+  const endCompose = () => {
+    clearEscapeListener();
+    form.reset(emptyDefaults);
+    setIsComposing(false);
+  };
+
+  const bindEscapeListener = () => {
+    clearEscapeListener();
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        form.reset(emptyDefaults);
-        setIsComposing(false);
+        endCompose();
       }
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => {
-      cancelAnimationFrame(id);
+    removeEscapeListenerRef.current = () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [isComposing, form]);
+  };
 
   const startCompose = () => {
     form.reset(emptyDefaults);
+    bindEscapeListener();
     setIsComposing(true);
   };
 
   const cancelCompose = () => {
-    form.reset(emptyDefaults);
-    setIsComposing(false);
+    endCompose();
   };
 
   const pickProduct = (productId: string) => {
@@ -128,12 +185,11 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
         taxRate: percentToBps(values.taxPercent),
       },
     });
-    form.reset(emptyDefaults);
-    setIsComposing(false);
+    endCompose();
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" ref={editorRootRef}>
       <h3 className="font-medium text-sm">{m.documents_line_items()}</h3>
       <div className="divide-y rounded-lg border">
         <div
@@ -207,15 +263,10 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
                       <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
                         {m.documents_line_description()}
                       </FieldLabel>
-                      <Input
-                        {...field}
-                        aria-invalid={fieldState.invalid}
-                        aria-label={m.documents_line_description()}
-                        placeholder={m.documents_line_description()}
-                        ref={(el) => {
-                          field.ref(el);
-                          descriptionRef.current = el;
-                        }}
+                      <ComposeDescriptionInput
+                        descriptionRef={descriptionRef}
+                        field={field}
+                        invalid={fieldState.invalid}
                       />
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
