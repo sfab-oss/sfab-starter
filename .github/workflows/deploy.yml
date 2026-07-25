@@ -27,14 +27,16 @@ concurrency:
 
 jobs:
   deploy:
-    # Also require a deploy token. Upstream sfab-starter has none — job skips
-    # cleanly (run conclusion `skipped`). Fabricated projects get the secret
-    # from the provisioner and run the full pipeline.
+    # Upstream template has no Cloudflare account — skip cleanly (run
+    # conclusion `skipped`). Do NOT gate on `secrets.*` here: that context is
+    # illegal in job-level `if` and would invalidate Deploy for every repo.
+    # Fabricated projects are never named sfab-oss/sfab-starter; they still
+    # need CLOUDFLARE_API_TOKEN from the provisioner for wrangler steps.
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main' &&
-      secrets.CLOUDFLARE_API_TOKEN != ''
+      github.repository != 'sfab-oss/sfab-starter'
     runs-on: ubuntu-24.04
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
