@@ -32,7 +32,6 @@
       "bucket_name": "sfab-starter-uploads-test"
     }
   ],
-  "worker_loaders": [{ "binding": "LOADER" }],
   "durable_objects": {
     "bindings": [
       { "class_name": "TestCounter", "name": "TEST_COUNTER" },

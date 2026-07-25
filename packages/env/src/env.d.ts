@@ -3,7 +3,6 @@
 interface __BaseEnv_Env {
 	R2_BUCKET: R2Bucket;
 	DB: D1Database;
-	LOADER: WorkerLoader;
 	BETTER_AUTH_SECRET: string;
 	BETTER_AUTH_URL: string;
 	RESEND_API_KEY: string;
