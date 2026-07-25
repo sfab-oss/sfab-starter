@@ -54,7 +54,7 @@ export function PdfViewer({ file, className }: PdfViewerProps) {
   const [scale, setScale] = useState(1);
 
   // Track the scroll container's width so pages can fit to it responsively.
-  // biome-ignore lint/plugin/no-use-effect: 3rd-party widget / imperative DOM sync
+  // biome-ignore lint/plugin/no-use-effect: ResizeObserver on scroll container for fit-to-width scale
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) {

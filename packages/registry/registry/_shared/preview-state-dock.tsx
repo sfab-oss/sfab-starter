@@ -76,7 +76,7 @@ export function PreviewStateDock({
     });
   }
 
-  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
+  // biome-ignore lint/plugin/no-use-effect: window pointermove/pointerup while dragging dock
   useEffect(() => {
     if (!drag) {
       return;

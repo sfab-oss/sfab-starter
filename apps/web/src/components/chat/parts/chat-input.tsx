@@ -34,7 +34,6 @@ import {
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   useCallback,
-  useEffect,
   useRef,
   useState,
 } from "react";
@@ -167,13 +166,7 @@ function ChatInputInner({
     clear: () => setText(""),
   };
 
-  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
-  useEffect(() => {
-    if (!pinned && livePageContext) {
-      setPinnedContext(livePageContext);
-    }
-  }, [pinned, livePageContext]);
-
+  // When unpinned, follow live context; pin snapshots via handlePinToggle.
   const displayContext = pinned ? pinnedContext : livePageContext;
   const effectivePageContext =
     dismissed || !displayContext ? undefined : displayContext;

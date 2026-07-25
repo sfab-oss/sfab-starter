@@ -113,7 +113,7 @@ export function SpreadsheetViewer({ file, className }: SpreadsheetViewerProps) {
 
   // Import the workbook whenever the source changes. Kept separate from mounting
   // so a theme toggle re-skins the sheet without re-parsing the file.
-  // biome-ignore lint/plugin/no-use-effect: 3rd-party widget / imperative DOM sync
+  // biome-ignore lint/plugin/no-use-effect: async importWorkbook when file prop changes
   useEffect(() => {
     let cancelled = false;
     setStatus("loading");
@@ -136,7 +136,7 @@ export function SpreadsheetViewer({ file, className }: SpreadsheetViewerProps) {
   }, [file]);
 
   // (Re)mount Univer when the imported data or the theme changes.
-  // biome-ignore lint/plugin/no-use-effect: 3rd-party widget / imperative DOM sync
+  // biome-ignore lint/plugin/no-use-effect: mount/dispose Univer viewer on data/theme change
   useEffect(() => {
     if (!(data && containerRef.current)) {
       return;

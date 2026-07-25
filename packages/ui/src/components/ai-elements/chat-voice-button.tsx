@@ -74,7 +74,7 @@ function useAudioRecording(options: {
   });
 
   // Check for browser support after mount to avoid hydration mismatch
-  // biome-ignore lint/plugin/no-use-effect: MediaRecorder / mediaDevices external sync
+  // biome-ignore lint/plugin/no-use-effect: post-mount MediaRecorder/getUserMedia support check (hydration-safe)
   useEffect(() => {
     const isSupported =
       typeof navigator !== "undefined" &&

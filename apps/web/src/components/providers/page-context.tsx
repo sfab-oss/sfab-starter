@@ -39,7 +39,7 @@ export function PageContextProvider({
 export function useSetPageContext(config: PageConfig) {
   const context = useContext(PageContextContext);
 
-  // biome-ignore lint/plugin/no-use-layout-effect: layout effect for DOM measurement / page context mount sync
+  // biome-ignore lint/plugin/no-use-layout-effect: register page config in provider on mount; clear on unmount
   useLayoutEffect(() => {
     // Always set on mount / config change. The previous content-equality
     // guard skipped the first paint because configRef was initialized to

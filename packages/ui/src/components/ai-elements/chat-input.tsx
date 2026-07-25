@@ -617,13 +617,13 @@ export function ChatInputEditor({
     },
   });
 
-  // biome-ignore lint/plugin/no-use-layout-effect: external sync — revisit per code-smells.md (ALW-672)
+  // biome-ignore lint/plugin/no-use-layout-effect: publish TipTap instance into ChatInput context before paint
   useLayoutEffect(() => {
     setEditor(editor);
     return () => setEditor(null);
   }, [editor, setEditor]);
 
-  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
+  // biome-ignore lint/plugin/no-use-effect: TipTap setEditable when disabled prop changes after mount
   useEffect(() => {
     if (editor) {
       editor.setEditable(!disabled);

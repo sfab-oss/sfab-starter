@@ -418,12 +418,12 @@ function ChatConnection({
     messages: helpers.messages,
   });
 
-  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
+  // biome-ignore lint/plugin/no-use-effect: bridge useChat status into parent ChatWindow state
   useEffect(() => {
     onStatus(helpers.status);
   }, [helpers.status, onStatus]);
 
-  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
+  // biome-ignore lint/plugin/no-use-effect: bridge useChat messages into parent ChatWindow state
   useEffect(() => {
     onMessages(helpers.messages);
   }, [helpers.messages, onMessages]);
@@ -437,7 +437,7 @@ function ChatConnection({
   // reload of a chat-with-history doesn't flash "no messages" first. Now that
   // `getInitialMessages` is `null` there's no Suspense fallback to cover this.
   const isHydrating = !(identified || connectionError);
-  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
+  // biome-ignore lint/plugin/no-use-effect: map agent identified/connectionError onto parent connectionStatus
   useEffect(() => {
     if (connectionError) {
       onConnectionStatus("disconnected");
@@ -449,7 +449,7 @@ function ChatConnection({
   // Dedup pending sends by object identity; survives strict-mode remount.
   const lastSentRef = useRef<OutgoingMessage | null>(null);
   const sendMessage = helpers.sendMessage;
-  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
+  // biome-ignore lint/plugin/no-use-effect: flush pending OutgoingMessage once useChat status is ready
   useEffect(() => {
     if (!pending || helpers.status !== "ready" || sendError !== null) {
       return;

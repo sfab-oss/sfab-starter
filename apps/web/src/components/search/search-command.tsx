@@ -99,12 +99,15 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
     documents.length > 0 ||
     entities.length > 0;
 
-  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
-  useEffect(() => {
-    debouncedSetQuery(query);
-  }, [query, debouncedSetQuery]);
+  const onQueryChange = useCallback(
+    (value: string) => {
+      setQuery(value);
+      debouncedSetQuery(value);
+    },
+    [debouncedSetQuery]
+  );
 
-  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
+  // biome-ignore lint/plugin/no-use-effect: document keydown for ⌘K / Ctrl+K / /
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || e.key === "/") {
@@ -169,7 +172,7 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
       title={m.search_title()}
     >
       <CommandInput
-        onValueChange={setQuery}
+        onValueChange={onQueryChange}
         placeholder={m.search_placeholder()}
         value={query}
       />
