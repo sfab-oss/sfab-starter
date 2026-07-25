@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
 
@@ -33,7 +33,7 @@ jobs:
       - run: pnpm --filter @workspace/registry generate:check
 
   typecheck:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
 
@@ -54,7 +54,7 @@ jobs:
   # pre-existing parent/child cycles. Untangling those is tracked separately
   # (ALW-327 D8); the gate guards the architectural package graph today.
   cycles:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
 
@@ -70,7 +70,7 @@ jobs:
       - run: pnpm check:cycles
 
   test:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
 
@@ -89,7 +89,7 @@ jobs:
       - run: pnpm test
 
   build:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     env:
       NODE_OPTIONS: --max-old-space-size=4096
     steps:
