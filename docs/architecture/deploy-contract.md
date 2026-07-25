@@ -24,7 +24,7 @@ this `name:` string (falling back to the filename only when `name:` is omitted).
 |---|---|
 | **Start** | A `Deploy` run is `queued` / `in_progress` (or `workflow_run` `action: requested`) after CI on `main` completes |
 | **Success** | Run `conclusion == success` **and** the `deploy` job conclusion is `success` (the job actually ran). Do **not** treat run-level success alone if you also inspect jobs — prefer checking the `deploy` job. |
-| **Skipped (not a deploy)** | Run `conclusion == skipped` — the job-level gate did not pass (e.g. CI on main was not green, or was not a `push`). **Not** a successful deploy. |
+| **Skipped (not a deploy)** | Run `conclusion == skipped` — the job-level gate did not pass (e.g. CI on main was not green, was not a `push`, or `CLOUDFLARE_API_TOKEN` is unset). **Not** a successful deploy. The upstream template repo is expected to skip for this last reason until a project is fabricated and the provisioner writes secrets. |
 | **Failure** | Run `conclusion == failure` (or `cancelled` / `timed_out`), or the `deploy` job conclusion is `failure` |
 
 Verified (2026-07-11) against live GitHub Actions API data
@@ -45,8 +45,15 @@ create a GitHub Deployment entity.
 2. `Deploy` is triggered via `workflow_run` with `branches: [main]` — PR-branch
    CI completions do not create a Deploy run at all.
 3. The `deploy` job additionally requires
-   `conclusion == success`, `event == push`, and `head_branch == main`.
+   `conclusion == success`, `event == push`, `head_branch == main`, and a
+   non-empty Actions secret `CLOUDFLARE_API_TOKEN`.
 4. The deploy job checks out `workflow_run.head_sha` (the commit CI validated).
+
+When the token secret is absent (upstream `sfab-oss/sfab-starter` and any clone
+not yet provisioned), the job is skipped and the Deploy run concludes
+`skipped` — not `failure`. That is intentional: the workflow file remains the
+Option Y contract for fabricated projects; CD starts once the provisioner
+writes the token.
 
 ### Converge-to-latest on rapid merges
 
