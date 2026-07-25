@@ -19,7 +19,7 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (1)
+## review (1)
 
 - [`ALW-695`](./ALW-695.md) — Audit biome-ignored useEffects — remove or sharpen each justification
 
