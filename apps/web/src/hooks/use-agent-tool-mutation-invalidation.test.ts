@@ -2,128 +2,73 @@ import type { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 import type { OrgChatMessage } from "@/components/chat/dock/chat-tabs-store";
 import {
-  applyCodemodeCompletionInvalidations,
-  collectCodemodeCompletionEvents,
-  collectCodemodePausedWrites,
-  resolveCodemodeWrites,
+  applyWriteToolCompletionInvalidations,
+  collectWriteToolCompletionEvents,
 } from "@/hooks/use-agent-tool-mutation-invalidation";
 import { invalidateForAgentWrite } from "@/lib/agent-tool-invalidation-registry";
-import { asCodemodeOutput } from "@/lib/codemode-output";
 
-function assistantWithCodemode(
-  output: unknown,
-  toolCallId = "tc_1"
+function assistantWithWriteTool(
+  toolName: string,
+  options: {
+    toolCallId?: string;
+    state?: string;
+    input?: unknown;
+    output?: unknown;
+  } = {}
 ): OrgChatMessage {
+  const {
+    toolCallId = "tc_1",
+    state = "output-available",
+    input = { id: "p1" },
+    output = { ok: true, data: null },
+  } = options;
   return {
     id: "m1",
     role: "assistant",
     parts: [
       {
-        type: "tool-codemode",
+        type: `tool-${toolName}`,
         toolCallId,
-        state: "output-available",
-        input: { code: "await tools.update_product(...)" },
+        state,
+        input,
         output,
       },
     ],
   } as OrgChatMessage;
 }
 
-describe("asCodemodeOutput", () => {
-  it("parses completed output", () => {
-    expect(
-      asCodemodeOutput({ status: "completed", executionId: "ex_1", result: 1 })
-    ).toEqual({ status: "completed", executionId: "ex_1", result: 1 });
-  });
-
-  it("rejects non-codemode payloads", () => {
-    expect(asCodemodeOutput({ status: "ok" })).toBeNull();
-    expect(asCodemodeOutput(null)).toBeNull();
-  });
-});
-
-describe("resolveCodemodeWrites", () => {
-  it("prefers appliedWrites over pending and paused cache", () => {
-    const output = asCodemodeOutput({
-      status: "completed",
-      executionId: "ex_1",
-      appliedWrites: [
-        { method: "update_product", args: { id: "p1", data: { name: "X" } } },
-      ],
-      pending: [{ method: "delete_product", args: { id: "p9" } }],
-    });
-    if (output == null) {
-      throw new Error("expected codemode output");
-    }
-    expect(
-      resolveCodemodeWrites(
-        output,
-        "tc_1",
-        new Map([["tc_1", [{ method: "delete_product", args: { id: "p2" } }]]])
-      )
-    ).toEqual([
-      { method: "update_product", args: { id: "p1", data: { name: "X" } } },
-    ]);
-  });
-
-  it("falls back to pending then paused cache", () => {
-    const output = asCodemodeOutput({
-      status: "completed",
-      executionId: "ex_2",
-      pending: [{ method: "delete_product", args: { id: "p9" } }],
-    });
-    if (output == null) {
-      throw new Error("expected codemode output");
-    }
-    expect(resolveCodemodeWrites(output, "tc_1", new Map())).toEqual([
-      { method: "delete_product", args: { id: "p9" } },
-    ]);
-
-    const empty = asCodemodeOutput({
-      status: "completed",
-      executionId: "ex_3",
-    });
-    if (empty == null) {
-      throw new Error("expected codemode output");
-    }
-    expect(
-      resolveCodemodeWrites(
-        empty,
-        "tc_del",
-        new Map([
-          ["tc_del", [{ method: "delete_product", args: { id: "p2" } }]],
-        ])
-      )
-    ).toEqual([{ method: "delete_product", args: { id: "p2" } }]);
-  });
-});
-
-describe("collectCodemodeCompletionEvents", () => {
-  it("emits completed codemode toolCallIds once", () => {
+describe("collectWriteToolCompletionEvents", () => {
+  it("emits completed write toolCallIds once", () => {
     const messages = [
-      assistantWithCodemode({
-        status: "completed",
-        executionId: "ex_1",
-        result: { ok: true },
+      assistantWithWriteTool("update_product", {
+        input: { id: "prod_1", data: { name: "Fresh" } },
       }),
     ];
-    const first = collectCodemodeCompletionEvents(messages, new Set());
+    const first = collectWriteToolCompletionEvents(messages, new Set());
     expect(first).toEqual([
       {
         toolCallId: "tc_1",
-        writes: [],
+        writes: [
+          {
+            method: "update_product",
+            args: { id: "prod_1", data: { name: "Fresh" } },
+          },
+        ],
       },
     ]);
-    const second = collectCodemodeCompletionEvents(messages, new Set(["tc_1"]));
+    const second = collectWriteToolCompletionEvents(
+      messages,
+      new Set(["tc_1"])
+    );
     expect(second).toEqual([]);
   });
 
-  it("ignores paused / read-only / non-codemode parts", () => {
+  it("ignores approval-requested / denied / non-write parts", () => {
     const messages: OrgChatMessage[] = [
-      assistantWithCodemode({
-        status: "paused",
-        executionId: "ex_2",
-        pending: [{ method: "delete_product", args: { id: "p1" } }],
+      assistantWithWriteTool("delete_product", {
+        state: "approval-requested",
+        input: { id: "p1" },
+        output: undefined,
       }),
       {
         id: "m2",
@@ -138,63 +83,23 @@ describe("collectCodemodeCompletionEvents", () => {
           },
         ],
       } as OrgChatMessage,
-    ];
-    expect(collectCodemodeCompletionEvents(messages, new Set())).toEqual([]);
-  });
-
-  it("includes appliedWrites from completed output", () => {
-    const messages = [
-      assistantWithCodemode({
-        status: "completed",
-        executionId: "ex_3",
-        appliedWrites: [
-          {
-            method: "update_product",
-            args: { id: "prod_1", data: { name: "Fresh" } },
-          },
-        ],
+      assistantWithWriteTool("list_products", {
+        toolCallId: "tc_list",
+        input: {},
+        output: { ok: true, data: [] },
       }),
     ];
-    expect(collectCodemodeCompletionEvents(messages, new Set())).toEqual([
-      {
-        toolCallId: "tc_1",
-        writes: [
-          {
-            method: "update_product",
-            args: { id: "prod_1", data: { name: "Fresh" } },
-          },
-        ],
-      },
-    ]);
+    expect(collectWriteToolCompletionEvents(messages, new Set())).toEqual([]);
   });
 
-  it("does not treat list_/get_ pending methods as writes", () => {
+  it("skips ToolResult ok:false outputs", () => {
     const messages = [
-      assistantWithCodemode({
-        status: "completed",
-        executionId: "ex_4",
-        pending: [{ method: "list_products", args: {} }],
+      assistantWithWriteTool("delete_product", {
+        input: { id: "missing" },
+        output: { ok: false, error: "not found", code: "not_found" },
       }),
     ];
-    expect(
-      collectCodemodeCompletionEvents(messages, new Set())[0]?.writes
-    ).toEqual([]);
-  });
-});
-
-describe("collectCodemodePausedWrites", () => {
-  it("caches delete_product from paused pending", () => {
-    const messages = [
-      assistantWithCodemode({
-        status: "paused",
-        executionId: "ex_5",
-        pending: [{ method: "delete_product", args: { id: "p2" } }],
-      }),
-    ];
-    const map = collectCodemodePausedWrites(messages);
-    expect(map.get("tc_1")).toEqual([
-      { method: "delete_product", args: { id: "p2" } },
-    ]);
+    expect(collectWriteToolCompletionEvents(messages, new Set())).toEqual([]);
   });
 });
 
@@ -257,12 +162,12 @@ describe("invalidateForAgentWrite", () => {
   });
 });
 
-describe("applyCodemodeCompletionInvalidations", () => {
-  it("invalidates for update_product from appliedWrites", () => {
+describe("applyWriteToolCompletionInvalidations", () => {
+  it("invalidates for update_product from tool input", () => {
     const invalidateQueries = vi.fn();
     const queryClient = { invalidateQueries } as unknown as QueryClient;
 
-    applyCodemodeCompletionInvalidations({
+    applyWriteToolCompletionInvalidations({
       events: [
         {
           toolCallId: "tc_update",
@@ -289,7 +194,7 @@ describe("applyCodemodeCompletionInvalidations", () => {
     const invalidateQueries = vi.fn();
     const queryClient = { invalidateQueries } as unknown as QueryClient;
 
-    applyCodemodeCompletionInvalidations({
+    applyWriteToolCompletionInvalidations({
       events: [
         {
           toolCallId: "tc_create",
@@ -327,12 +232,12 @@ describe("applyCodemodeCompletionInvalidations", () => {
       },
     ];
 
-    applyCodemodeCompletionInvalidations({
+    applyWriteToolCompletionInvalidations({
       events,
       handled,
       queryClient,
     });
-    applyCodemodeCompletionInvalidations({
+    applyWriteToolCompletionInvalidations({
       events,
       handled,
       queryClient,

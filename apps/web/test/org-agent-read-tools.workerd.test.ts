@@ -292,9 +292,9 @@ describe("no mutation tool is exposed (AC-3)", () => {
     }
   });
 
-  it("the codemode reach's only writes are the catalog tools", () => {
-    // `delete_product` is in-codemode with needsApproval (ALW-456); money /
-    // document mutations stay off the agent entirely. See
+  it("the org tool set's only writes are the catalog tools", () => {
+    // `delete_product` is top-level with needsApproval (ALW-456 / ALW-740);
+    // money / document mutations stay off the agent entirely. See
     // tool-approvals.workerd.test.ts.
     const names = Object.keys(
       getOrgAgentTools({

@@ -1,4 +1,3 @@
-import codemode from "@cloudflare/codemode/vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import tailwindcss from "@tailwindcss/vite";
@@ -12,7 +11,6 @@ import tsconfigPaths from "vite-tsconfig-paths";
 const config = defineConfig({
   plugins: [
     agents(),
-    codemode(),
     devtools({ eventBusConfig: { port: 42_085 } }),
     cloudflare({ viteEnvironment: { name: "ssr" } }),
     tsconfigPaths({ projects: ["./tsconfig.json"] }),
