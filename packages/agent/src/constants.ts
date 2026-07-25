@@ -8,10 +8,8 @@ export type DisplayToolName =
   (typeof DISPLAY_TOOL_NAMES)[keyof typeof DISPLAY_TOOL_NAMES];
 
 /**
- * Mutating tools exposed inside codemode (`tools.*`). Keep in sync with the
- * web invalidation registry (`agent-tool-invalidation-registry.ts`). Used when
- * attaching `appliedWrites` on completed codemode output so read-only log
- * entries never leave the DO.
+ * Mutating top-level org-agent tools. Keep in sync with the web invalidation
+ * registry (`agent-tool-invalidation-registry.ts`).
  */
 export const AGENT_WRITE_TOOL_NAMES = [
   "create_product",

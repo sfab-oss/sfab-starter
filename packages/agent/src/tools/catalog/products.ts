@@ -66,7 +66,7 @@ export const createProductWriteTools = (ctx: AgentToolsContext) => {
   };
 };
 
-/** Destructive writes — `needsApproval` pauses mid-codemode. */
+/** Destructive writes — `needsApproval` pauses for AI SDK tool approval. */
 export const createProductApprovalTools = (ctx: AgentToolsContext) => {
   const orgId = ctx.organizationId;
   return {

@@ -8,7 +8,7 @@ const DISPLAY_NO_DUPLICATE =
 
 export const createDisplayTools = (_ctx: AgentToolsContext): ToolSet => ({
   [DISPLAY_TOOL_NAMES.PRODUCT_LIST]: tool({
-    description: `Show products as an inline list in the chat. Pass product IDs from codemode.${DISPLAY_NO_DUPLICATE}`,
+    description: `Show products as an inline list in the chat. Pass product IDs from list/get tools.${DISPLAY_NO_DUPLICATE}`,
     inputSchema: z.object({
       productIds: z.array(z.string()).describe("Product IDs to display."),
     }),

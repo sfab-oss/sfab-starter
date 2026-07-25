@@ -5,7 +5,6 @@ import {
   Think,
   type TurnContext,
 } from "@cloudflare/think";
-import { createExecuteRuntime } from "@cloudflare/think/tools/execute";
 import { auth } from "@workspace/auth";
 import { errorMessage, structuredLog } from "@workspace/log";
 import {
@@ -24,8 +23,6 @@ import {
   type ToolSet,
 } from "ai";
 import { z } from "zod";
-import { codemodeCompletedAsErrorIfFailed } from "../../codemode-output";
-import { AGENT_WRITE_TOOL_NAMES } from "../../constants";
 import { buildOrgContext } from "../../context/assemble";
 import {
   buildPageContextSection,
@@ -51,50 +48,6 @@ type OrgAgentParent = Pick<
   OrgAgent,
   "readOrgMemory" | "writeOrgMemory" | "touchChat"
 >;
-
-interface CodemodeExecutionLogEntry {
-  state: string;
-  method: string;
-  args?: unknown;
-}
-
-async function codemodeOutputWithAppliedWrites(
-  output: {
-    status?: string;
-    result?: unknown;
-    executionId?: string;
-    appliedWrites?: unknown[];
-  },
-  runtime: {
-    executions: () => Promise<
-      Array<{ id: string; log: CodemodeExecutionLogEntry[] }>
-    >;
-  },
-  writeNames: Set<string>
-): Promise<unknown> {
-  const failed = codemodeCompletedAsErrorIfFailed(output);
-  if (failed) {
-    return failed;
-  }
-  const executionId = output.executionId;
-  if (!executionId) {
-    return output;
-  }
-  const executions = await runtime.executions();
-  const execution = executions.find((row) => row.id === executionId);
-  if (!execution) {
-    return output;
-  }
-  const appliedWrites = execution.log
-    .filter(
-      (entry) => entry.state === "applied" && writeNames.has(entry.method)
-    )
-    .map((entry) => ({
-      method: entry.method,
-      args: entry.args,
-    }));
-  return { ...output, appliedWrites };
-}
 
 export class OrgChat extends Think<Cloudflare.Env> {
   override maxSteps = 50;
@@ -147,7 +100,7 @@ export class OrgChat extends Think<Cloudflare.Env> {
     }
     // Survive DO hibernation (onConnect does not re-run on wake).
     connection.setState({ userId });
-    // In-memory copy for tool closures: getTools/codemode often lack WebSocket ALS.
+    // In-memory copy for tool closures: getTools often lacks WebSocket ALS.
     this.turnUserId = userId;
   }
 
@@ -384,7 +337,7 @@ export class OrgChat extends Think<Cloudflare.Env> {
 
   override getTools(): ToolSet {
     const self = this;
-    // Lazy: getTools runs before beforeTurn; codemode execute often has no ALS.
+    // Lazy: getTools runs before beforeTurn; tool execute often has no ALS.
     const toolsCtx = {
       get userId() {
         return self.requireTurnUserId();
@@ -394,43 +347,13 @@ export class OrgChat extends Think<Cloudflare.Env> {
     };
     const erpTools = getOrgAgentTools(toolsCtx);
     const displayTools = getOrgAgentDisplayTools(toolsCtx);
-    const writeNames = new Set<string>(AGENT_WRITE_TOOL_NAMES);
-    const { runtime, tool: codemodeTool } = createExecuteRuntime(this, {
-      tools: erpTools,
-    });
-    const baseExecute = codemodeTool.execute;
 
     return {
-      // ERP tools as `tools.*` inside the sandbox; `needsApproval` pauses mid-script.
-      codemode: baseExecute
-        ? {
-            ...codemodeTool,
-            execute: async (input, callOptions) => {
-              const output = await baseExecute(input, callOptions);
-              if (
-                output &&
-                typeof output === "object" &&
-                (output as { status?: string }).status === "completed"
-              ) {
-                return codemodeOutputWithAppliedWrites(
-                  output as {
-                    status?: string;
-                    result?: unknown;
-                    executionId?: string;
-                    appliedWrites?: unknown[];
-                  },
-                  runtime,
-                  writeNames
-                );
-              }
-              return output;
-            },
-          }
-        : codemodeTool,
+      ...erpTools,
       // Child facet with its own context window — see `OrgSubAgent`.
       delegate: agentTool(OrgSubAgent, {
         description:
-          "Delegate ONE self-contained research or analysis task to a focused sub-agent that works in its own context window with read-only access to org data (catalog products, documents) and a code sandbox. Use this for multi-step data gathering or analysis that would otherwise clutter this conversation. The sub-agent cannot see this conversation and cannot modify any data — give it a complete, standalone task description. Returns the sub-agent's result summary.",
+          "Delegate ONE self-contained research or analysis task to a focused sub-agent that works in its own context window with read-only access to org data (catalog products, documents). Use this for multi-step data gathering or analysis that would otherwise clutter this conversation. The sub-agent cannot see this conversation and cannot modify any data — give it a complete, standalone task description. Returns the sub-agent's result summary.",
         inputSchema: z.object({
           task: z
             .string()
