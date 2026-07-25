@@ -22,8 +22,12 @@ import {
   minorToMajorInput,
 } from "@workspace/ui/lib/money";
 import { Check, Plus, X } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { type MutableRefObject, useCallback, useRef, useState } from "react";
+import {
+  Controller,
+  type ControllerRenderProps,
+  useForm,
+} from "react-hook-form";
 import { percentToBps } from "@/components/documents/document-type";
 import { useAddLineItem, useDocument } from "@/hooks/use-documents";
 import { useProducts } from "@/hooks/use-products";
@@ -46,6 +50,47 @@ const emptyDefaults: AddLineFormValues = {
   taxPercent: 0,
 };
 
+/**
+ * Stable callback-ref autofocus for the compose description field.
+ * Focuses on every real attach (including Strict Mode remount); identity is
+ * stable so re-renders do not detach/reattach and steal focus mid-typing.
+ */
+function ComposeDescriptionInput({
+  field,
+  invalid,
+  descriptionRef,
+}: {
+  field: ControllerRenderProps<AddLineFormValues, "description">;
+  invalid: boolean;
+  descriptionRef: MutableRefObject<HTMLInputElement | null>;
+}) {
+  const rhfRef = useRef(field.ref);
+  rhfRef.current = field.ref;
+
+  const setNode = useCallback(
+    (el: HTMLInputElement | null) => {
+      rhfRef.current(el);
+      descriptionRef.current = el;
+      if (el) {
+        el.focus();
+      }
+    },
+    [descriptionRef]
+  );
+
+  const { ref: _ignoredRef, ...fieldProps } = field;
+
+  return (
+    <Input
+      {...fieldProps}
+      aria-invalid={invalid}
+      aria-label={m.documents_line_description()}
+      placeholder={m.documents_line_description()}
+      ref={setNode}
+    />
+  );
+}
+
 interface DraftLineEditorProps {
   docId: string;
   currencyCode: string;
@@ -54,7 +99,6 @@ interface DraftLineEditorProps {
 export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
   const [isComposing, setIsComposing] = useState(false);
   const descriptionRef = useRef<HTMLInputElement | null>(null);
-  const focusedComposeRef = useRef(false);
   const removeEscapeListenerRef = useRef<(() => void) | null>(null);
   const addLineItem = useAddLineItem();
   const { data: productsResp } = useProducts({
@@ -86,7 +130,6 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
 
   const endCompose = () => {
     clearEscapeListener();
-    focusedComposeRef.current = false;
     form.reset(emptyDefaults);
     setIsComposing(false);
   };
@@ -107,7 +150,6 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
 
   const startCompose = () => {
     form.reset(emptyDefaults);
-    focusedComposeRef.current = false;
     bindEscapeListener();
     setIsComposing(true);
   };
@@ -221,21 +263,10 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
                       <FieldLabel className="text-muted-foreground text-xs sm:sr-only">
                         {m.documents_line_description()}
                       </FieldLabel>
-                      <Input
-                        {...field}
-                        aria-invalid={fieldState.invalid}
-                        aria-label={m.documents_line_description()}
-                        placeholder={m.documents_line_description()}
-                        ref={(el) => {
-                          field.ref(el);
-                          descriptionRef.current = el;
-                          // Focus once when the compose row mounts (not on every
-                          // re-render — inline ref callbacks change identity).
-                          if (el && !focusedComposeRef.current) {
-                            focusedComposeRef.current = true;
-                            el.focus();
-                          }
-                        }}
+                      <ComposeDescriptionInput
+                        descriptionRef={descriptionRef}
+                        field={field}
+                        invalid={fieldState.invalid}
                       />
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
