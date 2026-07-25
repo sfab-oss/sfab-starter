@@ -48,22 +48,28 @@ describe("manifest", () => {
 });
 
 describe("items render", () => {
-  it.each(
-    entries.map((e) => [e.name, e] as const)
-  )("%s mounts without throwing", async (_name, entry) => {
-    const Preview = entry.component;
-    const { container } = render(
-      <TooltipProvider>
-        <Suspense fallback={<div data-testid="loading" />}>
-          <Preview />
-        </Suspense>
-      </TooltipProvider>
-    );
-    await waitFor(
-      () =>
-        expect(container.querySelector('[data-testid="loading"]')).toBeNull(),
-      { timeout: 5000 }
-    );
-    expect(container.firstChild).toBeTruthy();
-  });
+  // GitHub-hosted runners are slower than Blacksmith; heavy blocks (e.g.
+  // spreadsheet-viewer) can exceed the default 5s vitest + waitFor budget.
+  const MOUNT_TIMEOUT_MS = 15_000;
+
+  it.each(entries.map((e) => [e.name, e] as const))(
+    "%s mounts without throwing",
+    async (_name, entry) => {
+      const Preview = entry.component;
+      const { container } = render(
+        <TooltipProvider>
+          <Suspense fallback={<div data-testid="loading" />}>
+            <Preview />
+          </Suspense>
+        </TooltipProvider>
+      );
+      await waitFor(
+        () =>
+          expect(container.querySelector('[data-testid="loading"]')).toBeNull(),
+        { timeout: MOUNT_TIMEOUT_MS }
+      );
+      expect(container.firstChild).toBeTruthy();
+    },
+    MOUNT_TIMEOUT_MS + 5000
+  );
 });
