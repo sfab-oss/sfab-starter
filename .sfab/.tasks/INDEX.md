@@ -20,10 +20,6 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (1)
-
-- [`ALW-673`](./ALW-673.md) — Starter: logging convention — V1 ops light, V2 activity later
-
 ## merged (66)
 
 - [`ALW-700`](./ALW-700.md) — Starter: @workspace/log + migrate server console + noConsole (V1 light)
@@ -93,8 +89,9 @@ overwritten by the next sync.
 - [`ALW-298`](./ALW-298.md) — Rename project identity from simple-monorepo-starter to sfab-starter
 - [`ALW-218`](./ALW-218.md) — Bring in the Think-based organization ERP agent (OrgAgent + OrgChat DO pattern from sfab)
 
-## done (10)
+## done (11)
 
+- [`ALW-673`](./ALW-673.md) — Starter: logging convention — V1 ops light, V2 activity later
 - [`ALW-480`](./ALW-480.md) — Verify destructive-approval path on main (post-ALW-456)
 - [`ALW-441`](./ALW-441.md) — Filter accepted invitations out of Pending Invitations table
 - [`ALW-440`](./ALW-440.md) — Wire settings sub-routes (/settings/members, /settings/general)
