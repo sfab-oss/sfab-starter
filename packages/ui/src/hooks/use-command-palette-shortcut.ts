@@ -14,7 +14,7 @@ function isTypingTarget(target: EventTarget | null) {
 
 /** Toggle the command palette on ⌘K / Ctrl+K or `/` (platform sidebar pattern). */
 export function useCommandPaletteShortcut(onToggle: () => void) {
-  // biome-ignore lint/plugin/no-use-effect: DOM / window listener sync
+  // biome-ignore lint/plugin/no-use-effect: document keydown for ⌘K / Ctrl+K / /
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || e.key === "/") {

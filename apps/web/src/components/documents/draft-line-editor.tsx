@@ -68,7 +68,7 @@ export function DraftLineEditor({ docId, currencyCode }: DraftLineEditorProps) {
     defaultValues: emptyDefaults,
   });
 
-  // biome-ignore lint/plugin/no-use-effect: DOM / window listener sync
+  // biome-ignore lint/plugin/no-use-effect: focus description on compose + Escape keydown to cancel
   useEffect(() => {
     if (!isComposing) {
       return;

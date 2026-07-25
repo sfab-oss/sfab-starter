@@ -5,7 +5,7 @@ const MOBILE_BREAKPOINT = 768;
 export function useIsMobile() {
   const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined);
 
-  // biome-ignore lint/plugin/no-use-effect: hook encapsulates external sync (matchMedia)
+  // biome-ignore lint/plugin/no-use-effect: matchMedia listener for mobile breakpoint
   useEffect(() => {
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
     const onChange = () => {
