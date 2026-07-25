@@ -107,23 +107,24 @@ export const Reasoning = memo(
     });
 
     const [hasAutoClosed, setHasAutoClosed] = useState(false);
-    const [startTime, setStartTime] = useState<number | null>(null);
+    const [startTime, setStartTime] = useState<number | null>(() =>
+      isStreaming ? Date.now() : null
+    );
+    const [wasStreaming, setWasStreaming] = useState(isStreaming);
 
-    // Track duration when streaming starts and ends
-    // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
-    useEffect(() => {
+    // Duration from streaming edge: adjust during render when isStreaming flips.
+    if (isStreaming !== wasStreaming) {
+      setWasStreaming(isStreaming);
       if (isStreaming) {
-        if (startTime === null) {
-          setStartTime(Date.now());
-        }
+        setStartTime(Date.now());
       } else if (startTime !== null) {
         setDuration(Math.ceil((Date.now() - startTime) / MS_IN_S));
         setStartTime(null);
       }
-    }, [isStreaming, startTime, setDuration]);
+    }
 
-    // Auto-open when streaming starts, auto-close when streaming ends (once only)
-    // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
+    // Auto-close once after streaming ends (delayed so content is readable)
+    // biome-ignore lint/plugin/no-use-effect: setTimeout auto-close after stream ends
     useEffect(() => {
       if (defaultOpen && !isStreaming && isOpen && !hasAutoClosed) {
         // Add a small delay before closing to allow user to see the content

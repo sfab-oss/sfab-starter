@@ -12,7 +12,7 @@ import {
   ToolOutput,
 } from "@workspace/ui/components/ai-elements/tool";
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useChatConnection } from "@/components/chat/window/chat-window";
 import {
   asCodemodeOutput,
@@ -51,6 +51,39 @@ function toolStateForStatus(
   return "output-available";
 }
 
+/** Sticky gate + pending action after pause/reject (survives approve → completed). */
+function useStickyCodemodeGate(
+  status: CodemodeOutput["status"] | undefined,
+  output: ReturnType<typeof asCodemodeOutput>
+) {
+  const [wasGated, setWasGated] = useState(
+    () => status === "paused" || status === "rejected"
+  );
+  const [action, setAction] = useState<CodemodePendingAction | null>(() =>
+    status === "paused" && output?.pending?.length
+      ? (output.pending[0] ?? null)
+      : null
+  );
+  const [tracked, setTracked] = useState({ status, output });
+
+  if (status !== tracked.status || output !== tracked.output) {
+    setTracked({ status, output });
+    if (status === "paused") {
+      setWasGated(true);
+      if (output?.pending?.length) {
+        setAction(output.pending[0] ?? null);
+      }
+    } else if (status === "rejected") {
+      setWasGated(true);
+    }
+  }
+
+  return {
+    action,
+    gated: wasGated || status === "paused" || status === "rejected",
+  };
+}
+
 export function PausedExecutionCard({
   part,
 }: {
@@ -65,24 +98,8 @@ export function PausedExecutionCard({
 
   // Keep this card mounted after Approve (completed output looks like any
   // other codemode run). Session-only — reload of an approved run is generic.
-  const [wasGated, setWasGated] = useState(false);
-  const [action, setAction] = useState<CodemodePendingAction | null>(null);
+  const { action, gated } = useStickyCodemodeGate(status, output);
   const [busy, setBusy] = useState(false);
-
-  // biome-ignore lint/plugin/no-use-effect: external sync — revisit per code-smells.md (ALW-672)
-  useEffect(() => {
-    if (status === "paused") {
-      setWasGated(true);
-      if (output?.pending?.length) {
-        setAction(output.pending[0] ?? null);
-      }
-    }
-    if (status === "rejected") {
-      setWasGated(true);
-    }
-  }, [status, output]);
-
-  const gated = wasGated || status === "paused" || status === "rejected";
 
   if (!gated) {
     return (
