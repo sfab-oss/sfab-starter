@@ -14,22 +14,23 @@
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "sfab-starter-test",
+  "name": "sfab-tok-worker-name",
+  "account_id": "sfab-tok-account-id",
   "compatibility_date": "2026-06-11",
   "compatibility_flags": ["nodejs_compat"],
   "main": "./src/workerd-test/worker-entry.ts",
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "sfab-starter-db-test",
-      "database_id": "placeholder-test-db-id",
+      "database_name": "sfab-tok-d1-database-name",
+      "database_id": "sfab-tok-d1-database-id",
       "migrations_dir": "../../packages/db/drizzle"
     }
   ],
   "r2_buckets": [
     {
       "binding": "R2_BUCKET",
-      "bucket_name": "sfab-starter-uploads-test"
+      "bucket_name": "sfab-tok-r2-bucket-name"
     }
   ],
   "durable_objects": {

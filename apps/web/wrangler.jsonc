@@ -4,7 +4,8 @@
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "sfab-starter",
+  "name": "sfab-tok-worker-name",
+  "account_id": "sfab-tok-account-id",
   "compatibility_date": "2026-06-11",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
@@ -14,16 +15,15 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "sfab-starter-db",
-      "database_id": "placeholder-remote-db-id",
+      "database_name": "sfab-tok-d1-database-name",
+      "database_id": "sfab-tok-d1-database-id",
       "migrations_dir": "../../packages/db/drizzle"
     }
   ],
   "r2_buckets": [
     {
       "binding": "R2_BUCKET",
-      "bucket_name": "sfab-starter-uploads",
-      "preview_bucket_name": "sfab-starter-uploads-preview"
+      "bucket_name": "sfab-tok-r2-bucket-name"
     }
   ],
   "durable_objects": {

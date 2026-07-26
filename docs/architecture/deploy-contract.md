@@ -3,8 +3,9 @@
 How a fabricated project ships itself to the customer's Cloudflare account, and
 how the SFAB platform observes that deploy. This is the template side of
 Option Y (user-repo deploys itself; the platform only orchestrates and
-observes). Resource IDs are committed in `wrangler.jsonc` by the provisioner
-before the first deploy — CI never creates D1/R2/KV.
+observes). The starter ships `sfab-tok-*` tokens in `apps/web/wrangler.jsonc`;
+the provisioner fills them with real account/resource IDs before the first
+deploy — CI never creates D1/R2/KV.
 
 ## Observation interface
 
