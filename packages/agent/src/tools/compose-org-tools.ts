@@ -8,7 +8,7 @@ import {
 import { createDisplayTools } from "./display";
 import { createTransactionReadTools } from "./transaction";
 
-/** Codemode-bound ERP tools. Authoring guide: `docs/guides/writing-agent-tools.md`. */
+/** Top-level ERP tools for OrgChat. Authoring guide: `docs/guides/writing-agent-tools.md`. */
 export const getOrgAgentTools = (ctx: AgentToolsContext): ToolSet => ({
   ...createProductTools(ctx),
   ...createDocumentTools(ctx),

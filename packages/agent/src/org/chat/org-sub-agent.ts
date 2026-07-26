@@ -1,5 +1,4 @@
 import { type Session, Think, type TurnContext } from "@cloudflare/think";
-import { createExecuteTool } from "@cloudflare/think/tools/execute";
 import { errorMessage, structuredLog } from "@workspace/log";
 import { createCompactFunction } from "agents/experimental/memory/utils";
 import { generateText, type LanguageModel, type ToolSet } from "ai";
@@ -12,7 +11,7 @@ import { getOrgAgentReadOnlyTools } from "../../tools/compose-org-tools";
 
 const SUB_AGENT_INSTRUCTIONS = `You are a focused sub-agent invoked by the main organization assistant to complete ONE self-contained task, handed to you as the first message.
 
-You do not see the parent conversation — work only from the task you are given. You have READ-ONLY access to the organization's data (catalog products, business documents) through the code sandbox (\`tools.*\`), and you can run JavaScript to gather and analyze it. You CANNOT modify any data.
+You do not see the parent conversation — work only from the task you are given. You have READ-ONLY access to the organization's data (catalog products, business documents) through top-level tools (\`list_products\`, \`get_product\`, …). You CANNOT modify any data.
 
 Do the task thoroughly, then return a concise, self-contained result the parent assistant can relay to the user. Prefer a direct answer over narrating your steps.`;
 
@@ -20,8 +19,7 @@ Do the task thoroughly, then return a concise, self-contained result the parent 
  * A general-purpose delegation sub-agent (ALW-401). The main `OrgChat` exposes
  * it as the `delegate` tool via `agentTool(OrgSubAgent, …)`; the model calls it
  * to run a self-contained research/analysis task in its OWN context window
- * (keeping heavy work out of the main chat's tokens) with read-only org reach
- * plus the codemode sandbox.
+ * (keeping heavy work out of the main chat's tokens) with read-only org reach.
  *
  * Topology: it is a facet under `OrgChat` under `OrgAgent`
  * (`OrgAgent → OrgChat → OrgSubAgent`), so it needs no wrangler binding or
@@ -84,15 +82,12 @@ export class OrgSubAgent extends Think<Cloudflare.Env> {
   }
 
   override getTools(): ToolSet {
-    // Read-only reach only (list/get products, list documents), exposed as the
-    // codemode `tools.*` connector — the sub-agent has no acting user and can
-    // never mutate. Org scope is the trusted `this.organizationId`.
-    const readTools = getOrgAgentReadOnlyTools({
+    // Read-only reach only (list/get products, list documents). The sub-agent
+    // has no acting user and can never mutate. Org scope is the trusted
+    // `this.organizationId`.
+    return getOrgAgentReadOnlyTools({
       organizationId: this.organizationId,
     });
-    return {
-      codemode: createExecuteTool(this, { tools: readTools }),
-    };
   }
 
   override async beforeTurn(_ctx: TurnContext) {

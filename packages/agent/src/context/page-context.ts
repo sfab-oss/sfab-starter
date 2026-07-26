@@ -48,11 +48,11 @@ export function buildPageContextSection(ctx: OrgPageContext): string {
   // Keep lightweight: type/id/title here; full state via tools.
   if (params.entityId) {
     lines.push(
-      `- Before answering about this page, fetch current state with the matching get_*/list_* tool using id \`${params.entityId}\` (via codemode).`
+      `- Before answering about this page, fetch current state with the matching get_*/list_* tool using id \`${params.entityId}\`.`
     );
   } else {
     lines.push(
-      "- Before answering about this page, fetch current state with the matching get_*/list_* tool (via codemode)."
+      "- Before answering about this page, fetch current state with the matching get_*/list_* tool."
     );
   }
 

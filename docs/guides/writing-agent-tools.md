@@ -1,14 +1,14 @@
 # Writing org-agent ERP tools
 
-How to author, compose, and test the snake_case `tools.*` surface the org agent
-exposes inside **codemode**. Covers layout, context vs parameters, tool *design*
-principles, the `ToolResult` fail contract, approval gates, sandbox field reach,
-and common gotchas. Supersedes the narrower approval-only guide (see stub at
+How to author, compose, and test the snake_case top-level tools the org agent
+exposes via Think. Covers layout, context vs parameters, tool *design*
+principles, the `ToolResult` fail contract, approval gates, and common gotchas.
+Supersedes the narrower approval-only guide (see stub at
 `agent-tool-approvals.md`).
 
 Design principles below are adapted from Korra’s `platform-tool-design`
 methodology (agent-facing contract, composability, shape matching); the
-implementation details are specific to this starter + Think/codemode stack.
+implementation details are specific to this starter + Think stack.
 
 ## Layout: catalog, transaction, display
 
@@ -18,20 +18,23 @@ packages/agent/src/tools/
 ├── define-org-tool.ts     # thin helper wrapping asToolResult
 ├── tool-result.ts         # ToolResult types + requireFound + asToolResult
 ├── guard.ts               # assertCan RBAC
-├── display.ts             # top-level display_* (UI echoes)
+├── display.ts             # display_* (UI echoes)
 ├── catalog/               # products, documents
 └── transaction/           # payments, wallet, entities, org, activity
 ```
 
 | Compose entry | What it returns | Where it runs |
 |---------------|-----------------|---------------|
-| `getOrgAgentTools(ctx)` | All 15 ERP tools (reads + catalog writes + `delete_product`) | Inside codemode sandbox (`tools.*`) |
+| `getOrgAgentTools(ctx)` | All 15 ERP tools (reads + catalog writes + `delete_product`) | Top-level Think tools on `OrgChat` |
 | `getOrgAgentReadOnlyTools(ctx)` | Same reads, no writes | Delegated sub-agent (`OrgSubAgent`) |
-| `getOrgAgentDisplayTools(ctx)` | `display_product_list`, `display_memory` | Top-level peers of `codemode` |
+| `getOrgAgentDisplayTools(ctx)` | `display_product_list`, `display_memory` | Top-level peers of ERP + `delegate` |
 
-`org-chat.getTools()` wires ERP tools **only** through codemode; display and
-delegate are top-level. Display tools are top-level UI echoes and may keep their
-own return shapes — do not block ERP work on wrapping them.
+`org-chat.getTools()` spreads ERP tools, `delegate`, and display tools as
+siblings. Display tools are UI echoes and may keep their own return shapes —
+do not block ERP work on wrapping them.
+
+This starter does **not** use `@cloudflare/codemode` / Dynamic Workers
+(`worker_loaders` / `LOADER`). Tools run in-process under Think.
 
 ## Context globals vs `inputSchema`
 
@@ -40,7 +43,7 @@ own return shapes — do not block ERP work on wrapping them.
 | Closed in context | Passed per call (`inputSchema`) |
 |-------------------|----------------------------------|
 | `organizationId` (every tool) | Entity/document/product ids, filters, payloads |
-| `userId` (writes — `assertCan`; codemode often lacks ALS) | `limit`, `type`, create/update fields |
+| `userId` (writes — `assertCan`; tool execute often lacks ALS) | `limit`, `type`, create/update fields |
 | `waitUntil` | Unused today |
 
 Reads take `Pick<AgentToolsContext, "organizationId">` so sub-agents work
@@ -80,7 +83,7 @@ Not every domain is CRUD. Pick the shape before naming tools:
 |-------|------|-----------------|
 | **CRUD + lifecycle** | Draft you author, then lock/delete | `list`/`get`/`create`/`update` + gated `delete_*` |
 | **Pure persist** | Config with no cascade | upsert-style write + reads |
-| **Approval-gated destructive** | Irreversible / hard to undo | `needsApproval: true` (codemode pause) + RBAC in `execute` |
+| **Approval-gated destructive** | Irreversible / hard to undo | `needsApproval: true` (AI SDK pause) + RBAC in `execute` |
 | **No agent tool** | Money/doc mutations, or pure UI flows | Hand off to the real screen |
 | **Pipeline trigger + poll** | Async external work (future) | `trigger_*` + `get_*_status` + `get_*` — don’t lead with the override upsert |
 
@@ -137,7 +140,8 @@ not your composability ledger. Design that contract deliberately.
 - **snake_case**, `verb_object` / `verb_domain_object`
   (`list_products`, `get_credit_balance`, `delete_product`).
 - Consistent domain prefixes so related tools cluster for selection.
-- Match sandbox identifiers (no reliance on hyphen→underscore sanitization).
+- Keep identifiers stable across prompts and UI (no reliance on
+  hyphen→underscore sanitization).
 
 ### Descriptions (write them for the model)
 
@@ -168,16 +172,14 @@ to do next.** Include what types alone don’t say:
 - Return **chainable ids** from every create/update.
 - Same units in as out so values round-trip without conversion.
 
-## `needsApproval` ↔ codemode pause / approve
+## `needsApproval` ↔ AI SDK tool approval
 
-On `@cloudflare/think@0.12.1` + `@cloudflare/codemode@0.4.2`:
+On `@cloudflare/think` + the AI SDK tool loop:
 
-- `needsApproval: true` on a tool maps to codemode `requiresApproval: true`
-  via `ToolSetConnector` — the tool is **not stripped**.
-- A script calling `tools.delete_product` **pauses** (`status: "paused"`,
-  `executionId`, `pending[]` preview); the chat renders Approve/Reject
-  (`paused-execution-card.tsx`); resume uses `approveExecution` /
-  `rejectExecution`.
+- `needsApproval: true` on a top-level tool pauses before `execute` with
+  part state `approval-requested`.
+- The chat renders Approve/Reject (`default-tool.tsx` →
+  `addToolApprovalResponse`).
 - **Pause happens before `execute`.** After approve, `execute` runs and returns
   `ToolResult` — a miss is a soft `{ ok: false }`, not a throw.
 
@@ -185,24 +187,10 @@ On `@cloudflare/think@0.12.1` + `@cloudflare/codemode@0.4.2`:
 
 1. **Autonomous + RBAC** — `create_product`, `update_product` in
    `getOrgAgentTools`; `assertCan("catalog:write")` in `execute`.
-2. **In-codemode approval** — `delete_product` with `needsApproval: true`;
+2. **Approval-gated** — `delete_product` with `needsApproval: true`;
    RBAC still runs post-approval (approval ≠ authorization).
 3. **No agent tool** — money and document **mutations** are never exposed;
    they hand off to the real screen (`guard.ts` invariant).
-
-## Which AI SDK fields reach the sandbox
-
-`ToolSetConnector` forwards to codemode:
-
-| Field | Reaches sandbox? |
-|-------|------------------|
-| `description` | Yes |
-| `inputSchema` | Yes |
-| `needsApproval` | Yes → `requiresApproval` |
-| `outputSchema` | Yes |
-| `inputExamples` | **No** |
-
-Author snake_case tool names so sandbox identifiers match without rename.
 
 ## Gotchas
 
@@ -216,9 +204,6 @@ Author snake_case tool names so sandbox identifiers match without rename.
 - **Verify after write:** a successful `{ ok: true }` means the mutation landed;
   still re-read (or rely on UI invalidation) before telling the user “done” if
   downstream views can lag.
-- **Codemode outer status:** intentional `{ ok: false }` from a tool must **not**
-  rewrite completed codemode to `status: "error"` — only legacy throw-shaped
-  `{ error: string }` without `ok` triggers that path (`codemode-output.ts`).
 
 ## Adding a new tool
 
@@ -243,8 +228,7 @@ Author snake_case tool names so sandbox identifiers match without rename.
 
 1. `needsApproval: true` on `defineOrgTool`.
 2. Keep `assertCan` inside `execute` (runs after user approves).
-3. Compose into `getOrgAgentTools` only — not as a top-level sibling of
-   codemode.
+3. Compose into `getOrgAgentTools` (top-level alongside other ERP tools).
 4. Extend `tool-approvals.workerd.test.ts` if you add a new gated tool.
 
 ## Designing a new domain (optional grill)
@@ -268,13 +252,12 @@ For day-to-day “add `get_foo`,” skip the grill and follow **Adding a new too
 - Agent: `packages/agent/src/tools/catalog/products.test.ts` — execute returns
   `ToolResult`, no throw on miss.
 - Workerd: `apps/web/src/workerd-test/tool-approvals.workerd.test.ts` —
-  `needsApproval` → `requiresApproval`.
+  `needsApproval` on top-level `delete_product`.
 
 ## Files of interest
 
-- `packages/agent/src/org/chat/org-chat.ts` — `getTools()` / codemode wiring
+- `packages/agent/src/org/chat/org-chat.ts` — `getTools()` wiring
 - `packages/agent/src/tools/catalog/products.ts` — read / write / approval factories
 - `packages/agent/src/tools/compose-org-tools.ts` — compose entry points
 - `packages/agent/src/tools/guard.ts` — RBAC
-- `packages/agent/src/codemode-output.ts` — outer completed vs error rewrite
-- `apps/web/src/components/chat/tools/paused-execution-card.tsx` — Approve/Reject UI
+- `apps/web/src/components/chat/tools/default-tool.tsx` — Approve/Reject UI

@@ -26,7 +26,6 @@
       "preview_bucket_name": "sfab-starter-uploads-preview"
     }
   ],
-  "worker_loaders": [{ "binding": "LOADER" }],
   "durable_objects": {
     // Only OrgAgent is bound top-level. OrgChat is a facet (sub-agent) of
     // OrgAgent — it is resolved via `ctx.exports.OrgChat` (the server.ts

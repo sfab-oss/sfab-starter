@@ -3,7 +3,6 @@ import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import type { ComponentType } from "react";
 import { DelegateRun } from "./delegate-run";
 import { MemoryDisplay } from "./memory-display";
-import { PausedExecutionCard } from "./paused-execution-card";
 import { ProductListDisplay } from "./product-list";
 
 export interface ToolRenderProps {
@@ -21,7 +20,6 @@ export const LIVE_TOOL_RENDERERS: Record<
   ComponentType<ToolRenderProps>
 > = {
   delegate: DelegateRun,
-  codemode: PausedExecutionCard,
 };
 
 export function getToolName(part: ToolUIPart | DynamicToolUIPart): string {

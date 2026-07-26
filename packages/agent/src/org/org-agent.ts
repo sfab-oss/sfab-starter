@@ -149,8 +149,8 @@ export class OrgAgent extends Agent<Cloudflare.Env> {
     this.sql`DELETE FROM chat_meta WHERE id = ${id}`;
   }
 
-  // The generic fs methods below are internal (used by codemode tools + the
-  // SharedWorkspace proxy) and intentionally NOT `@callable()`. These two thin
+  // The generic fs methods below are internal (used by the SharedWorkspace
+  // proxy) and intentionally NOT `@callable()`. These two thin
   // wrappers are the only workspace methods the browser can reach: read-only,
   // org-gated (the `/agents/org-agent/:id` route is scoped to the caller's
   // active org), and returning already-serializable values.

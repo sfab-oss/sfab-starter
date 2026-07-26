@@ -55,6 +55,11 @@ To deploy: run `pnpm build`, then `wrangler deploy` from `apps/web`. Set Worker
 secrets with `wrangler secret put`, and migrate the remote D1 database before
 serving traffic.
 
+This template uses Durable Objects for the org agent. On Cloudflare that
+typically requires a **Workers Paid** plan. It does **not** require Dynamic
+Workers / `worker_loaders` (`LOADER`) — ERP tools run as ordinary top-level
+Think tools.
+
 ## What's included
 
 A real, working app, not a blank page:
