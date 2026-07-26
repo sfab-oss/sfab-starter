@@ -21,7 +21,7 @@ overwritten by the next sync.
 
 ## ready (1)
 
-- [`ALW-743`](./ALW-743.md) — Starter wrangler: __SFAB_*__ placeholders + drop preview_bucket_name
+- [`ALW-743`](./ALW-743.md) — Starter wrangler: sfab-tok-* placeholders + drop preview_bucket_name
 
 ## merged (70)
 
