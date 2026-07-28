@@ -56,8 +56,8 @@ Run from the **monorepo root** (not inside a package):
   Multi-language UI → [`docs/guides/i18n.md`](docs/guides/i18n.md) + skill
   `.agents/skills/i18n`.
 - **Procedural domain knowledge, loaded on demand** → `.agents/skills/`
-  (`cloudflare`, `ai-sdk`, `wrangler`, `durable-objects`, `workers-best-practices`,
-  `agent-browser`, `i18n`). Use the relevant skill when a task matches its domain.
+  (`cloudflare`, `wrangler`, `durable-objects`, `workers-best-practices`, `agents-sdk`,
+  `ai-sdk`, `agent-browser`, `i18n`). Use the relevant skill when a task matches its domain.
 - **First-time initialization** → follow [`docs/template-init.md`](docs/template-init.md).
   Setup / run → [`README.md`](README.md).
 
