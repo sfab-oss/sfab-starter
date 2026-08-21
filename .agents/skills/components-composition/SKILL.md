@@ -135,7 +135,7 @@ function DocumentEditorHeader({ className, ...props }: React.ComponentProps<"div
   (`prompt-input.tsx` splits `textInput` vs `attachments`). This is the only built-in way to get
   re-render isolation — `useContext` has no selector.
 - **Extract derivations to pure functions** (`computeTotal(lines)`, `canFinalize(state)`) and call
-  them from the provider memo — so money/validation logic is unit-testable without rendering.
+  them from the provider memo — so totals/validation logic is unit-testable without rendering.
 - **Escape hatch — `{ state, actions, meta }`:** *only* when the **same parts must run against 2+
   interchangeable data sources** (e.g. a live server doc vs an offline local draft), isolate *that
   one surface* behind a `{ state, actions, meta }` contract so adapters are compile-time
@@ -185,9 +185,8 @@ swaps the element.
 - **`apps/web`** = domain composites, in **feature folders** (`components/<cap>/` — `catalog/`,
   `chat/`, `organization/`). **kebab-case filenames** (`create-product-dialog.tsx`). Add
   `"use client"` to any file using hooks/context/state.
-- **Money:** money is `MoneyMinor` (integer minor units). Format with `formatMoneyMinor` from
-  `@workspace/ui/lib/money`; use `majorToMinor` / `minorToMajor` for editable fields. Never add
-  ad-hoc `Intl.NumberFormat` for domain currency. (Non-money `Intl` — dates, quantities — is fine.)
+- Don't add a second `Intl.NumberFormat` for domain currency; reuse existing
+  formatters. Dates and quantities are fine.
 - **RBAC-gated controls:** a gated action stays **visible but `disabled` with a reason**, never
   hidden for role. `packages/ui` stays pure (takes `disabled` + `disabledReason`); the `apps/web`
   composite computes `disabled={!can(action)}` against the role gate.
@@ -205,4 +204,4 @@ swaps the element.
 - [ ] `data-slot` = full kebab export name; identity/UI state via `data-*`, behavior/controlled state via props
 - [ ] No `forwardRef`; `useContext` (not `use()`) unless conditional/Suspense
 - [ ] In `packages/ui`? Zero `core`/`contract` imports
-- [ ] Gated control visible + `disabled`+reason, not hidden; money never ad-hoc `Intl`; `<Name>Props` exported for composites
+- [ ] Gated control visible + `disabled`+reason, not hidden; `<Name>Props` exported for composites

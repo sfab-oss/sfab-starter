@@ -13,7 +13,7 @@ Common smells in this repo:
 |--------|------|
 | Section / JSX banners (`// --- Helpers ---`, `{/* Logo Area */}`) | Why / invariants / races / platform quirks |
 | Name-echo JSDoc / inline narration | ADR / ALW / § / issue links |
-| Lettered substeps that only label the next insert | Money / RBAC / security |
+| Lettered substeps that only label the next insert | Invariants / RBAC / security |
 | Numbered pipeline labels (`// 1. READ`) when order is obvious | `biome-ignore` / `@ts-expect-error` **with** reason |
 | Duplicate boilerplate (dedupe to one copy with real why) | Empty-catch markers Biome needs |
 | Commented-out code; AI hedge (`Note:`, `Important:`) | Schema comments encoding real constraints (UNIQUE/NULL quirks) |
