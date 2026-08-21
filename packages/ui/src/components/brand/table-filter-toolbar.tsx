@@ -249,18 +249,8 @@ export function TableFilterToolbar({
           ) : null}
         </PopoverTrigger>
         <PopoverContent align="start" className="w-80 gap-0 p-0">
-          <div className="flex items-center justify-between px-4 py-3">
+          <div className="px-4 py-3">
             <p className="font-medium text-sm">{labels.filters}</p>
-            {activeCount > 0 ? (
-              <Button
-                className="h-auto px-0 text-muted-foreground text-xs"
-                onClick={clearAll}
-                type="button"
-                variant="link"
-              >
-                {labels.clearAll}
-              </Button>
-            ) : null}
           </div>
           <Separator />
           <div className="max-h-[min(24rem,60vh)] space-y-4 overflow-y-auto p-4">

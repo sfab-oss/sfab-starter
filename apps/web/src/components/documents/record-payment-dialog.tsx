@@ -63,9 +63,9 @@ export function RecordPaymentDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader className="pr-8">
+        <DialogHeader>
           <DialogTitle>{m.documents_record_payment()}</DialogTitle>
-          <DialogDescription className="min-w-0">
+          <DialogDescription>
             {folioLabel}
             {entityName ? ` · ${entityName}` : ""} ·{" "}
             {m.documents_payment_balance({ amount: balanceFormatted })}

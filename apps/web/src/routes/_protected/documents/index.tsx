@@ -276,18 +276,6 @@ function DocumentsPage() {
     },
     [columnFilters, navigate]
   );
-  const clearFilters = useCallback(() => {
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        search: undefined,
-        type: undefined,
-        direction: undefined,
-        status: undefined,
-        page: 1,
-      }),
-    });
-  }, [navigate]);
   const pageCount = docsResponse
     ? Math.ceil(docsResponse.total / searchParams.pageSize)
     : 0;
@@ -307,15 +295,8 @@ function DocumentsPage() {
     }
     if (hasActiveFilters) {
       return (
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+        <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
           <p className="font-medium text-sm">{m.documents_empty_filtered()}</p>
-          <button
-            className="text-primary text-sm underline-offset-4 hover:underline"
-            onClick={clearFilters}
-            type="button"
-          >
-            {m.documents_clear_filters()}
-          </button>
         </div>
       );
     }
@@ -504,7 +485,6 @@ function DocumentsPage() {
           </div>
         ) : (
           <ResourceTable
-            className="min-h-0"
             collectionEmpty={collectionEmpty}
             columnFilters={columnFilters}
             columns={columns}

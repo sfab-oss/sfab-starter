@@ -53,18 +53,16 @@ const ENTITY_FILTER_DEFINITIONS: TableFilterDefinition[] = [
 function resolveCollectionEmpty({
   isTrueEmpty,
   isPresetEmpty,
-  clearFilters,
 }: {
   isTrueEmpty: boolean;
   isPresetEmpty: boolean;
-  clearFilters: () => void;
 }) {
   if (isTrueEmpty) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-        <p className="font-medium text-sm">No entities yet</p>
+        <p className="font-medium text-sm">{m.entities_empty_title()}</p>
         <p className="text-muted-foreground text-sm">
-          Create a customer or supplier to get started.
+          {m.entities_empty_hint()}
         </p>
       </div>
     );
@@ -72,15 +70,8 @@ function resolveCollectionEmpty({
 
   if (isPresetEmpty) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-        <p className="font-medium text-sm">No entities match these filters</p>
-        <button
-          className="text-primary text-sm underline-offset-4 hover:underline"
-          onClick={clearFilters}
-          type="button"
-        >
-          Clear filters
-        </button>
+      <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+        <p className="font-medium text-sm">{m.entities_empty_filtered()}</p>
       </div>
     );
   }
@@ -180,16 +171,6 @@ function EntitiesPage() {
     [columnFilters, navigate]
   );
 
-  const clearFilters = useCallback(() => {
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        search: undefined,
-        page: 1,
-      }),
-    });
-  }, [navigate]);
-
   const pageCount = entitiesResponse
     ? Math.ceil(entitiesResponse.total / searchParams.pageSize)
     : 0;
@@ -202,7 +183,6 @@ function EntitiesPage() {
   const collectionEmpty = resolveCollectionEmpty({
     isTrueEmpty: isEmptyResult && !hasActiveFilters,
     isPresetEmpty: isEmptyResult && hasActiveFilters,
-    clearFilters,
   });
 
   const columns: DataTableColumnDef<Entity>[] = [
@@ -289,7 +269,6 @@ function EntitiesPage() {
           </div>
         ) : (
           <ResourceTable
-            className="min-h-0"
             collectionEmpty={collectionEmpty}
             columnFilters={columnFilters}
             columns={columns}
