@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppBreadcrumbs } from "@workspace/ui/components/brand/app-breadcrumbs";
 import {
   ShellHeader,
@@ -36,6 +36,7 @@ import {
   ProductForm,
   type ProductFormValues,
 } from "@/components/catalog/product-form";
+import { ResourceNotFound } from "@/components/layout/resource-not-found";
 import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import {
@@ -90,9 +91,11 @@ function ProductPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { id: productId } = Route.useParams();
   const navigate = useNavigate();
-  const { data: product, isLoading: isLoadingProduct } = useProduct(
-    productId || ""
-  );
+  const {
+    data: product,
+    isPending: isLoadingProduct,
+    isError: isProductError,
+  } = useProduct(productId || "");
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
   useSetPageContext(
@@ -150,20 +153,24 @@ function ProductPage() {
             <div className="h-6 w-32 animate-pulse rounded bg-muted" />
           </div>
         </ShellHeader>
-        <div className="p-6">
+        <div
+          aria-busy="true"
+          aria-label={m.common_loading()}
+          className="p-6"
+          role="status"
+        >
           <div className="h-64 animate-pulse rounded-lg bg-muted/20" />
         </div>
       </ShellPage>
     );
   }
-  if (!product) {
+  if (isProductError || !product) {
     return (
-      <ShellPage>
-        <div className="flex h-full flex-col items-center justify-center gap-4">
-          <h2 className="font-semibold text-xl">{m.catalog_not_found()}</h2>
-          <Button render={<Link to="/catalog" />}>{m.catalog_back()}</Button>
-        </div>
-      </ShellPage>
+      <ResourceNotFound
+        backLabel={m.catalog_back()}
+        title={m.catalog_not_found()}
+        to="/catalog"
+      />
     );
   }
   return (

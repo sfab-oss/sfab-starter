@@ -15,6 +15,7 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import type { InferResponseType } from "hono/client";
 import type { z } from "zod";
 import { client } from "@/lib/client";
+import { retryUnlessNotFound } from "@/lib/query";
 import { m } from "@/paraglide/messages.js";
 
 export type Entity = InferResponseType<
@@ -65,12 +66,16 @@ export const useEntity = (id: string) =>
       const res = await client.protected.entities[":id"].$get({
         param: { id },
       });
-      if (!res.ok) {
+      if (res.status === 404) {
         throw new Error("Entity not found");
+      }
+      if (!res.ok) {
+        throw new Error("Failed to load entity");
       }
       return res.json();
     },
     enabled: !!id,
+    retry: retryUnlessNotFound,
   });
 
 export const useCreateEntity = () => {

@@ -36,6 +36,7 @@ import {
   EntityForm,
   type EntityFormValues,
 } from "@/components/entities/entity-form";
+import { ResourceNotFound } from "@/components/layout/resource-not-found";
 import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { WalletCard } from "@/components/wallet/wallet-card";
@@ -72,7 +73,11 @@ function EntityPage() {
   const { id: entityId } = Route.useParams();
   const navigate = useNavigate();
 
-  const { data: entity, isLoading } = useEntity(entityId || "");
+  const {
+    data: entity,
+    isPending: isLoading,
+    isError: isEntityError,
+  } = useEntity(entityId || "");
   const updateEntity = useUpdateEntity();
   const archiveEntity = useArchiveEntity();
   const { data: docsResp } = useDocuments(undefined, entityId);
@@ -107,15 +112,34 @@ function EntityPage() {
     navigate({ to: "/entities" });
   };
 
-  if (isLoading || !entity) {
+  if (isLoading) {
     return (
       <ShellPage>
-        <div className="flex h-full flex-col items-center justify-center gap-4">
-          <h2 className="font-semibold text-xl">
-            {isLoading ? m.entities_loading() : m.entities_not_found()}
-          </h2>
+        <ShellHeader>
+          <ShellHeaderSidebarTrigger className="-ml-1" />
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-32 animate-pulse rounded bg-muted" />
+          </div>
+        </ShellHeader>
+        <div
+          aria-busy="true"
+          aria-label={m.entities_loading()}
+          className="p-6"
+          role="status"
+        >
+          <div className="h-64 animate-pulse rounded-lg bg-muted/20" />
         </div>
       </ShellPage>
+    );
+  }
+
+  if (isEntityError || !entity) {
+    return (
+      <ResourceNotFound
+        backLabel={m.entities_back()}
+        title={m.entities_not_found()}
+        to="/entities"
+      />
     );
   }
 

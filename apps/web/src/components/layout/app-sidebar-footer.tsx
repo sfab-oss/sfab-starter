@@ -34,7 +34,7 @@ function SidebarFooterSkeleton() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton disabled size="lg">
+        <SidebarMenuButton aria-label={m.org_loading()} disabled size="lg">
           <Skeleton className="h-8 w-8 rounded-lg" />
           <div className="grid flex-1 text-left text-sm leading-tight">
             <Skeleton className="mb-1 h-4 w-24" />
@@ -83,7 +83,15 @@ export function AppSidebarFooter() {
     isPending: isOrgPending,
   } = authClient.useActiveOrganization();
   const user = session?.user;
-  const isPending = isSessionPending || isOrgPending;
+  const displayOrganization =
+    activeOrganization ??
+    organizations?.find(
+      (organization) =>
+        organization.id === session?.session.activeOrganizationId
+    ) ??
+    organizations?.[0] ??
+    null;
+  const isPending = isSessionPending || (isOrgPending && !displayOrganization);
   const { mutate: setActiveOrganization } = useMutation({
     mutationFn: async (organizationId: string) => {
       await authClient.organization.setActive({
@@ -150,16 +158,16 @@ export function AppSidebarFooter() {
           >
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarImage
-                alt={activeOrganization?.name ?? m.org_organization()}
-                src={activeOrganization?.logo ?? undefined}
+                alt={displayOrganization?.name ?? m.org_organization()}
+                src={displayOrganization?.logo ?? undefined}
               />
               <AvatarFallback className="rounded-lg">
-                {activeOrganization?.name?.slice(0, 2).toUpperCase() ?? "??"}
+                {displayOrganization?.name?.slice(0, 2).toUpperCase() ?? "??"}
               </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-semibold">
-                {activeOrganization?.name ?? m.org_no_organization()}
+                {displayOrganization?.name ?? m.org_no_organization()}
               </span>
               <span className="truncate text-xs">{user.email}</span>
             </div>

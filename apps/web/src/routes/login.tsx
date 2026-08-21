@@ -52,6 +52,11 @@ function LoginPage() {
       toast.error(result.error.message ?? m.auth_error_generic());
     } else {
       toast.success(m.auth_login_success());
+      await Promise.all([
+        authClient.getSession(),
+        authClient.organization.list(),
+        authClient.organization.getFullOrganization().catch(() => undefined),
+      ]);
       await navigate({ to: "/" });
     }
   };

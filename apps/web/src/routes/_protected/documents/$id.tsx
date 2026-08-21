@@ -36,6 +36,7 @@ import {
 import { DraftLineEditor } from "@/components/documents/draft-line-editor";
 import { PaymentStatusBadge } from "@/components/documents/payment-status-badge";
 import { RecordPaymentDialog } from "@/components/documents/record-payment-dialog";
+import { ResourceNotFound } from "@/components/layout/resource-not-found";
 import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { useSetPageContext } from "@/components/providers/page-context";
 import { PayFromCreditForm } from "@/components/wallet/pay-from-credit-form";
@@ -255,7 +256,11 @@ function PaymentActions({
 function DocumentPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const { data } = useDocument(id);
+  const {
+    data,
+    isPending: isLoadingDoc,
+    isError: isDocError,
+  } = useDocument(id);
   const { data: activityResp } = useActivity(id);
   const createSuccessor = useCreateSuccessor();
   const applyDisposition = useApplyDisposition();
@@ -286,13 +291,34 @@ function DocumentPage() {
     )
   );
 
-  if (!doc) {
+  if (isLoadingDoc) {
     return (
       <ShellPage>
-        <div className="flex h-full flex-col items-center justify-center gap-4">
-          <h2 className="font-semibold text-xl">{m.documents_loading()}</h2>
+        <ShellHeader>
+          <ShellHeaderSidebarTrigger className="-ml-1" />
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-40 animate-pulse rounded bg-muted" />
+          </div>
+        </ShellHeader>
+        <div
+          aria-busy="true"
+          aria-label={m.documents_loading()}
+          className="p-6"
+          role="status"
+        >
+          <div className="h-64 animate-pulse rounded-lg bg-muted/20" />
         </div>
       </ShellPage>
+    );
+  }
+
+  if (isDocError || !doc) {
+    return (
+      <ResourceNotFound
+        backLabel={m.documents_back()}
+        title={m.documents_not_found()}
+        to="/documents"
+      />
     );
   }
 
