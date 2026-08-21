@@ -14,13 +14,13 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (2)
+## review (1)
 
 - [`ALW-829`](./ALW-829.md) — Migrate starter TanStack Table v8 → v9
+
+## merged (74)
+
 - [`ALW-828`](./ALW-828.md) — Bump starter Vite 8 + TanStack router/start/query/devtools
-
-## merged (73)
-
 - [`ALW-827`](./ALW-827.md) — Bump starter to AI SDK 7 + matching Cloudflare Think/agents
 - [`ALW-772`](./ALW-772.md) — Refresh Cloudflare agent skills + curated MCP for template agents
 - [`ALW-743`](./ALW-743.md) — Starter wrangler: sfab-tok-* placeholders + drop preview_bucket_name
