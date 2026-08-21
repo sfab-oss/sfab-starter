@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/shadcn/dialog";
@@ -62,33 +63,13 @@ export function RecordPaymentDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader className="flex-row items-start gap-3 sm:items-center">
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <DialogTitle>{m.documents_record_payment()}</DialogTitle>
-            <DialogDescription className="min-w-0 truncate">
-              {folioLabel}
-              {entityName ? ` · ${entityName}` : ""} ·{" "}
-              {m.documents_payment_balance({ amount: balanceFormatted })}
-            </DialogDescription>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button
-              onClick={() => onOpenChange(false)}
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              {m.common_cancel()}
-            </Button>
-            <Button
-              disabled={recordPayment.isPending}
-              form={DOCUMENT_PAYMENT_FORM_ID}
-              size="sm"
-              type="submit"
-            >
-              {recordPayment.isPending ? m.common_saving() : m.documents_pay()}
-            </Button>
-          </div>
+        <DialogHeader className="pr-8">
+          <DialogTitle>{m.documents_record_payment()}</DialogTitle>
+          <DialogDescription className="min-w-0">
+            {folioLabel}
+            {entityName ? ` · ${entityName}` : ""} ·{" "}
+            {m.documents_payment_balance({ amount: balanceFormatted })}
+          </DialogDescription>
         </DialogHeader>
 
         <DocumentPaymentForm
@@ -99,6 +80,23 @@ export function RecordPaymentDialog({
           onSubmit={handleSubmit}
           total={total}
         />
+
+        <DialogFooter>
+          <Button
+            onClick={() => onOpenChange(false)}
+            type="button"
+            variant="outline"
+          >
+            {m.common_cancel()}
+          </Button>
+          <Button
+            disabled={recordPayment.isPending}
+            form={DOCUMENT_PAYMENT_FORM_ID}
+            type="submit"
+          >
+            {recordPayment.isPending ? m.common_saving() : m.documents_pay()}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -141,7 +141,7 @@ export function ResourceTable<TData extends RowData>({
   return (
     <div
       className={cn(
-        "flex min-h-0 flex-1 flex-col",
+        "flex min-h-0 flex-col",
         !embedded && "rounded-md border",
         className
       )}

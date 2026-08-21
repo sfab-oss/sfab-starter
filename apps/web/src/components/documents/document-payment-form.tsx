@@ -141,7 +141,10 @@ export function DocumentPaymentForm({
                 }}
                 value={field.value}
               >
-                <SelectTrigger aria-invalid={fieldState.invalid}>
+                <SelectTrigger
+                  aria-invalid={fieldState.invalid}
+                  aria-label={m.documents_payment_method()}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

@@ -289,7 +289,7 @@ function EntitiesPage() {
           </div>
         ) : (
           <ResourceTable
-            className="min-h-0 flex-1"
+            className="min-h-0"
             collectionEmpty={collectionEmpty}
             columnFilters={columnFilters}
             columns={columns}

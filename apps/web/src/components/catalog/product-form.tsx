@@ -37,7 +37,7 @@ export function ProductForm({
   defaultValues,
   onSubmit,
   isLoading,
-  submitLabel = m.common_save(),
+  submitLabel = mode === "create" ? m.catalog_create() : m.common_save(),
 }: ProductFormProps) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),

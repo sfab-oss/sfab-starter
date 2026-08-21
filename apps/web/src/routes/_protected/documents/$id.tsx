@@ -383,7 +383,7 @@ function DocumentPage() {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="font-semibold text-lg">
-                  {documentTypeLabel(doc.type)}
+                  {documentFolioLabel(doc)}
                 </h2>
                 <DocumentTypeBadge type={doc.type} />
                 <Badge variant={isDraft ? "secondary" : "default"}>
@@ -550,6 +550,7 @@ function DocumentPage() {
           </div>
 
           <ActivityTimeline
+            defaultOpen={activityEntries.length > 0}
             emptyLabel={m.documents_no_activity()}
             entries={activityEntries}
             title={m.documents_activity()}
