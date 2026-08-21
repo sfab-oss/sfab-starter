@@ -3,8 +3,14 @@ import {
   cloudflareTest,
   readD1Migrations,
 } from "@cloudflare/vitest-pool-workers";
+import babel from "@rolldown/plugin-babel";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig, type ViteUserConfig } from "vitest/config";
+
+/** Vite 8/Oxc does not lower stage-3 decorators (`@callable` on OrgAgent). */
+const decoratorBabel = babel({
+  plugins: [["@babel/plugin-proposal-decorators", { version: "2023-11" }]],
+});
 
 /**
  * ALW-305: two Vitest projects coexist in one config, split by where a test must
@@ -48,6 +54,7 @@ export default defineConfig(async (): Promise<ViteUserConfig> => {
         {
           extends: true,
           plugins: [
+            decoratorBabel,
             tsconfigPaths({ projects: ["./tsconfig.json"] }),
             cloudflareTest({
               wrangler: { configPath: "./wrangler.test.jsonc" },
