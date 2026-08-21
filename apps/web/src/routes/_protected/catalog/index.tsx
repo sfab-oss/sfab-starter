@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type {
-  ColumnDef,
   ColumnFiltersState,
   PaginationState,
   SortingState,
@@ -16,6 +15,7 @@ import {
   ShellPage,
 } from "@workspace/ui/components/brand/shell";
 import { SortableHeader } from "@workspace/ui/components/brand/sortable-header";
+import type { DataTableColumnDef } from "@workspace/ui/lib/data-table-features";
 import { DEFAULT_CURRENCY, formatMoneyMinor } from "@workspace/ui/lib/money";
 import {
   getColumnFilterValue,
@@ -208,7 +208,7 @@ function CatalogPage() {
     clearFilters,
   });
 
-  const columns: ColumnDef<Product>[] = [
+  const columns: DataTableColumnDef<Product>[] = [
     {
       id: "image",
       meta: { label: m.catalog_column_image() },

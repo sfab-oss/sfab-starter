@@ -1,12 +1,17 @@
 "use client";
 
-import type { Column, RowData } from "@tanstack/react-table";
+import type { Column, RowData, TableFeatures } from "@tanstack/react-table";
 import { Button } from "@workspace/ui/components/shadcn/button";
+import type { DataTableFeatures } from "@workspace/ui/lib/data-table-features";
 import { cn } from "@workspace/ui/lib/utils";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 declare module "@tanstack/react-table" {
-  interface ColumnMeta<TData extends RowData, TValue> {
+  interface ColumnMeta<
+    TFeatures extends TableFeatures,
+    TData extends RowData,
+    TValue,
+  > {
     /** Human-readable column label, shared by SortableHeader and the sort popover. */
     label?: string;
   }
@@ -57,11 +62,11 @@ export function SortIcon({
   );
 }
 
-export function SortableHeader<T>({
+export function SortableHeader<TData extends RowData>({
   column,
   getAriaLabel = sortAriaLabel,
 }: {
-  column: Column<T, unknown>;
+  column: Column<DataTableFeatures, TData, unknown>;
   /** Locale-aware aria label; defaults to English `sortAriaLabel`. */
   getAriaLabel?: SortAriaLabelFn;
 }) {

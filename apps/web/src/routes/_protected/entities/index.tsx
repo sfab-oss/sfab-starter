@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type {
-  ColumnDef,
   ColumnFiltersState,
   PaginationState,
   SortingState,
@@ -17,6 +16,7 @@ import {
 } from "@workspace/ui/components/brand/shell";
 import { SortableHeader } from "@workspace/ui/components/brand/sortable-header";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
+import type { DataTableColumnDef } from "@workspace/ui/lib/data-table-features";
 import { DEFAULT_CURRENCY, formatMoneyMinor } from "@workspace/ui/lib/money";
 import {
   getColumnFilterValue,
@@ -205,7 +205,7 @@ function EntitiesPage() {
     clearFilters,
   });
 
-  const columns: ColumnDef<Entity>[] = [
+  const columns: DataTableColumnDef<Entity>[] = [
     {
       id: "name",
       meta: { label: "Name" },

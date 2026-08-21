@@ -1,5 +1,5 @@
-import type { ColumnDef } from "@tanstack/react-table";
 import { ResourceTable } from "@workspace/ui/components/brand/resource-table";
+import type { DataTableColumnDef } from "@workspace/ui/lib/data-table-features";
 import { formatMoneyMinor } from "@workspace/ui/lib/money";
 import { PaymentStatusBadge } from "../../_shared/collect/payment-status-badge";
 
@@ -42,7 +42,7 @@ const MOCK_INVOICES: InvoiceRow[] = [
   },
 ];
 
-const columns: ColumnDef<InvoiceRow>[] = [
+const columns: DataTableColumnDef<InvoiceRow>[] = [
   {
     accessorKey: "client",
     header: "Customer",

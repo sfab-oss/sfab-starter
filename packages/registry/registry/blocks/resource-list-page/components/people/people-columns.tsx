@@ -1,8 +1,8 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
 import { SortableHeader } from "@workspace/ui/components/brand/sortable-header";
 import { Badge } from "@workspace/ui/components/shadcn/badge";
+import type { DataTableColumnDef } from "@workspace/ui/lib/data-table-features";
 import {
   arrIncludesExact,
   enumOptionsFromValues,
@@ -41,7 +41,7 @@ export const PEOPLE_FILTER_DEFINITIONS: TableFilterDefinition[] = [
   },
 ];
 
-export const PEOPLE_COLUMNS: ColumnDef<PersonRow>[] = [
+export const PEOPLE_COLUMNS: DataTableColumnDef<PersonRow>[] = [
   {
     id: "name",
     meta: { label: "Name" },

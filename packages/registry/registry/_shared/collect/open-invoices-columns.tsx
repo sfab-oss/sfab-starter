@@ -1,7 +1,7 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
 import { SortableHeader } from "@workspace/ui/components/brand/sortable-header";
+import type { DataTableColumnDef } from "@workspace/ui/lib/data-table-features";
 import { formatMoneyMinor } from "@workspace/ui/lib/money";
 import {
   enumOptionsFromValues,
@@ -27,7 +27,7 @@ export const OPEN_INVOICE_FILTER_DEFINITIONS: TableFilterDefinition[] = [
   },
 ];
 
-export const OPEN_INVOICE_COLUMNS: ColumnDef<OpenInvoiceRow>[] = [
+export const OPEN_INVOICE_COLUMNS: DataTableColumnDef<OpenInvoiceRow>[] = [
   {
     accessorKey: "folio",
     meta: { label: "Folio" },
