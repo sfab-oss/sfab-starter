@@ -2,7 +2,6 @@
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type {
-  ColumnDef,
   ColumnFiltersState,
   PaginationState,
   SortingState,
@@ -29,6 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
+import type { DataTableColumnDef } from "@workspace/ui/lib/data-table-features";
 import { formatMoneyMinor } from "@workspace/ui/lib/money";
 import {
   getColumnFilterValue,
@@ -328,7 +328,7 @@ function DocumentsPage() {
       </div>
     );
   })();
-  const columns: ColumnDef<DocumentRow>[] = [
+  const columns: DataTableColumnDef<DocumentRow>[] = [
     {
       id: "folio",
       meta: {

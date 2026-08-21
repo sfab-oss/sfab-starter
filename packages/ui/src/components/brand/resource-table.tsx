@@ -1,10 +1,10 @@
 "use client";
 
 import type {
-  ColumnDef,
   ColumnFiltersState,
   OnChangeFn,
   PaginationState,
+  RowData,
   SortingState,
 } from "@tanstack/react-table";
 import { DataTable } from "@workspace/ui/components/brand/data-table";
@@ -16,17 +16,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
+import type { DataTableColumnDef } from "@workspace/ui/lib/data-table-features";
 import type { TableFilterDefinition } from "@workspace/ui/lib/table-filter-types";
 import { cn } from "@workspace/ui/lib/utils";
 import { MoreHorizontal } from "lucide-react";
-export interface ResourceTableRowAction<TData> {
+export interface ResourceTableRowAction<TData extends RowData> {
   label: string;
   onSelect: (row: TData) => void;
   disabled?: boolean;
   disabledReason?: string;
 }
-export interface ResourceTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+export interface ResourceTableProps<TData extends RowData> {
+  columns: DataTableColumnDef<TData>[];
   data: TData[];
   pageCount?: number;
   pagination?: PaginationState;
@@ -53,7 +54,7 @@ export interface ResourceTableProps<TData, TValue> {
   collectionEmpty?: React.ReactNode;
   toolbarLabels?: TableFilterToolbarLabels;
 }
-export function ResourceTable<TData, TValue>({
+export function ResourceTable<TData extends RowData>({
   columns,
   data,
   pageCount,
@@ -77,9 +78,9 @@ export function ResourceTable<TData, TValue>({
   className,
   collectionEmpty,
   toolbarLabels,
-}: ResourceTableProps<TData, TValue>) {
+}: ResourceTableProps<TData>) {
   const hasActions = rowPrimaryAction || rowMenuActions;
-  const actionColumn: ColumnDef<TData, TValue> = {
+  const actionColumn: DataTableColumnDef<TData> = {
     id: "actions",
     enableSorting: false,
     enableHiding: false,

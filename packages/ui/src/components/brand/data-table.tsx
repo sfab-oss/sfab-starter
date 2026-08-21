@@ -1,21 +1,17 @@
 "use client";
 
 import {
-  type ColumnDef,
   type ColumnFiltersState,
+  type ColumnVisibilityState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   type OnChangeFn,
   type PaginationState,
   type Row,
+  type RowData,
   type RowSelectionState,
   type SortingState,
   type Table as TanstackTable,
-  useReactTable,
-  type VisibilityState,
+  useTable,
 } from "@tanstack/react-table";
 import { sortAriaSort } from "@workspace/ui/components/brand/sortable-header";
 import {
@@ -39,8 +35,12 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/shadcn/table";
+import {
+  type DataTableColumnDef,
+  type DataTableFeatures,
+  dataTableFeatures,
+} from "@workspace/ui/lib/data-table-features";
 import type { TableFilterDefinition } from "@workspace/ui/lib/table-filter-types";
-import { arrIncludesExact } from "@workspace/ui/lib/table-filter-types";
 import { cn } from "@workspace/ui/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -66,7 +66,7 @@ function DataTableEmptyRow({
     </TableRow>
   );
 }
-function buildTableBodyContent<TData>({
+function buildTableBodyContent<TData extends RowData>({
   columnCount,
   isServerSide,
   toolbarFilteredCount,
@@ -84,7 +84,7 @@ function buildTableBodyContent<TData>({
   filteredEmptyMessage: string;
   emptyMessage: string;
   dataLength: number;
-  tableRows: Row<TData>[];
+  tableRows: Row<DataTableFeatures, TData>[];
   onRowClick?: (row: TData) => void;
 }): ReactNode {
   if (isServerSide && toolbarFilteredCount === 0) {
@@ -121,7 +121,7 @@ function buildTableBodyContent<TData>({
     </TableRow>
   ));
 }
-function DataTableLegacyFilterRow<TData>({
+function DataTableLegacyFilterRow<TData extends RowData>({
   table,
   filterColumn,
   filterPlaceholder,
@@ -129,7 +129,7 @@ function DataTableLegacyFilterRow<TData>({
   onFilterChange,
   showColumnVisibility,
 }: {
-  table: TanstackTable<TData>;
+  table: TanstackTable<DataTableFeatures, TData>;
   filterColumn: string;
   filterPlaceholder: string;
   filterValue?: string;
@@ -222,10 +222,10 @@ function DataTablePaginationButtons({
     </div>
   );
 }
-function DataTableHeaderRows<TData>({
+function DataTableHeaderRows<TData extends RowData>({
   table,
 }: {
-  table: TanstackTable<TData>;
+  table: TanstackTable<DataTableFeatures, TData>;
 }) {
   return (
     <TableHeader>
@@ -268,7 +268,7 @@ function getServerTableOptions({
   pagination?: PaginationState;
   sorting: SortingState;
   columnFilters: ColumnFiltersState;
-  columnVisibility: VisibilityState;
+  columnVisibility: ColumnVisibilityState;
   rowSelection: RowSelectionState;
   onPaginationChange?: OnChangeFn<PaginationState>;
   onSortingChange: OnChangeFn<SortingState>;
@@ -301,15 +301,12 @@ function getClientTableOptions({
 }: {
   sorting: SortingState;
   columnFilters: ColumnFiltersState;
-  columnVisibility: VisibilityState;
+  columnVisibility: ColumnVisibilityState;
   rowSelection: RowSelectionState;
   onSortingChange: OnChangeFn<SortingState>;
   onColumnFiltersChange: OnChangeFn<ColumnFiltersState>;
 }) {
   return {
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange,
     onColumnFiltersChange,
     state: {
@@ -320,8 +317,8 @@ function getClientTableOptions({
     },
   };
 }
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+  columns: DataTableColumnDef<TData>[];
   data: TData[];
   pageCount?: number;
   pagination?: PaginationState;
@@ -349,11 +346,11 @@ interface DataTableProps<TData, TValue> {
   collectionEmpty?: ReactNode;
   toolbarLabels?: TableFilterToolbarLabels;
 }
-export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
+export function DataTable<TData extends RowData>(props: DataTableProps<TData>) {
   const controller = useDataTableController(props);
   return <DataTableView {...props} {...controller} />;
 }
-function useDataTableController<TData, TValue>({
+function useDataTableController<TData extends RowData>({
   columns,
   data,
   pageCount,
@@ -372,26 +369,24 @@ function useDataTableController<TData, TValue>({
   filteredCount: filteredCountProp,
   totalCount: totalCountProp,
   collectionEmpty,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   const isServerSide = externalPagination !== undefined;
   const useFilterToolbar =
     filterDefinitions !== undefined && filterDefinitions.length > 0;
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
   const [internalColumnFilters, setInternalColumnFilters] =
     useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const sorting = externalSorting ?? internalSorting;
   const setSorting = onSortingChange ?? setInternalSorting;
   const columnFilters = externalColumnFilters ?? internalColumnFilters;
   const setColumnFilters = onColumnFiltersChange ?? setInternalColumnFilters;
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data,
     columns,
-    filterFns: {
-      arrIncludesExact,
-    },
-    getCoreRowModel: getCoreRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     ...(isServerSide
@@ -454,7 +449,7 @@ function useDataTableController<TData, TValue>({
     showClientPagination: !(isServerSide || useFilterToolbar),
   };
 }
-function DataTableView<TData, TValue>({
+function DataTableView<TData extends RowData>({
   filterColumn = "name",
   filterDefinitions,
   filterPlaceholder = "Filter...",
@@ -479,8 +474,7 @@ function DataTableView<TData, TValue>({
   collectionEmpty,
   showCollectionEmpty,
   toolbarLabels,
-}: DataTableProps<TData, TValue> &
-  ReturnType<typeof useDataTableController<TData, TValue>>) {
+}: DataTableProps<TData> & ReturnType<typeof useDataTableController<TData>>) {
   return (
     <div
       className={cn(

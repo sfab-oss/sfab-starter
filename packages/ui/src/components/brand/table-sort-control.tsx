@@ -1,6 +1,6 @@
 "use client";
 
-import type { SortingState, Table } from "@tanstack/react-table";
+import type { RowData, SortingState, Table } from "@tanstack/react-table";
 import { SortIcon } from "@workspace/ui/components/brand/sortable-header";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/shadcn/popover";
 import { Separator } from "@workspace/ui/components/shadcn/separator";
+import type { DataTableFeatures } from "@workspace/ui/lib/data-table-features";
 import { Check } from "lucide-react";
 import { useState } from "react";
 
@@ -45,7 +46,9 @@ const DEFAULT_SORT_LABELS: Required<Omit<TableSortLabels, "sortedByAria">> & {
 };
 
 /** Sortable columns from the table instance (`meta.label` on each column def). */
-export function getSortableColumns<T>(table: Table<T>): SortableColumn[] {
+export function getSortableColumns<TData extends RowData>(
+  table: Table<DataTableFeatures, TData>
+): SortableColumn[] {
   return table
     .getAllLeafColumns()
     .filter((column) => column.getCanSort())

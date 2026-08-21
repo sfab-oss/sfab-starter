@@ -17,7 +17,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
     "@tanstack/react-query": "5.101.4",
-    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-table": "9.1.2",
     "@workspace/contract": "workspace:*",
     "@workspace/ui": "workspace:*",
     "ai": "7.0.68",
