@@ -5,7 +5,7 @@ overwritten by the next sync.
 
 ## draft (9)
 
-- [`ALW-828`](./ALW-828.md) — Bump starter Vite 8 + TanStack router/start/query/devtools
+- [`ALW-829`](./ALW-829.md) — Migrate starter TanStack Table v8 → v9
 - [`ALW-482`](./ALW-482.md) — UX layout review — screens, dialogs, empty states
 - [`ALW-428`](./ALW-428.md) — QA: cross-cutting UX — theming, states, responsive, a11y, i18n
 - [`ALW-425`](./ALW-425.md) — QA: catalog end-to-end — ResourceTable, product CRUD, image upload
@@ -14,6 +14,10 @@ overwritten by the next sync.
 - [`ALW-350`](./ALW-350.md) — Build the first capability pack (POS) + complete the pack-install mechanism (ADR-0017)
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
+
+## ready (1)
+
+- [`ALW-828`](./ALW-828.md) — Bump starter Vite 8 + TanStack router/start/query/devtools
 
 ## merged (73)
 
