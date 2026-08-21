@@ -172,7 +172,6 @@
     "home_welcome": "0e2226b5235f0ff94a276eb4d07a3bfea74b7e3b8b85e9efca6c18430f041bf8",
     "invite_admin_only": "9760b6b5f192e516c485c9f9e86c3842523d95338d2dbdb487c54f48a87bc348",
     "invite_email_invalid": "4eaf1d802905004b21b470008bbe5a5c437d1e45a38ed813c4e89531722e800b",
-    "invite_email_placeholder": "ddf4559b142cfca2c3daca6b9a3180a22edf963715302e0b719a91aa46e69e49",
     "invite_failed": "4f6f278c062b674c4ea9c6d88229ca2a61ce184fe7c460caa637098ec67e026a",
     "invite_rbac_denied": "9cb1c3af5b0e309dcd8239ad8688e8bfb36fedb5ae7cd444fe27abd9b9a1c715",
     "invite_remove_admin_only": "b01e78ad99a818921dac795dc12730102b68ba24afb18bd90b1b959f3f3aade4",
@@ -218,7 +217,7 @@
     "nav_catalog": "3877d14889a9909b9c6ec38d2390599cdc741b73e37505864863ef8e57fb3594",
     "nav_documents": "b4e929d8bcfe04189801a8ed61496d177d9e30d1b2826f4c9c4d00b3e705fa8b",
     "nav_entities": "7fdb3ccec0e0d23662eb4c22eb63a64c5873e7c383efde354432152eed55c9ce",
-    "nav_home": "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c",
+    "nav_home": "2b065c7c9ce466e5ebcad757987d5d660ee4c9ea708bc62c43444b53334738ba",
     "nav_platform": "c78ffe19571018fbc93a78873969046fe1a80c3d21e5d20fbb2ca17c7c53a144",
     "nav_settings": "74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8",
     "onboarding_footer": "732f2284869833bf697a7c82e376a08cb6e35f1f47416fdbf1bfc575d825239b",
@@ -512,6 +511,11 @@
     "org_loading": "0dc16abf97d88e78f054a6228250bd810611a9b437b51da41c7a2e532234a7de",
     "entities_empty_filtered": "8af9e8440726451788865ee20b4f4f0319183e95d7e13627aef151beb2484fbf",
     "entities_empty_hint": "fe80947f6c91abf8da300373da1627ffc9d48cca5204037e2362680ecb972168",
-    "entities_empty_title": "d8e3a2d4f9e06274eaf205e31b43e4d86c5964df09d1ff01d7d292a8841f4047"
+    "entities_empty_title": "d8e3a2d4f9e06274eaf205e31b43e4d86c5964df09d1ff01d7d292a8841f4047",
+    "auth_reset_invalid_title": "f2ca96a5df52f0a4a14a62ec53b1d3e48f13ccb2560610823371ad21eb6f88bd",
+    "catalog_loading_list": "2ba9bb5fc3506d1b3fbd0364cae877518cc7085228bbe56586e0b74843ab18c8",
+    "entities_loading_list": "d7fb0146b337e721b18db79a2fd91cea7e8f038251dcc22dff8161474079dc4a",
+    "home_link_entities_desc": "fead174f33e6a0fc3236d72746e34a56ed59d940a496d629c881648bb4c4cf36",
+    "members_last_owner": "bb094c832caed978fa9a95d43eb843d78f3d437fd9d1e9c9157178f15ee885a1"
   }
 }

@@ -19,7 +19,7 @@ import { Input } from "@workspace/ui/components/shadcn/input";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import { LanguageSwitcher } from "@/components/common/language-switcher";
+import { AuthPage } from "@/components/common/auth-page";
 import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
@@ -62,10 +62,7 @@ function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-muted">
-      <div className="absolute top-4 right-4">
-        <LanguageSwitcher />
-      </div>
+    <AuthPage>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{m.auth_login_title()}</CardTitle>
@@ -87,7 +84,7 @@ function LoginPage() {
                       aria-invalid={fieldState.invalid}
                       autoComplete="email"
                       id={field.name}
-                      placeholder="m@example.com"
+                      placeholder={m.auth_email_placeholder()}
                       type="email"
                     />
                     {fieldState.invalid && (
@@ -101,17 +98,9 @@ function LoginPage() {
                 name="password"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <div className="flex items-center">
-                      <FieldLabel htmlFor={field.name}>
-                        {m.auth_password()}
-                      </FieldLabel>
-                      <Link
-                        className="ml-auto text-sm underline-offset-4 hover:underline"
-                        to="/forgot-password"
-                      >
-                        {m.auth_forgot_password()}
-                      </Link>
-                    </div>
+                    <FieldLabel htmlFor={field.name}>
+                      {m.auth_password()}
+                    </FieldLabel>
                     <Input
                       {...field}
                       aria-invalid={fieldState.invalid}
@@ -122,6 +111,12 @@ function LoginPage() {
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
+                    <Link
+                      className="text-sm underline-offset-4 hover:underline"
+                      to="/forgot-password"
+                    >
+                      {m.auth_forgot_password()}
+                    </Link>
                   </Field>
                 )}
               />
@@ -145,6 +140,6 @@ function LoginPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </AuthPage>
   );
 }

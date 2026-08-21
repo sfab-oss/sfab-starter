@@ -122,6 +122,7 @@ export function TableSortControl({
                   const isActive = isActiveColumn && active?.desc === desc;
                   return (
                     <Button
+                      aria-label={`${column.label}, ${desc ? labels.descending : labels.ascending}`}
                       className="h-8 w-full justify-between px-2 font-normal"
                       key={`${column.id}-${desc ? "desc" : "asc"}`}
                       onClick={() =>

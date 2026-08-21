@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/shadcn/card";
-import { FileText, Package, Settings } from "lucide-react";
+import { FileText, Package, Settings, Users } from "lucide-react";
 import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { m } from "@/paraglide/messages.js";
 
@@ -34,6 +34,12 @@ function TodayPage() {
       icon: Package,
     },
     {
+      to: "/entities" as const,
+      title: m.entities_title(),
+      description: m.home_link_entities_desc(),
+      icon: Users,
+    },
+    {
       to: "/documents" as const,
       title: m.documents_title(),
       description: m.home_link_documents_desc(),
@@ -52,9 +58,9 @@ function TodayPage() {
       <ShellHeader>
         <ShellHeaderSidebarTrigger className="-ml-1" />
         <AppBreadcrumbs
-          items={[{ title: m.home_title() }]}
-          homeLabel={m.nav_home()}
           ellipsisAriaLabel={m.breadcrumb_ellipsis_aria()}
+          items={[{ title: m.home_title() }]}
+          showHome={false}
         />
         <ShellHeaderActions />
       </ShellHeader>
@@ -68,7 +74,7 @@ function TodayPage() {
             <p className="text-muted-foreground">{m.home_subtitle()}</p>
           </div>
 
-          <div className="grid @2xl:grid-cols-3 @md:grid-cols-2 gap-4">
+          <div className="grid @md:grid-cols-2 gap-4">
             {quickLinks.map(({ to, title, description, icon: Icon }) => (
               <Link className="group" key={to} to={to}>
                 <Card className="h-full transition-colors group-hover:border-primary/50">

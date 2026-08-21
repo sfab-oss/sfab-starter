@@ -34,10 +34,16 @@ import {
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from "react";
-import type { OutgoingMessage } from "@/components/chat/dock/chat-tabs-store";
+import { useChatOrgConnection } from "@/components/chat/connection/chat-org-connection";
+import {
+  type OutgoingMessage,
+  useChatTabsStore,
+  useFocusedTabId,
+} from "@/components/chat/dock/chat-tabs-store";
 import { PageContextChip } from "@/components/chat/page-context-chip";
 import { usePageContext } from "@/components/providers/page-context";
 import { useChatCapabilities } from "@/hooks/use-chat-capabilities";
@@ -141,6 +147,7 @@ interface ChatInputInnerProps {
   onSubmit: (message: OutgoingMessage) => Promise<unknown>;
   placeholder: string;
   status: ChatStatus;
+  tabKey: string;
 }
 
 function ChatInputInner({
@@ -149,8 +156,12 @@ function ChatInputInner({
   onSubmit,
   placeholder,
   status,
+  tabKey,
 }: ChatInputInnerProps) {
   const livePageContext = usePageContext();
+  const { organizationId } = useChatOrgConnection();
+  const focusedTabId = useFocusedTabId(organizationId);
+  const isBodyOpen = useChatTabsStore((s) => s.isBodyOpen);
   const { data: capabilities } = useChatCapabilities();
   const supportsImageInput = capabilities?.supportsImageInput === true;
   const [text, setText] = useState("");
@@ -159,6 +170,15 @@ function ChatInputInner({
   const [pinnedContext, setPinnedContext] = useState(livePageContext);
   const [dismissed, setDismissed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // biome-ignore lint/plugin/no-use-effect: move keyboard focus into the composer when this tab is the open dock
+  useEffect(() => {
+    if (disabled || !isBodyOpen || focusedTabId !== tabKey) {
+      return;
+    }
+    textareaRef.current?.focus();
+  }, [disabled, focusedTabId, isBodyOpen, tabKey]);
 
   const textController = {
     value: text,
@@ -354,6 +374,7 @@ function ChatInputInner({
           onChange={(event) => setText(event.currentTarget.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
+          ref={textareaRef}
           value={text}
         />
         <InputGroupAddon align="block-end" className="pt-1">
@@ -418,12 +439,14 @@ export function ChatInput({
   onSubmit,
   placeholder = m.chat_placeholder_connected(),
   status,
+  tabKey,
 }: {
   disabled?: boolean;
   onStop?: () => void;
   onSubmit: (message: OutgoingMessage) => Promise<unknown>;
   placeholder?: string;
   status: ChatStatus;
+  tabKey: string;
 }) {
   return (
     <div className="relative bottom-0 z-10 w-full bg-background pt-2">
@@ -434,6 +457,7 @@ export function ChatInput({
           onSubmit={onSubmit}
           placeholder={placeholder}
           status={status}
+          tabKey={tabKey}
         />
       </div>
     </div>

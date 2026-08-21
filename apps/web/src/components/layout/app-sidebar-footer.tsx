@@ -15,6 +15,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/shadcn/dropdown-menu";
 import {
@@ -25,10 +28,20 @@ import {
 } from "@workspace/ui/components/shadcn/sidebar";
 import { Skeleton } from "@workspace/ui/components/shadcn/skeleton";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
-import { AlertCircle, ChevronsUpDown, LogOut, Plus } from "lucide-react";
-import { LanguageSwitcher } from "@/components/common/language-switcher";
-import { ThemeToggle } from "@/components/common/theme-toggle";
+import {
+  AlertCircle,
+  ChevronsUpDown,
+  Languages,
+  LogOut,
+  Plus,
+} from "lucide-react";
+import { LanguageMenuItems } from "@/components/common/language-switcher";
+import { ThemeMenuItem } from "@/components/common/theme-toggle";
 import { m } from "@/paraglide/messages.js";
+
+function orgInitials(name: string | undefined) {
+  return name?.slice(0, 2).toUpperCase() ?? "??";
+}
 
 function SidebarFooterSkeleton() {
   return (
@@ -162,7 +175,7 @@ export function AppSidebarFooter() {
                 src={displayOrganization?.logo ?? undefined}
               />
               <AvatarFallback className="rounded-lg">
-                {displayOrganization?.name?.slice(0, 2).toUpperCase() ?? "??"}
+                {orgInitials(displayOrganization?.name)}
               </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
@@ -192,7 +205,7 @@ export function AppSidebarFooter() {
                   <Avatar className="size-6 rounded-sm">
                     <AvatarImage src={organization.logo ?? undefined} />
                     <AvatarFallback className="rounded-sm">
-                      {organization.name?.charAt(0).toUpperCase()}
+                      {orgInitials(organization.name)}
                     </AvatarFallback>
                   </Avatar>
                   {organization.name}
@@ -237,10 +250,16 @@ export function AppSidebarFooter() {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <div className="flex items-center gap-1 p-1">
-              <LanguageSwitcher />
-              <ThemeToggle variant="icon" />
-            </div>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Languages className="size-4" />
+                {m.language_label()}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <LanguageMenuItems />
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <ThemeMenuItem />
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="mr-2 size-4" />

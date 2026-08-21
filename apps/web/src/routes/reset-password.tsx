@@ -21,6 +21,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Check, Circle } from "lucide-react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import { AuthPage } from "@/components/common/auth-page";
 import { m } from "@/paraglide/messages.js";
 
 const resetPasswordSearchSchema = z.object({
@@ -193,10 +194,12 @@ function ResetPasswordPage() {
   const invalidLink = error === "INVALID_TOKEN" || !token;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted p-4">
+    <AuthPage>
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle>{m.auth_reset_title()}</CardTitle>
+          <CardTitle>
+            {invalidLink ? m.auth_reset_invalid_title() : m.auth_reset_title()}
+          </CardTitle>
           <CardDescription>
             {invalidLink ? m.auth_reset_invalid() : m.auth_reset_description()}
           </CardDescription>
@@ -302,6 +305,6 @@ function ResetPasswordPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </AuthPage>
   );
 }
