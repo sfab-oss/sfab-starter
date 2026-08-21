@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
-    "@tanstack/react-query": "^5.101.2",
+    "@tanstack/react-query": "5.101.4",
     "@tanstack/react-table": "^8.21.3",
     "@workspace/contract": "workspace:*",
     "@workspace/ui": "workspace:*",
@@ -36,12 +36,12 @@
     "@types/node": "^22.20.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.2.0",
+    "@vitejs/plugin-react": "6.0.5",
     "@workspace/tsconfig": "workspace:*",
     "jsdom": "^27.4.0",
     "shadcn": "4.11.0",
     "tsx": "^4.23.0",
     "typescript": "7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "4.1.11"
   }
 }

@@ -32,6 +32,6 @@
     "@workspace/env": "workspace:*",
     "@workspace/tsconfig": "workspace:*",
     "typescript": "7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "4.1.11"
   }
 }

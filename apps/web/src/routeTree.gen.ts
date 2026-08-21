@@ -9,43 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ProtectedRouteImport } from './routes/_protected'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
-import { Route as AcceptInvitationIdRouteImport } from './routes/accept-invitation.$id'
 import { Route as ProtectedSettingsRouteRouteImport } from './routes/_protected/settings/route'
-import { Route as ProtectedSettingsIndexRouteImport } from './routes/_protected/settings/index'
-import { Route as ProtectedEntitiesIndexRouteImport } from './routes/_protected/entities/index'
-import { Route as ProtectedDocumentsIndexRouteImport } from './routes/_protected/documents/index'
+import { Route as AcceptInvitationIdRouteImport } from './routes/accept-invitation.$id'
 import { Route as ProtectedCatalogIndexRouteImport } from './routes/_protected/catalog/index'
-import { Route as ProtectedSettingsMembersRouteImport } from './routes/_protected/settings/members'
-import { Route as ProtectedSettingsGeneralRouteImport } from './routes/_protected/settings/general'
-import { Route as ProtectedEntitiesIdRouteImport } from './routes/_protected/entities/$id'
-import { Route as ProtectedDocumentsIdRouteImport } from './routes/_protected/documents/$id'
 import { Route as ProtectedCatalogIdRouteImport } from './routes/_protected/catalog/$id'
+import { Route as ProtectedDocumentsIndexRouteImport } from './routes/_protected/documents/index'
+import { Route as ProtectedDocumentsIdRouteImport } from './routes/_protected/documents/$id'
+import { Route as ProtectedEntitiesIndexRouteImport } from './routes/_protected/entities/index'
+import { Route as ProtectedEntitiesIdRouteImport } from './routes/_protected/entities/$id'
+import { Route as ProtectedSettingsIndexRouteImport } from './routes/_protected/settings/index'
+import { Route as ProtectedSettingsGeneralRouteImport } from './routes/_protected/settings/general'
+import { Route as ProtectedSettingsMembersRouteImport } from './routes/_protected/settings/members'
 
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const ProtectedRoute = ProtectedRouteImport.update({
+  id: '/_protected',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -53,8 +37,24 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProtectedRoute = ProtectedRouteImport.update({
-  id: '/_protected',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedIndexRoute = ProtectedIndexRouteImport.update({
@@ -62,56 +62,19 @@ const ProtectedIndexRoute = ProtectedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const AcceptInvitationIdRoute = AcceptInvitationIdRouteImport.update({
-  id: '/accept-invitation/$id',
-  path: '/accept-invitation/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProtectedSettingsRouteRoute = ProtectedSettingsRouteRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ProtectedSettingsIndexRoute = ProtectedSettingsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProtectedSettingsRouteRoute,
-} as any)
-const ProtectedEntitiesIndexRoute = ProtectedEntitiesIndexRouteImport.update({
-  id: '/entities/',
-  path: '/entities/',
-  getParentRoute: () => ProtectedRoute,
-} as any)
-const ProtectedDocumentsIndexRoute = ProtectedDocumentsIndexRouteImport.update({
-  id: '/documents/',
-  path: '/documents/',
-  getParentRoute: () => ProtectedRoute,
+const AcceptInvitationIdRoute = AcceptInvitationIdRouteImport.update({
+  id: '/accept-invitation/$id',
+  path: '/accept-invitation/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedCatalogIndexRoute = ProtectedCatalogIndexRouteImport.update({
   id: '/catalog/',
   path: '/catalog/',
-  getParentRoute: () => ProtectedRoute,
-} as any)
-const ProtectedSettingsMembersRoute =
-  ProtectedSettingsMembersRouteImport.update({
-    id: '/members',
-    path: '/members',
-    getParentRoute: () => ProtectedSettingsRouteRoute,
-  } as any)
-const ProtectedSettingsGeneralRoute =
-  ProtectedSettingsGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
-    getParentRoute: () => ProtectedSettingsRouteRoute,
-  } as any)
-const ProtectedEntitiesIdRoute = ProtectedEntitiesIdRouteImport.update({
-  id: '/entities/$id',
-  path: '/entities/$id',
-  getParentRoute: () => ProtectedRoute,
-} as any)
-const ProtectedDocumentsIdRoute = ProtectedDocumentsIdRouteImport.update({
-  id: '/documents/$id',
-  path: '/documents/$id',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedCatalogIdRoute = ProtectedCatalogIdRouteImport.update({
@@ -119,6 +82,43 @@ const ProtectedCatalogIdRoute = ProtectedCatalogIdRouteImport.update({
   path: '/catalog/$id',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedDocumentsIndexRoute = ProtectedDocumentsIndexRouteImport.update({
+  id: '/documents/',
+  path: '/documents/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedDocumentsIdRoute = ProtectedDocumentsIdRouteImport.update({
+  id: '/documents/$id',
+  path: '/documents/$id',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedEntitiesIndexRoute = ProtectedEntitiesIndexRouteImport.update({
+  id: '/entities/',
+  path: '/entities/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedEntitiesIdRoute = ProtectedEntitiesIdRouteImport.update({
+  id: '/entities/$id',
+  path: '/entities/$id',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedSettingsIndexRoute = ProtectedSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProtectedSettingsRouteRoute,
+} as any)
+const ProtectedSettingsGeneralRoute =
+  ProtectedSettingsGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () => ProtectedSettingsRouteRoute,
+  } as any)
+const ProtectedSettingsMembersRoute =
+  ProtectedSettingsMembersRouteImport.update({
+    id: '/members',
+    path: '/members',
+    getParentRoute: () => ProtectedSettingsRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ProtectedIndexRoute
@@ -250,32 +250,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/_protected': {
+      id: '/_protected'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ProtectedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -285,11 +264,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_protected': {
-      id: '/_protected'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof ProtectedRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/': {
@@ -299,13 +299,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/accept-invitation/$id': {
-      id: '/accept-invitation/$id'
-      path: '/accept-invitation/$id'
-      fullPath: '/accept-invitation/$id'
-      preLoaderRoute: typeof AcceptInvitationIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_protected/settings': {
       id: '/_protected/settings'
       path: '/settings'
@@ -313,18 +306,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedSettingsRouteRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/settings/': {
-      id: '/_protected/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof ProtectedSettingsIndexRouteImport
-      parentRoute: typeof ProtectedSettingsRouteRoute
+    '/accept-invitation/$id': {
+      id: '/accept-invitation/$id'
+      path: '/accept-invitation/$id'
+      fullPath: '/accept-invitation/$id'
+      preLoaderRoute: typeof AcceptInvitationIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_protected/entities/': {
-      id: '/_protected/entities/'
-      path: '/entities'
-      fullPath: '/entities/'
-      preLoaderRoute: typeof ProtectedEntitiesIndexRouteImport
+    '/_protected/catalog/': {
+      id: '/_protected/catalog/'
+      path: '/catalog'
+      fullPath: '/catalog/'
+      preLoaderRoute: typeof ProtectedCatalogIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/catalog/$id': {
+      id: '/_protected/catalog/$id'
+      path: '/catalog/$id'
+      fullPath: '/catalog/$id'
+      preLoaderRoute: typeof ProtectedCatalogIdRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/documents/': {
@@ -334,18 +334,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedDocumentsIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/catalog/': {
-      id: '/_protected/catalog/'
-      path: '/catalog'
-      fullPath: '/catalog/'
-      preLoaderRoute: typeof ProtectedCatalogIndexRouteImport
+    '/_protected/documents/$id': {
+      id: '/_protected/documents/$id'
+      path: '/documents/$id'
+      fullPath: '/documents/$id'
+      preLoaderRoute: typeof ProtectedDocumentsIdRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/settings/members': {
-      id: '/_protected/settings/members'
-      path: '/members'
-      fullPath: '/settings/members'
-      preLoaderRoute: typeof ProtectedSettingsMembersRouteImport
+    '/_protected/entities/': {
+      id: '/_protected/entities/'
+      path: '/entities'
+      fullPath: '/entities/'
+      preLoaderRoute: typeof ProtectedEntitiesIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/entities/$id': {
+      id: '/_protected/entities/$id'
+      path: '/entities/$id'
+      fullPath: '/entities/$id'
+      preLoaderRoute: typeof ProtectedEntitiesIdRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/settings/': {
+      id: '/_protected/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof ProtectedSettingsIndexRouteImport
       parentRoute: typeof ProtectedSettingsRouteRoute
     }
     '/_protected/settings/general': {
@@ -355,26 +369,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedSettingsGeneralRouteImport
       parentRoute: typeof ProtectedSettingsRouteRoute
     }
-    '/_protected/entities/$id': {
-      id: '/_protected/entities/$id'
-      path: '/entities/$id'
-      fullPath: '/entities/$id'
-      preLoaderRoute: typeof ProtectedEntitiesIdRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/documents/$id': {
-      id: '/_protected/documents/$id'
-      path: '/documents/$id'
-      fullPath: '/documents/$id'
-      preLoaderRoute: typeof ProtectedDocumentsIdRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/catalog/$id': {
-      id: '/_protected/catalog/$id'
-      path: '/catalog/$id'
-      fullPath: '/catalog/$id'
-      preLoaderRoute: typeof ProtectedCatalogIdRouteImport
-      parentRoute: typeof ProtectedRoute
+    '/_protected/settings/members': {
+      id: '/_protected/settings/members'
+      path: '/members'
+      fullPath: '/settings/members'
+      preLoaderRoute: typeof ProtectedSettingsMembersRouteImport
+      parentRoute: typeof ProtectedSettingsRouteRoute
     }
   }
 }
