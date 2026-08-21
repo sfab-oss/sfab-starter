@@ -98,11 +98,9 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
           onBlur={(e) => {
             const raw = Number(e.target.value);
             if (!Number.isFinite(raw) || raw < 0) {
-              e.target.value = String(
-                formatMajorInputValue(
-                  minorToMajor(line.unitPrice, currencyCode),
-                  currencyCode
-                )
+              e.target.value = formatMajorInputValue(
+                minorToMajor(line.unitPrice, currencyCode),
+                currencyCode
               );
               toast.error(m.documents_line_price_negative());
               return;

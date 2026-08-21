@@ -56,11 +56,9 @@ function productFilterDefinitions(): TableFilterDefinition[] {
 function resolveCollectionEmpty({
   isTrueEmpty,
   isPresetEmpty,
-  clearFilters,
 }: {
   isTrueEmpty: boolean;
   isPresetEmpty: boolean;
-  clearFilters: () => void;
 }) {
   if (isTrueEmpty) {
     return (
@@ -75,15 +73,8 @@ function resolveCollectionEmpty({
 
   if (isPresetEmpty) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+      <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
         <p className="font-medium text-sm">{m.catalog_empty_filtered()}</p>
-        <button
-          className="text-primary text-sm underline-offset-4 hover:underline"
-          onClick={clearFilters}
-          type="button"
-        >
-          {m.catalog_clear_filters()}
-        </button>
       </div>
     );
   }
@@ -183,16 +174,6 @@ function CatalogPage() {
     [columnFilters, navigate]
   );
 
-  const clearFilters = useCallback(() => {
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        search: undefined,
-        page: 1,
-      }),
-    });
-  }, [navigate]);
-
   const pageCount = productsResponse
     ? Math.ceil(productsResponse.total / searchParams.pageSize)
     : 0;
@@ -205,7 +186,6 @@ function CatalogPage() {
   const collectionEmpty = resolveCollectionEmpty({
     isTrueEmpty: isEmptyResult && !hasActiveFilters,
     isPresetEmpty: isEmptyResult && hasActiveFilters,
-    clearFilters,
   });
 
   const columns: DataTableColumnDef<Product>[] = [
@@ -312,7 +292,6 @@ function CatalogPage() {
           </div>
         ) : (
           <ResourceTable
-            className="min-h-0 flex-1"
             collectionEmpty={collectionEmpty}
             columnFilters={columnFilters}
             columns={columns}

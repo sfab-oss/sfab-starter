@@ -52,12 +52,12 @@ export function minorToMajorInput(
   );
 }
 
+/** Decimal string for money inputs so the DOM never shows IEEE float noise. */
 export function formatMajorInputValue(
   major: number,
   currencyCode: string
-): number {
-  const exponent = getMinorExponent(currencyCode);
-  return Number.parseFloat(major.toFixed(exponent));
+): string {
+  return major.toFixed(getMinorExponent(currencyCode));
 }
 
 export function majorToMinor(major: number, currencyCode: string): MoneyMinor {

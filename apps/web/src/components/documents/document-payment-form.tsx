@@ -30,6 +30,19 @@ import { m } from "@/paraglide/messages.js";
 
 export const DOCUMENT_PAYMENT_FORM_ID = "document-payment-form";
 
+function paymentMethodLabel(method: string) {
+  switch (method) {
+    case "cash":
+      return m.documents_payment_cash();
+    case "transfer":
+      return m.documents_payment_transfer();
+    case "card":
+      return m.documents_payment_card();
+    default:
+      return method;
+  }
+}
+
 function createDocumentPaymentSchema(balanceDue: number, currencyCode: string) {
   return z
     .object({
@@ -141,8 +154,11 @@ export function DocumentPaymentForm({
                 }}
                 value={field.value}
               >
-                <SelectTrigger aria-invalid={fieldState.invalid}>
-                  <SelectValue />
+                <SelectTrigger
+                  aria-invalid={fieldState.invalid}
+                  aria-label={m.documents_payment_method()}
+                >
+                  <SelectValue>{paymentMethodLabel(field.value)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cash">
