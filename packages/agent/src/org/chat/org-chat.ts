@@ -296,7 +296,7 @@ export class OrgChat extends Think<Cloudflare.Env> {
     );
 
     return {
-      system: orgBlock,
+      instructions: orgBlock,
       model: this.resolvedChatModel,
     };
   }
