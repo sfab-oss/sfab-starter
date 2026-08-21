@@ -67,8 +67,7 @@ A real, working app, not a blank page:
 - **Authentication and organizations** via Better Auth with the organization
   plugin: sign-in, multi-tenant orgs, and org-scoped access wired through every
   layer.
-- **Catalog.** Products with integer-minor-unit pricing. See
-  `packages/core/src/money.ts`.
+- **Catalog.** Products with SKU, price, and stock.
 - **Documents.** Quotes, orders, and invoices end-to-end: draft, line items,
   finalize with a folio, activity log. Design notes:
   [`docs/architecture/transaction-core.md`](docs/architecture/transaction-core.md).
