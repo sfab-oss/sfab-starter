@@ -32,7 +32,7 @@
     "@ai-sdk/react": "4.0.71",
     "@cloudflare/shell": "0.4.3",
     "@cloudflare/think": "0.16.0",
-    "@cloudflare/vite-plugin": "1.43.0",
+    "@cloudflare/vite-plugin": "1.53.0",
     "@hono/zod-validator": "^0.7.6",
     "@hookform/resolvers": "^5.4.0",
     "@tailwindcss/vite": "^4.3.2",
@@ -72,7 +72,7 @@
   "devDependencies": {
     "@babel/core": "8.0.1",
     "@babel/plugin-proposal-decorators": "8.0.2",
-    "@cloudflare/vitest-pool-workers": "0.16.20",
+    "@cloudflare/vitest-pool-workers": "0.22.0",
     "@inlang/paraglide-js": "2.21.0",
     "@playwright/test": "^1.61.1",
     "@rolldown/plugin-babel": "0.2.3",
@@ -93,6 +93,6 @@
     "vite": "8.2.1",
     "vite-tsconfig-paths": "6.1.1",
     "vitest": "4.1.11",
-    "wrangler": "4.107.0"
+    "wrangler": "4.124.0"
   }
 }
