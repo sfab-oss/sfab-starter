@@ -31,6 +31,13 @@ AI_GATEWAY_API_KEY=
 # CF_ACCOUNT_ID=
 # WORKERS_AI_API_TOKEN=
 
+# Voice lab (lane 1): Flux STT uses the Workers AI binding; TTS is ElevenLabs.
+# Flux still needs a Cloudflare account logged into wrangler. The LLM in
+# onTurn follows ORG_CHAT_PROVIDER above (default Vercel AI Gateway).
+ELEVENLABS_API_KEY=
+# Optional. Default is Rachel (21m00Tcm4TlvDq8ikWAM).
+# ELEVENLABS_VOICE_ID=
+
 # Cloudflare AI Gateway (optional, fronts the openai-compatible providers for
 # caching/observability). Set all three to enable. For a third-party upstream
 # like GLM, first create a Custom Provider in the CF dashboard/API with slug

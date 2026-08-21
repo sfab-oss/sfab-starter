@@ -3,6 +3,7 @@ import {
   Home,
   type LucideIcon,
   Package,
+  Phone,
   Settings,
   Users,
 } from "lucide-react";
@@ -18,6 +19,7 @@ export interface PlatformNavigationItem {
 export function getPlatformNavigationItems(): PlatformNavigationItem[] {
   return [
     { title: m.nav_home(), url: "/", icon: Home },
+    { title: m.nav_voice(), url: "/voice", icon: Phone },
     { title: m.nav_catalog(), url: "/catalog", icon: Package },
     { title: m.nav_entities(), url: "/entities", icon: Users },
     { title: m.nav_documents(), url: "/documents", icon: FileText },

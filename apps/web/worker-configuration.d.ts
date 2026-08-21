@@ -4,6 +4,7 @@
 interface __BaseEnv_Env {
 	R2_BUCKET: R2Bucket;
 	DB: D1Database;
+	AI: Ai;
 	BETTER_AUTH_SECRET: string;
 	BETTER_AUTH_URL: string;
 	RESEND_API_KEY: string;
@@ -11,12 +12,15 @@ interface __BaseEnv_Env {
 	MOCK_SEND_EMAIL: string;
 	ORG_CHAT_PROVIDER: string;
 	ZAI_API_KEY: string;
+	AI_GATEWAY_API_KEY: string;
+	ELEVENLABS_API_KEY: string;
 	OrgAgent: DurableObjectNamespace<import("./src/server").OrgAgent>;
+	VoiceLabAgent: DurableObjectNamespace<import("./src/server").VoiceLabAgent>;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
 		mainModule: typeof import("./src/server");
-		durableNamespaces: "OrgAgent";
+		durableNamespaces: "OrgAgent" | "VoiceLabAgent";
 	}
 	interface Env extends __BaseEnv_Env {}
 }
@@ -25,7 +29,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "BETTER_AUTH_SECRET" | "BETTER_AUTH_URL" | "RESEND_API_KEY" | "EMAIL_SENDER" | "MOCK_SEND_EMAIL" | "ORG_CHAT_PROVIDER" | "ZAI_API_KEY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "BETTER_AUTH_SECRET" | "BETTER_AUTH_URL" | "RESEND_API_KEY" | "EMAIL_SENDER" | "MOCK_SEND_EMAIL" | "ORG_CHAT_PROVIDER" | "ZAI_API_KEY" | "AI_GATEWAY_API_KEY" | "ELEVENLABS_API_KEY">> {}
 }
 
 // Begin runtime types

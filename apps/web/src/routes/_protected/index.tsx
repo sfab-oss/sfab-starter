@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/shadcn/card";
-import { FileText, Package, Settings, Users } from "lucide-react";
+import { FileText, Package, Phone, Settings, Users } from "lucide-react";
 import { ShellHeaderSidebarTrigger } from "@/components/layout/shell-header-sidebar-trigger";
 import { m } from "@/paraglide/messages.js";
 
@@ -27,6 +27,12 @@ export const Route = createFileRoute("/_protected/")({
  */
 function TodayPage() {
   const quickLinks = [
+    {
+      to: "/voice" as const,
+      title: m.voice_title(),
+      description: m.home_link_voice_desc(),
+      icon: Phone,
+    },
     {
       to: "/catalog" as const,
       title: m.catalog_title(),

@@ -13,6 +13,7 @@ export { OrgAgent } from "@workspace/agent/org";
 // migration (they share OrgAgent's storage). OrgSubAgent is a facet under
 // OrgChat, spawned by the `delegate` agent tool.
 export { OrgChat, OrgSubAgent } from "@workspace/agent/org/chat";
+export { VoiceLabAgent } from "@workspace/agent/voice";
 
 const app = new Hono()
   .use("*", logger())

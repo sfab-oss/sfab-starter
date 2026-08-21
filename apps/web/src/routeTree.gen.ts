@@ -17,6 +17,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
 import { Route as ProtectedSettingsRouteRouteImport } from './routes/_protected/settings/route'
+import { Route as ProtectedVoiceRouteImport } from './routes/_protected/voice'
 import { Route as AcceptInvitationIdRouteImport } from './routes/accept-invitation.$id'
 import { Route as ProtectedCatalogIndexRouteImport } from './routes/_protected/catalog/index'
 import { Route as ProtectedCatalogIdRouteImport } from './routes/_protected/catalog/$id'
@@ -65,6 +66,11 @@ const ProtectedIndexRoute = ProtectedIndexRouteImport.update({
 const ProtectedSettingsRouteRoute = ProtectedSettingsRouteRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedVoiceRoute = ProtectedVoiceRouteImport.update({
+  id: '/voice',
+  path: '/voice',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const AcceptInvitationIdRoute = AcceptInvitationIdRouteImport.update({
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/settings': typeof ProtectedSettingsRouteRouteWithChildren
+  '/voice': typeof ProtectedVoiceRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/catalog/$id': typeof ProtectedCatalogIdRoute
   '/documents/$id': typeof ProtectedDocumentsIdRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/voice': typeof ProtectedVoiceRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/': typeof ProtectedIndexRoute
   '/catalog/$id': typeof ProtectedCatalogIdRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_protected/settings': typeof ProtectedSettingsRouteRouteWithChildren
+  '/_protected/voice': typeof ProtectedVoiceRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/_protected/': typeof ProtectedIndexRoute
   '/_protected/catalog/$id': typeof ProtectedCatalogIdRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/settings'
+    | '/voice'
     | '/accept-invitation/$id'
     | '/catalog/$id'
     | '/documents/$id'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/reset-password'
     | '/signup'
+    | '/voice'
     | '/accept-invitation/$id'
     | '/'
     | '/catalog/$id'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_protected/settings'
+    | '/_protected/voice'
     | '/accept-invitation/$id'
     | '/_protected/'
     | '/_protected/catalog/$id'
@@ -304,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof ProtectedSettingsRouteRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/voice': {
+      id: '/_protected/voice'
+      path: '/voice'
+      fullPath: '/voice'
+      preLoaderRoute: typeof ProtectedVoiceRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/accept-invitation/$id': {
@@ -399,6 +418,7 @@ const ProtectedSettingsRouteRouteWithChildren =
 
 interface ProtectedRouteChildren {
   ProtectedSettingsRouteRoute: typeof ProtectedSettingsRouteRouteWithChildren
+  ProtectedVoiceRoute: typeof ProtectedVoiceRoute
   ProtectedIndexRoute: typeof ProtectedIndexRoute
   ProtectedCatalogIdRoute: typeof ProtectedCatalogIdRoute
   ProtectedDocumentsIdRoute: typeof ProtectedDocumentsIdRoute
@@ -410,6 +430,7 @@ interface ProtectedRouteChildren {
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedSettingsRouteRoute: ProtectedSettingsRouteRouteWithChildren,
+  ProtectedVoiceRoute: ProtectedVoiceRoute,
   ProtectedIndexRoute: ProtectedIndexRoute,
   ProtectedCatalogIdRoute: ProtectedCatalogIdRoute,
   ProtectedDocumentsIdRoute: ProtectedDocumentsIdRoute,
@@ -435,12 +456,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
