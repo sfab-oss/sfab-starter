@@ -13,12 +13,9 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## assigned (1)
+## review (2)
 
 - [`ALW-833`](./ALW-833.md) — UX layout: lists, details, dialogs, mobile chrome
-
-## review (1)
-
 - [`ALW-832`](./ALW-832.md) — Fix missing error, loading, and org-restore states
 
 ## merged (76)
