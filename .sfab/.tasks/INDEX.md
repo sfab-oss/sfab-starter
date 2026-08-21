@@ -14,12 +14,9 @@ overwritten by the next sync.
 - [`ALW-323`](./ALW-323.md) — Golden ERP base transformation (sfab-starter)
 - [`ALW-304`](./ALW-304.md) — Replace Resend with Cloudflare Email in packages/email
 
-## review (1)
+## merged (73)
 
 - [`ALW-827`](./ALW-827.md) — Bump starter to AI SDK 7 + matching Cloudflare Think/agents
-
-## merged (72)
-
 - [`ALW-772`](./ALW-772.md) — Refresh Cloudflare agent skills + curated MCP for template agents
 - [`ALW-743`](./ALW-743.md) — Starter wrangler: sfab-tok-* placeholders + drop preview_bucket_name
 - [`ALW-740`](./ALW-740.md) — Remove starter codemode / LOADER so fabricated apps can deploy without Dynamic Workers
