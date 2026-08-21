@@ -92,6 +92,8 @@ export function MembersTable({ members }: MembersTableProps) {
     }
   };
 
+  const ownerCount = members.filter((item) => item.role === "owner").length;
+
   const pendingIsCurrentUser =
     memberPendingRemoval && session?.user?.id === memberPendingRemoval.userId;
 
@@ -130,6 +132,14 @@ export function MembersTable({ members }: MembersTableProps) {
             const isLoading = removingMemberId === member.id;
             // Operators can leave, but not remove others (honest-disabled).
             const canAct = isCurrentUser || canManageMembers;
+            const isSoleOwner =
+              isCurrentUser && member.role === "owner" && ownerCount < 2;
+            let actionTitle: string | undefined;
+            if (isSoleOwner) {
+              actionTitle = m.members_last_owner();
+            } else if (!canAct) {
+              actionTitle = m.invite_remove_admin_only();
+            }
 
             return (
               <TableRow key={member.id}>
@@ -149,9 +159,9 @@ export function MembersTable({ members }: MembersTableProps) {
                 <TableCell className="text-right">
                   <Button
                     className="h-auto px-2 py-1 text-destructive text-xs underline hover:no-underline"
-                    disabled={isLoading || !canAct}
+                    disabled={isLoading || !canAct || isSoleOwner}
                     onClick={() => setMemberPendingRemoval(member)}
-                    title={canAct ? undefined : m.invite_remove_admin_only()}
+                    title={actionTitle}
                     variant="ghost"
                   >
                     {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}

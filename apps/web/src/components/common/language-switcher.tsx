@@ -17,9 +17,29 @@ import { Languages } from "lucide-react";
 import { m } from "@/paraglide/messages.js";
 import { getLocale, setLocale } from "@/paraglide/runtime.js";
 
-export function LanguageSwitcher() {
+export function LanguageMenuItems() {
   const current = getLocale() as AppLocale;
 
+  return (
+    <DropdownMenuRadioGroup
+      onValueChange={(value) => {
+        if (value === current) {
+          return;
+        }
+        setLocale(value as AppLocale);
+      }}
+      value={current}
+    >
+      {LOCALES.map((locale) => (
+        <DropdownMenuRadioItem key={locale} value={locale}>
+          {LOCALE_LABELS[locale]}
+        </DropdownMenuRadioItem>
+      ))}
+    </DropdownMenuRadioGroup>
+  );
+}
+
+export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -30,21 +50,7 @@ export function LanguageSwitcher() {
         <Languages className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-40">
-        <DropdownMenuRadioGroup
-          onValueChange={(value) => {
-            if (value === current) {
-              return;
-            }
-            setLocale(value as AppLocale);
-          }}
-          value={current}
-        >
-          {LOCALES.map((locale) => (
-            <DropdownMenuRadioItem key={locale} value={locale}>
-              {LOCALE_LABELS[locale]}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
+        <LanguageMenuItems />
       </DropdownMenuContent>
     </DropdownMenu>
   );

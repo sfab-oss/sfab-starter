@@ -174,6 +174,7 @@ export function ChatHeader() {
             <TooltipTrigger
               render={
                 <Button
+                  aria-label={m.chat_minimize_dock()}
                   className="size-7"
                   onClick={handleMinimize}
                   size="icon"
@@ -191,6 +192,7 @@ export function ChatHeader() {
             <TooltipTrigger
               render={
                 <Button
+                  aria-label={m.chat_close()}
                   className="size-7"
                   onClick={handleClose}
                   size="icon"
@@ -310,7 +312,14 @@ function ChatMoreMenu({
         <TooltipTrigger
           render={
             <DropdownMenuTrigger
-              render={<Button className="size-7" size="icon" variant="ghost" />}
+              render={
+                <Button
+                  aria-label={m.chat_more()}
+                  className="size-7"
+                  size="icon"
+                  variant="ghost"
+                />
+              }
             />
           }
         >
@@ -318,7 +327,7 @@ function ChatMoreMenu({
         </TooltipTrigger>
         <TooltipContent side="bottom">{m.chat_more()}</TooltipContent>
       </Tooltip>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="min-w-max">
         <DropdownMenuItem onSelect={onOpenMemory}>
           <BrainIcon className="size-4" />
           {m.chat_org_memory()}
@@ -347,6 +356,7 @@ function SizeToggleButton({
       <TooltipTrigger
         render={
           <Button
+            aria-label={isFullscreen ? m.chat_restore_size() : m.chat_expand()}
             className="size-7"
             onClick={isFullscreen ? onCollapse : onExpand}
             size="icon"

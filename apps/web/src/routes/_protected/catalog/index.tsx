@@ -288,7 +288,7 @@ function CatalogPage() {
       <ShellContent>
         {isLoading && !productsResponse ? (
           <div className="flex h-40 items-center justify-center text-muted-foreground">
-            Loading products...
+            {m.catalog_loading_list()}
           </div>
         ) : (
           <ResourceTable

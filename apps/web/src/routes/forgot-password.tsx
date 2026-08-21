@@ -20,6 +20,7 @@ import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { AuthPage } from "@/components/common/auth-page";
 import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/forgot-password")({
@@ -59,7 +60,7 @@ function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
+    <AuthPage>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{m.auth_forgot_title()}</CardTitle>
@@ -132,6 +133,6 @@ function ForgotPasswordPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </AuthPage>
   );
 }

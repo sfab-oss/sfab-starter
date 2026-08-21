@@ -78,6 +78,7 @@ export function SortableHeader<TData extends RowData>({
       aria-label={getAriaLabel(label, sorted)}
       className={cn("h-8 px-0 font-medium", sorted && "text-foreground")}
       onClick={() => column.toggleSorting(sorted === "asc")}
+      tabIndex={-1}
       variant="ghost"
     >
       {label}

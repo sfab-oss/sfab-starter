@@ -122,7 +122,7 @@ export function InviteMemberForm({
                   {...field}
                   aria-invalid={fieldState.invalid}
                   id={field.name}
-                  placeholder={m.invite_email_placeholder()}
+                  placeholder={m.auth_email_placeholder()}
                   type="email"
                 />
                 {fieldState.invalid && (

@@ -265,7 +265,7 @@ function EntitiesPage() {
       <ShellContent>
         {isLoading && !entitiesResponse ? (
           <div className="flex h-40 items-center justify-center text-muted-foreground">
-            Loading entities...
+            {m.entities_loading_list()}
           </div>
         ) : (
           <ResourceTable

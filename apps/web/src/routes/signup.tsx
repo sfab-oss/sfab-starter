@@ -19,7 +19,7 @@ import { Input } from "@workspace/ui/components/shadcn/input";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import { LanguageSwitcher } from "@/components/common/language-switcher";
+import { AuthPage } from "@/components/common/auth-page";
 import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/signup")({ component: SignUpPage });
@@ -60,10 +60,7 @@ function SignUpPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-muted">
-      <div className="absolute top-4 right-4">
-        <LanguageSwitcher />
-      </div>
+    <AuthPage>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{m.auth_signup_title()}</CardTitle>
@@ -156,6 +153,6 @@ function SignUpPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </AuthPage>
   );
 }

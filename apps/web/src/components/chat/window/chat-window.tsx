@@ -324,6 +324,7 @@ function ChatWindowInner({ tab, tabKey }: { tab: TabEntry; tabKey: string }) {
             }}
             placeholder={placeholder}
             status={composerStatus}
+            tabKey={tabKey}
           />
         )}
       </ChatContent>

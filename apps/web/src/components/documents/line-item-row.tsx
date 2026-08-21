@@ -38,10 +38,10 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
     <div className="grid grid-cols-1 gap-2 px-3 py-2 sm:grid-cols-[minmax(0,1fr)_5rem_7rem_5rem_6rem] sm:items-end">
       <div className="grid gap-1">
         <span className="text-muted-foreground text-xs sm:hidden">
-          Description
+          {m.documents_line_description()}
         </span>
         <Input
-          aria-label="Description"
+          aria-label={m.documents_line_description()}
           defaultValue={line.description}
           onBlur={(e) => {
             const description = e.target.value.trim();
@@ -61,9 +61,11 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
         />
       </div>
       <div className="grid gap-1">
-        <span className="text-muted-foreground text-xs sm:hidden">Qty</span>
+        <span className="text-muted-foreground text-xs sm:hidden">
+          {m.documents_line_qty()}
+        </span>
         <Input
-          aria-label="Quantity"
+          aria-label={m.documents_line_qty()}
           defaultValue={Math.abs(line.quantity)}
           min={1}
           onBlur={(e) => {
@@ -86,10 +88,10 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
       </div>
       <div className="grid gap-1">
         <span className="text-muted-foreground text-xs sm:hidden">
-          Unit price
+          {m.documents_line_unit_price()}
         </span>
         <Input
-          aria-label="Unit price"
+          aria-label={m.documents_line_unit_price()}
           defaultValue={formatMajorInputValue(
             minorToMajor(line.unitPrice, currencyCode),
             currencyCode
@@ -119,9 +121,11 @@ export function LineItemRow({ docId, currencyCode, line }: LineItemRowProps) {
         />
       </div>
       <div className="grid gap-1">
-        <span className="text-muted-foreground text-xs sm:hidden">Tax %</span>
+        <span className="text-muted-foreground text-xs sm:hidden">
+          {m.documents_line_tax_percent()}
+        </span>
         <Input
-          aria-label="Tax percent"
+          aria-label={m.documents_line_tax_percent()}
           defaultValue={bpsToPercent(line.taxRate)}
           min={0}
           onBlur={(e) => {
