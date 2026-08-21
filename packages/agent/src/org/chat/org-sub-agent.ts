@@ -93,7 +93,7 @@ export class OrgSubAgent extends Think<Cloudflare.Env> {
   override async beforeTurn(_ctx: TurnContext) {
     const { header } = await buildOrgContext(this.organizationId);
     return {
-      system: `${header}\n\n${SUB_AGENT_INSTRUCTIONS}`,
+      instructions: `${header}\n\n${SUB_AGENT_INSTRUCTIONS}`,
       model: this.resolvedChatModel,
     };
   }

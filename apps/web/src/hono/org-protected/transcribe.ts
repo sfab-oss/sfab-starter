@@ -1,10 +1,7 @@
 import { openai } from "@ai-sdk/openai";
 import { zValidator } from "@hono/zod-validator";
 import { errorMessage, structuredLog } from "@workspace/log";
-import {
-  NoOutputGeneratedError,
-  experimental_transcribe as transcribe,
-} from "ai";
+import { NoOutputGeneratedError, transcribe } from "ai";
 import { Hono } from "hono";
 import { z } from "zod";
 import type { HonoContextWithAuthAndOrg } from "../types";
