@@ -23,7 +23,7 @@ or extract so the name carries the meaning. That is a separate task; a hygiene
 pass only **removes** dumb comments, it does not rename or restructure.
 
 **Do not** strip open `TODO`/`FIXME` that reference real work, or edit
-`.sfab/*`.
+`.sfab/fabrication.json` / `.sfab/template.json` / `.sfab/template.example.json`.
 
 ## The preferred pattern
 

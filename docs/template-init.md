@@ -44,7 +44,9 @@ Prefer those docs over rediscovering structure from file trees.
 
 ## `.sfab/` — public clone vs factory-managed
 
-`.sfab/` is platform scaffolding. Behavior depends on how the tree was created:
+`.sfab/` is platform scaffolding (fabrication + template provenance). It does
+**not** contain a task or document board — those live on the SFAB platform via
+MCP. Behavior of this folder depends on how the tree was created:
 
 | Tree | What to do |
 | --- | --- |
