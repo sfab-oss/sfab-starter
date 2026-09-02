@@ -83,7 +83,6 @@ envelope) via the matching `console.*` method for `severity`.
 | `email_send_failed` | Resend / send threw |
 | `unhandled_error` | Root Hono `onError` unexpected failure |
 | `catalog_search_failed` | Org catalog search threw |
-| `transcription_failed` | Whisper / transcribe route threw |
 | `org_chat_turn_failed` | OrgChat turn error (`onChatError`) |
 | `org_chat_auto_compaction_failed` | Think auto-compaction error callback |
 | `org_chat_usage_compaction_failed` | Usage-driven compaction threw |

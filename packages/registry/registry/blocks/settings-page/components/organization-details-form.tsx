@@ -52,7 +52,7 @@ export function OrganizationDetailsForm({
                 aria-invalid={fieldState.invalid}
                 disabled={!canEditSettings}
                 id={field.name}
-                placeholder="Acme Inc."
+                placeholder="My company"
                 type="text"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -70,7 +70,7 @@ export function OrganizationDetailsForm({
                 aria-invalid={fieldState.invalid}
                 disabled={!canEditSettings}
                 id={field.name}
-                placeholder="acme"
+                placeholder="my-company"
                 type="text"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

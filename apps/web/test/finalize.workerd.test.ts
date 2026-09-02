@@ -27,7 +27,7 @@ describe("finalizeDocument — folio-atomic finalize (AC-9)", () => {
     const doc = await createDocument(orgId, {
       type: "invoice",
       direction: "sales",
-      entityName: "Acme",
+      entityName: "Northside",
     });
     // 2 x 10.00 (1000 minor) = 2000; 16% tax (1600 bps) = 320; total = 2320
     await addLineItem(orgId, doc.id, {

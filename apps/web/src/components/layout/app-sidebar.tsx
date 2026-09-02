@@ -1,6 +1,7 @@
 "use client";
 
 import { Link, useRouterState } from "@tanstack/react-router";
+import { authClient } from "@workspace/auth/client";
 import { LogoMark } from "@workspace/ui/components/icons/logo-monochrome";
 import {
   Sidebar,
@@ -27,6 +28,8 @@ import { m } from "@/paraglide/messages.js";
 
 export function AppSidebar() {
   const [searchOpen, setSearchOpen] = useState(false);
+  const { data: activeOrganization } = authClient.useActiveOrganization();
+  const appName = activeOrganization?.name ?? m.app_name();
   return (
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader>
@@ -37,9 +40,7 @@ export function AppSidebar() {
             </div>
 
             <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-              <span className="block truncate font-semibold">
-                {m.app_name()}
-              </span>
+              <span className="block truncate font-semibold">{appName}</span>
               <span className="block truncate text-muted-foreground text-xs">
                 {m.app_brand_subtitle()}
               </span>

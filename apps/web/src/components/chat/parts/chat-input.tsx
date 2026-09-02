@@ -1,5 +1,4 @@
 import type { ChatContext } from "@workspace/contract/ai";
-import { ChatVoiceButton } from "@workspace/ui/components/ai-elements/chat-voice-button";
 import {
   ChatToken,
   ChatTokenGroup,
@@ -179,12 +178,6 @@ function ChatInputInner({
     }
     textareaRef.current?.focus();
   }, [disabled, focusedTabId, isBodyOpen, tabKey]);
-
-  const textController = {
-    value: text,
-    setInput: setText,
-    clear: () => setText(""),
-  };
 
   // When unpinned, follow live context; pin snapshots via handlePinToggle.
   const displayContext = pinned ? pinnedContext : livePageContext;
@@ -401,26 +394,6 @@ function ChatInputInner({
             </DropdownMenu>
           ) : null}
           <div className="ml-auto flex items-center gap-2">
-            <ChatVoiceButton
-              controller={{ textInput: textController }}
-              labels={{
-                start: m.chat_voice_start(),
-                stop: m.chat_voice_stop(),
-                stopAria: m.chat_voice_stop_aria(),
-                processing: m.chat_voice_processing(),
-                error: m.chat_voice_error(),
-                unsupported: m.chat_voice_unsupported(),
-                cancelled: m.chat_voice_cancelled(),
-                transcriptionFailed: m.chat_voice_transcription_failed(),
-                recordingFailed: m.chat_voice_recording_failed(),
-                recordingTooShort: m.chat_voice_recording_too_short(),
-                noTranscription: m.chat_voice_no_transcription(),
-                micFailed: m.chat_voice_mic_failed(),
-                micDenied: m.chat_voice_mic_denied(),
-                micNotFound: m.chat_voice_mic_not_found(),
-                micBusy: m.chat_voice_mic_busy(),
-              }}
-            />
             <ChatSubmitButton
               disabled={disabled}
               onStop={onStop}

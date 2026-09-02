@@ -75,7 +75,7 @@ beforeEach(async () => {
   orgId = org.id;
 
   const entity = await createEntity(orgId, {
-    name: "Acme Customer",
+    name: "Northside Customer",
     type: "customer",
   });
   entityId = entity.id;

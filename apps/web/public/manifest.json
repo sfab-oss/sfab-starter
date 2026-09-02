@@ -1,6 +1,6 @@
 {
-  "short_name": "Acme Inc.",
-  "name": "Acme Inc.",
+  "short_name": "App",
+  "name": "App",
   "icons": [
     {
       "src": "favicon.ico",

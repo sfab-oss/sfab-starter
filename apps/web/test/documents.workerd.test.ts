@@ -95,7 +95,7 @@ describe("acceptDocument + createSuccessor", () => {
     const quote = await createDocument(orgId, {
       type: "quote",
       direction: "sales",
-      entityName: "Acme",
+      entityName: "Northside",
     });
     await addLineItem(orgId, quote.id, {
       description: "Widget",
@@ -126,7 +126,7 @@ describe("acceptDocument + createSuccessor", () => {
     const quote = await createDocument(orgId, {
       type: "quote",
       direction: "sales",
-      entityName: "Acme",
+      entityName: "Northside",
     });
     await addLineItem(orgId, quote.id, {
       description: "Widget",
