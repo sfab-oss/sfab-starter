@@ -5,10 +5,11 @@ moves through them, and the rules that keep the boundaries honest. Read this
 first — every ADR in `docs/decisions/` records *why* one of these choices was
 made, and every guide in `docs/guides/` shows *how* to work within them.
 
-This document is the **target the codebase converges to**. Where a package or
-app is being renamed to its role-over-technology name (see
-[Naming](#naming-role-over-technology)), the table gives the old → new mapping
-so code you see mid-migration is never ambiguous.
+The starter is a **generic worldwide ERP base**. Packs add country and vertical
+specifics; i18n handles language. The pack install mechanism (ADR-0010 /
+ADR-0017, `sfabKind: "pack"`) is unbuilt and lives on the roadmap — every
+registry item today is a `block`. The live information architecture is Catalog /
+Entities / Documents (`apps/web/src/components/layout/platform-navigation.ts`).
 
 ## Guiding principles
 
@@ -24,7 +25,7 @@ so code you see mid-migration is never ambiguous.
 - **Boundaries enforced by construction.** The dependency graph and the runtime
   import rules make an illegal cross-layer import fail on its own — not because a
   reviewer noticed.
-- **Multi-surface by default.** UI, HTTP API, MCP, and AI tools are all just
+- **Multi-surface by default.** UI, HTTP API, and AI tools are all just
   surfaces over the same `core`. `core` never imports a framework.
 
 ## The layers
@@ -36,7 +37,7 @@ A capability flows top-to-bottom; dependencies only ever point *down* this list.
 | **db** | `packages/db` | Drizzle schema (one file per capability) + the `db` client singleton. Leaf — no workspace deps. Row types via `$infer`. |
 | **contract** | `packages/contract` | Pure boundary Zod for inputs/commands, feature-keyed (`contract/<cap>/`). Leaf — no workspace deps. Input types via `z.infer`. |
 | **core** | `packages/core` | Queries + domain logic, feature-keyed (`core/<cap>/`). Framework-agnostic. Depends on `db` + `contract`. |
-| **surfaces** | `apps/web/src/...` | The ways `core` is exposed: Hono HTTP (`hono/<auth-scope>/<cap>/`), MCP, AI Durable Objects, jobs. |
+| **surfaces** | `apps/web/src/...` | The ways `core` is exposed: Hono HTTP (`hono/<auth-scope>/<cap>/`), AI Durable Objects, jobs. |
 | **agent** | `packages/agent` | AI tools (`tools/<cap>.ts`) + DO classes (bound in `apps/web`). The one *packaged* surface. |
 | **ui** | `packages/ui` | Primitives / design-system only. Depends on `contract`, never on `core`/`db`. |
 | **components** | `apps/web/src/components/<cap>/` | Feature/composite components — built in-app from `ui` primitives. |
@@ -71,7 +72,7 @@ vertical and installs as exactly these slices (see ADR-001 / the registry docs).
 
 1. `contract/customer/` defines `createCustomerSchema` (Zod) — the *single*
    definition of valid input. It is shared as a runtime **value** by the HTTP
-   route, the MCP/AI tool, and the client-side form.
+   route, the AI tool, and the client-side form.
 2. `core/customer/createCustomer(input)` takes `input: z.infer<typeof
    createCustomerSchema>` — no hand-synced param type — and writes via the `db`
    singleton.
@@ -104,7 +105,7 @@ not a row). Drift between them is caught by **per-capability round-trip tests**,
 not by a compile-time derivation chain. Direction split (**ADR-004**, D3):
 
 - **Inbound** (inputs/commands): explicit Zod in `contract`, shared as runtime
-  values across API / MCP / AI tools / client forms; `core` params are
+  values across API / AI tools / client forms; `core` params are
   `z.infer<contract>`.
 - **Outbound** (reads): **inferred** from the implementation — the typed Hono
   client (`InferResponseType`) for clients, `Awaited<ReturnType>` for the server.
@@ -116,10 +117,11 @@ not by a compile-time derivation chain. Direction split (**ADR-004**, D3):
 ## Surfaces: one Worker app
 
 `apps/web` is a single Cloudflare Worker that hosts **every** surface — the
-TanStack Start UI, the Hono API (organized `auth-scope → feature`), the MCP
-server, the AI Durable Objects, and background jobs. A new app is justified only
-when the runtime genuinely differs, not when a new surface is added. This keeps
-one deploy, one binding set, one env. See **ADR-001**.
+TanStack Start UI, the Hono API (organized `auth-scope → feature`), the AI
+Durable Objects, and background jobs. There is no MCP server under `apps/web`.
+A new app is justified only when the runtime genuinely differs, not when a new
+surface is added. This keeps one deploy, one binding set, one env. See
+**ADR-001**.
 
 The HTTP API is grouped by auth scope first, then capability:
 `hono/{public,protected,org-protected}/<cap>/`. Auth middleware enforces the
@@ -129,18 +131,9 @@ scope; org-protected routes are organization-scoped.
 
 Packages and apps are named for the **role they play**, not the library that
 implements them — so the layout survives a library swap. Scope stays
-`@workspace/*`.
-
-| Old (technology) | New (role) |
-|---|---|
-| `apps/web-tanstack` | `apps/web` |
-| `packages/db-d1` | `packages/db` |
-| `packages/types` | `packages/contract` |
-| `packages/cloudflare-env` | `packages/env` |
-| `packages/typescript-config` | `packages/tsconfig` |
-
-The retired `types` and `primitives` packages are replaced by `contract`
-(boundary zod) + `db` `$infer` (row types) — see **ADR-004**.
+`@workspace/*`. The names in use are `apps/web`, `packages/db`,
+`packages/contract`, `packages/env`, and `packages/tsconfig`. Boundary input
+types live in `contract`; row types come from `db` `$infer` — see **ADR-004**.
 
 ## Mechanical boundaries
 
@@ -177,7 +170,7 @@ The DO fixture + reference test live in `apps/web/src/workerd-test/`.
 - **The transaction hub** every commercial flow grafts onto →
   [`docs/architecture/transaction-core.md`](architecture/transaction-core.md)
   (why: [ADR-006](decisions/006-transaction-core.md)).
-- **The operator UX** built on that hub — app shell, surfaces, build phases →
+- **A candidate Mexican-SME operator pack** (not the live IA; packs are unbuilt) →
   [`docs/architecture/operator-ux.md`](architecture/operator-ux.md).
 - **Deploy contract (Option Y)** — named `Deploy` workflow, `workflow_run`
   observation, migrations → deploy → secrets-sync →

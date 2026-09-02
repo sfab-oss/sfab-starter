@@ -1,13 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  Banknote,
-  FileText,
-  Home,
-  Package,
-  Settings,
-  ShoppingCart,
-  Users,
-} from "lucide-react";
+import { FileText, Home, Package, Settings, Users } from "lucide-react";
 
 export interface NavigationItem {
   id: string;
@@ -20,27 +12,16 @@ export interface NavigationItem {
   commandPaletteOnly?: boolean;
 }
 
-/** Single source for sidebar nav + command palette Go-to (operator-ux §8 Phase 0). */
+/**
+ * Registry/gallery sidebar + command palette Go-to.
+ * Paths match the live app IA (`apps/web` file routes /
+ * `platform-navigation.ts`): Catalog / Entities / Documents.
+ */
 export const NAVIGATION_CONFIG: NavigationItem[] = [
-  { id: "today", label: "Today", path: "/", icon: Home },
-  { id: "sell", label: "Sell", path: "/sell", icon: ShoppingCart },
-  { id: "collect", label: "Collect", path: "/collect", icon: Banknote },
-  {
-    id: "buy",
-    label: "Buy",
-    path: "/buy",
-    icon: FileText,
-    comingSoon: true,
-  },
+  { id: "home", label: "Home", path: "/", icon: Home },
   { id: "catalog", label: "Catalog", path: "/catalog", icon: Package },
-  { id: "people", label: "People", path: "/people", icon: Users },
-  {
-    id: "documents",
-    label: "Documents",
-    path: "/documents",
-    icon: FileText,
-    commandPaletteOnly: true,
-  },
+  { id: "entities", label: "Entities", path: "/entities", icon: Users },
+  { id: "documents", label: "Documents", path: "/documents", icon: FileText },
   { id: "settings", label: "Settings", path: "/settings", icon: Settings },
 ];
 
