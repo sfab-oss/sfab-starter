@@ -29,6 +29,7 @@ Run from the **monorepo root** (not inside a package):
 
 ## Conventions (the short version)
 
+- **Live IA is the truth:** Catalog / Entities / Documents (`apps/web/src/components/layout/platform-navigation.ts`); `docs/architecture/operator-ux.md` is a candidate pack note, not the shell.
 - **Layer-sliced, feature-keyed.** A capability is the same key `<cap>` repeated
   across layers (`db` → `contract` → `core` → surfaces → `ui`/`components`). Find
   one slice, you know where the other five live. → [`docs/architecture.md`](docs/architecture.md)
