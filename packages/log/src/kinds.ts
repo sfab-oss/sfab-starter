@@ -17,7 +17,6 @@ export const LOG_KINDS = [
   "org_chat_turn_failed",
   "org_chat_usage_compaction_failed",
   "org_sub_agent_auto_compaction_failed",
-  "transcription_failed",
   "unhandled_error",
 ] as const;
 

@@ -37,12 +37,11 @@ English (`en.json`) remains the source of truth — never invent EN keys here.
 | Cancel | Cancelar | — |
 | Language | Idioma | Lenguaje |
 
-## Verb-first nav (when locale = es)
+## Nav (when locale = es)
 
-Prefer short verbs for primary operator actions when they fit the IA:
+Current starter shell, matching live IA:
 
-- Hoy · Catálogo · Entidades · Documentos · Configuración (current starter shell)
-- If/when sell/collect routes ship: **Vender** · **Cobrar**
+- Hoy · Catálogo · Entidades · Documentos · Configuración
 
 ## Placeholders
 

@@ -1,7 +1,7 @@
 {
   "enHashes": {
     "app_brand_subtitle": "262b4ff6afdd7baafc6dbf8690c1d7fbb0e95cff4700306c9b76077b4cf6c000",
-    "app_name": "ee60673de787bc9b5c5ce00be0d1d3f30896662f636d9ac56f1b038202cbe49a",
+    "app_name": "0d04bfeb7d64b71c74fc925cca93d683154e8cc7e6e5838faced498e34c9984d",
     "auth_email": "969ccbd3cf6300ecd5c880459d81ae9027df7517563184a1b8b15282db230621",
     "auth_error_generic": "ddf785b79c42656a3f61aab52a502ee02a702cd2a86dd08916eb18a121de1ab0",
     "auth_forgot_password": "afd25fdf17c7f534649b98afa8673ef6c78d83355950192912a5cadcbd56eb39",
@@ -33,7 +33,7 @@
     "catalog_filter_search_placeholder": "3674049d60db8274a095716cab1b800d13353ed224f0f765a684bdc55ff5b188",
     "catalog_title": "3877d14889a9909b9c6ec38d2390599cdc741b73e37505864863ef8e57fb3594",
     "chat_ask_assistant": "ae207dbb7b681953b62878a65b90932a73dfdc1d7244ab2c6f35f399efb3e4b6",
-    "chat_assistant": "adc624e5786f6d8481734b1d52bc0f73410f23e1e83a9d451cdeb19c50588bf8",
+    "chat_assistant": "391e405152779acc6b0f9429f3a4e27baf2af0deab2c37ba792311efa767d676",
     "chat_close": "3b14c5dc986f2a367a41de958956a0c442bbaa8ef5dac3ec4e4ae27307c25002",
     "chat_close_tab": "6301612e18a5625ccf5630897ffafb9d2b99d849a1bc3010f9779244ead79944",
     "chat_copied": "d37078fe6a1faa15fc48c293dd1d4c37698eb0cfafae8ca1c456b0cc4600db11",
@@ -66,11 +66,6 @@
     "chat_send": "f6f4688ff23d50c67053963c251fa0ce64a925cf283537cf066b1f362cb9b778",
     "chat_show_files": "63442ea91e7efa9b57801dd3eb626597896bea9e1a6d3f05e2aa7e5fddb2a22e",
     "chat_stop": "cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df",
-    "chat_voice_error": "206b11fe7bf5223f0f84eaa1ed32ad8c5242a88ec65e2df5830354438e12f106",
-    "chat_voice_processing": "de10cd3ff8809964aeff67387cf60fd0239246c162caa2924e8651164be06c2c",
-    "chat_voice_start": "4ab80a0bacae288c4e99ef37d01b07955b6de8fc1748604fce50ae26e68f216c",
-    "chat_voice_stop": "3d591e826d5459191fd5be2539bd138b17318f021ed3c687c6975e4089a0bcec",
-    "chat_voice_stop_aria": "e9fe06143e806a79201b7d8f4d6feda68987a96ef58a1bddc7af056c3b627a82",
     "common_cancel": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
     "common_retry": "df0fe9e00d354b01c502bf2d9c755a2b0d8a1ec3719a389d086ad2f8667ef8f4",
     "common_save": "35322b5bb5a218a15401cfa54d23b16459e9e1c616977526a4b37b6c87d30c50",
@@ -295,16 +290,6 @@
     "wallet_due": "77151a10b08ca6d37bf7e9b9846a407a16ebec6c4089e0493d574f959f09ccdd",
     "wallet_max_redeem": "5022aee473e605fd696be72bae8bb1cc62c533b6bc519ae22a7eb7c8869f71aa",
     "wallet_redeem_from": "d23ce2e688d03260fc88d90097b123b4d811278e947f138bf0d9675b1115dbad",
-    "chat_voice_cancelled": "f77093b3f1bbd56dd4b6a078034b1c5dbd280fa6e61ded00835c9d07e0b31d99",
-    "chat_voice_mic_busy": "4beef073f4c7d7b4001f7147324acc327726cf3c2b5cdc2f077ce4e4e5ec5b6b",
-    "chat_voice_mic_denied": "40b65e7701fbce5a779b65532c8c33705f978e465f4e96c9d0355ce3a62c816f",
-    "chat_voice_mic_failed": "3139384a0eedce5c00f79bac6c6a12a2ee1dfedffb3d31882ebbc6d86e28fbdd",
-    "chat_voice_mic_not_found": "428597b73d085af8d0148f3b7886af5187fa04247159d539605f87c68f3f12d8",
-    "chat_voice_no_transcription": "861cbdd3e8c727b7cca61a22cc8282543d1553f5d4406f7106958c9085ba472b",
-    "chat_voice_recording_failed": "83aeb329ae94ae8c331fbbd721df7e0392ba6f35333c19aea7220935f5e1bb6d",
-    "chat_voice_recording_too_short": "218578287a973491fc111d9205ff70fac176a3e6b2ba08b3c9601f0737474f47",
-    "chat_voice_transcription_failed": "ccb684944295bc3531eba66d9bb9b9208a6516470aa976f158a73c1dfb66831d",
-    "chat_voice_unsupported": "0af1c2b22cd5a9dd777c9ed0ee4a45117a0a4510206cd9ced38073843bfad4c0",
     "tool_approve": "6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21",
     "tool_delegate_aborted": "1a4f630ac1b69fd00728fa8a672ded71d0eae8516cb23e78f94529113399b79b",
     "tool_delegate_completed": "11a6767d5674c7e45f7e00dc525762275b3a48491ad6045427d2609cc496c516",
@@ -516,6 +501,8 @@
     "catalog_loading_list": "2ba9bb5fc3506d1b3fbd0364cae877518cc7085228bbe56586e0b74843ab18c8",
     "entities_loading_list": "d7fb0146b337e721b18db79a2fd91cea7e8f038251dcc22dff8161474079dc4a",
     "home_link_entities_desc": "fead174f33e6a0fc3236d72746e34a56ed59d940a496d629c881648bb4c4cf36",
-    "members_last_owner": "bb094c832caed978fa9a95d43eb843d78f3d437fd9d1e9c9157178f15ee885a1"
+    "members_last_owner": "bb094c832caed978fa9a95d43eb843d78f3d437fd9d1e9c9157178f15ee885a1",
+    "org_name_placeholder": "6e854a7c19f65fe11551272f764a192635f8c66812f191c3921b78ba993d974c",
+    "org_slug_placeholder": "bcb90fdcb1ffb4e9d38afd0688fbfc142b0934d474c70de75a9c25cc59875e08"
   }
 }

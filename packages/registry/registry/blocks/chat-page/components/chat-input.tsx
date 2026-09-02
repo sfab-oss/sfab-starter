@@ -7,7 +7,6 @@ import {
   ChatInputMentionButton,
   ChatInputSubmitButton,
 } from "@workspace/ui/components/ai-elements/chat-input";
-import { ChatVoiceButton } from "@workspace/ui/components/ai-elements/chat-voice-button";
 import {
   ChatToken,
   ChatTokenGroup,
@@ -56,18 +55,6 @@ function ChatInputInner({
   const [files, setFiles] = useState<ComposerFile[]>([]);
   const inputRef = useRef<ChatInputHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const textController = {
-    get value() {
-      return inputRef.current?.getText() ?? "";
-    },
-    setInput: (value: string) => {
-      inputRef.current?.setText(value);
-    },
-    clear: () => {
-      inputRef.current?.clear();
-    },
-  };
 
   const clearFiles = useCallback(() => {
     setFiles((prev) => {
@@ -172,7 +159,6 @@ function ChatInputInner({
             <PaperclipIcon />
           </InputGroupButton>
           <div className="ml-auto flex items-center gap-2">
-            <ChatVoiceButton controller={{ textInput: textController }} />
             <ChatInputSubmitButton />
           </div>
         </InputGroupAddon>

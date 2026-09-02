@@ -43,7 +43,7 @@ const DEMO_ORG_SLUG = "demo-org";
 const DEMO_ENTITIES = [
   {
     id: "seed-ent-acme",
-    name: "Acme Retail",
+    name: "Northside Retail",
     type: "customer",
   },
   {
@@ -115,7 +115,7 @@ const DEMO_DOCUMENTS = [
     direction: "sales",
     status: "draft",
     entityId: "seed-ent-acme",
-    entityName: "Acme Retail",
+    entityName: "Northside Retail",
     series: "Q",
     folio: 1001,
     subtotal: 3998,

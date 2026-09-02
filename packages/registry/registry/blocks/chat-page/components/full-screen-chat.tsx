@@ -155,7 +155,7 @@ export function FullScreenChat() {
             <div className="flex min-w-0 items-center gap-2 overflow-hidden">
               <ShellHeaderSidebarTrigger className="-ml-1" />
               <BotIcon className="size-4 shrink-0 text-muted-foreground" />
-              <span className="font-medium text-sm">ERP Assistant</span>
+              <span className="font-medium text-sm">Assistant</span>
               <span className="max-w-[240px] truncate font-normal text-muted-foreground text-sm">
                 · Open balances
               </span>

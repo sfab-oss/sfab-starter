@@ -5,8 +5,8 @@ import { Toaster } from "@workspace/ui/components/shadcn/sonner";
 
 import { QueryProvider } from "../components/providers/query-provider";
 import { ThemeProvider } from "../components/providers/theme-provider";
+import { m } from "../paraglide/messages.js";
 import { getLocale } from "../paraglide/runtime.js";
-
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -26,7 +26,7 @@ export const Route = createRootRoute({
         name: "viewport",
       },
       {
-        title: "Acme Inc.",
+        title: m.app_name(),
       },
     ],
   }),
