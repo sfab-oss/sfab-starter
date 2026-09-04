@@ -22,6 +22,13 @@
       "when": 1788547212924,
       "tag": "0002_wealthy_thena",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788549677049,
+      "tag": "0003_white_the_fury",
+      "breakpoints": true
     }
   ]
 }
