@@ -8,7 +8,8 @@
     "./constants": "./src/constants.ts",
     "./inference": "./src/inference/chat-models.ts",
     "./org": "./src/org/index.ts",
-    "./org/chat": "./src/org/chat/index.ts"
+    "./org/chat": "./src/org/chat/index.ts",
+    "./mcp": "./src/mcp/compose-mcp-tools.ts"
   },
   "scripts": {
     "test": "vitest run",
@@ -19,6 +20,7 @@
     "@ai-sdk/openai-compatible": "3.0.31",
     "@cloudflare/shell": "0.4.3",
     "@cloudflare/think": "0.16.0",
+    "@modelcontextprotocol/server": "2.0.0",
     "@workspace/auth": "workspace:*",
     "@workspace/contract": "workspace:*",
     "@workspace/core": "workspace:*",
