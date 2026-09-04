@@ -15,6 +15,13 @@
       "when": 1783550997791,
       "tag": "0001_majestic_cyclops",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788547212924,
+      "tag": "0002_wealthy_thena",
+      "breakpoints": true
     }
   ]
 }

@@ -163,15 +163,17 @@ async function main() {
         )
         .bind(DEMO_USER_ID, DEMO_NAME, DEMO_EMAIL, 1, now, now),
       // The credential account better-auth reads on email/password sign-in:
-      // provider_id "credential", account_id = user id, password = scrypt hash.
+      // provider_id "credential", issuer `local:credential` (1.7 provider-id
+      // strategy), account_id = user id, password = scrypt hash.
       db
         .prepare(
-          "INSERT OR IGNORE INTO account (id, account_id, provider_id, user_id, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+          "INSERT OR IGNORE INTO account (id, account_id, provider_id, issuer, user_id, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         )
         .bind(
           DEMO_ACCOUNT_ID,
           DEMO_USER_ID,
           "credential",
+          "local:credential",
           DEMO_USER_ID,
           passwordHash,
           now,
