@@ -1,7 +1,7 @@
 import { SELF } from "cloudflare:test";
 
 // Must match BETTER_AUTH_URL in .dev.vars for CSRF validation
-const ORIGIN = "http://localhost:4011";
+export const ORIGIN = "http://localhost:4011";
 
 /**
  * Helper to make POST requests with the Origin header required by Better Auth CSRF protection.
@@ -90,6 +90,17 @@ export async function createTestSessionWithOrg(overrides?: {
     throw new Error(`Create org failed (${orgRes.status}): ${text}`);
   }
 
+  const orgBody = (await orgRes.json()) as {
+    id?: string;
+    organization?: { id?: string };
+  };
+  const orgId = orgBody.id ?? orgBody.organization?.id;
+  if (!orgId) {
+    throw new Error(
+      `Create org did not return an id: ${JSON.stringify(orgBody)}`
+    );
+  }
+
   // The session should now have activeOrganizationId set (via the db hook)
   // We need the updated session cookie from the org creation response
   const orgCookies = orgRes.headers.getSetCookie();
@@ -118,6 +129,41 @@ export async function createTestSessionWithOrg(overrides?: {
     cookie: activeCookie ? activeCookie.split(";")[0] : finalCookie,
     userId,
     email,
+    orgId,
     orgSlug,
   };
+}
+
+export async function createOrgOnSession(
+  cookie: string,
+  orgName: string
+): Promise<{ cookie: string; orgId: string; orgSlug: string }> {
+  const orgSlug = `test-org-${crypto.randomUUID().slice(0, 8)}`;
+  const orgRes = await authPost(
+    `${ORIGIN}/api/auth/organization/create`,
+    { name: orgName, slug: orgSlug },
+    cookie
+  );
+  if (!orgRes.ok) {
+    const text = await orgRes.text();
+    throw new Error(`Create org failed (${orgRes.status}): ${text}`);
+  }
+  const orgBody = (await orgRes.json()) as {
+    id?: string;
+    organization?: { id?: string };
+  };
+  const orgId = orgBody.id ?? orgBody.organization?.id;
+  if (!orgId) {
+    throw new Error(
+      `Create org did not return an id: ${JSON.stringify(orgBody)}`
+    );
+  }
+  const orgCookies = orgRes.headers.getSetCookie();
+  const updatedSessionCookie = orgCookies.find((c) =>
+    c.startsWith("better-auth.session_token=")
+  );
+  const nextCookie = updatedSessionCookie
+    ? updatedSessionCookie.split(";")[0]
+    : cookie;
+  return { cookie: nextCookie, orgId, orgSlug };
 }
