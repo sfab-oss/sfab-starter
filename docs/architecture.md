@@ -38,7 +38,7 @@ A capability flows top-to-bottom; dependencies only ever point *down* this list.
 | **contract** | `packages/contract` | Pure boundary Zod for inputs/commands, feature-keyed (`contract/<cap>/`). Leaf — no workspace deps. Input types via `z.infer`. |
 | **core** | `packages/core` | Queries + domain logic, feature-keyed (`core/<cap>/`). Framework-agnostic. Depends on `db` + `contract`. |
 | **surfaces** | `apps/web/src/...` | The ways `core` is exposed: Hono HTTP (`hono/<auth-scope>/<cap>/`), AI Durable Objects, jobs. |
-| **agent** | `packages/agent` | AI tools (`tools/<cap>.ts`) + DO classes (bound in `apps/web`). The one *packaged* surface. |
+| **agent** | `packages/agent` | Binder-agnostic tool-parts (`tool-parts/<cap>/`) + in-app binder + DO classes (bound in `apps/web`). The one *packaged* surface. |
 | **ui** | `packages/ui` | Primitives / design-system only. Depends on `contract`, never on `core`/`db`. |
 | **components** | `apps/web/src/components/<cap>/` | Feature/composite components — built in-app from `ui` primitives. |
 
@@ -58,7 +58,7 @@ packages/db/src/schema/customer.ts          # one schema file
 packages/contract/customer/                  # boundary zod for inputs
 packages/core/customer/                      # queries + domain logic
 apps/web/src/hono/org-protected/customer/    # HTTP surface (auth-scoped)
-packages/agent/tools/customer.ts             # AI tool
+packages/agent/src/tool-parts/customer.ts    # AI tool-parts (in-app binder in `in-app/`)
 apps/web/src/components/customer/             # feature components
 ```
 

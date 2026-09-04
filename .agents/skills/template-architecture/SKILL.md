@@ -25,6 +25,6 @@ the relevant file directly rather than restating it here. This follows the
 A capability uses the **same key in every layer**. A `customer` capability is
 exactly: `packages/db/src/schema/customer.ts` · `packages/contract/src/customer/`
 · `packages/core/src/customer/` · `apps/web/src/hono/<auth-scope>/customer/` ·
-`packages/agent/src/tools/customer/` · `apps/web/src/components/customer/`. Find
+`packages/agent/src/tool-parts/customer/` · `apps/web/src/components/customer/`. Find
 one slice and you know where the other five live. See `docs/architecture.md`
 for the worked example.
