@@ -59,7 +59,14 @@ export default defineConfig(async (): Promise<ViteUserConfig> => {
             cloudflareTest({
               wrangler: { configPath: "./wrangler.test.jsonc" },
               miniflare: {
-                bindings: { TEST_MIGRATIONS: migrations },
+                bindings: {
+                  TEST_MIGRATIONS: migrations,
+                  BETTER_AUTH_SECRET:
+                    "test-secret-key-at-least-32-characters-long",
+                  BETTER_AUTH_URL: "http://localhost:4011",
+                  EMAIL_SENDER: "noreply@example.com",
+                  MOCK_SEND_EMAIL: "true",
+                },
               },
             }),
           ],

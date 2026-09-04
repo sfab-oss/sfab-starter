@@ -33,6 +33,10 @@ describe("authOrigin", () => {
   it("strips trailing slashes", () => {
     expect(authOrigin("http://localhost:4011/")).toBe("http://localhost:4011");
   });
+
+  it("throws when the url is missing", () => {
+    expect(() => authOrigin(undefined)).toThrow("BETTER_AUTH_URL is not set");
+  });
 });
 
 describe("defaultMcpResource", () => {

@@ -1,6 +1,9 @@
 const TRAILING_SLASHES = /\/+$/;
 
-export function authOrigin(baseUrl: string): string {
+export function authOrigin(baseUrl: string | undefined): string {
+  if (!baseUrl) {
+    throw new Error("BETTER_AUTH_URL is not set");
+  }
   return baseUrl.replace(TRAILING_SLASHES, "");
 }
 
