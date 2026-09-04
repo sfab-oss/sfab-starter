@@ -1,7 +1,17 @@
 import { DomainError } from "@workspace/core/errors";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PERMISSION_DENIED_MESSAGE } from "../../constants";
-import { createProductReadTools, createProductWriteTools } from "./products";
+import {
+  getProductDescription,
+  getProductExecute,
+  getProductInputSchema,
+  getProductName,
+  updateProductDescription,
+  updateProductExecute,
+  updateProductInputSchema,
+  updateProductName,
+} from "../../tool-parts/catalog/products";
+import { inAppTool } from "../in-app-tool";
 
 vi.mock("@workspace/core/catalog", () => ({
   getProduct: vi.fn(),
@@ -12,7 +22,7 @@ vi.mock("@workspace/core/catalog", () => ({
   resolveProductRef: vi.fn(),
 }));
 
-vi.mock("../guard", () => ({
+vi.mock("../../tools/guard", () => ({
   assertCan: vi.fn(),
 }));
 
@@ -21,7 +31,7 @@ import {
   resolveProductRef,
   updateProduct,
 } from "@workspace/core/catalog";
-import { assertCan } from "../guard";
+import { assertCan } from "../../tools/guard";
 
 const ctx = {
   organizationId: "org_test",
@@ -29,7 +39,11 @@ const ctx = {
   waitUntil: () => undefined,
 };
 
-const readOnlyCtx = { organizationId: "org_test" };
+const readOnlyCtx = {
+  organizationId: "org_test",
+  userId: "",
+  waitUntil: () => undefined,
+};
 
 interface ExecutableTool {
   execute: (input: Record<string, unknown>) => Promise<unknown>;
@@ -55,8 +69,14 @@ describe("product tools — ToolResult contract", () => {
     const product = { id: "prod_1", name: "Widget" };
     vi.mocked(getProduct).mockResolvedValue(product as never);
 
-    const tools = createProductReadTools(readOnlyCtx);
-    const result = await runTool(tools.get_product, { id: "prod_1" });
+    const bind = inAppTool(readOnlyCtx);
+    const getProductTool = bind({
+      name: getProductName,
+      description: getProductDescription,
+      inputSchema: getProductInputSchema,
+      execute: getProductExecute,
+    });
+    const result = await runTool(getProductTool, { id: "prod_1" });
 
     expect(result).toEqual({ ok: true, data: product });
   });
@@ -64,8 +84,14 @@ describe("product tools — ToolResult contract", () => {
   it("get_product returns not_found without throwing on miss", async () => {
     vi.mocked(getProduct).mockResolvedValue(undefined as never);
 
-    const tools = createProductReadTools(readOnlyCtx);
-    const result = await runTool(tools.get_product, { id: "prod_missing" });
+    const bind = inAppTool(readOnlyCtx);
+    const getProductTool = bind({
+      name: getProductName,
+      description: getProductDescription,
+      inputSchema: getProductInputSchema,
+      execute: getProductExecute,
+    });
+    const result = await runTool(getProductTool, { id: "prod_missing" });
 
     expect(result).toEqual({
       ok: false,
@@ -80,8 +106,14 @@ describe("product tools — ToolResult contract", () => {
     vi.mocked(resolveProductRef).mockResolvedValue(product as never);
     vi.mocked(updateProduct).mockResolvedValue(updated as never);
 
-    const tools = createProductWriteTools(ctx);
-    const result = await runTool(tools.update_product, {
+    const bind = inAppTool(ctx);
+    const updateProductTool = bind({
+      name: updateProductName,
+      description: updateProductDescription,
+      inputSchema: updateProductInputSchema,
+      execute: updateProductExecute,
+    });
+    const result = await runTool(updateProductTool, {
       id: "Widget",
       data: { name: "Widget Pro" },
     });
@@ -97,8 +129,14 @@ describe("product tools — ToolResult contract", () => {
       )
     );
 
-    const tools = createProductWriteTools(ctx);
-    const result = await runTool(tools.update_product, {
+    const bind = inAppTool(ctx);
+    const updateProductTool = bind({
+      name: updateProductName,
+      description: updateProductDescription,
+      inputSchema: updateProductInputSchema,
+      execute: updateProductExecute,
+    });
+    const result = await runTool(updateProductTool, {
       id: "missing",
       data: { name: "Nope" },
     });
@@ -115,8 +153,14 @@ describe("product tools — ToolResult contract", () => {
       new Error(PERMISSION_DENIED_MESSAGE)
     );
 
-    const tools = createProductWriteTools(ctx);
-    const result = await runTool(tools.update_product, {
+    const bind = inAppTool(ctx);
+    const updateProductTool = bind({
+      name: updateProductName,
+      description: updateProductDescription,
+      inputSchema: updateProductInputSchema,
+      execute: updateProductExecute,
+    });
+    const result = await runTool(updateProductTool, {
       id: "prod_1",
       data: { name: "Nope" },
     });

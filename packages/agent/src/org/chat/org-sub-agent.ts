@@ -3,11 +3,11 @@ import { errorMessage, structuredLog } from "@workspace/log";
 import { createCompactFunction } from "agents/experimental/memory/utils";
 import { generateText, type LanguageModel, type ToolSet } from "ai";
 import { buildOrgContext } from "../../context/assemble";
+import { getOrgAgentReadOnlyTools } from "../../in-app/compose-org-tools";
 import {
   getCompactionLimit,
   resolveOrgChatModel,
 } from "../../inference/chat-models";
-import { getOrgAgentReadOnlyTools } from "../../tools/compose-org-tools";
 
 const SUB_AGENT_INSTRUCTIONS = `You are a focused sub-agent invoked by the main organization assistant to complete ONE self-contained task, handed to you as the first message.
 

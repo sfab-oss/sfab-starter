@@ -3,7 +3,7 @@ export {
   getOrgAgentDisplayTools,
   getOrgAgentReadOnlyTools,
   getOrgAgentTools,
-} from "./tools/compose-org-tools";
+} from "./in-app/compose-org-tools";
 export type {
   AgentToolsContext,
   ChatSummary,

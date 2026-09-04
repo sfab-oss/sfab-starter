@@ -29,15 +29,15 @@ import {
   getLatestUserPageContext,
 } from "../../context/page-context";
 import {
+  getOrgAgentDisplayTools,
+  getOrgAgentTools,
+} from "../../in-app/compose-org-tools";
+import {
   gateChatAttachments,
   getCompactionLimit,
   type OrgChatModelCapabilities,
   resolveOrgChatModel,
 } from "../../inference/chat-models";
-import {
-  getOrgAgentDisplayTools,
-  getOrgAgentTools,
-} from "../../tools/compose-org-tools";
 import { resolveTurnUserId } from "../bootstrap";
 import { OrgAgent } from "../org-agent";
 import { OrgMemoryProvider } from "./org-memory-provider";

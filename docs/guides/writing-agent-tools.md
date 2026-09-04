@@ -10,17 +10,26 @@ Design principles below are adapted from Korra’s `platform-tool-design`
 methodology (agent-facing contract, composability, shape matching); the
 implementation details are specific to this starter + Think stack.
 
-## Layout: catalog, transaction, display
+## Layout: tool-parts + in-app binder
+
+ERP tools are **named pieces** (`name` / `description` / `inputSchema` /
+`execute(ctx, input)`). Binders stamp identity and wrap the surface. Do not
+close over org id inside the catalog, and do not loop a catalog array to
+register tools.
 
 ```
-packages/agent/src/tools/
-├── compose-org-tools.ts   # getOrgAgentTools / ReadOnly / Display
-├── define-org-tool.ts     # thin helper wrapping asToolResult
-├── tool-result.ts         # ToolResult types + requireFound + asToolResult
-├── guard.ts               # assertCan RBAC
-├── display.ts             # display_* (UI echoes)
-├── catalog/               # products, documents
-└── transaction/           # payments, wallet, entities, org, activity
+packages/agent/src/
+├── tool-parts/
+│   ├── context.ts              # ToolContext (= AgentToolsContext)
+│   ├── catalog/                # products, documents
+│   └── transaction/            # payments, wallet, entities, org, activity
+├── in-app/
+│   ├── in-app-tool.ts          # binder: asToolResult + needsApproval
+│   ├── compose-org-tools.ts    # getOrgAgentTools / ReadOnly / Display
+│   └── display.ts              # display_* (UI echoes — not tool-parts)
+└── tools/
+    ├── tool-result.ts          # ToolResult + requireFound + asToolResult
+    └── guard.ts                # assertCan RBAC (called from write execute)
 ```
 
 | Compose entry | What it returns | Where it runs |
@@ -38,7 +47,7 @@ This starter does **not** use `@cloudflare/codemode` / Dynamic Workers
 
 ## Context globals vs `inputSchema`
 
-`AgentToolsContext`: `{ organizationId, userId, waitUntil }`
+`ToolContext` / `AgentToolsContext`: `{ organizationId, userId, waitUntil }`
 
 | Closed in context | Passed per call (`inputSchema`) |
 |-------------------|----------------------------------|
@@ -46,8 +55,9 @@ This starter does **not** use `@cloudflare/codemode` / Dynamic Workers
 | `userId` (writes — `assertCan`; tool execute often lacks ALS) | `limit`, `type`, create/update fields |
 | `waitUntil` | Unused today |
 
-Reads take `Pick<AgentToolsContext, "organizationId">` so sub-agents work
-without an acting user. Writes need full context for RBAC.
+`execute` always receives full `ToolContext`. The read-only binder fills
+`userId` with `""` because write pieces are not registered there. Writes call
+`assertCan` inside `execute` and need a real `userId`.
 
 ## Design before you wrap
 
@@ -120,8 +130,9 @@ inside `execute` — it throws `DomainError("…", "not_found")`, which `asToolR
 maps to `{ ok: false, code: "not_found", error: detail }`. **Lists:** empty arrays
 stay `{ ok: true, data: [] }`.
 
-Prefer `defineOrgTool` (`define-org-tool.ts`) — it applies `asToolResult` and
-`toModelOutput` (`error-text` on fail, `json` on success).
+Prefer `inAppTool` (`in-app/in-app-tool.ts`) to bind a named piece for OrgChat —
+it applies `asToolResult` and `toModelOutput` (`error-text` on fail, `json` on
+success). Author the piece in `tool-parts/`; do not wrap `tool()` in the catalog.
 
 The system prompt tells the model to check `ok` before using `data`.
 
@@ -209,24 +220,28 @@ On `@cloudflare/think` + the AI SDK tool loop:
 
 ### Read tool
 
-1. Add `defineOrgTool` in the right domain file (`catalog/`, `transaction/`).
-2. Close over `organizationId` from context; put ids/filters in `inputSchema`.
+1. Add named pieces (`*Name`, `*Description`, `*InputSchema`, `*Execute`) in
+   `tool-parts/catalog/` or `tool-parts/transaction/`.
+2. `execute(ctx, input)` reads `ctx.organizationId`; put ids/filters in
+   `inputSchema`.
 3. For single-row getters: `requireFound(await getFoo(...), "Foo not found: …")`
    inside `execute`.
-4. Export from the domain index; compose in `getOrgAgentTools` and
-   `getOrgAgentReadOnlyTools` if sub-agent should see it.
+4. Import the pieces in `in-app/compose-org-tools.ts` and bind them in
+   `getOrgAgentTools` and `getOrgAgentReadOnlyTools` if the sub-agent should
+   see it. Re-declare each tool — do not loop a catalog array.
 
 ### Write tool (autonomous)
 
-1. `defineOrgTool` with full `AgentToolsContext`.
+1. Named pieces with full `ToolContext` (writes call `assertCan`).
 2. First line in `execute`: `await assertCan("catalog:write", ctx)` (or the
    right action).
-3. Add to `AGENT_WRITE_TOOL_NAMES` / web invalidation registry if it mutates
+3. Bind in `getOrgAgentTools` only (not the read-only compose).
+4. Add to `AGENT_WRITE_TOOL_NAMES` / web invalidation registry if it mutates
    persisted state the UI should refresh.
 
 ### Approval-gated write
 
-1. `needsApproval: true` on `defineOrgTool`.
+1. `needsApproval: true` on the **in-app bind**, not on the piece.
 2. Keep `assertCan` inside `execute` (runs after user approves).
 3. Compose into `getOrgAgentTools` (top-level alongside other ERP tools).
 4. Extend `tool-approvals.workerd.test.ts` if you add a new gated tool.
@@ -249,15 +264,15 @@ For day-to-day “add `get_foo`,” skip the grill and follow **Adding a new too
 
 - Unit: `packages/agent/src/tools/tool-result.test.ts` — `requireFound` and
   `asToolResult` mapping.
-- Agent: `packages/agent/src/tools/catalog/products.test.ts` — execute returns
-  `ToolResult`, no throw on miss.
+- Agent: `packages/agent/src/in-app/__tests__/product-tools.test.ts` — in-app
+  execute returns `ToolResult`, no throw on miss.
 - Workerd: `apps/web/src/workerd-test/tool-approvals.workerd.test.ts` —
   `needsApproval` on top-level `delete_product`.
 
 ## Files of interest
 
 - `packages/agent/src/org/chat/org-chat.ts` — `getTools()` wiring
-- `packages/agent/src/tools/catalog/products.ts` — read / write / approval factories
-- `packages/agent/src/tools/compose-org-tools.ts` — compose entry points
+- `packages/agent/src/tool-parts/catalog/products.ts` — named pieces
+- `packages/agent/src/in-app/compose-org-tools.ts` — compose entry points
 - `packages/agent/src/tools/guard.ts` — RBAC
 - `apps/web/src/components/chat/tools/default-tool.tsx` — Approve/Reject UI

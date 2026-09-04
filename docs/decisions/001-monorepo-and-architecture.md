@@ -33,7 +33,7 @@ The layers and the full map are documented in
   `ui` → in-app `components`. Dependencies point one way, down this list.
 - **Feature-key consistency (D1/D7):** a capability `<cap>` appears as
   `db/schema/<cap>.ts`, `contract/<cap>/`, `core/<cap>/`,
-  `apps/web/src/hono/<auth-scope>/<cap>/`, `agent/tools/<cap>.ts`, and
+  `apps/web/src/hono/<auth-scope>/<cap>/`, `agent/tool-parts/<cap>.ts`, and
   `apps/web/src/components/<cap>/`. Find one, you know the rest.
 - **One Worker app (D6):** `apps/web` hosts UI + Hono API + MCP + AI Durable
   Objects + jobs. A new app only when the runtime genuinely differs.
