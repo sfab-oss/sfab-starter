@@ -1,10 +1,11 @@
 ---
 name: mcp
 description: >-
-  How this repo's MCP OAuth server works (Streamable HTTP at /mcp, org-bound
-  grants, DCR, Settings). Use when changing MCP routes, consent, Settings MCP,
-  OAuth tables, MCP tools, or Origin/JWT checks. Triggers: MCP, /mcp, OAuth
-  consent, DCR, mcp_organization_grant, Cursor MCP URL.
+  How this repo's **opt-in** MCP OAuth pack works (Streamable HTTP at /mcp after
+  `shadcn add`, org-bound grants, DCR, Settings). Use when changing the mcp pack,
+  MCP routes, consent, Settings MCP, OAuth tables, MCP tools, or Origin/JWT
+  checks. Triggers: MCP, /mcp, OAuth consent, DCR, mcp_organization_grant,
+  Cursor MCP URL, shadcn add mcp.
 ---
 
 # MCP skill

@@ -80,6 +80,28 @@ describe("manifest", () => {
     expect(paths.some((path) => path.endsWith("/docs/mcp.md"))).toBe(true);
   });
 
+  it("mcp pack install targets are absent from the kept tree", () => {
+    const mcp = packItems.find((item) => item.name === "mcp");
+    expect(mcp).toBeDefined();
+    const keep = new Set([
+      "docs/guides/mcp.md",
+      ".agents/skills/mcp/SKILL.md",
+      "skill.md",
+      "packages/i18n/messages/mcp-en.json",
+      "packages/i18n/messages/mcp-es.json",
+    ]);
+    for (const file of (mcp?.files ?? []) as Array<{
+      path: string;
+      target?: string;
+    }>) {
+      const target = file.target;
+      if (!(target && !keep.has(target))) {
+        continue;
+      }
+      expect(existsSync(join(REPO_ROOT, target)), target).toBe(false);
+    }
+  });
+
   it("every manifest file path exists on disk", () => {
     for (const item of registryJson.items) {
       for (const file of item.files ?? []) {

@@ -3,18 +3,15 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
   },
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
-    "./access-control": "./src/access-control.ts",
-    "./mcp-resource": "./src/mcp-resource.ts"
+    "./access-control": "./src/access-control.ts"
   },
   "dependencies": {
-    "@better-auth/mcp": "1.7.2",
-    "@better-auth/oauth-provider": "1.7.2",
     "@workspace/db": "workspace:*",
     "@workspace/email": "workspace:*",
     "better-auth": "1.7.2",

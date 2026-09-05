@@ -1,26 +1,19 @@
 import { env } from "cloudflare:workers";
-import { mcp } from "@better-auth/mcp";
-import { oauthProviderAuthServerMetadata } from "@better-auth/oauth-provider";
 import { db, member } from "@workspace/db";
 import { sendMail } from "@workspace/email";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { createAuthMiddleware } from "better-auth/api";
-import { jwt, organization } from "better-auth/plugins";
+import { organization } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { eq } from "drizzle-orm";
 import { ac, roles } from "./access-control";
-import {
-  authOrigin,
-  defaultMcpResource,
-  mcpIssuer,
-  mcpResource,
-} from "./mcp-resource";
+
+function authOrigin(baseUrl: string): string {
+  return new URL(baseUrl).origin;
+}
 
 function createAuth() {
   const origin = authOrigin(env.BETTER_AUTH_URL);
-  const resource = mcpResource(origin);
-  const issuer = mcpIssuer(origin);
 
   return betterAuth({
     baseURL: env.BETTER_AUTH_URL,
@@ -52,36 +45,8 @@ function createAuth() {
           });
         },
       }),
-      jwt({
-        disableSettingJwtHeader: true,
-        jwt: { issuer },
-        jwks: {
-          keyPairConfig: {
-            alg: "EdDSA",
-            crv: "Ed25519",
-          },
-        },
-      }),
-      mcp({
-        loginPage: "/login",
-        consentPage: "/mcp/consent",
-        resource,
-        allowDynamicClientRegistration: true,
-        allowUnauthenticatedClientRegistration: true,
-      }),
       tanstackStartCookies(),
     ],
-    hooks: {
-      before: createAuthMiddleware(
-        // biome-ignore lint/suspicious/useAwait: better-auth types this hook as Promise-returning
-        async (ctx) => {
-          const body = defaultMcpResource(ctx.path, ctx.body, resource);
-          if (body) {
-            return { context: { body } };
-          }
-        }
-      ),
-    },
     databaseHooks: {
       session: {
         create: {
@@ -122,10 +87,6 @@ export const auth: AuthInstance = new Proxy({} as AuthInstance, {
     return value;
   },
 });
-
-export const serveMcpAuthServerMetadata = oauthProviderAuthServerMetadata(auth);
-
-export { verifyJwsAccessToken } from "better-auth/oauth2";
 
 export type Auth = AuthInstance;
 export type Organization = AuthInstance["$Infer"]["Organization"];

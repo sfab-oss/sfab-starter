@@ -118,16 +118,13 @@ not by a compile-time derivation chain. Direction split (**ADR-004**, D3):
 
 `apps/web` is a single Cloudflare Worker that hosts **every** surface — the
 TanStack Start UI, the Hono API (organized `auth-scope → feature`), the AI
-Durable Objects, the MCP Streamable HTTP endpoint at `POST /mcp`, and
-background jobs. A new app is justified only when the runtime genuinely differs,
-not when a new surface is added. This keeps one deploy, one binding set, one
-env. See **ADR-001**.
+Durable Objects, and background jobs. A new app is justified only when the
+runtime genuinely differs, not when a new surface is added. This keeps one
+deploy, one binding set, one env. See **ADR-001**.
 
-MCP OAuth lives in `packages/auth` (`jwt()` + `mcp()`), grants in
-`packages/core` (`mcp_organization_grant`), and the named tool binder in
-`packages/agent/src/mcp/`. Tools never take `organizationId`; the grant stamps
-`ToolContext` at request time. Consent is `/mcp/consent`; Settings lists and
-revokes connections at `/settings/mcp`.
+MCP Streamable HTTP (`POST /mcp`) is **not** in the base. Install the `mcp`
+pack with `shadcn add sfab-oss/sfab-starter/mcp#<ref>`, then run its
+`skill.md`. Guide: [`docs/guides/mcp.md`](guides/mcp.md).
 
 The HTTP API is grouped by auth scope first, then capability:
 `hono/{public,protected,org-protected}/<cap>/`. Auth middleware enforces the
