@@ -5,7 +5,6 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { app as honoApp } from "./hono";
-import { dispatchMcpRequest } from "./mcp";
 import { paraglideMiddleware } from "./paraglide/server.js";
 
 export { OrgAgent } from "@workspace/agent/org";
@@ -40,11 +39,6 @@ async function handleRequest(
   env: Cloudflare.Env,
   ctx: ExecutionContext
 ): Promise<Response> {
-  const mcpResponse = await dispatchMcpRequest(request, env, ctx);
-  if (mcpResponse) {
-    return mcpResponse;
-  }
-
   const url = new URL(request.url);
 
   if (url.pathname.startsWith("/agents/")) {

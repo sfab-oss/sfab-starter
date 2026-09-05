@@ -27,9 +27,6 @@ packages/agent/src/
 │   ├── in-app-tool.ts          # binder: asToolResult + needsApproval
 │   ├── compose-org-tools.ts    # getOrgAgentTools / ReadOnly / Display
 │   └── display.ts              # display_* (UI echoes — not tool-parts)
-├── mcp/
-│   ├── mcp-tool.ts             # binder: JSON text + structuredContent
-│   └── compose-mcp-tools.ts   # 12 reads + create_product + update_product
 └── tools/
     ├── tool-result.ts          # ToolResult + requireFound + asToolResult
     └── guard.ts                # assertCan RBAC (called from write execute)
@@ -40,7 +37,7 @@ packages/agent/src/
 | `getOrgAgentTools(ctx)` | All 15 ERP tools (reads + catalog writes + `delete_product`) | Top-level Think tools on `OrgChat` |
 | `getOrgAgentReadOnlyTools(ctx)` | Same reads, no writes | Delegated sub-agent (`OrgSubAgent`) |
 | `getOrgAgentDisplayTools(ctx)` | `display_product_list`, `display_memory` | Top-level peers of ERP + `delegate` |
-| `registerMcpTools(server, ctx)` | 12 reads + `create_product` / `update_product` | `POST /mcp` (OAuth grant stamps ctx) |
+| `registerMcpTools(server, ctx)` (mcp pack) | 12 reads + `create_product` / `update_product` | `POST /mcp` after pack install |
 
 `org-chat.getTools()` spreads ERP tools, `delegate`, and display tools as
 siblings. Display tools are UI echoes and may keep their own return shapes —
@@ -232,9 +229,10 @@ On `@cloudflare/think` + the AI SDK tool loop:
    inside `execute`.
 4. Import the pieces in `in-app/compose-org-tools.ts` and bind them in
    `getOrgAgentTools` and `getOrgAgentReadOnlyTools` if the sub-agent should
-   see it. Re-declare each tool — do not loop a catalog array. If the tool
-   should be callable over MCP, also bind it in `mcp/compose-mcp-tools.ts`
-   (skip `delete_product` and `display_*`).
+   see it. Re-declare each tool — do not loop a catalog array. If the mcp pack
+   is installed and the tool should be callable over MCP, also bind it in
+   `packages/agent/src/mcp/compose-mcp-tools.ts` (skip `delete_product` and
+   `display_*`).
 
 ### Write tool (autonomous)
 
@@ -274,14 +272,15 @@ For day-to-day “add `get_foo`,” skip the grill and follow **Adding a new too
   execute returns `ToolResult`, no throw on miss.
 - Workerd: `apps/web/src/workerd-test/tool-approvals.workerd.test.ts` —
   `needsApproval` on top-level `delete_product`.
-- Workerd: `apps/web/test/api/mcp.workerd.test.ts` — MCP OAuth + grant binding.
-- Agent: `packages/agent/src/mcp/compose-mcp-tools.test.ts` — MCP name list.
+- MCP (after pack install): `apps/web/test/api/mcp.workerd.test.ts` and
+  `packages/agent/src/mcp/compose-mcp-tools.test.ts`. Those files live in
+  `packages/registry/registry/packs/mcp/` until install.
 
 ## Files of interest
 
 - `packages/agent/src/org/chat/org-chat.ts` — `getTools()` wiring
 - `packages/agent/src/tool-parts/catalog/products.ts` — named pieces
 - `packages/agent/src/in-app/compose-org-tools.ts` — compose entry points
-- `packages/agent/src/mcp/compose-mcp-tools.ts` — MCP compose (no delete/display)
+- `packages/registry/registry/packs/mcp/tools/compose-mcp-tools.ts` — MCP compose (pack; no delete/display)
 - `packages/agent/src/tools/guard.ts` — RBAC
 - `apps/web/src/components/chat/tools/default-tool.tsx` — Approve/Reject UI

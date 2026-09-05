@@ -35,10 +35,6 @@ function settingsSections(): SettingsNavSection[] {
           to: "/settings/members",
           label: m.settings_members(),
         },
-        {
-          to: "/settings/mcp",
-          label: m.settings_mcp(),
-        },
       ],
     },
   ];

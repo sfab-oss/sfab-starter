@@ -39,6 +39,9 @@ implemented here): fabricate tool (ALW-600), intake agent behavior (ALW-601).
   [`architecture/transaction-core.md`](architecture/transaction-core.md).
 - **Layer-sliced, feature-keyed** — same capability key across `db` → `contract`
   → `core` → surfaces → UI/agent. Map: [`architecture.md`](architecture.md).
+- **MCP is opt-in.** Fabricated projects do not include `/mcp`, OAuth plugins,
+  consent, or Settings MCP until `shadcn add sfab-oss/sfab-starter/mcp#<ref>`.
+  Guide: [`guides/mcp.md`](guides/mcp.md).
 
 Prefer those docs over rediscovering structure from file trees.
 
