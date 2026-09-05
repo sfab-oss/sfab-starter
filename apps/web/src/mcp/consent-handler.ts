@@ -1,5 +1,6 @@
 import { auth } from "@workspace/auth";
 import {
+  getOAuthClientDisplay,
   isOrganizationMember,
   oauthClientExists,
   organizationExists,
@@ -51,6 +52,29 @@ async function runOauth2Consent(
       response: Response.json({ error: detail }, { status }),
     };
   }
+}
+
+export async function handleMcpConsentClient(req: Request): Promise<Response> {
+  const sameSite = req.headers.get("Sec-Fetch-Site") === "same-origin";
+  if (!(validateConsentRequestOrigin(req) || sameSite)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const clientId = new URL(req.url).searchParams.get("client_id")?.trim();
+  if (!clientId) {
+    return Response.json({ error: "Missing client_id" }, { status: 400 });
+  }
+
+  const client = await getOAuthClientDisplay(clientId);
+  if (!client) {
+    return Response.json({ error: "Unknown OAuth client" }, { status: 404 });
+  }
+
+  return Response.json({
+    clientId: client.clientId,
+    name: client.name,
+    icon: client.icon,
+  });
 }
 
 export async function handleMcpConsent(req: Request): Promise<Response> {

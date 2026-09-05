@@ -1,6 +1,9 @@
 import { auth } from "@workspace/auth";
 import { Hono } from "hono";
-import { handleMcpConsent } from "../mcp/consent-handler";
+import {
+  handleMcpConsent,
+  handleMcpConsentClient,
+} from "../mcp/consent-handler";
 import { appErrorHandler } from "./middleware/error-handler";
 import { protectedRoutes } from "./protected";
 import { publicRoutes } from "./public";
@@ -31,6 +34,7 @@ const handleAuth = (raw: Request): Promise<Response> => {
 export const app = new Hono()
   .onError(appErrorHandler)
   .on(["POST", "GET"], "/auth/*", (c) => handleAuth(c.req.raw))
+  .get("/mcp/consent-client", (c) => handleMcpConsentClient(c.req.raw))
   .post("/mcp/consent", (c) => handleMcpConsent(c.req.raw))
   .route("/", publicRoutes)
   .route("/protected", protectedRoutes);

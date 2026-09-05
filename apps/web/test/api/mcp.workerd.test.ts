@@ -6,7 +6,12 @@ import {
   createTestSessionWithOrg,
   ORIGIN,
 } from "../helpers/auth";
-import { mcpRpc, mintMcpAccessToken, readMcpJson } from "../helpers/mcp-oauth";
+import {
+  mcpRpc,
+  mintMcpAccessToken,
+  readMcpJson,
+  registerPublicClient,
+} from "../helpers/mcp-oauth";
 
 const RESOURCE = mcpResource(ORIGIN);
 
@@ -277,5 +282,22 @@ describe("MCP OAuth JWT happy path", () => {
       result?: { tools?: unknown[] };
     };
     expect(bodyB.result?.tools?.length).toBeGreaterThan(0);
+  });
+
+  it("consent-client returns the registered client name", async () => {
+    const { clientId } = await registerPublicClient();
+    const missingOrigin = await SELF.fetch(
+      `${ORIGIN}/api/mcp/consent-client?client_id=${clientId}`
+    );
+    expect(missingOrigin.status).toBe(403);
+
+    const res = await SELF.fetch(
+      `${ORIGIN}/api/mcp/consent-client?client_id=${clientId}`,
+      { headers: { Origin: ORIGIN } }
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { name?: string; clientId?: string };
+    expect(body.clientId).toBe(clientId);
+    expect(body.name).toBe("vitest-mcp");
   });
 });

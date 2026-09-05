@@ -27,7 +27,7 @@ import {
 import { Separator } from "@workspace/ui/components/shadcn/separator";
 import { Skeleton } from "@workspace/ui/components/shadcn/skeleton";
 import { toast } from "@workspace/ui/components/shadcn/sonner";
-import { Check, Copy, Plug, ShieldOff } from "lucide-react";
+import { Check, Copy, Plug, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   useMcpMineConnections,
@@ -99,6 +99,13 @@ export function McpSettingsSection() {
     return mine.data ?? [];
   }, [isAdmin, sessionUserId, org.data, mine.data]);
   const myLoading = memberPending || (isAdmin ? org.isLoading : mine.isLoading);
+  const otherMemberItems = useMemo(() => {
+    if (!(isAdmin && sessionUserId)) {
+      return [];
+    }
+    return (org.data ?? []).filter((row) => row.userId !== sessionUserId);
+  }, [isAdmin, sessionUserId, org.data]);
+  const showOrgList = isAdmin && otherMemberItems.length > 0;
 
   const revoke = useRevokeMcpConnection();
   const [pending, setPending] = useState<PendingRevoke | null>(null);
@@ -144,59 +151,8 @@ export function McpSettingsSection() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plug className="h-5 w-5" />
-            {m.mcp_settings_mine_title()}
+            {m.mcp_settings_setup_title()}
           </CardTitle>
-          <CardDescription>{m.mcp_settings_mine_description()}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ConnectionList
-            empty={m.mcp_settings_mine_empty()}
-            isLoading={myLoading}
-            items={myItems}
-            onRevoke={(row) =>
-              setPending({
-                clientId: row.clientId,
-                userId: row.userId,
-                label: clientLabel(row),
-              })
-            }
-            showMember={false}
-          />
-        </CardContent>
-      </Card>
-
-      {isAdmin ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShieldOff className="h-5 w-5" />
-              {m.mcp_settings_org_title()}
-            </CardTitle>
-            <CardDescription>
-              {m.mcp_settings_org_description()}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ConnectionList
-              empty={m.mcp_settings_org_empty()}
-              isLoading={memberPending || org.isLoading}
-              items={org.data ?? []}
-              onRevoke={(row) =>
-                setPending({
-                  clientId: row.clientId,
-                  userId: row.userId,
-                  label: `${clientLabel(row)} (${row.userName})`,
-                })
-              }
-              showMember
-            />
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{m.mcp_settings_setup_title()}</CardTitle>
           <CardDescription>
             {m.mcp_settings_setup_description()}
           </CardDescription>
@@ -218,6 +174,57 @@ export function McpSettingsSection() {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{m.mcp_settings_mine_title()}</CardTitle>
+          <CardDescription>{m.mcp_settings_mine_description()}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ConnectionList
+            empty={m.mcp_settings_mine_empty()}
+            isLoading={myLoading}
+            items={myItems}
+            onRevoke={(row) =>
+              setPending({
+                clientId: row.clientId,
+                userId: row.userId,
+                label: clientLabel(row),
+              })
+            }
+            showMember={false}
+          />
+        </CardContent>
+      </Card>
+
+      {showOrgList ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              {m.mcp_settings_org_title()}
+            </CardTitle>
+            <CardDescription>
+              {m.mcp_settings_org_description()}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ConnectionList
+              empty={m.mcp_settings_org_empty()}
+              isLoading={memberPending || org.isLoading}
+              items={otherMemberItems}
+              onRevoke={(row) =>
+                setPending({
+                  clientId: row.clientId,
+                  userId: row.userId,
+                  label: `${clientLabel(row)} (${row.userName})`,
+                })
+              }
+              showMember
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <AlertDialog
         onOpenChange={(open) => {
@@ -241,6 +248,7 @@ export function McpSettingsSection() {
               {m.mcp_settings_revoke_cancel()}
             </AlertDialogCancel>
             <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={revoke.isPending}
               onClick={handleRevoke}
             >
@@ -305,7 +313,7 @@ function ConnectionList({
             onClick={() => onRevoke(row)}
             size="sm"
             type="button"
-            variant="outline"
+            variant="destructive"
           >
             {m.mcp_settings_revoke()}
           </Button>

@@ -1,5 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
 import { authClient } from "@workspace/auth/client";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/shadcn/avatar";
 import { Button } from "@workspace/ui/components/shadcn/button";
 import {
   Card,
@@ -23,6 +29,14 @@ import { client } from "@/lib/client";
 import { restoreSignedOAuthQuery } from "@/lib/restore-signed-oauth-query";
 import { m } from "@/paraglide/messages.js";
 
+const PROTOCOL_SCOPES = new Set([
+  "openid",
+  "profile",
+  "email",
+  "offline_access",
+]);
+const WHITESPACE = /\s+/;
+
 export const Route = createFileRoute("/mcp/consent")({
   validateSearch: (search: Record<string, unknown>) => ({
     client_id: String(search.client_id || ""),
@@ -30,6 +44,58 @@ export const Route = createFileRoute("/mcp/consent")({
   }),
   component: McpConsentPage,
 });
+
+function clientLabel(
+  name: string | null | undefined,
+  clientId: string
+): string {
+  const trimmed = name?.trim();
+  return trimmed || clientId || m.mcp_consent_title();
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(WHITESPACE).filter(Boolean);
+  const first = parts[0];
+  if (!first) {
+    return "?";
+  }
+  const second = parts[1];
+  if (!second) {
+    return first.slice(0, 2).toUpperCase();
+  }
+  return `${first[0] ?? ""}${second[0] ?? ""}`.toUpperCase();
+}
+
+function extraScopes(scope: string): string | null {
+  const parts = scope.split(WHITESPACE).filter(Boolean);
+  const extra = parts.filter((part) => !PROTOCOL_SCOPES.has(part));
+  return extra.length > 0 ? extra.join(" ") : null;
+}
+
+interface ConsentClientDisplay {
+  clientId: string;
+  name: string | null;
+  icon: string | null;
+}
+
+function useMcpConsentClient(clientId: string) {
+  return useQuery({
+    queryKey: ["mcp", "consent-client", clientId],
+    enabled: clientId.length > 0,
+    queryFn: async (): Promise<ConsentClientDisplay | null> => {
+      const res = await client.mcp["consent-client"].$get({
+        query: { client_id: clientId },
+      });
+      if (res.status === 404) {
+        return null;
+      }
+      if (!res.ok) {
+        throw new Error("Failed to load client");
+      }
+      return (await res.json()) as ConsentClientDisplay;
+    },
+  });
+}
 
 function McpConsentPage() {
   const { client_id, scope } = Route.useSearch();
@@ -40,6 +106,8 @@ function McpConsentPage() {
   const oauthQuery = restoreSignedOAuthQuery(
     searchStr.startsWith("?") ? searchStr.slice(1) : searchStr
   );
+  const consentClient = useMcpConsentClient(client_id);
+  const label = clientLabel(consentClient.data?.name, client_id);
 
   if (isPending) {
     return (
@@ -70,6 +138,11 @@ function McpConsentPage() {
               {m.mcp_consent_invalid_description()}
             </CardDescription>
           </CardHeader>
+          <CardContent>
+            <Button render={<Link to="/" />} variant="outline">
+              {m.mcp_consent_invalid_home()}
+            </Button>
+          </CardContent>
         </Card>
       </AuthPage>
     );
@@ -89,7 +162,13 @@ function McpConsentPage() {
               {m.mcp_consent_sign_in_description()}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {client_id ? (
+              <ClientIdentity
+                icon={consentClient.data?.icon ?? null}
+                label={label}
+              />
+            ) : null}
             <Button
               render={<Link search={{ redirect: callback }} to="/login" />}
             >
@@ -103,7 +182,9 @@ function McpConsentPage() {
 
   return (
     <ConsentView
+      clientIcon={consentClient.data?.icon ?? null}
       clientId={client_id}
+      clientName={label}
       oauthQuery={oauthQuery}
       scope={scope}
       userEmail={session.user.email}
@@ -112,15 +193,42 @@ function McpConsentPage() {
   );
 }
 
+function ClientIdentity({
+  icon,
+  label,
+}: {
+  icon: string | null;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border bg-muted/50 p-3">
+      <Avatar className="h-10 w-10">
+        {icon ? <AvatarImage alt="" src={icon} /> : null}
+        <AvatarFallback className="text-xs">{initials(label)}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <p className="text-muted-foreground text-xs">
+          {m.mcp_consent_client()}
+        </p>
+        <p className="truncate font-medium text-sm">{label}</p>
+      </div>
+    </div>
+  );
+}
+
 function ConsentView({
   oauthQuery,
   clientId,
+  clientName,
+  clientIcon,
   scope,
   userName,
   userEmail,
 }: {
   oauthQuery: string;
   clientId: string;
+  clientName: string;
+  clientIcon: string | null;
   scope: string;
   userName: string;
   userEmail: string;
@@ -133,6 +241,9 @@ function ConsentView({
   const [pickedOrgId, setSelectedOrgId] = useState<string | null>(null);
   const selectedOrgId =
     pickedOrgId ?? activeOrganization?.id ?? organizations?.[0]?.id ?? null;
+  const selectedOrg = organizations?.find((org) => org.id === selectedOrgId);
+  const singleOrg = (organizations?.length ?? 0) === 1;
+  const shownScopes = extraScopes(scope);
 
   const submit = async (accept: boolean) => {
     if (accept && !selectedOrgId) {
@@ -167,30 +278,27 @@ function ConsentView({
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{m.mcp_consent_title()}</CardTitle>
-          <CardDescription>{m.mcp_consent_description()}</CardDescription>
+          <CardDescription>
+            {singleOrg && selectedOrg
+              ? m.mcp_consent_description_single({ org: selectedOrg.name })
+              : m.mcp_consent_description()}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {clientId ? (
+            <ClientIdentity icon={clientIcon} label={clientName} />
+          ) : null}
           <div className="space-y-1 rounded-lg border bg-muted/50 p-3">
             <p className="font-medium text-sm">{userName}</p>
             <p className="text-muted-foreground text-sm">{userEmail}</p>
           </div>
-          {clientId ? (
-            <div className="space-y-1">
-              <Label className="text-muted-foreground text-xs">
-                {m.mcp_consent_client_id()}
-              </Label>
-              <div className="rounded-md border bg-muted/30 px-3 py-2 font-mono text-xs">
-                {clientId}
-              </div>
-            </div>
-          ) : null}
-          {scope ? (
+          {shownScopes ? (
             <div className="space-y-1">
               <Label className="text-muted-foreground text-xs">
                 {m.mcp_consent_scopes()}
               </Label>
               <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
-                {scope}
+                {shownScopes}
               </div>
             </div>
           ) : null}
@@ -200,6 +308,9 @@ function ConsentView({
             organizations={organizations ?? null}
             selectedOrgId={selectedOrgId}
           />
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            {m.mcp_consent_access_note()}
+          </p>
           <p className="text-muted-foreground text-xs leading-relaxed">
             {m.mcp_consent_binding_note()}
           </p>

@@ -123,12 +123,26 @@ export async function organizationExists(
 }
 
 export async function oauthClientExists(clientId: string): Promise<boolean> {
+  return Boolean(await getOAuthClientDisplay(clientId));
+}
+
+export async function getOAuthClientDisplay(clientId: string): Promise<{
+  clientId: string;
+  name: string | null;
+  icon: string | null;
+} | null> {
   const [row] = await db
-    .select({ clientId: oauthClient.clientId })
+    .select({
+      clientId: oauthClient.clientId,
+      name: oauthClient.name,
+      icon: oauthClient.icon,
+    })
     .from(oauthClient)
-    .where(eq(oauthClient.clientId, clientId))
+    .where(
+      and(eq(oauthClient.clientId, clientId), eq(oauthClient.disabled, false))
+    )
     .limit(1);
-  return Boolean(row);
+  return row ?? null;
 }
 
 export async function isOrgOwnerOrAdmin(params: {

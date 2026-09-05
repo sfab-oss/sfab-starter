@@ -62,7 +62,7 @@ function cookieHeader(cookie: string): Record<string, string> {
   };
 }
 
-async function registerPublicClient(): Promise<{ clientId: string }> {
+export async function registerPublicClient(): Promise<{ clientId: string }> {
   const res = await SELF.fetch(`${ORIGIN}/api/auth/oauth2/register`, {
     method: "POST",
     headers: {
