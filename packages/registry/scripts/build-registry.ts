@@ -5,15 +5,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import type { RegistryItemDef } from "../src/types";
 
 /**
- * Generates the two derived artifacts from the `registry/{blocks,components}/<name>/`
- * source trees (ADR-0017 amendment, RD-7):
+ * Generates the two derived artifacts from the
+ * `registry/{blocks,components,packs}/<name>/` source trees (ADR-0017):
  *
  *   1. the repo-root `registry.json` (the shadcn GitHub-registry manifest), and
  *   2. `src/generated.ts` (the gallery's `name -> { ...meta, lazy component }` map).
  *
- * Each item directory contributes one `item.ts` (its shadcn `RegistryItem` +
- * `preview` entrypoint, authored with item-relative file paths). Run with
- * `--check` to fail (non-zero) if either artifact is stale — the CI drift gate.
+ * Gallery output skips `sfabKind: "pack"` items (no preview). Packs still land
+ * in `registry.json`. Run with `--check` to fail if either artifact is stale.
  */
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -28,7 +27,17 @@ const HOMEPAGE = "https://github.com/sfab-oss/sfab-starter";
 const REGISTRY_JSON = join(REPO_ROOT, "registry.json");
 const GENERATED_TS = join(PKG_ROOT, "src", "generated.ts");
 
-const KIND_DIRS = ["blocks", "components"] as const;
+const KIND_DIRS = ["blocks", "components", "packs"] as const;
+
+function expectedType(
+  kind: (typeof KIND_DIRS)[number]
+): "registry:block" | "registry:ui" {
+  return kind === "components" ? "registry:ui" : "registry:block";
+}
+
+function expectedKind(kind: (typeof KIND_DIRS)[number]): "block" | "pack" {
+  return kind === "packs" ? "pack" : "block";
+}
 
 interface LoadedDef {
   name: string;
@@ -45,7 +54,8 @@ async function loadKindDefs(
     return [];
   }
 
-  const expectedType = kind === "blocks" ? "registry:block" : "registry:ui";
+  const itemType = expectedType(kind);
+  const sfabKind = expectedKind(kind);
   const names = readdirSync(kindDir, { withFileTypes: true })
     .filter(
       (d) => d.isDirectory() && existsSync(join(kindDir, d.name, "item.ts"))
@@ -67,10 +77,20 @@ async function loadKindDefs(
       );
     }
 
-    if (def.item.type !== expectedType) {
+    if (def.item.type !== itemType) {
       throw new Error(
-        `${relPath}: type "${def.item.type}" must be "${expectedType}" for registry/${kind}/`
+        `${relPath}: type "${def.item.type}" must be "${itemType}" for registry/${kind}/`
       );
+    }
+
+    if (def.item.meta.sfabKind !== sfabKind) {
+      throw new Error(
+        `${relPath}: meta.sfabKind "${def.item.meta.sfabKind}" must be "${sfabKind}" for registry/${kind}/`
+      );
+    }
+
+    if (sfabKind === "block" && !def.preview) {
+      throw new Error(`${relPath}: gallery items require a preview file`);
     }
 
     for (const file of def.item.files ?? []) {
@@ -120,6 +140,9 @@ function buildGeneratedTs(defs: LoadedDef[]): string {
   ];
   for (const { relPath, def } of defs) {
     const { item, preview } = def;
+    if (item.meta.sfabKind === "pack" || !preview) {
+      continue;
+    }
     const importPath = `../registry/${relPath}/${preview}`;
     lines.push(`  ${JSON.stringify(item.name)}: {`);
     lines.push(`    name: ${JSON.stringify(item.name)},`);

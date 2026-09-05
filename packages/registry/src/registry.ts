@@ -5,10 +5,10 @@ export { REGISTRY } from "./generated";
 
 /**
  * The stable, hand-written API over the GENERATED `REGISTRY` map (`src/generated.ts`,
- * built from the `registry/{blocks,components}/<name>/` trees by
- * `scripts/build-registry.ts`). An item is sorted on two independent axes: shadcn
- * `type` (preview shape) and `meta.sfabKind` (install contract) — see each helper
- * below.
+ * built from the `registry/{blocks,components,packs}/<name>/` trees by
+ * `scripts/build-registry.ts`). The gallery map is UI items only. Packs live in
+ * `registry.json`. An item is sorted on two independent axes: shadcn `type`
+ * (preview shape) and `meta.sfabKind` (install contract).
  */
 
 export function getEntry(name: string): RegistryEntry | undefined {

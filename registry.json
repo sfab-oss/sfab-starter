@@ -328,6 +328,22 @@
       ]
     },
     {
+      "name": "mcp",
+      "type": "registry:block",
+      "title": "MCP server",
+      "description": "Opt-in MCP OAuth + Streamable HTTP. Skeleton: install skill only until the layer slices land.",
+      "meta": {
+        "sfabKind": "pack"
+      },
+      "files": [
+        {
+          "path": "packages/registry/registry/packs/mcp/skill.md",
+          "type": "registry:file",
+          "target": "skill.md"
+        }
+      ]
+    },
+    {
       "name": "pdf-viewer",
       "type": "registry:ui",
       "title": "PDF viewer",
