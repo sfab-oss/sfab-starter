@@ -13,9 +13,8 @@ Every `registry.json` `target` for `mcp` exists. Fragments
 `packages/i18n/messages/mcp-en.json` and `mcp-es.json` are temporary: merge them
 in step 6, then delete those two files.
 
-Do not copy `packages/db/drizzle/meta/0003_snapshot.json`. If the SQL file
-collides with an existing `0003_*.sql`, keep the schema file and run
-`pnpm db:generate` instead of overwriting someone else's migration.
+The pack copies `oauth.ts` only. It does not drop drizzle SQL, a snapshot, or
+`_journal.json`. You generate and migrate in step 5.
 
 ## 2. Package exports and deps
 
@@ -76,22 +75,20 @@ it.
 
 ## 5. Drizzle
 
-If `0003_white_the_fury.sql` landed and the journal has no `0003` entry, append:
+You own the schema journal. After `oauth.ts` is exported from
+`packages/db/src/schema/index.ts`:
 
-```json
-{
-  "idx": 3,
-  "version": "6",
-  "when": 1788549677049,
-  "tag": "0003_white_the_fury",
-  "breakpoints": true
-}
+```
+pnpm db:generate
+pnpm db:migrate
 ```
 
-to `packages/db/drizzle/meta/_journal.json`. If idx 3 is already taken, drop the
-copied SQL, keep `oauth.ts`, and `pnpm db:generate`. Then `pnpm db:migrate`. If
-DCR returns 500 after a rewritten 0003, `pnpm db:reset` (local only) so the
-grant FK matches this SQL.
+Do not append `_journal.json` by hand. Do not copy a numbered SQL file into
+`packages/db/drizzle/`. Generate writes the next migration and journal entry;
+migrate applies it.
+
+If DCR returns 500 because a local D1 still has an older OAuth or grant
+shape, `pnpm db:reset` (local only).
 
 ## 6. i18n
 

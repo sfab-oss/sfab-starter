@@ -41,7 +41,8 @@ implemented here): fabricate tool (ALW-600), intake agent behavior (ALW-601).
   → `core` → surfaces → UI/agent. Map: [`architecture.md`](architecture.md).
 - **MCP is opt-in.** Fabricated projects do not include `/mcp`, OAuth plugins,
   consent, or Settings MCP until `shadcn add sfab-oss/sfab-starter/mcp#<ref>`.
-  Guide: [`guides/mcp.md`](guides/mcp.md).
+  After install, generate and migrate the OAuth schema. Guide:
+  [`guides/mcp.md`](guides/mcp.md).
 
 Prefer those docs over rediscovering structure from file trees.
 
