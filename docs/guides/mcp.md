@@ -12,7 +12,11 @@ journal: `pnpm db:generate` then `pnpm db:migrate`. The pack does not drop
 SQL or edit `_journal.json`. Cursor as a client is configured from Settings
 (URL + JSON snippet), not from `AGENTS.md`.
 
-Pack source in this repo: `packages/registry/registry/packs/mcp/`.
+In this template repo the pack source is
+`packages/registry/registry/packs/mcp/`. A fabricated project drops
+`packages/registry`. After `shadcn add`, files land on the `registry.json`
+`target` paths (for example `packages/db/src/schema/oauth.ts`). The durable
+guide in a fabricated tree is this file: `docs/guides/mcp.md`.
 
 ## The question
 
@@ -61,14 +65,14 @@ no `display_*`. Names:
 
 ## Files of Interest
 
-Pack paths are the source of truth in this template. After install they land
-on the `registry.json` `target` paths.
+In this template repo, pack paths are the authoring source. A fabricated
+project has no `packages/registry`. After install, use the `target` paths.
 
-- `packages/registry/registry/packs/mcp/db/schema/oauth.ts` — `jwks`, OAuth tables, `mcpOrganizationGrant`
-- `packages/registry/registry/packs/mcp/auth/mcp-resource.ts` — issuer `{origin}/api/auth`, resource `{origin}/mcp`
+- `packages/registry/registry/packs/mcp/db/schema/oauth.ts` (installs to `packages/db/src/schema/oauth.ts`) — `jwks`, OAuth tables, `mcpOrganizationGrant`
+- `packages/registry/registry/packs/mcp/auth/mcp-resource.ts` (installs to `packages/auth/src/mcp-resource.ts`) — issuer `{origin}/api/auth`, resource `{origin}/mcp`
 - `packages/registry/registry/packs/mcp/skill.md` — graft: auth plugins, intercept, nav, i18n, provenance, self-delete
-- `packages/registry/registry/packs/mcp/tools/compose-mcp-tools.ts` — binder over tool-parts
-- `packages/registry/registry/packs/mcp/server/mcp/index.ts` — Streamable HTTP handler + well-known resource
-- `packages/registry/registry/packs/mcp/test/mcp.workerd.test.ts` — GET 405, JWT POST, grant, revoke, Origin
+- `packages/registry/registry/packs/mcp/tools/compose-mcp-tools.ts` (installs to `packages/agent/src/mcp/compose-mcp-tools.ts`) — binder over tool-parts
+- `packages/registry/registry/packs/mcp/server/mcp/index.ts` (installs to `apps/web/src/mcp/index.ts`) — Streamable HTTP handler + well-known resource
+- `packages/registry/registry/packs/mcp/test/mcp.workerd.test.ts` (installs to `apps/web/test/api/mcp.workerd.test.ts`) — GET 405, JWT POST, grant, revoke, Origin
 
 Do not move `packages/agent/src/tool-parts/` into the pack.

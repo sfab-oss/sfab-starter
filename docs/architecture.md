@@ -5,11 +5,12 @@ moves through them, and the rules that keep the boundaries honest. Read this
 first — every ADR in `docs/decisions/` records *why* one of these choices was
 made, and every guide in `docs/guides/` shows *how* to work within them.
 
-The starter is a **generic worldwide ERP base**. Packs add country and vertical
-specifics; i18n handles language. The pack install mechanism (ADR-0010 /
-ADR-0017, `sfabKind: "pack"`) is unbuilt and lives on the roadmap — every
-registry item today is a `block`. The live information architecture is Catalog /
-Entities / Documents (`apps/web/src/components/layout/platform-navigation.ts`).
+The starter is a **generic worldwide ERP base**. Packs add opt-in capabilities
+(and later country/vertical specifics); i18n handles language. Pack install is
+real (`sfabKind: "pack"`, ADR-0010 / ADR-0017). The first pack is **mcp**
+(`shadcn add sfab-oss/sfab-starter/mcp#<ref>`). Gallery items remain `block`.
+The live information architecture is Catalog / Entities / Documents
+(`apps/web/src/components/layout/platform-navigation.ts`).
 
 ## Guiding principles
 
@@ -174,7 +175,8 @@ The DO fixture + reference test live in `apps/web/src/workerd-test/`.
 - **The transaction hub** every commercial flow grafts onto →
   [`docs/architecture/transaction-core.md`](architecture/transaction-core.md)
   (why: [ADR-006](decisions/006-transaction-core.md)).
-- **A candidate Mexican-SME operator pack** (not the live IA; packs are unbuilt) →
+- **A candidate Mexican-SME operator pack** (not the live IA; that pack is
+  unbuilt; pack *install* already exists) →
   [`docs/architecture/operator-ux.md`](architecture/operator-ux.md).
 - **Deploy contract (Option Y)** — named `Deploy` workflow, `workflow_run`
   observation, migrations → deploy → secrets-sync →
