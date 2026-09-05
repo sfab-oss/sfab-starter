@@ -21,3 +21,5 @@ repeat the guide.
 4. Do not add `delete_product` or `display_*` on the MCP catalog.
 5. Do not move `packages/agent/src/tool-parts/` into the pack.
 6. Cursor as a client is configured from Settings, not `AGENTS.md`.
+7. Pack install does not write `_journal.json` or drop numbered SQL. The
+   installer runs `pnpm db:generate` then `pnpm db:migrate`.

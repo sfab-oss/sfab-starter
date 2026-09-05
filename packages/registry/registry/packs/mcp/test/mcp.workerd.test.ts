@@ -25,8 +25,6 @@ function mcpHeaders(extra?: Record<string, string>): Record<string, string> {
 
 describe("MCP HTTP surface", () => {
   it("applies oauth schema migrations", async () => {
-    const names = env.TEST_MIGRATIONS.map((m) => m.name);
-    expect(names).toContain("0003_white_the_fury.sql");
     const row = await env.DB.prepare(
       "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'oauth_resource'"
     ).first<{ name: string }>();

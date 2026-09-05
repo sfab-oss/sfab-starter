@@ -78,6 +78,9 @@ describe("manifest", () => {
       true
     );
     expect(paths.some((path) => path.endsWith("/docs/mcp.md"))).toBe(true);
+    expect(
+      paths.some((path) => path.includes("/drizzle/") && path.endsWith(".sql"))
+    ).toBe(false);
   });
 
   it("mcp pack install targets are absent from the kept tree", () => {

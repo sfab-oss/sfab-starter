@@ -16,11 +16,6 @@ const def: RegistryItemDef = {
         target: "packages/db/src/schema/oauth.ts",
       },
       {
-        path: "db/drizzle/0003_white_the_fury.sql",
-        type: "registry:file",
-        target: "packages/db/drizzle/0003_white_the_fury.sql",
-      },
-      {
         path: "contract/mcp-connections.ts",
         type: "registry:lib",
         target: "packages/contract/src/mcp-connections.ts",

@@ -7,8 +7,10 @@ include MCP HTTP, OAuth plugins, consent, or Settings MCP until install.
 
 Install: `shadcn add sfab-oss/sfab-starter/mcp#<ref>`, then run the copied
 `skill.md` (wire barrels, write `.sfab/template.json`
-`packs.mcp = { ref, installedAt }`, delete the skill). Cursor as a client is
-configured from Settings (URL + JSON snippet), not from `AGENTS.md`.
+`packs.mcp = { ref, installedAt }`, delete the skill). You own the schema
+journal: `pnpm db:generate` then `pnpm db:migrate`. The pack does not drop
+SQL or edit `_journal.json`. Cursor as a client is configured from Settings
+(URL + JSON snippet), not from `AGENTS.md`.
 
 Pack source in this repo: `packages/registry/registry/packs/mcp/`.
 
@@ -36,11 +38,19 @@ different origins. Sign in and call `/mcp` from the same host the env uses
 (typically `http://localhost:3000`). A missing Origin is 401; a foreign Origin
 is 403.
 
-### Local D1 after a rewritten 0003
+### Schema generation and migration
 
-Migration `0003_white_the_fury.sql` owns JWKS, OAuth, and
-`mcp_organization_grant`. If an older local D1 still has a grant FK to
-`oauth_resource.id`, DCR returns 500 until `pnpm db:reset`.
+The pack copies `oauth.ts` (JWKS, OAuth tables, `mcp_organization_grant`). It
+does not copy a numbered drizzle SQL file or edit `_journal.json`. After
+install, generate the next migration and apply it:
+
+```
+pnpm db:generate
+pnpm db:migrate
+```
+
+If a local D1 still has an older OAuth or grant shape and DCR returns 500,
+`pnpm db:reset` (local only).
 
 ### Tool catalog
 
