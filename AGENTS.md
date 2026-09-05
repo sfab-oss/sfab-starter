@@ -55,10 +55,11 @@ Run from the **monorepo root** (not inside a package):
   strict significance bar ([template](docs/decisions/template.md)).
 - **How to do/extend something here** → [`docs/guides/`](docs/guides/).
   Multi-language UI → [`docs/guides/i18n.md`](docs/guides/i18n.md) + skill
-  `.agents/skills/i18n`.
+  `.agents/skills/i18n`. MCP OAuth server →
+  [`docs/guides/mcp.md`](docs/guides/mcp.md) + skill `.agents/skills/mcp`.
 - **Procedural domain knowledge, loaded on demand** → `.agents/skills/`
   (`cloudflare`, `wrangler`, `durable-objects`, `workers-best-practices`, `agents-sdk`,
-  `ai-sdk`, `agent-browser`, `i18n`). Use the relevant skill when a task matches its domain.
+  `ai-sdk`, `agent-browser`, `i18n`, `mcp`). Use the relevant skill when a task matches its domain.
 - **First-time initialization** → follow [`docs/template-init.md`](docs/template-init.md).
   Setup / run → [`README.md`](README.md).
 

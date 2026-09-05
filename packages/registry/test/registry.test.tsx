@@ -62,6 +62,24 @@ describe("manifest", () => {
     }
   });
 
+  it("mcp pack lists layer slices, not only skill.md", () => {
+    const mcp = packItems.find((item) => item.name === "mcp");
+    expect(mcp).toBeDefined();
+    const paths = (mcp?.files ?? []).map((file) => file.path);
+    expect(paths.some((path) => path.endsWith("/skill.md"))).toBe(true);
+    expect(paths.some((path) => path.endsWith("/oauth.ts"))).toBe(true);
+    expect(paths.some((path) => path.endsWith("/compose-mcp-tools.ts"))).toBe(
+      true
+    );
+    expect(
+      paths.some((path) => path.endsWith("/mcp-settings-section.tsx"))
+    ).toBe(true);
+    expect(paths.some((path) => path.endsWith("/mcp.workerd.test.ts"))).toBe(
+      true
+    );
+    expect(paths.some((path) => path.endsWith("/docs/mcp.md"))).toBe(true);
+  });
+
   it("every manifest file path exists on disk", () => {
     for (const item of registryJson.items) {
       for (const file of item.files ?? []) {
