@@ -20,22 +20,46 @@ const entries = Object.values(REGISTRY);
 afterEach(cleanup);
 
 describe("manifest", () => {
-  it("registry.json covers exactly the runtime registry", () => {
+  const packItems = registryJson.items.filter(
+    (item) => (item.meta as { sfabKind?: string }).sfabKind === "pack"
+  );
+
+  it("registry.json is the gallery plus every pack", () => {
     const manifestNames = registryJson.items.map((i) => i.name).sort();
-    const runtimeNames = Object.keys(REGISTRY).sort();
-    expect(manifestNames).toEqual(runtimeNames);
+    const galleryNames = Object.keys(REGISTRY).sort();
+    const packNames = packItems.map((i) => i.name).sort();
+    expect([...galleryNames, ...packNames].sort()).toEqual(manifestNames);
   });
 
-  it("every item declares a valid sfabKind discriminator", () => {
+  it("gallery items are sfabKind block", () => {
     for (const entry of entries) {
-      expect(["block", "pack"]).toContain(getSfabKind(entry));
+      expect(getSfabKind(entry)).toBe("block");
     }
   });
 
-  it("splits items by shadcn type without overlap or loss", () => {
+  it("every registry.json item declares a valid sfabKind", () => {
+    for (const item of registryJson.items) {
+      expect(["block", "pack"]).toContain(
+        (item.meta as { sfabKind?: string }).sfabKind
+      );
+    }
+  });
+
+  it("splits gallery items by shadcn type without overlap or loss", () => {
     expect(components.length + blocks.length).toBe(entries.length);
     expect(components.every((e) => e.type === "registry:ui")).toBe(true);
     expect(blocks.every((e) => e.type === "registry:block")).toBe(true);
+  });
+
+  it("every pack lists skill.md and is absent from the gallery", () => {
+    expect(packItems.length).toBeGreaterThan(0);
+    for (const pack of packItems) {
+      expect(REGISTRY[pack.name]).toBeUndefined();
+      expect(
+        (pack.files ?? []).some((file) => file.path.endsWith("/skill.md")),
+        pack.name
+      ).toBe(true);
+    }
   });
 
   it("every manifest file path exists on disk", () => {

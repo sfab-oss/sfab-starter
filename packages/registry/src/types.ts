@@ -4,8 +4,8 @@ import type { RegistryItem } from "shadcn/schema";
 /**
  * The install-contract discriminator (ADR-0017, 2026-06-21 amendment) — see the
  * package README for the full `block` vs `pack` contract. It rides in shadcn's
- * free-form `meta`, so one registry and one item primitive serve both kinds. Every
- * item today is a `block`; the first `pack` is POS.
+ * free-form `meta`, so one registry and one item primitive serve both kinds. UI
+ * items are `block`. The first `pack` is MCP (POS is later).
  */
 export type SfabKind = "block" | "pack";
 
@@ -19,18 +19,18 @@ export type SfabMeta = {
 export type SfabRegistryItem = RegistryItem & { meta: SfabMeta };
 
 /**
- * What each `registry/{blocks,components}/<name>/item.ts` default-exports — the
- * source for one item.
+ * What each `registry/{blocks,components,packs}/<name>/item.ts` default-exports —
+ * the source for one item.
  *
  * - `item` is the shadcn `RegistryItem` that lands in the generated root
  *   `registry.json`. Authors write `files[].path` RELATIVE to the item directory;
  *   the build rewrites them repo-root-relative (the GitHub-registry requirement).
  * - `preview` names the file under the item directory (no extension) to lazy-load
- *   for the gallery preview.
+ *   for the gallery. Required for `sfabKind: "block"`; omit on packs.
  */
 export interface RegistryItemDef {
   item: SfabRegistryItem;
-  preview: string;
+  preview?: string;
 }
 
 /**
