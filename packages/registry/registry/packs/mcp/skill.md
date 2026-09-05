@@ -1,23 +1,139 @@
 # MCP pack — install skill (ephemeral)
 
-One-shot procedure. Run it after `shadcn add sfab-oss/sfab-starter/mcp#<ref>`,
-then delete this file.
+One-shot graft after `shadcn add sfab-oss/sfab-starter/mcp#<ref>`. Then delete
+this file. Later agents use `docs/guides/mcp.md`, not this skill. Cursor as a
+client is told by Settings (URL + JSON), not by `AGENTS.md`.
 
-This skeleton does not yet carry layer slices. Do not install it into a
-real project until those files exist.
+Do not move `packages/agent/src/tool-parts/`. Do not add CIMD. Do not create
+`packages/mcp`.
 
-## Steps
+## 1. Confirm file drops
 
-1. Confirm the copied files landed on their `registry.json` `target` paths.
-2. Wire non-file-drop seams the base does not auto-register: db barrel, auth
-   plugins, Hono / `server.ts` intercept, Settings nav, i18n messages.
-3. Copy durable use docs into the project (`docs/guides/mcp.md` and one
-   `AGENTS.md` index line). Cursor as a client is told by Settings, not by
-   this skill.
-4. Record provenance on `.sfab/template.json`: `packs.mcp = { ref, installedAt }`.
-   `ref` is the template SHA at install. Never write a `mode` / forked / tracked
-   field. In this repo the helper is `packages/registry/src/pack-provenance.ts`
-   (`writePackProvenance`). Fabricated projects drop `packages/registry`, so
-   the live install skill must write the same shape itself (or copy the helper
-   into a kept path first).
-5. Delete this `skill.md`.
+Every `registry.json` `target` for `mcp` exists. Fragments
+`packages/i18n/messages/mcp-en.json` and `mcp-es.json` are temporary: merge them
+in step 6, then delete those two files.
+
+Do not copy `packages/db/drizzle/meta/0003_snapshot.json`. If the SQL file
+collides with an existing `0003_*.sql`, keep the schema file and run
+`pnpm db:generate` instead of overwriting someone else's migration.
+
+## 2. Package exports and deps
+
+Keep versions pinned to the project's current `better-auth` line.
+
+`packages/auth/package.json`:
+
+- dependency `@better-auth/mcp` (same version as `better-auth`)
+- export `"./mcp-resource": "./src/mcp-resource.ts"`
+
+`packages/contract/package.json`:
+
+- export `"./mcp-connections": "./src/mcp-connections.ts"`
+
+`packages/agent/package.json`:
+
+- export `"./mcp": "./src/mcp/compose-mcp-tools.ts"`
+- dependency `@modelcontextprotocol/server` if missing
+
+`packages/core` already maps `./mcp` via `"./*": "./src/*.ts"`.
+
+`packages/db/src/schema/index.ts`:
+
+```ts
+export * from "./oauth";
+```
+
+## 3. Auth plugins
+
+In `packages/auth/src/index.ts`:
+
+- import `{ mcp } from "@better-auth/mcp"`
+- import `{ oauthProviderAuthServerMetadata } from "@better-auth/oauth-provider"`
+- import `{ authOrigin, defaultMcpResource, mcpIssuer, mcpResource } from "./mcp-resource"`
+- `jwt({ disableSettingJwtHeader: true, jwt: { issuer }, jwks: { keyPairConfig: { alg: "EdDSA", crv: "Ed25519" } } })`
+- `mcp({ loginPage: "/login", consentPage: "/mcp/consent", resource, allowDynamicClientRegistration: true, allowUnauthenticatedClientRegistration: true })`
+- before-hook: `defaultMcpResource(ctx.path, ctx.body, resource)`
+- export `serveMcpAuthServerMetadata = oauthProviderAuthServerMetadata(auth)`
+- export `{ verifyJwsAccessToken } from "better-auth/oauth2"`
+
+DCR stays on. No CIMD.
+
+## 4. HTTP intercept and routes
+
+`apps/web/src/server.ts` and `apps/web/src/workerd-test/worker-entry.ts`: call
+`dispatchMcpRequest` **before** Hono / TanStack. If it returns a Response, return
+it.
+
+`apps/web/src/hono/index.ts`:
+
+- force `prompt=consent` on `/oauth2/authorize` when the client omitted it
+- `.get("/mcp/consent-client", …)` and `.post("/mcp/consent", …)` from
+  `../mcp/consent-handler`
+
+`apps/web/src/hono/org-protected/index.ts`: `.route("/mcp", mcpRoutes)`.
+
+`apps/web/src/routes/_protected/settings/route.tsx`: nav item `{ to: "/settings/mcp", label: m.settings_mcp() }`.
+
+## 5. Drizzle
+
+If `0003_white_the_fury.sql` landed and the journal has no `0003` entry, append:
+
+```json
+{
+  "idx": 3,
+  "version": "6",
+  "when": 1788549677049,
+  "tag": "0003_white_the_fury",
+  "breakpoints": true
+}
+```
+
+to `packages/db/drizzle/meta/_journal.json`. If idx 3 is already taken, drop the
+copied SQL, keep `oauth.ts`, and `pnpm db:generate`. Then `pnpm db:migrate`. If
+DCR returns 500 after a rewritten 0003, `pnpm db:reset` (local only) so the
+grant FK matches this SQL.
+
+## 6. i18n
+
+Merge `mcp-en.json` / `mcp-es.json` keys into `packages/i18n/messages/en.json`
+and `es.json` (do not replace the catalogs). Delete the two fragment files.
+`pnpm i18n:sync && pnpm i18n:lint`.
+
+## 7. Durable use docs
+
+`docs/guides/mcp.md` should already be present from the pack drop. Add one
+index line to `AGENTS.md` **and** the byte-identical `.claude/CLAUDE.md`:
+
+```
+MCP OAuth server → [`docs/guides/mcp.md`](docs/guides/mcp.md) + skill `.agents/skills/mcp`.
+```
+
+List `mcp` in the `.agents/skills/` index. Symlink
+`.claude/skills/mcp` → `../../.agents/skills/mcp` if `.claude/skills` uses that
+layout.
+
+## 8. Provenance, then delete this file
+
+Write `packs.mcp = { ref, installedAt }` onto `.sfab/template.json`. `ref` is
+the template SHA used in `shadcn add`. Never write `mode`. If
+`packages/registry` is still in the tree:
+
+```ts
+import { writePackProvenance } from "@workspace/registry/pack-provenance";
+writePackProvenance(".sfab/template.json", "mcp", {
+  ref: "<template SHA>",
+  installedAt: new Date().toISOString(),
+});
+```
+
+Fabricated projects drop `packages/registry`. Write the same shape yourself:
+
+```js
+import { readFileSync, writeFileSync } from "node:fs";
+const path = ".sfab/template.json";
+const manifest = JSON.parse(readFileSync(path, "utf8"));
+manifest.packs = { ...(manifest.packs ?? {}), mcp: { ref, installedAt } };
+writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
+```
+
+Then **delete this `skill.md`**.

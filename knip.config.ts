@@ -100,13 +100,19 @@ const config: KnipConfig = {
     },
     "packages/registry": {
       entry: [
-        "registry/**/*.{ts,tsx}!",
+        "registry/blocks/**/*.{ts,tsx}!",
+        "registry/components/**/*.{ts,tsx}!",
+        "registry/_shared/**/*.{ts,tsx}!",
+        "registry/packs/*/item.ts!",
         "scripts/**/*.ts!",
         "test/**/*.{ts,tsx}!",
       ],
       project: [
         "src/**/*.{ts,tsx}",
-        "registry/**/*.{ts,tsx}",
+        "registry/blocks/**/*.{ts,tsx}",
+        "registry/components/**/*.{ts,tsx}",
+        "registry/_shared/**/*.{ts,tsx}",
+        "registry/packs/*/item.ts",
         "scripts/**/*.ts",
       ],
       ignoreDependencies: [

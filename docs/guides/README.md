@@ -34,7 +34,9 @@ Only add a guide for something actually encountered here — not a hypothetical.
 
 ## Index
 
-_(Guides are added as conventions earn one. Start with the architecture map and
-the ADRs; this folder grows as recurring "how does X work here?" questions show
-up — e.g. adding a capability slice, the D1 migration house style, the AI
-tool/skill wiring.)_
+- [Internationalization](i18n.md)
+- [MCP OAuth server](mcp.md)
+- [Writing agent tools](writing-agent-tools.md)
+- [Agent tool approvals](agent-tool-approvals.md)
+- [Org-agent inference providers](org-agent-inference-providers.md)
+- [Comment hygiene](comment-hygiene.md)

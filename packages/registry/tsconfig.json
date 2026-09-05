@@ -8,7 +8,10 @@
   },
   "include": [
     "src",
-    "registry",
+    "registry/blocks",
+    "registry/components",
+    "registry/_shared",
+    "registry/packs/*/item.ts",
     "scripts",
     "test",
     "../tsconfig/css-modules.d.ts"

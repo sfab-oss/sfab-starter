@@ -28,7 +28,9 @@ The first pack is **MCP** (`registry/packs/mcp/`). POS is later.
 ## Authoring an item
 
 UI items live under `registry/blocks/<name>/` or `registry/components/<name>/`.
-Packs live under `registry/packs/<name>/`:
+Packs live under `registry/packs/<name>/`. Layer files there are install
+payloads (app/package aliases). Only each pack's `item.ts` is part of this
+package's typecheck.
 
 ```
 registry/blocks/resource-list-page/
