@@ -15,6 +15,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { app as honoApp } from "../hono";
+import { dispatchMcpRequest } from "../mcp";
 
 // ALW-398: OrgAgent (+ its OrgChat facet) are exported so the workers vitest
 // project can drive the multi-session backend over RPC. Mirrors production:
@@ -29,4 +30,16 @@ const app = new Hono()
   .route("/api", honoApp)
   .all("*", (c) => c.text("Not found", 404));
 
-export default { fetch: app.fetch };
+export default {
+  async fetch(
+    request: Request,
+    env: Cloudflare.Env,
+    ctx: ExecutionContext
+  ): Promise<Response> {
+    const mcpResponse = await dispatchMcpRequest(request, env, ctx);
+    if (mcpResponse) {
+      return mcpResponse;
+    }
+    return app.fetch(request, env, ctx);
+  },
+};

@@ -22,7 +22,13 @@ import { z } from "zod";
 import { AuthPage } from "@/components/common/auth-page";
 import { m } from "@/paraglide/messages.js";
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
+    const redirect = search.redirect;
+    return typeof redirect === "string" ? { redirect } : {};
+  },
+  component: LoginPage,
+});
 
 interface LoginValues {
   email: string;
@@ -31,6 +37,7 @@ interface LoginValues {
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { redirect: redirectTo } = Route.useSearch();
 
   const loginSchema = z.object({
     email: z.email({ message: m.auth_email() }),
@@ -57,6 +64,14 @@ function LoginPage() {
         authClient.organization.list(),
         authClient.organization.getFullOrganization().catch(() => undefined),
       ]);
+      const next =
+        redirectTo?.startsWith("/") && !redirectTo.startsWith("//")
+          ? redirectTo
+          : "/";
+      if (next !== "/") {
+        window.location.assign(next);
+        return;
+      }
       await navigate({ to: "/" });
     }
   };

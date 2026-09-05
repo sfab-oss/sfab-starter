@@ -18,6 +18,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
 import { Route as ProtectedSettingsRouteRouteImport } from './routes/_protected/settings/route'
 import { Route as AcceptInvitationIdRouteImport } from './routes/accept-invitation.$id'
+import { Route as McpConsentRouteImport } from './routes/mcp.consent'
 import { Route as ProtectedCatalogIndexRouteImport } from './routes/_protected/catalog/index'
 import { Route as ProtectedCatalogIdRouteImport } from './routes/_protected/catalog/$id'
 import { Route as ProtectedDocumentsIndexRouteImport } from './routes/_protected/documents/index'
@@ -26,6 +27,7 @@ import { Route as ProtectedEntitiesIndexRouteImport } from './routes/_protected/
 import { Route as ProtectedEntitiesIdRouteImport } from './routes/_protected/entities/$id'
 import { Route as ProtectedSettingsIndexRouteImport } from './routes/_protected/settings/index'
 import { Route as ProtectedSettingsGeneralRouteImport } from './routes/_protected/settings/general'
+import { Route as ProtectedSettingsMcpRouteImport } from './routes/_protected/settings/mcp'
 import { Route as ProtectedSettingsMembersRouteImport } from './routes/_protected/settings/members'
 
 const ProtectedRoute = ProtectedRouteImport.update({
@@ -72,6 +74,11 @@ const AcceptInvitationIdRoute = AcceptInvitationIdRouteImport.update({
   path: '/accept-invitation/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpConsentRoute = McpConsentRouteImport.update({
+  id: '/mcp/consent',
+  path: '/mcp/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtectedCatalogIndexRoute = ProtectedCatalogIndexRouteImport.update({
   id: '/catalog/',
   path: '/catalog/',
@@ -113,6 +120,11 @@ const ProtectedSettingsGeneralRoute =
     path: '/general',
     getParentRoute: () => ProtectedSettingsRouteRoute,
   } as any)
+const ProtectedSettingsMcpRoute = ProtectedSettingsMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => ProtectedSettingsRouteRoute,
+} as any)
 const ProtectedSettingsMembersRoute =
   ProtectedSettingsMembersRouteImport.update({
     id: '/members',
@@ -129,10 +141,12 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/settings': typeof ProtectedSettingsRouteRouteWithChildren
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
+  '/mcp/consent': typeof McpConsentRoute
   '/catalog/$id': typeof ProtectedCatalogIdRoute
   '/documents/$id': typeof ProtectedDocumentsIdRoute
   '/entities/$id': typeof ProtectedEntitiesIdRoute
   '/settings/general': typeof ProtectedSettingsGeneralRoute
+  '/settings/mcp': typeof ProtectedSettingsMcpRoute
   '/settings/members': typeof ProtectedSettingsMembersRoute
   '/catalog/': typeof ProtectedCatalogIndexRoute
   '/documents/': typeof ProtectedDocumentsIndexRoute
@@ -146,11 +160,13 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
+  '/mcp/consent': typeof McpConsentRoute
   '/': typeof ProtectedIndexRoute
   '/catalog/$id': typeof ProtectedCatalogIdRoute
   '/documents/$id': typeof ProtectedDocumentsIdRoute
   '/entities/$id': typeof ProtectedEntitiesIdRoute
   '/settings/general': typeof ProtectedSettingsGeneralRoute
+  '/settings/mcp': typeof ProtectedSettingsMcpRoute
   '/settings/members': typeof ProtectedSettingsMembersRoute
   '/catalog': typeof ProtectedCatalogIndexRoute
   '/documents': typeof ProtectedDocumentsIndexRoute
@@ -167,11 +183,13 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_protected/settings': typeof ProtectedSettingsRouteRouteWithChildren
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
+  '/mcp/consent': typeof McpConsentRoute
   '/_protected/': typeof ProtectedIndexRoute
   '/_protected/catalog/$id': typeof ProtectedCatalogIdRoute
   '/_protected/documents/$id': typeof ProtectedDocumentsIdRoute
   '/_protected/entities/$id': typeof ProtectedEntitiesIdRoute
   '/_protected/settings/general': typeof ProtectedSettingsGeneralRoute
+  '/_protected/settings/mcp': typeof ProtectedSettingsMcpRoute
   '/_protected/settings/members': typeof ProtectedSettingsMembersRoute
   '/_protected/catalog/': typeof ProtectedCatalogIndexRoute
   '/_protected/documents/': typeof ProtectedDocumentsIndexRoute
@@ -189,10 +207,12 @@ export interface FileRouteTypes {
     | '/signup'
     | '/settings'
     | '/accept-invitation/$id'
+    | '/mcp/consent'
     | '/catalog/$id'
     | '/documents/$id'
     | '/entities/$id'
     | '/settings/general'
+    | '/settings/mcp'
     | '/settings/members'
     | '/catalog/'
     | '/documents/'
@@ -206,11 +226,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/accept-invitation/$id'
+    | '/mcp/consent'
     | '/'
     | '/catalog/$id'
     | '/documents/$id'
     | '/entities/$id'
     | '/settings/general'
+    | '/settings/mcp'
     | '/settings/members'
     | '/catalog'
     | '/documents'
@@ -226,11 +248,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_protected/settings'
     | '/accept-invitation/$id'
+    | '/mcp/consent'
     | '/_protected/'
     | '/_protected/catalog/$id'
     | '/_protected/documents/$id'
     | '/_protected/entities/$id'
     | '/_protected/settings/general'
+    | '/_protected/settings/mcp'
     | '/_protected/settings/members'
     | '/_protected/catalog/'
     | '/_protected/documents/'
@@ -246,6 +270,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   AcceptInvitationIdRoute: typeof AcceptInvitationIdRoute
+  McpConsentRoute: typeof McpConsentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -313,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcceptInvitationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp/consent': {
+      id: '/mcp/consent'
+      path: '/mcp/consent'
+      fullPath: '/mcp/consent'
+      preLoaderRoute: typeof McpConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_protected/catalog/': {
       id: '/_protected/catalog/'
       path: '/catalog'
@@ -369,6 +401,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedSettingsGeneralRouteImport
       parentRoute: typeof ProtectedSettingsRouteRoute
     }
+    '/_protected/settings/mcp': {
+      id: '/_protected/settings/mcp'
+      path: '/mcp'
+      fullPath: '/settings/mcp'
+      preLoaderRoute: typeof ProtectedSettingsMcpRouteImport
+      parentRoute: typeof ProtectedSettingsRouteRoute
+    }
     '/_protected/settings/members': {
       id: '/_protected/settings/members'
       path: '/members'
@@ -381,6 +420,7 @@ declare module '@tanstack/react-router' {
 
 interface ProtectedSettingsRouteRouteChildren {
   ProtectedSettingsGeneralRoute: typeof ProtectedSettingsGeneralRoute
+  ProtectedSettingsMcpRoute: typeof ProtectedSettingsMcpRoute
   ProtectedSettingsMembersRoute: typeof ProtectedSettingsMembersRoute
   ProtectedSettingsIndexRoute: typeof ProtectedSettingsIndexRoute
 }
@@ -388,6 +428,7 @@ interface ProtectedSettingsRouteRouteChildren {
 const ProtectedSettingsRouteRouteChildren: ProtectedSettingsRouteRouteChildren =
   {
     ProtectedSettingsGeneralRoute: ProtectedSettingsGeneralRoute,
+    ProtectedSettingsMcpRoute: ProtectedSettingsMcpRoute,
     ProtectedSettingsMembersRoute: ProtectedSettingsMembersRoute,
     ProtectedSettingsIndexRoute: ProtectedSettingsIndexRoute,
   }
@@ -431,6 +472,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   AcceptInvitationIdRoute: AcceptInvitationIdRoute,
+  McpConsentRoute: McpConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

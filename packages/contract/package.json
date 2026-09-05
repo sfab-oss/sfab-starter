@@ -7,7 +7,8 @@
     "./catalog": "./src/catalog/index.ts",
     "./transaction": "./src/transaction.ts",
     "./utils": "./src/utils.ts",
-    "./pagination": "./src/pagination.ts"
+    "./pagination": "./src/pagination.ts",
+    "./mcp-connections": "./src/mcp-connections.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
