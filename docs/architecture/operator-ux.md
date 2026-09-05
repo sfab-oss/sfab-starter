@@ -4,8 +4,9 @@
 > (`apps/web/src/components/layout/platform-navigation.ts`). This note is a
 > **candidate pack**: what a Mexican-SME operator pack would add on top of that
 > generic worldwide ERP base. Language is i18n; country and vertical specifics
-> are packs. The pack install mechanism (ADR-0010 / ADR-0017, `sfabKind: "pack"`)
-> is **unbuilt** and lives on the roadmap — do not implement this shell, and do
+> are packs. Pack install (`sfabKind: "pack"`, ADR-0010 / ADR-0017) exists; this
+> operator shell is **unbuilt** and lives on the roadmap. Do not implement this
+> shell, and do
 > not add `/sell`, `/collect`, `/buy`, or `/people` routes to make it look live.
 
 ## On top of the generic base
@@ -43,4 +44,4 @@ RBAC (role-rank `owner > admin > operator`, `can(action)` seam) already lives in
 
 This pack is not built. Do not treat this file as the app's information
 architecture, and do not add routes to match the verbs above. Follow
-`platform-navigation.ts` until a real `sfabKind: "pack"` install exists.
+`platform-navigation.ts` until this operator pack exists.
