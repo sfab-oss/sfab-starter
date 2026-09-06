@@ -104,6 +104,13 @@ describe("manifest", () => {
     expect(skill).toContain("@modelcontextprotocol/server");
     expect(skill).toContain("pnpm --filter web generate-routes");
     expect(skill).toContain("test/api/mcp.workerd.test.ts");
+    expect(skill).toContain("tool-parts");
+    expect(skill).toContain("getOrgAgentTools");
+    expect(skill).toContain("Do not loop `getOrgAgentTools` onto `/mcp`");
+    expect(skill).toContain("Keep `mcpTool` as-is");
+    expect(skill).toContain("delete_*");
+    expect(skill).toContain("display_*");
+    expect(skill).toContain("docs/guides/writing-agent-tools.md");
   });
 
   it("mcp pack docs is a non-empty string and no target leaves apps/web", () => {

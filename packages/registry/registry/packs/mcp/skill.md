@@ -33,9 +33,31 @@ Leave `skill.md` in the staging dir until the last step. Confirm
 landed (those are not staged).
 
 The pack copies `oauth.ts` only. It does not drop drizzle SQL, a snapshot, or
-`_journal.json`. You generate and migrate in step 5.
+`_journal.json`. You generate and migrate in step 6.
 
-## 2. Package exports and deps
+## 2. Reconcile the MCP catalog
+
+The dropped `register-mcp-tools.ts` is a frozen binder. This app's
+`packages/agent/src/tool-parts/` is the live set. After the move, rewrite
+the binder to match this repo. Do not copy `tool-parts/` into the pack.
+Do not loop `getOrgAgentTools` onto `/mcp`. Keep `mcpTool` as-is.
+
+Diff `packages/agent/src/tool-parts/` and `getOrgAgentTools` in
+`packages/agent/src/in-app/compose-org-tools.ts` against
+`packages/agent/src/mcp/register-mcp-tools.ts`:
+
+- Bind every MCP-safe tool that exists here: named pieces already in
+  `tool-parts/`, no `organizationId` in the tool input (org comes from the
+  grant), no `delete_*`, no `display_*`.
+- Drop binds whose modules are gone (imports that do not resolve).
+- Rewrite `MCP_TOOL_NAMES` in `packages/agent/src/mcp/mcp-tool-names.ts` to
+  match the binds, in bind order.
+- Update `packages/agent/src/mcp/register-mcp-tools.test.ts` and
+  `apps/web/test/api/mcp.workerd.test.ts` `tools/list` expectations.
+
+Tools added after this install: `docs/guides/writing-agent-tools.md`.
+
+## 3. Package exports and deps
 
 Keep versions pinned to the project's current `better-auth` line.
 
@@ -67,7 +89,7 @@ Keep versions pinned to the project's current `better-auth` line.
 export * from "./oauth";
 ```
 
-## 3. Auth plugins
+## 4. Auth plugins
 
 In `packages/auth/src/index.ts`:
 
@@ -82,7 +104,7 @@ In `packages/auth/src/index.ts`:
 
 DCR stays on. No CIMD.
 
-## 4. HTTP intercept and routes
+## 5. HTTP intercept and routes
 
 `apps/web/src/server.ts` and `apps/web/src/workerd-test/worker-entry.ts`: call
 `dispatchMcpRequest` **before** Hono / TanStack. If it returns a Response, return
@@ -101,7 +123,7 @@ it.
 Then `pnpm --filter web generate-routes` so `routeTree.gen.ts` includes
 `/mcp/consent` and `/settings/mcp`.
 
-## 5. Drizzle
+## 6. Drizzle
 
 You own the schema journal. After `oauth.ts` is exported from
 `packages/db/src/schema/index.ts`:
@@ -118,13 +140,13 @@ migrate applies it.
 If DCR returns 500 because a local D1 still has an older OAuth or grant
 shape, `pnpm db:reset` (local only).
 
-## 6. i18n
+## 7. i18n
 
 Merge `mcp-en.json` / `mcp-es.json` keys into `packages/i18n/messages/en.json`
 and `es.json` (do not replace the catalogs). Delete the two fragment files.
 `pnpm i18n:sync && pnpm i18n:lint`.
 
-## 7. Durable use docs
+## 8. Durable use docs
 
 `docs/guides/mcp.md` and `.agents/skills/mcp/SKILL.md` are already in a
 fabricated tree (not copied by `add`). Add one index line to `AGENTS.md`
@@ -138,7 +160,7 @@ List `mcp` in the `.agents/skills/` index. Symlink
 `.claude/skills/mcp` → `../../.agents/skills/mcp` if `.claude/skills` uses that
 layout.
 
-## 8. Provenance, then delete the staging dir
+## 9. Provenance, then delete the staging dir
 
 Write `packs.mcp = { ref, installedAt }` onto `.sfab/template.json`. `ref` is
 the template SHA used in `shadcn add`. Never write `mode`. If
@@ -165,7 +187,7 @@ writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
 Then **delete `apps/web/src/_pack/mcp/`** (this skill included). Do not leave
 staged layer files under `apps/web`.
 
-## 9. Verify (optional)
+## 10. Verify (optional)
 
 After migrate:
 
