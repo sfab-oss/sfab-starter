@@ -14,11 +14,13 @@ Every item is one shadcn `RegistryItem`. A single metadata field —
 - **`block`** — a copy-in UI item. `shadcn add` drops the files; done. Gallery
   preview lives in `src/generated.ts`.
 - **`pack`** — a capability: layer slices (`db/contract/core/server/tools`) plus
-  an ephemeral `skill.md`. Add with `-c apps/web` so pack `target`s resolve
-  (repo-root via `~/../../…`). An agent then runs `skill.md` (wire
-  barrels/routes/i18n, write `.sfab/template.json` provenance, delete the
-  skill). Packs are listed in `registry.json` and are **not** in the docs
-  gallery. Layer-2 install-eval over sandboxes is later.
+  an ephemeral `skill.md`. Add with `-c apps/web`. Every pack `target` stays
+  inside `apps/web` (`src/…`, `~/src/…`, `~/test/…`). Layer files that belong
+  on other packages stage under `src/_pack/<name>/`. An agent then runs the
+  staged skill (move files onto layer packages, wire barrels/routes/i18n,
+  write `.sfab/template.json` provenance, delete the staging dir). Packs are
+  listed in `registry.json` and are **not** in the docs gallery. Layer-2
+  install-eval over sandboxes is later.
 
 Independently, the shadcn `type` (`registry:ui` vs `registry:block`) decides how
 the docs gallery *previews* a UI item — inline vs iframed. Packs use
@@ -63,7 +65,8 @@ A pack's `skill.md` is a one-shot install procedure. Last acts: write
 ```
 
 onto the project's `.sfab/template.json` (no `mode` field), then **delete
-`skill.md`**. The helper is `src/pack-provenance.ts` (`writePackProvenance`).
+the staging dir** (`apps/web/src/_pack/<name>/`, skill included). The helper
+is `src/pack-provenance.ts` (`writePackProvenance`).
 Fabricated projects drop `packages/registry`, so a live install must write that
 shape itself (or copy the helper into a kept path first).
 

@@ -9,18 +9,19 @@ Install from the repo root (CLI pin is `packages/ui` `shadcn@4.20.1`):
 
 `pnpm dlx shadcn@4.20.1 add sfab-oss/sfab-starter/mcp#<ref> --yes -c apps/web`
 
-Then run the copied `skill.md` (wire barrels, write `.sfab/template.json`
-`packs.mcp = { ref, installedAt }`, delete the skill). You own the schema
+Then run `apps/web/src/_pack/mcp/skill.md` (move staged layer files into
+`packages/*`, wire barrels, write `.sfab/template.json`
+`packs.mcp = { ref, installedAt }`, delete the staging dir). You own the schema
 journal: `pnpm db:generate` then `pnpm db:migrate`. The pack does not drop
 SQL or edit `_journal.json`. Cursor as a client is configured from Settings
 (URL + JSON snippet), not from `AGENTS.md`.
 
 In this template repo the pack source is
 `packages/registry/registry/packs/mcp/`. A fabricated project drops
-`packages/registry`. After add, files land at repo-root destinations (for
-example `packages/db/src/schema/oauth.ts`, `apps/web/src/mcp/index.ts`,
-`skill.md`). The durable guide in a fabricated tree is this file:
-`docs/guides/mcp.md`.
+`packages/registry`. After add, files land under `apps/web` (`src/mcp/…`,
+`src/_pack/mcp/…`). The skill moves staged files onto layer packages (for
+example `packages/db/src/schema/oauth.ts`). The durable guide in a fabricated
+tree is this file: `docs/guides/mcp.md`.
 
 ## The question
 
@@ -72,10 +73,10 @@ no `display_*`. Names:
 In this template repo, pack paths are the authoring source. A fabricated
 project has no `packages/registry`. After install, use the `target` paths.
 
-- `packages/registry/registry/packs/mcp/db/schema/oauth.ts` (installs to `packages/db/src/schema/oauth.ts`) — `jwks`, OAuth tables, `mcpOrganizationGrant`
-- `packages/registry/registry/packs/mcp/auth/mcp-resource.ts` (installs to `packages/auth/src/mcp-resource.ts`) — issuer `{origin}/api/auth`, resource `{origin}/mcp`
-- `packages/registry/registry/packs/mcp/skill.md` — graft: auth plugins, intercept, nav, i18n, provenance, self-delete
-- `packages/registry/registry/packs/mcp/tools/compose-mcp-tools.ts` (installs to `packages/agent/src/mcp/compose-mcp-tools.ts`) — binder over tool-parts
+- `packages/registry/registry/packs/mcp/db/schema/oauth.ts` (add stages under `apps/web/src/_pack/mcp/`; skill moves to `packages/db/src/schema/oauth.ts`) — `jwks`, OAuth tables, `mcpOrganizationGrant`
+- `packages/registry/registry/packs/mcp/auth/mcp-resource.ts` (same: stage then skill to `packages/auth/src/mcp-resource.ts`) — issuer `{origin}/api/auth`, resource `{origin}/mcp`
+- `packages/registry/registry/packs/mcp/skill.md` (installs to `apps/web/src/_pack/mcp/skill.md`) — move staged files, graft, provenance, delete staging dir
+- `packages/registry/registry/packs/mcp/tools/compose-mcp-tools.ts` (stage then skill to `packages/agent/src/mcp/compose-mcp-tools.ts`) — binder over tool-parts
 - `packages/registry/registry/packs/mcp/server/mcp/index.ts` (installs to `apps/web/src/mcp/index.ts`) — Streamable HTTP handler + well-known resource
 - `packages/registry/registry/packs/mcp/test/mcp.workerd.test.ts` (installs to `apps/web/test/api/mcp.workerd.test.ts`) — GET 405, JWT POST, grant, revoke, Origin
 
