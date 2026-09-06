@@ -79,7 +79,7 @@ describe("manifest", () => {
     const paths = (mcp?.files ?? []).map((file) => file.path);
     expect(paths.some((path) => path.endsWith("/skill.md"))).toBe(true);
     expect(paths.some((path) => path.endsWith("/oauth.ts"))).toBe(true);
-    expect(paths.some((path) => path.endsWith("/compose-mcp-tools.ts"))).toBe(
+    expect(paths.some((path) => path.endsWith("/register-mcp-tools.ts"))).toBe(
       true
     );
     expect(

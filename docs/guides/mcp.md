@@ -75,7 +75,7 @@ project has no `packages/registry`. After install, use the `target` paths.
 - `packages/registry/registry/packs/mcp/db/schema/oauth.ts` (add stages under `apps/web/src/_pack/mcp/`; skill moves to `packages/db/src/schema/oauth.ts`) — `jwks`, OAuth tables, `mcpOrganizationGrant`
 - `packages/registry/registry/packs/mcp/auth/mcp-resource.ts` (same: stage then skill to `packages/auth/src/mcp-resource.ts`) — issuer `{origin}/api/auth`, resource `{origin}/mcp`
 - `packages/registry/registry/packs/mcp/skill.md` (installs to `apps/web/src/_pack/mcp/skill.md`) — move staged files, graft, provenance, delete staging dir
-- `packages/registry/registry/packs/mcp/tools/compose-mcp-tools.ts` (stage then skill to `packages/agent/src/mcp/compose-mcp-tools.ts`) — binder over tool-parts
+- `packages/registry/registry/packs/mcp/tools/register-mcp-tools.ts` (stage then skill to `packages/agent/src/mcp/register-mcp-tools.ts`) — `registerMcpTools` over tool-parts
 - `packages/registry/registry/packs/mcp/server/mcp/index.ts` (installs to `apps/web/src/mcp/index.ts`) — Streamable HTTP handler + well-known resource
 - `packages/registry/registry/packs/mcp/test/mcp.workerd.test.ts` (installs to `apps/web/test/api/mcp.workerd.test.ts`) — GET 405, JWT POST, grant, revoke, Origin
 

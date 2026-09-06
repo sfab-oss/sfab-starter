@@ -23,8 +23,8 @@ Move them, then the rest of this skill runs against the real paths.
 | `auth/mcp-resource.test.ts` | `packages/auth/src/mcp-resource.test.ts` |
 | `agent/mcp-tool.ts` | `packages/agent/src/mcp/mcp-tool.ts` |
 | `agent/mcp-tool-names.ts` | `packages/agent/src/mcp/mcp-tool-names.ts` |
-| `agent/compose-mcp-tools.ts` | `packages/agent/src/mcp/compose-mcp-tools.ts` |
-| `agent/compose-mcp-tools.test.ts` | `packages/agent/src/mcp/compose-mcp-tools.test.ts` |
+| `agent/register-mcp-tools.ts` | `packages/agent/src/mcp/register-mcp-tools.ts` |
+| `agent/register-mcp-tools.test.ts` | `packages/agent/src/mcp/register-mcp-tools.test.ts` |
 | `i18n/en.json` | `packages/i18n/messages/mcp-en.json` |
 | `i18n/es.json` | `packages/i18n/messages/mcp-es.json` |
 
@@ -51,7 +51,7 @@ Keep versions pinned to the project's current `better-auth` line.
 
 `packages/agent/package.json`:
 
-- export `"./mcp": "./src/mcp/compose-mcp-tools.ts"`
+- export `"./mcp": "./src/mcp/register-mcp-tools.ts"`
 - dependency `@modelcontextprotocol/server` if missing
 
 `apps/web/package.json`:

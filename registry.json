@@ -378,14 +378,14 @@
           "target": "src/_pack/mcp/agent/mcp-tool-names.ts"
         },
         {
-          "path": "packages/registry/registry/packs/mcp/tools/compose-mcp-tools.ts",
+          "path": "packages/registry/registry/packs/mcp/tools/register-mcp-tools.ts",
           "type": "registry:lib",
-          "target": "src/_pack/mcp/agent/compose-mcp-tools.ts"
+          "target": "src/_pack/mcp/agent/register-mcp-tools.ts"
         },
         {
-          "path": "packages/registry/registry/packs/mcp/tools/compose-mcp-tools.test.ts",
+          "path": "packages/registry/registry/packs/mcp/tools/register-mcp-tools.test.ts",
           "type": "registry:file",
-          "target": "src/_pack/mcp/agent/compose-mcp-tools.test.ts"
+          "target": "src/_pack/mcp/agent/register-mcp-tools.test.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/i18n/en.json",
