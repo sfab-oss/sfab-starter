@@ -8,7 +8,7 @@ made, and every guide in `docs/guides/` shows *how* to work within them.
 The starter is a **generic worldwide ERP base**. Packs add opt-in capabilities
 (and later country/vertical specifics); i18n handles language. Pack install is
 real (`sfabKind: "pack"`, ADR-0010 / ADR-0017). The first pack is **mcp**
-(`shadcn add sfab-oss/sfab-starter/mcp#<ref>`). Gallery items remain `block`.
+(`shadcn add sfab-oss/sfab-starter/mcp#<ref>` with `shadcn@4.20.1` and `-c apps/web`). Gallery items remain `block`.
 The live information architecture is Catalog / Entities / Documents
 (`apps/web/src/components/layout/platform-navigation.ts`).
 
@@ -124,7 +124,7 @@ runtime genuinely differs, not when a new surface is added. This keeps one
 deploy, one binding set, one env. See **ADR-001**.
 
 MCP Streamable HTTP (`POST /mcp`) is **not** in the base. Install the `mcp`
-pack with `shadcn add sfab-oss/sfab-starter/mcp#<ref>`, then run its
+pack with `pnpm dlx shadcn@4.20.1 add sfab-oss/sfab-starter/mcp#<ref> --yes -c apps/web`, then run its
 `skill.md` (including `pnpm db:generate` and `pnpm db:migrate`). Guide:
 [`docs/guides/mcp.md`](guides/mcp.md).
 

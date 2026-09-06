@@ -339,137 +339,137 @@
         {
           "path": "packages/registry/registry/packs/mcp/skill.md",
           "type": "registry:file",
-          "target": "skill.md"
+          "target": "~/../../skill.md"
         },
         {
           "path": "packages/registry/registry/packs/mcp/db/schema/oauth.ts",
           "type": "registry:lib",
-          "target": "packages/db/src/schema/oauth.ts"
+          "target": "~/../../packages/db/src/schema/oauth.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/contract/mcp-connections.ts",
           "type": "registry:lib",
-          "target": "packages/contract/src/mcp-connections.ts"
+          "target": "~/../../packages/contract/src/mcp-connections.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/core/mcp.ts",
           "type": "registry:lib",
-          "target": "packages/core/src/mcp.ts"
+          "target": "~/../../packages/core/src/mcp.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/auth/mcp-resource.ts",
           "type": "registry:lib",
-          "target": "packages/auth/src/mcp-resource.ts"
+          "target": "~/../../packages/auth/src/mcp-resource.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/auth/mcp-resource.test.ts",
           "type": "registry:file",
-          "target": "packages/auth/src/mcp-resource.test.ts"
+          "target": "~/../../packages/auth/src/mcp-resource.test.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/tools/mcp-tool.ts",
           "type": "registry:lib",
-          "target": "packages/agent/src/mcp/mcp-tool.ts"
+          "target": "~/../../packages/agent/src/mcp/mcp-tool.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/tools/mcp-tool-names.ts",
           "type": "registry:lib",
-          "target": "packages/agent/src/mcp/mcp-tool-names.ts"
+          "target": "~/../../packages/agent/src/mcp/mcp-tool-names.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/tools/compose-mcp-tools.ts",
           "type": "registry:lib",
-          "target": "packages/agent/src/mcp/compose-mcp-tools.ts"
+          "target": "~/../../packages/agent/src/mcp/compose-mcp-tools.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/tools/compose-mcp-tools.test.ts",
           "type": "registry:file",
-          "target": "packages/agent/src/mcp/compose-mcp-tools.test.ts"
+          "target": "~/../../packages/agent/src/mcp/compose-mcp-tools.test.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/server/mcp/index.ts",
           "type": "registry:lib",
-          "target": "apps/web/src/mcp/index.ts"
+          "target": "src/mcp/index.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/server/mcp/check-mcp-origin.ts",
           "type": "registry:lib",
-          "target": "apps/web/src/mcp/check-mcp-origin.ts"
+          "target": "src/mcp/check-mcp-origin.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/server/mcp/consent-handler.ts",
           "type": "registry:lib",
-          "target": "apps/web/src/mcp/consent-handler.ts"
+          "target": "src/mcp/consent-handler.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/server/mcp/validate-consent-origin.ts",
           "type": "registry:lib",
-          "target": "apps/web/src/mcp/validate-consent-origin.ts"
+          "target": "src/mcp/validate-consent-origin.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/server/hono/mcp.ts",
           "type": "registry:lib",
-          "target": "apps/web/src/hono/org-protected/mcp.ts"
+          "target": "src/hono/org-protected/mcp.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/components/mcp-settings-section.tsx",
           "type": "registry:component",
-          "target": "apps/web/src/components/organization/settings/mcp-settings-section.tsx"
+          "target": "src/components/organization/settings/mcp-settings-section.tsx"
         },
         {
           "path": "packages/registry/registry/packs/mcp/hooks/use-mcp-connections.ts",
           "type": "registry:hook",
-          "target": "apps/web/src/hooks/use-mcp-connections.ts"
+          "target": "src/hooks/use-mcp-connections.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/lib/restore-signed-oauth-query.ts",
           "type": "registry:lib",
-          "target": "apps/web/src/lib/restore-signed-oauth-query.ts"
+          "target": "src/lib/restore-signed-oauth-query.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/lib/restore-signed-oauth-query.test.ts",
           "type": "registry:file",
-          "target": "apps/web/src/lib/restore-signed-oauth-query.test.ts"
+          "target": "src/lib/restore-signed-oauth-query.test.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/routes/mcp.consent.tsx",
           "type": "registry:page",
-          "target": "apps/web/src/routes/mcp.consent.tsx"
+          "target": "~/src/routes/mcp.consent.tsx"
         },
         {
           "path": "packages/registry/registry/packs/mcp/routes/settings-mcp.tsx",
           "type": "registry:page",
-          "target": "apps/web/src/routes/_protected/settings/mcp.tsx"
+          "target": "~/src/routes/_protected/settings/mcp.tsx"
         },
         {
           "path": "packages/registry/registry/packs/mcp/test/mcp.workerd.test.ts",
           "type": "registry:file",
-          "target": "apps/web/test/api/mcp.workerd.test.ts"
+          "target": "~/test/api/mcp.workerd.test.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/test/helpers/mcp-oauth.ts",
           "type": "registry:file",
-          "target": "apps/web/test/helpers/mcp-oauth.ts"
+          "target": "~/test/helpers/mcp-oauth.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/i18n/en.json",
           "type": "registry:file",
-          "target": "packages/i18n/messages/mcp-en.json"
+          "target": "~/../../packages/i18n/messages/mcp-en.json"
         },
         {
           "path": "packages/registry/registry/packs/mcp/i18n/es.json",
           "type": "registry:file",
-          "target": "packages/i18n/messages/mcp-es.json"
+          "target": "~/../../packages/i18n/messages/mcp-es.json"
         },
         {
           "path": "packages/registry/registry/packs/mcp/docs/mcp.md",
           "type": "registry:file",
-          "target": "docs/guides/mcp.md"
+          "target": "~/../../docs/guides/mcp.md"
         },
         {
           "path": "packages/registry/registry/packs/mcp/agents-skill.md",
           "type": "registry:file",
-          "target": ".agents/skills/mcp/SKILL.md"
+          "target": "~/../../.agents/skills/mcp/SKILL.md"
         }
       ]
     },

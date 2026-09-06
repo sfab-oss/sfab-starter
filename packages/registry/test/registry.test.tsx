@@ -17,6 +17,20 @@ import { blocks, components, getSfabKind, REGISTRY } from "../src/index";
 const REPO_ROOT = join(import.meta.dirname, "..", "..", "..");
 const entries = Object.values(REGISTRY);
 
+/** Pack `target`s are authored for `shadcn add -c apps/web`. */
+function packTargetToRepoPath(target: string): string {
+  if (target.startsWith("~/../../")) {
+    return target.slice("~/../../".length);
+  }
+  if (target.startsWith("~/")) {
+    return join("apps/web", target.slice(2));
+  }
+  if (target.startsWith("src/")) {
+    return join("apps/web", target);
+  }
+  return target;
+}
+
 afterEach(cleanup);
 
 describe("manifest", () => {
@@ -98,10 +112,14 @@ describe("manifest", () => {
       target?: string;
     }>) {
       const target = file.target;
-      if (!(target && !keep.has(target))) {
+      if (!target) {
         continue;
       }
-      expect(existsSync(join(REPO_ROOT, target)), target).toBe(false);
+      const repoPath = packTargetToRepoPath(target);
+      if (keep.has(repoPath)) {
+        continue;
+      }
+      expect(existsSync(join(REPO_ROOT, repoPath)), repoPath).toBe(false);
     }
   });
 

@@ -55,8 +55,8 @@ Run from the **monorepo root** (not inside a package):
   strict significance bar ([template](docs/decisions/template.md)).
 - **How to do/extend something here** → [`docs/guides/`](docs/guides/).
   Multi-language UI → [`docs/guides/i18n.md`](docs/guides/i18n.md) + skill
-  `.agents/skills/i18n`. MCP OAuth server is an **opt-in pack** (`shadcn add
-  sfab-oss/sfab-starter/mcp#<ref>`). After install, `pnpm db:generate` then
+  `.agents/skills/i18n`. MCP OAuth server is an **opt-in pack** (`pnpm dlx
+  shadcn@4.20.1 add sfab-oss/sfab-starter/mcp#<ref> --yes -c apps/web`). After install, `pnpm db:generate` then
   `pnpm db:migrate`. Guide: [`docs/guides/mcp.md`](docs/guides/mcp.md)
   + skill `.agents/skills/mcp`.
 - **Procedural domain knowledge, loaded on demand** → `.agents/skills/`

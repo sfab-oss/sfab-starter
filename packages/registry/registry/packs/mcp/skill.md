@@ -1,17 +1,20 @@
 # MCP pack — install skill (ephemeral)
 
-One-shot graft after `shadcn add sfab-oss/sfab-starter/mcp#<ref>`. Then delete
-this file. Later agents use `docs/guides/mcp.md`, not this skill. Cursor as a
-client is told by Settings (URL + JSON), not by `AGENTS.md`.
+One-shot graft after
+`pnpm dlx shadcn@4.20.1 add sfab-oss/sfab-starter/mcp#<ref> --yes -c apps/web`.
+Then delete this file. Later agents use `docs/guides/mcp.md`, not this skill.
+Cursor as a client is told by Settings (URL + JSON), not by `AGENTS.md`.
 
 Do not move `packages/agent/src/tool-parts/`. Do not add CIMD. Do not create
 `packages/mcp`.
 
 ## 1. Confirm file drops
 
-Every `registry.json` `target` for `mcp` exists. Fragments
-`packages/i18n/messages/mcp-en.json` and `mcp-es.json` are temporary: merge them
-in step 6, then delete those two files.
+Files exist at repo-root destinations, not as the `~/…` strings in
+`registry.json`. Check `packages/db/src/schema/oauth.ts`,
+`apps/web/src/mcp/index.ts`, `apps/web/src/routes/mcp.consent.tsx`, `skill.md`.
+Fragments `packages/i18n/messages/mcp-en.json` and `mcp-es.json` are temporary:
+merge them in step 6, then delete those two files.
 
 The pack copies `oauth.ts` only. It does not drop drizzle SQL, a snapshot, or
 `_journal.json`. You generate and migrate in step 5.
