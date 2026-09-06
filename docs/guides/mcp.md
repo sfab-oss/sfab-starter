@@ -63,8 +63,10 @@ If a local D1 still has an older OAuth or grant shape and DCR returns 500,
 
 ### Tool catalog
 
-Twelve reads plus `create_product` and `update_product`. No `delete_product`,
-no `display_*`. After install, names live at
+Twelve reads plus `create_product` and `update_product` is the pack default.
+Install reconciles that binder against this app's
+`packages/agent/src/tool-parts/` (no `delete_*`, no `display_*`; do not loop
+`getOrgAgentTools`). After install, names live at
 `packages/agent/src/mcp/mcp-tool-names.ts`.
 
 ## Files of Interest

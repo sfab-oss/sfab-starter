@@ -232,7 +232,8 @@ On `@cloudflare/think` + the AI SDK tool loop:
    see it. Re-declare each tool — do not loop a catalog array. If the mcp pack
    is installed and the tool should be callable over MCP, also bind it in
    `packages/agent/src/mcp/register-mcp-tools.ts` (skip `delete_product` and
-   `display_*`).
+   `display_*`). The install skill reconciles once against `tool-parts/`;
+   tools added after that are bound here.
 
 ### Write tool (autonomous)
 
