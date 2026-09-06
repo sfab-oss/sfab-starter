@@ -2,19 +2,35 @@
 
 One-shot graft after
 `pnpm dlx shadcn@4.20.1 add sfab-oss/sfab-starter/mcp#<ref> --yes -c apps/web`.
-Then delete this file. Later agents use `docs/guides/mcp.md`, not this skill.
+This file lands at `apps/web/src/_pack/mcp/skill.md`. Run it, then it deletes
+the staging dir. Later agents use `docs/guides/mcp.md`, not this skill.
 Cursor as a client is told by Settings (URL + JSON), not by `AGENTS.md`.
 
 Do not move `packages/agent/src/tool-parts/`. Do not add CIMD. Do not create
-`packages/mcp`.
+`packages/mcp`. Do not leave OAuth schema under `apps/web`.
 
-## 1. Confirm file drops
+## 1. Move staged files out of `apps/web/src/_pack/mcp/`
 
-Files exist at repo-root destinations, not as the `~/…` strings in
-`registry.json`. Check `packages/db/src/schema/oauth.ts`,
-`apps/web/src/mcp/index.ts`, `apps/web/src/routes/mcp.consent.tsx`, `skill.md`.
-Fragments `packages/i18n/messages/mcp-en.json` and `mcp-es.json` are temporary:
-merge them in step 6, then delete those two files.
+`shadcn add` can only write inside `apps/web`. Layer slices are staged here.
+Move them, then the rest of this skill runs against the real paths.
+
+| From (`apps/web/src/_pack/mcp/`) | To |
+| --- | --- |
+| `db/schema/oauth.ts` | `packages/db/src/schema/oauth.ts` |
+| `contract/mcp-connections.ts` | `packages/contract/src/mcp-connections.ts` |
+| `core/mcp.ts` | `packages/core/src/mcp.ts` |
+| `auth/mcp-resource.ts` | `packages/auth/src/mcp-resource.ts` |
+| `auth/mcp-resource.test.ts` | `packages/auth/src/mcp-resource.test.ts` |
+| `agent/mcp-tool.ts` | `packages/agent/src/mcp/mcp-tool.ts` |
+| `agent/mcp-tool-names.ts` | `packages/agent/src/mcp/mcp-tool-names.ts` |
+| `agent/compose-mcp-tools.ts` | `packages/agent/src/mcp/compose-mcp-tools.ts` |
+| `agent/compose-mcp-tools.test.ts` | `packages/agent/src/mcp/compose-mcp-tools.test.ts` |
+| `i18n/en.json` | `packages/i18n/messages/mcp-en.json` |
+| `i18n/es.json` | `packages/i18n/messages/mcp-es.json` |
+
+Leave `skill.md` in the staging dir until the last step. Confirm
+`apps/web/src/mcp/index.ts` and `apps/web/src/routes/mcp.consent.tsx` already
+landed (those are not staged).
 
 The pack copies `oauth.ts` only. It does not drop drizzle SQL, a snapshot, or
 `_journal.json`. You generate and migrate in step 5.
@@ -101,8 +117,9 @@ and `es.json` (do not replace the catalogs). Delete the two fragment files.
 
 ## 7. Durable use docs
 
-`docs/guides/mcp.md` should already be present from the pack drop. Add one
-index line to `AGENTS.md` **and** the byte-identical `.claude/CLAUDE.md`:
+`docs/guides/mcp.md` and `.agents/skills/mcp/SKILL.md` are already in a
+fabricated tree (not copied by `add`). Add one index line to `AGENTS.md`
+**and** the byte-identical `.claude/CLAUDE.md`:
 
 ```
 MCP OAuth server → [`docs/guides/mcp.md`](docs/guides/mcp.md) + skill `.agents/skills/mcp`.
@@ -112,7 +129,7 @@ List `mcp` in the `.agents/skills/` index. Symlink
 `.claude/skills/mcp` → `../../.agents/skills/mcp` if `.claude/skills` uses that
 layout.
 
-## 8. Provenance, then delete this file
+## 8. Provenance, then delete the staging dir
 
 Write `packs.mcp = { ref, installedAt }` onto `.sfab/template.json`. `ref` is
 the template SHA used in `shadcn add`. Never write `mode`. If
@@ -136,4 +153,5 @@ manifest.packs = { ...(manifest.packs ?? {}), mcp: { ref, installedAt } };
 writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
 ```
 
-Then **delete this `skill.md`**.
+Then **delete `apps/web/src/_pack/mcp/`** (this skill included). Do not leave
+staged layer files under `apps/web`.

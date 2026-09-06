@@ -19,9 +19,6 @@ const entries = Object.values(REGISTRY);
 
 /** Pack `target`s are authored for `shadcn add -c apps/web`. */
 function packTargetToRepoPath(target: string): string {
-  if (target.startsWith("~/../../")) {
-    return target.slice("~/../../".length);
-  }
   if (target.startsWith("~/")) {
     return join("apps/web", target.slice(2));
   }
@@ -91,22 +88,27 @@ describe("manifest", () => {
     expect(paths.some((path) => path.endsWith("/mcp.workerd.test.ts"))).toBe(
       true
     );
-    expect(paths.some((path) => path.endsWith("/docs/mcp.md"))).toBe(true);
+    expect(paths.some((path) => path.endsWith("/docs/mcp.md"))).toBe(false);
     expect(
       paths.some((path) => path.includes("/drizzle/") && path.endsWith(".sql"))
     ).toBe(false);
   });
 
+  it("mcp pack docs is a non-empty string and no target leaves apps/web", () => {
+    const mcp = packItems.find((item) => item.name === "mcp");
+    expect(mcp).toBeDefined();
+    expect(typeof mcp?.docs).toBe("string");
+    expect((mcp?.docs ?? "").trim().length).toBeGreaterThan(0);
+    for (const file of (mcp?.files ?? []) as Array<{ target?: string }>) {
+      const target = file.target ?? "";
+      expect(target.includes(".."), target).toBe(false);
+    }
+  });
+
   it("mcp pack install targets are absent from the kept tree", () => {
     const mcp = packItems.find((item) => item.name === "mcp");
     expect(mcp).toBeDefined();
-    const keep = new Set([
-      "docs/guides/mcp.md",
-      ".agents/skills/mcp/SKILL.md",
-      "skill.md",
-      "packages/i18n/messages/mcp-en.json",
-      "packages/i18n/messages/mcp-es.json",
-    ]);
+    const keep = new Set(["docs/guides/mcp.md", ".agents/skills/mcp/SKILL.md"]);
     for (const file of (mcp?.files ?? []) as Array<{
       path: string;
       target?: string;

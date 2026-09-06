@@ -23,3 +23,5 @@ repeat the guide.
 6. Cursor as a client is configured from Settings, not `AGENTS.md`.
 7. Pack install does not write `_journal.json` or drop numbered SQL. The
    installer runs `pnpm db:generate` then `pnpm db:migrate`.
+8. After `shadcn add`, run `apps/web/src/_pack/mcp/skill.md`. Do not leave
+   OAuth schema under `apps/web`.

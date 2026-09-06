@@ -8,52 +8,71 @@ const def: RegistryItemDef = {
     description:
       "Opt-in MCP OAuth + Streamable HTTP. Connection is the org. DCR on. No CIMD.",
     meta: { sfabKind: "pack" },
+    docs: [
+      "Files landed under apps/web (src/mcp, src/_pack/mcp, routes, tests).",
+      "Open apps/web/src/_pack/mcp/skill.md and run it: it moves layer files into",
+      "packages/*, grafts, generate/migrate, then deletes the staging dir.",
+    ].join("\n"),
     files: [
-      { path: "skill.md", type: "registry:file", target: "~/../../skill.md" },
+      {
+        path: "skill.md",
+        type: "registry:file",
+        target: "src/_pack/mcp/skill.md",
+      },
       {
         path: "db/schema/oauth.ts",
         type: "registry:lib",
-        target: "~/../../packages/db/src/schema/oauth.ts",
+        target: "src/_pack/mcp/db/schema/oauth.ts",
       },
       {
         path: "contract/mcp-connections.ts",
         type: "registry:lib",
-        target: "~/../../packages/contract/src/mcp-connections.ts",
+        target: "src/_pack/mcp/contract/mcp-connections.ts",
       },
       {
         path: "core/mcp.ts",
         type: "registry:lib",
-        target: "~/../../packages/core/src/mcp.ts",
+        target: "src/_pack/mcp/core/mcp.ts",
       },
       {
         path: "auth/mcp-resource.ts",
         type: "registry:lib",
-        target: "~/../../packages/auth/src/mcp-resource.ts",
+        target: "src/_pack/mcp/auth/mcp-resource.ts",
       },
       {
         path: "auth/mcp-resource.test.ts",
         type: "registry:file",
-        target: "~/../../packages/auth/src/mcp-resource.test.ts",
+        target: "src/_pack/mcp/auth/mcp-resource.test.ts",
       },
       {
         path: "tools/mcp-tool.ts",
         type: "registry:lib",
-        target: "~/../../packages/agent/src/mcp/mcp-tool.ts",
+        target: "src/_pack/mcp/agent/mcp-tool.ts",
       },
       {
         path: "tools/mcp-tool-names.ts",
         type: "registry:lib",
-        target: "~/../../packages/agent/src/mcp/mcp-tool-names.ts",
+        target: "src/_pack/mcp/agent/mcp-tool-names.ts",
       },
       {
         path: "tools/compose-mcp-tools.ts",
         type: "registry:lib",
-        target: "~/../../packages/agent/src/mcp/compose-mcp-tools.ts",
+        target: "src/_pack/mcp/agent/compose-mcp-tools.ts",
       },
       {
         path: "tools/compose-mcp-tools.test.ts",
         type: "registry:file",
-        target: "~/../../packages/agent/src/mcp/compose-mcp-tools.test.ts",
+        target: "src/_pack/mcp/agent/compose-mcp-tools.test.ts",
+      },
+      {
+        path: "i18n/en.json",
+        type: "registry:file",
+        target: "src/_pack/mcp/i18n/en.json",
+      },
+      {
+        path: "i18n/es.json",
+        type: "registry:file",
+        target: "src/_pack/mcp/i18n/es.json",
       },
       {
         path: "server/mcp/index.ts",
@@ -119,26 +138,6 @@ const def: RegistryItemDef = {
         path: "test/helpers/mcp-oauth.ts",
         type: "registry:file",
         target: "~/test/helpers/mcp-oauth.ts",
-      },
-      {
-        path: "i18n/en.json",
-        type: "registry:file",
-        target: "~/../../packages/i18n/messages/mcp-en.json",
-      },
-      {
-        path: "i18n/es.json",
-        type: "registry:file",
-        target: "~/../../packages/i18n/messages/mcp-es.json",
-      },
-      {
-        path: "docs/mcp.md",
-        type: "registry:file",
-        target: "~/../../docs/guides/mcp.md",
-      },
-      {
-        path: "agents-skill.md",
-        type: "registry:file",
-        target: "~/../../.agents/skills/mcp/SKILL.md",
       },
     ],
   },

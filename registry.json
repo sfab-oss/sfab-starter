@@ -335,56 +335,67 @@
       "meta": {
         "sfabKind": "pack"
       },
+      "docs": "Files landed under apps/web (src/mcp, src/_pack/mcp, routes, tests).\nOpen apps/web/src/_pack/mcp/skill.md and run it: it moves layer files into\npackages/*, grafts, generate/migrate, then deletes the staging dir.",
       "files": [
         {
           "path": "packages/registry/registry/packs/mcp/skill.md",
           "type": "registry:file",
-          "target": "~/../../skill.md"
+          "target": "src/_pack/mcp/skill.md"
         },
         {
           "path": "packages/registry/registry/packs/mcp/db/schema/oauth.ts",
           "type": "registry:lib",
-          "target": "~/../../packages/db/src/schema/oauth.ts"
+          "target": "src/_pack/mcp/db/schema/oauth.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/contract/mcp-connections.ts",
           "type": "registry:lib",
-          "target": "~/../../packages/contract/src/mcp-connections.ts"
+          "target": "src/_pack/mcp/contract/mcp-connections.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/core/mcp.ts",
           "type": "registry:lib",
-          "target": "~/../../packages/core/src/mcp.ts"
+          "target": "src/_pack/mcp/core/mcp.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/auth/mcp-resource.ts",
           "type": "registry:lib",
-          "target": "~/../../packages/auth/src/mcp-resource.ts"
+          "target": "src/_pack/mcp/auth/mcp-resource.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/auth/mcp-resource.test.ts",
           "type": "registry:file",
-          "target": "~/../../packages/auth/src/mcp-resource.test.ts"
+          "target": "src/_pack/mcp/auth/mcp-resource.test.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/tools/mcp-tool.ts",
           "type": "registry:lib",
-          "target": "~/../../packages/agent/src/mcp/mcp-tool.ts"
+          "target": "src/_pack/mcp/agent/mcp-tool.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/tools/mcp-tool-names.ts",
           "type": "registry:lib",
-          "target": "~/../../packages/agent/src/mcp/mcp-tool-names.ts"
+          "target": "src/_pack/mcp/agent/mcp-tool-names.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/tools/compose-mcp-tools.ts",
           "type": "registry:lib",
-          "target": "~/../../packages/agent/src/mcp/compose-mcp-tools.ts"
+          "target": "src/_pack/mcp/agent/compose-mcp-tools.ts"
         },
         {
           "path": "packages/registry/registry/packs/mcp/tools/compose-mcp-tools.test.ts",
           "type": "registry:file",
-          "target": "~/../../packages/agent/src/mcp/compose-mcp-tools.test.ts"
+          "target": "src/_pack/mcp/agent/compose-mcp-tools.test.ts"
+        },
+        {
+          "path": "packages/registry/registry/packs/mcp/i18n/en.json",
+          "type": "registry:file",
+          "target": "src/_pack/mcp/i18n/en.json"
+        },
+        {
+          "path": "packages/registry/registry/packs/mcp/i18n/es.json",
+          "type": "registry:file",
+          "target": "src/_pack/mcp/i18n/es.json"
         },
         {
           "path": "packages/registry/registry/packs/mcp/server/mcp/index.ts",
@@ -450,26 +461,6 @@
           "path": "packages/registry/registry/packs/mcp/test/helpers/mcp-oauth.ts",
           "type": "registry:file",
           "target": "~/test/helpers/mcp-oauth.ts"
-        },
-        {
-          "path": "packages/registry/registry/packs/mcp/i18n/en.json",
-          "type": "registry:file",
-          "target": "~/../../packages/i18n/messages/mcp-en.json"
-        },
-        {
-          "path": "packages/registry/registry/packs/mcp/i18n/es.json",
-          "type": "registry:file",
-          "target": "~/../../packages/i18n/messages/mcp-es.json"
-        },
-        {
-          "path": "packages/registry/registry/packs/mcp/docs/mcp.md",
-          "type": "registry:file",
-          "target": "~/../../docs/guides/mcp.md"
-        },
-        {
-          "path": "packages/registry/registry/packs/mcp/agents-skill.md",
-          "type": "registry:file",
-          "target": "~/../../.agents/skills/mcp/SKILL.md"
         }
       ]
     },
