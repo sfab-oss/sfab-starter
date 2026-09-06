@@ -40,7 +40,7 @@ implemented here): fabricate tool (ALW-600), intake agent behavior (ALW-601).
 - **Layer-sliced, feature-keyed** — same capability key across `db` → `contract`
   → `core` → surfaces → UI/agent. Map: [`architecture.md`](architecture.md).
 - **MCP is opt-in.** Fabricated projects do not include `/mcp`, OAuth plugins,
-  consent, or Settings MCP until `shadcn add sfab-oss/sfab-starter/mcp#<ref>`.
+  consent, or Settings MCP until `pnpm dlx shadcn@4.20.1 add sfab-oss/sfab-starter/mcp#<ref> --yes -c apps/web`.
   After install, generate and migrate the OAuth schema. Guide:
   [`guides/mcp.md`](guides/mcp.md).
 

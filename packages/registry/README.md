@@ -2,7 +2,7 @@
 
 The SFAB capability + UI registry — the source of truth for what the starter
 distributes through the public shadcn **GitHub registry**
-(`shadcn add sfab-oss/sfab-starter/<item>#<ref>`). Pack vs block install
+(`pnpm dlx shadcn@4.20.1 add sfab-oss/sfab-starter/<item>#<ref>`). Pack vs block install
 semantics are summarized below; scaffold provenance lives under
 [`.sfab/README.md`](../../.sfab/README.md).
 
@@ -14,10 +14,11 @@ Every item is one shadcn `RegistryItem`. A single metadata field —
 - **`block`** — a copy-in UI item. `shadcn add` drops the files; done. Gallery
   preview lives in `src/generated.ts`.
 - **`pack`** — a capability: layer slices (`db/contract/core/server/tools`) plus
-  an ephemeral `skill.md`. `shadcn add` copies the files; an agent then runs
-  `skill.md` (wire barrels/routes/i18n, write `.sfab/template.json` provenance,
-  delete the skill). Packs are listed in `registry.json` and are **not** in the
-  docs gallery. Layer-2 install-eval over sandboxes is later.
+  an ephemeral `skill.md`. Add with `-c apps/web` so pack `target`s resolve
+  (repo-root via `~/../../…`). An agent then runs `skill.md` (wire
+  barrels/routes/i18n, write `.sfab/template.json` provenance, delete the
+  skill). Packs are listed in `registry.json` and are **not** in the docs
+  gallery. Layer-2 install-eval over sandboxes is later.
 
 Independently, the shadcn `type` (`registry:ui` vs `registry:block`) decides how
 the docs gallery *previews* a UI item — inline vs iframed. Packs use

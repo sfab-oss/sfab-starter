@@ -5,8 +5,11 @@ bound to one organization per OAuth grant. The base template and a newly
 fabricated project (minus `apps/docs` and `packages/registry`) do **not**
 include MCP HTTP, OAuth plugins, consent, or Settings MCP until install.
 
-Install: `shadcn add sfab-oss/sfab-starter/mcp#<ref>`, then run the copied
-`skill.md` (wire barrels, write `.sfab/template.json`
+Install from the repo root (CLI pin is `packages/ui` `shadcn@4.20.1`):
+
+`pnpm dlx shadcn@4.20.1 add sfab-oss/sfab-starter/mcp#<ref> --yes -c apps/web`
+
+Then run the copied `skill.md` (wire barrels, write `.sfab/template.json`
 `packs.mcp = { ref, installedAt }`, delete the skill). You own the schema
 journal: `pnpm db:generate` then `pnpm db:migrate`. The pack does not drop
 SQL or edit `_journal.json`. Cursor as a client is configured from Settings
@@ -14,9 +17,10 @@ SQL or edit `_journal.json`. Cursor as a client is configured from Settings
 
 In this template repo the pack source is
 `packages/registry/registry/packs/mcp/`. A fabricated project drops
-`packages/registry`. After `shadcn add`, files land on the `registry.json`
-`target` paths (for example `packages/db/src/schema/oauth.ts`). The durable
-guide in a fabricated tree is this file: `docs/guides/mcp.md`.
+`packages/registry`. After add, files land at repo-root destinations (for
+example `packages/db/src/schema/oauth.ts`, `apps/web/src/mcp/index.ts`,
+`skill.md`). The durable guide in a fabricated tree is this file:
+`docs/guides/mcp.md`.
 
 ## The question
 
