@@ -64,9 +64,8 @@ If a local D1 still has an older OAuth or grant shape and DCR returns 500,
 ### Tool catalog
 
 Twelve reads plus `create_product` and `update_product`. No `delete_product`,
-no `display_*`. Names:
-`packages/registry/registry/packs/mcp/tools/mcp-tool-names.ts` (installs to
-`packages/agent/src/mcp/mcp-tool-names.ts`).
+no `display_*`. After install, names live at
+`packages/agent/src/mcp/mcp-tool-names.ts`.
 
 ## Files of Interest
 

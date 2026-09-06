@@ -42,6 +42,7 @@ Keep versions pinned to the project's current `better-auth` line.
 `packages/auth/package.json`:
 
 - dependency `@better-auth/mcp` (same version as `better-auth`)
+- dependency `@better-auth/oauth-provider` (same version as `better-auth`)
 - export `"./mcp-resource": "./src/mcp-resource.ts"`
 
 `packages/contract/package.json`:
@@ -52,6 +53,11 @@ Keep versions pinned to the project's current `better-auth` line.
 
 - export `"./mcp": "./src/mcp/compose-mcp-tools.ts"`
 - dependency `@modelcontextprotocol/server` if missing
+
+`apps/web/package.json`:
+
+- dependency `@modelcontextprotocol/server` (same version as agent).
+  `src/mcp/index.ts` imports `McpServer` from it.
 
 `packages/core` already maps `./mcp` via `"./*": "./src/*.ts"`.
 
@@ -91,6 +97,9 @@ it.
 `apps/web/src/hono/org-protected/index.ts`: `.route("/mcp", mcpRoutes)`.
 
 `apps/web/src/routes/_protected/settings/route.tsx`: nav item `{ to: "/settings/mcp", label: m.settings_mcp() }`.
+
+Then `pnpm --filter web generate-routes` so `routeTree.gen.ts` includes
+`/mcp/consent` and `/settings/mcp`.
 
 ## 5. Drizzle
 
@@ -155,3 +164,14 @@ writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
 
 Then **delete `apps/web/src/_pack/mcp/`** (this skill included). Do not leave
 staged layer files under `apps/web`.
+
+## 9. Verify (optional)
+
+After migrate:
+
+```
+pnpm --filter web test -- test/api/mcp.workerd.test.ts
+```
+
+GET `/mcp` 405 only proves the intercept. That test covers JWT POST, grant,
+revoke, and Origin.

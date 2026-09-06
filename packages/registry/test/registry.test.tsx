@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { TooltipProvider } from "@workspace/ui/components/shadcn/tooltip";
@@ -92,6 +92,18 @@ describe("manifest", () => {
     expect(
       paths.some((path) => path.includes("/drizzle/") && path.endsWith(".sql"))
     ).toBe(false);
+  });
+
+  it("mcp pack skill names install deps, route gen, and workerd verify", () => {
+    const skill = readFileSync(
+      join(REPO_ROOT, "packages/registry/registry/packs/mcp/skill.md"),
+      "utf8"
+    );
+    expect(skill).toContain("@better-auth/oauth-provider");
+    expect(skill).toContain("apps/web/package.json");
+    expect(skill).toContain("@modelcontextprotocol/server");
+    expect(skill).toContain("pnpm --filter web generate-routes");
+    expect(skill).toContain("test/api/mcp.workerd.test.ts");
   });
 
   it("mcp pack docs is a non-empty string and no target leaves apps/web", () => {
