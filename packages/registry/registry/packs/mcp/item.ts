@@ -55,14 +55,14 @@ const def: RegistryItemDef = {
         target: "src/_pack/mcp/agent/mcp-tool-names.ts",
       },
       {
-        path: "tools/compose-mcp-tools.ts",
+        path: "tools/register-mcp-tools.ts",
         type: "registry:lib",
-        target: "src/_pack/mcp/agent/compose-mcp-tools.ts",
+        target: "src/_pack/mcp/agent/register-mcp-tools.ts",
       },
       {
-        path: "tools/compose-mcp-tools.test.ts",
+        path: "tools/register-mcp-tools.test.ts",
         type: "registry:file",
-        target: "src/_pack/mcp/agent/compose-mcp-tools.test.ts",
+        target: "src/_pack/mcp/agent/register-mcp-tools.test.ts",
       },
       {
         path: "i18n/en.json",

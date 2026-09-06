@@ -231,7 +231,7 @@ On `@cloudflare/think` + the AI SDK tool loop:
    `getOrgAgentTools` and `getOrgAgentReadOnlyTools` if the sub-agent should
    see it. Re-declare each tool — do not loop a catalog array. If the mcp pack
    is installed and the tool should be callable over MCP, also bind it in
-   `packages/agent/src/mcp/compose-mcp-tools.ts` (skip `delete_product` and
+   `packages/agent/src/mcp/register-mcp-tools.ts` (skip `delete_product` and
    `display_*`).
 
 ### Write tool (autonomous)
@@ -273,7 +273,7 @@ For day-to-day “add `get_foo`,” skip the grill and follow **Adding a new too
 - Workerd: `apps/web/src/workerd-test/tool-approvals.workerd.test.ts` —
   `needsApproval` on top-level `delete_product`.
 - MCP (after pack install): `apps/web/test/api/mcp.workerd.test.ts` and
-  `packages/agent/src/mcp/compose-mcp-tools.test.ts`. Those files live in
+  `packages/agent/src/mcp/register-mcp-tools.test.ts`. Those files live in
   `packages/registry/registry/packs/mcp/` until install.
 
 ## Files of interest
@@ -281,6 +281,6 @@ For day-to-day “add `get_foo`,” skip the grill and follow **Adding a new too
 - `packages/agent/src/org/chat/org-chat.ts` — `getTools()` wiring
 - `packages/agent/src/tool-parts/catalog/products.ts` — named pieces
 - `packages/agent/src/in-app/compose-org-tools.ts` — compose entry points
-- `packages/registry/registry/packs/mcp/tools/compose-mcp-tools.ts` — MCP compose (pack; no delete/display)
+- `packages/registry/registry/packs/mcp/tools/register-mcp-tools.ts` — `registerMcpTools` (pack; no delete/display)
 - `packages/agent/src/tools/guard.ts` — RBAC
 - `apps/web/src/components/chat/tools/default-tool.tsx` — Approve/Reject UI
