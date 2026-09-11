@@ -40,6 +40,11 @@
   "engines": {
     "node": ">=20"
   },
+  "intent": {
+    "skills": [
+      "@tanstack/*"
+    ]
+  },
   "lint-staged": {
     "*.{js,ts,jsx,tsx,json,css}": [
       "biome check --write --no-errors-on-unmatched"

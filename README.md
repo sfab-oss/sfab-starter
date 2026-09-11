@@ -14,7 +14,10 @@ Codex, or paste the repo URL into ChatGPT or Claude. Ask it to read
 [`docs/template-init.md`](docs/template-init.md) and reshape the starter into
 your product. [`AGENTS.md`](AGENTS.md) is day-to-day commands and conventions
 once you are working in the repo. Cloudflare agent skills are **pinned in this
-repo** (not a global `npx skills add`). Run Cloudflare's
+repo** from [cloudflare/skills](https://github.com/cloudflare/skills) (not a
+global `npx skills add`). TanStack Start/Router/Table skills ship inside the
+pinned npm packages; agents load them via [Intent](https://tanstack.com/intent/latest/docs/overview)
+(`pnpm dlx @tanstack/intent@latest load …`). Run Cloudflare's
 [agent-setup prompt](https://developers.cloudflare.com/agent-setup/prompt.md)
 on your machine only if you want their live global install and account MCP.
 

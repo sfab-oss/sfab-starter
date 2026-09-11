@@ -62,9 +62,9 @@ Run from the **monorepo root** (not inside a package):
   + skill `.agents/skills/mcp`.
 - **Procedural domain knowledge, loaded on demand** → `.agents/skills/`
   (`cloudflare`, `wrangler`, `durable-objects`, `workers-best-practices`,
-  `agents-sdk`, `ai-sdk`, `shadcn`, `i18n`, `mcp`, `template-architecture`,
-  `components-composition`). Use the relevant skill when a task matches its
-  domain.
+  `agents-sdk`, `web-perf`, `ai-sdk`, `shadcn`, `i18n`, `mcp`,
+  `template-architecture`, `components-composition`). Use the relevant skill
+  when a task matches its domain.
 - **Cloudflare skills are hash-pinned in-repo** (`skills-lock.json`) so a
   clone or fabricated tree works without `npx skills add --global`. That is a
   template choice. Cloudflare's live [agent-setup
@@ -73,10 +73,16 @@ Run from the **monorepo root** (not inside a package):
   `https://mcp.cloudflare.com/mcp`); do not copy that account server into this
   repo. Committed MCP (`.cursor/mcp.json` / `.mcp.json`): `cloudflare-docs`,
   `cloudflare-bindings`, `cloudflare-observability`.
-- **TanStack Start/Router/Table skills** ship with the pinned npm packages via
-  [Intent](https://tanstack.com/intent/latest/docs/overview). Load on demand
-  (`pnpm dlx @tanstack/intent@latest load @tanstack/react-start#react-start`).
-  Do not vendor a Start skill.
+<!-- intent-skills:start -->
+## Skill Loading
+
+Before editing files for a substantial task:
+- Run `pnpm dlx @tanstack/intent@latest list` from the workspace root to see available local skills.
+- If a listed skill matches the task, run `pnpm dlx @tanstack/intent@latest load <package>#<skill>` before changing files.
+- Use the loaded `SKILL.md` guidance while making the change.
+- Monorepos: when working across packages, run the skill check from the workspace root and prefer the local skill for the package being changed.
+- Multiple matches: prefer the most specific local skill for the package or concern you are changing; load additional skills only when the task spans multiple packages or concerns.
+<!-- intent-skills:end -->
 - **First-time initialization** → follow [`docs/template-init.md`](docs/template-init.md).
   Setup / run → [`README.md`](README.md).
 
