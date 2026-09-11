@@ -13,7 +13,10 @@ template on GitHub or clone it, open the folder in Cursor / Claude Code /
 Codex, or paste the repo URL into ChatGPT or Claude. Ask it to read
 [`docs/template-init.md`](docs/template-init.md) and reshape the starter into
 your product. [`AGENTS.md`](AGENTS.md) is day-to-day commands and conventions
-once you are working in the repo.
+once you are working in the repo. Cloudflare agent skills are **pinned in this
+repo** (not a global `npx skills add`). Run Cloudflare's
+[agent-setup prompt](https://developers.cloudflare.com/agent-setup/prompt.md)
+on your machine only if you want their live global install and account MCP.
 
 To run the app you need Node 20+ and pnpm 11+. This repo pins
 `packageManager: pnpm@11.5.2`. If needed, run `corepack enable`.

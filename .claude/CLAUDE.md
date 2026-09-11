@@ -61,8 +61,22 @@ Run from the **monorepo root** (not inside a package):
   `pnpm db:migrate`. Guide: [`docs/guides/mcp.md`](docs/guides/mcp.md)
   + skill `.agents/skills/mcp`.
 - **Procedural domain knowledge, loaded on demand** → `.agents/skills/`
-  (`cloudflare`, `wrangler`, `durable-objects`, `workers-best-practices`, `agents-sdk`,
-  `ai-sdk`, `agent-browser`, `i18n`, `mcp`). Use the relevant skill when a task matches its domain.
+  (`cloudflare`, `wrangler`, `durable-objects`, `workers-best-practices`,
+  `agents-sdk`, `ai-sdk`, `shadcn`, `i18n`, `mcp`, `template-architecture`,
+  `components-composition`). Use the relevant skill when a task matches its
+  domain.
+- **Cloudflare skills are hash-pinned in-repo** (`skills-lock.json`) so a
+  clone or fabricated tree works without `npx skills add --global`. That is a
+  template choice. Cloudflare's live [agent-setup
+  prompt](https://developers.cloudflare.com/agent-setup/prompt.md) is for a
+  personal machine (global skills + account MCP at
+  `https://mcp.cloudflare.com/mcp`); do not copy that account server into this
+  repo. Committed MCP (`.cursor/mcp.json` / `.mcp.json`): `cloudflare-docs`,
+  `cloudflare-bindings`, `cloudflare-observability`.
+- **TanStack Start/Router/Table skills** ship with the pinned npm packages via
+  [Intent](https://tanstack.com/intent/latest/docs/overview). Load on demand
+  (`pnpm dlx @tanstack/intent@latest load @tanstack/react-start#react-start`).
+  Do not vendor a Start skill.
 - **First-time initialization** → follow [`docs/template-init.md`](docs/template-init.md).
   Setup / run → [`README.md`](README.md).
 

@@ -1,11 +1,6 @@
 {
   "version": 1,
   "skills": {
-    "agent-browser": {
-      "source": "vercel-labs/agent-browser",
-      "sourceType": "github",
-      "computedHash": "3c1e3549339c98c44c8c75f676f56ebc0adcd4494ec27b7f1851f7c5a7c2deaf"
-    },
     "agents-sdk": {
       "source": "cloudflare/skills",
       "sourceType": "github",
@@ -28,12 +23,6 @@
       "sourceType": "github",
       "skillPath": "skills/durable-objects/SKILL.md",
       "computedHash": "72efa2277fea08f43b393c74abaacc9fa575e20bc63bdc9d46829b8a39352852"
-    },
-    "migrate-radix-to-base": {
-      "source": "shadcn/ui",
-      "sourceType": "github",
-      "skillPath": "skills/migrate-radix-to-base/SKILL.md",
-      "computedHash": "e1f2030ee5059be3dff0812ca0e4b995ee9fa3132176f049ebe6c90346a6755e"
     },
     "shadcn": {
       "source": "shadcn/ui",
