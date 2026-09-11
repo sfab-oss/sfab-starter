@@ -10,7 +10,8 @@
     "ai-sdk": {
       "source": "vercel/ai",
       "sourceType": "github",
-      "computedHash": "58ce68f628890c3925aea2b5435a649251ac182057541045c68fc19a27aaa0ec"
+      "skillPath": "skills/use-ai-sdk/SKILL.md",
+      "computedHash": "da25c27a274ef2b71017c255f95a26350d2519765a75cb54ee1a37872b121dab"
     },
     "cloudflare": {
       "source": "cloudflare/skills",
@@ -28,7 +29,13 @@
       "source": "shadcn/ui",
       "sourceType": "github",
       "skillPath": "skills/shadcn/SKILL.md",
-      "computedHash": "d81caa0f86aabab65b25e302d454f23a3328760386ed9078345584c0d5c8058e"
+      "computedHash": "f615de216e085a84e31593ad0fa9062232adc40cd87b7c7ab2b8e49abf6500be"
+    },
+    "web-perf": {
+      "source": "cloudflare/skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-perf/SKILL.md",
+      "computedHash": "72d0dd9706147e19bf3c1a36fdc02570f77685541d89d901a3a2f570824ba3cb"
     },
     "workers-best-practices": {
       "source": "cloudflare/skills",
@@ -41,12 +48,6 @@
       "sourceType": "github",
       "skillPath": "skills/wrangler/SKILL.md",
       "computedHash": "4d247a243fec7e23f1247976e0e491520cb0feb397c5477022551e7b4f5cdd93"
-    },
-    "web-perf": {
-      "source": "cloudflare/skills",
-      "sourceType": "github",
-      "skillPath": "skills/web-perf/SKILL.md",
-      "computedHash": "72d0dd9706147e19bf3c1a36fdc02570f77685541d89d901a3a2f570824ba3cb"
     }
   }
 }
