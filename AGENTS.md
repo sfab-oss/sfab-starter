@@ -61,8 +61,28 @@ Run from the **monorepo root** (not inside a package):
   `pnpm db:migrate`. Guide: [`docs/guides/mcp.md`](docs/guides/mcp.md)
   + skill `.agents/skills/mcp`.
 - **Procedural domain knowledge, loaded on demand** → `.agents/skills/`
-  (`cloudflare`, `wrangler`, `durable-objects`, `workers-best-practices`, `agents-sdk`,
-  `ai-sdk`, `agent-browser`, `i18n`, `mcp`). Use the relevant skill when a task matches its domain.
+  (`cloudflare`, `wrangler`, `durable-objects`, `workers-best-practices`,
+  `agents-sdk`, `web-perf`, `ai-sdk`, `shadcn`, `i18n`, `mcp`,
+  `template-architecture`, `components-composition`). Use the relevant skill
+  when a task matches its domain.
+- **Cloudflare skills are hash-pinned in-repo** (`skills-lock.json`) so a
+  clone or fabricated tree works without `npx skills add --global`. That is a
+  template choice. Cloudflare's live [agent-setup
+  prompt](https://developers.cloudflare.com/agent-setup/prompt.md) is for a
+  personal machine (global skills + account MCP at
+  `https://mcp.cloudflare.com/mcp`); do not copy that account server into this
+  repo. Committed MCP (`.cursor/mcp.json` / `.mcp.json`): `cloudflare-docs`,
+  `cloudflare-bindings`, `cloudflare-observability`.
+<!-- intent-skills:start -->
+## Skill Loading
+
+Before editing files for a substantial task:
+- Run `pnpm dlx @tanstack/intent@latest list` from the workspace root to see available local skills.
+- If a listed skill matches the task, run `pnpm dlx @tanstack/intent@latest load <package>#<skill>` before changing files.
+- Use the loaded `SKILL.md` guidance while making the change.
+- Monorepos: when working across packages, run the skill check from the workspace root and prefer the local skill for the package being changed.
+- Multiple matches: prefer the most specific local skill for the package or concern you are changing; load additional skills only when the task spans multiple packages or concerns.
+<!-- intent-skills:end -->
 - **First-time initialization** → follow [`docs/template-init.md`](docs/template-init.md).
   Setup / run → [`README.md`](README.md).
 
