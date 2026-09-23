@@ -29,7 +29,7 @@ function ciSteps() {
       continue;
     }
     const command = match[1].trim();
-    if (command === "" || command === "|" || command === ">") {
+    if (command === "" || command.startsWith("|") || command.startsWith(">")) {
       fail(
         `${CI_FILE} has a multi-line run step; list it in scripts/verify.mjs by hand.`
       );
