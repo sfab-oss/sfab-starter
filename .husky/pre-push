@@ -24,4 +24,5 @@ while read -r local_ref local_oid remote_ref remote_oid; do
   esac
 done
 
-exit 0
+# Everything CI runs, once per push instead of on every commit.
+pnpm verify
