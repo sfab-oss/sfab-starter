@@ -9,6 +9,8 @@
 
 protected_branch="main"
 remote="$1"
+zero_oid="0000000000000000000000000000000000000000"
+updates_branch=""
 
 while read -r local_ref local_oid remote_ref remote_oid; do
   case "$remote_ref" in
@@ -21,7 +23,16 @@ while read -r local_ref local_oid remote_ref remote_oid; do
       printf '    3. Open the PR:       \033[1mgh pr create\033[0m\n\n' >&2
       exit 1
       ;;
+    refs/heads/*)
+      if [ "$local_oid" != "$zero_oid" ]; then
+        updates_branch=1
+      fi
+      ;;
   esac
 done
 
-exit 0
+# Everything CI runs, once per push instead of on every commit. Branch
+# deletions and tag-only pushes skip it.
+if [ -n "$updates_branch" ]; then
+  pnpm verify
+fi

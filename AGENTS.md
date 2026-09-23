@@ -21,6 +21,7 @@ Run from the **monorepo root** (not inside a package):
 | i18n sync / lint | `pnpm i18n:sync` / `pnpm i18n:lint` |
 | Tests | `pnpm test` |
 | Build | `pnpm build` |
+| Everything CI runs (before you push) | `pnpm verify` |
 | Generate a migration | `pnpm db:generate` |
 | Apply migrations (local) | `pnpm db:migrate` |
 | Reset local DB | `pnpm db:reset` |
@@ -89,7 +90,8 @@ Before editing files for a substantial task:
 ## Code standards
 
 This project uses **Biome** for formatting and linting. Fix with `pnpm lint:fix`;
-verify with `pnpm typecheck` and `pnpm lint:check`. Run from the root.
+verify with `pnpm typecheck` and `pnpm lint:check`. Run from the root. Before
+you push, run `pnpm verify`: the same checks as CI, and the pre-push hook runs it too.
 
 - **Self-descriptive code first** — names and types should carry the *what*; comments
   only for non-inherent *why* (invariants, races, platform quirks, ADR/ALW links).

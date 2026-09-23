@@ -13,6 +13,7 @@
     "test": "turbo test",
     "test:e2e": "pnpm --filter web test:e2e",
     "typecheck": "turbo typecheck",
+    "verify": "node scripts/verify.mjs",
     "db:generate": "pnpm --filter @workspace/db db:generate",
     "db:studio": "pnpm --filter @workspace/db db:studio",
     "db:migrate": "pnpm --filter web db:migrate",
