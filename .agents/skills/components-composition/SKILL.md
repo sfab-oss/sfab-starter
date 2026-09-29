@@ -66,7 +66,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
   1. **Responsive branching** — a separate mobile shell component / `useIsMobile` split.
   2. **Async/data state** — `loading` / `error` / `empty` early-returns (and spinner + `disabled`
      on a button). Orthogonal state, not a variant.
-  3. **Vendor composition flags** — `viewport`, `collapsible`, etc. on a Base UI primitive.
+  3. **Vendor composition flags** — flags on shadcn wrappers (`viewport` on NavigationMenu, `collapsible` on Sidebar).
   4. **Optional subpart visibility** — a boolean that mounts/hides *one optional part*
      (`showTrigger`/`showClear` on combobox, `showHeader`) — not a flow selector.
 - **Standard orthogonal booleans are fine and expected:** `disabled`, `open`, `checked`,
@@ -81,40 +81,38 @@ function FastSaleEditor() {                            // structural → explici
 
 ### 4. Element swapping — `render` for our components and for vendors
 **Drop** the generic polymorphic `as` prop and its `ElementType` generics — Base UI's `render` covers it.
+Add `render`/`useRender` only to parts that plausibly become a link or another component (Badge,
+Item, BreadcrumbLink, SidebarMenuButton). Plain leaves stay plain elements (rule 2).
 - **Our own components** → accept a `render` prop and compose with **`useRender` + `mergeProps`**
   (Base UI's composition primitives). Canonical: `marker.tsx`:
   ```tsx
   import { mergeProps } from "@base-ui/react/merge-props"
   import { useRender } from "@base-ui/react/use-render"
-  function Marker({ className, render, ...props }: useRender.ComponentProps<"div"> & VariantProps<typeof markerVariants>) {
+  function Marker({ className, variant = "default", render, ...props }:
+    useRender.ComponentProps<"div"> & VariantProps<typeof markerVariants>) {
     return useRender({
       defaultTagName: "div",
-      props: mergeProps<"div">({ className: cn(markerVariants({ className })) }, props),
+      props: mergeProps<"div">({ className: cn(markerVariants({ variant, className })) }, props),
       render,
-      state: { slot: "marker" },
+      state: { slot: "marker", variant },
     })
   }
   ```
-  Type props as `useRender.ComponentProps<Tag>` (public props, carries `render` + the native props);
-  type the internal default-props object as `useRender.ElementProps<Tag>`. Pass `defaultTagName`, and
-  merge caller props **last** inside `mergeProps` so they win.
+  `state` keys become `data-*` attributes (`slot` → `data-slot`, `variant` → `data-variant`). Don't
+  also set `data-slot` in props. Type props as `useRender.ComponentProps<Tag>`, pass
+  `defaultTagName`, and merge caller props **last** inside `mergeProps` so they win.
 - **Wrapping a Base UI primitive** → use *its* `render` prop, which accepts an element **or** a
   `(props, state) => ReactElement` function. Base UI types come as `Primitive.Part.Props`
   (e.g. `Combobox.Trigger.Props`), and `className`/`style` may be **functions of state**, not just
-  strings. Example: `<ComboboxPrimitive.Clear render={<InputGroupButton/>} />`. With the **function**
-  form of `render`, Base UI does **not** merge props for you: combine them with `mergeProps` and call
-  `event.preventBaseUIHandler()` to suppress Base UI's own handler.
+  strings. Example: `<ComboboxPrimitive.Clear render={<InputGroupButton/>} />`.
 - **Base UI interop landmines:**
   - **`nativeButton`** — on a button-like Base UI part, if you `render` a non-`<button>` element,
     set `nativeButton={false}`. Default is context-dependent (native-button parts → `true`;
     non-native parts like `MenuPrimitive.Item` (a `<div>`) → `false`).
-  - **Refs & handlers** — `mergeProps` merges handlers **right-to-left** with an
-    `event.preventBaseUIHandler()` escape hatch; refs take a **separate** merge path (`useRender`
-    composes them), and there is **no `Slottable`**. Spread order is not interchangeable.
-  - **Vendor namespace stays vendor** — `render={<ComboboxTrigger />}` on our wrapper is fine; don't
-    flatten `ComboboxPrimitive.Trigger` unless you deliberately re-export it.
   - **vaul `Drawer` is the one `asChild` holdout** — vaul parts expose `asChild`, not `render`; keep
     `asChild` there and don't "fix" it to `render`.
+- For consumer-side patterns (`render={<Button />}` with children on the part, `nativeButton` both
+  directions) see `.agents/skills/shadcn/rules/base-vs-radix.md`.
 - **Exception to "drop `as`":** a constrained tag-from-a-fixed-set (e.g. a `Heading` rendering
   `h1`–`h6` via a `level` union) may take that constrained union — *not* an open `ElementType`
   generic. The ban is on library-grade open polymorphism.
@@ -164,8 +162,8 @@ variants/behavior/handlers.
     `data-popup-open`/`data-pressed` (triggers), `data-highlighted`/`data-selected`/`data-disabled`
     (items), `data-starting-style`/`data-ending-style` (transitions), and **logical** `data-side`
     values (`inline-start`/`inline-end`).
-  - Do **not** paste a `data-state=…` selector from a Radix example you find online — it silently
-    never matches here.
+  - Do **not** paste a `data-state=…` selector from a Radix example onto a Base UI part — it
+    silently never matches here.
 
 ### 8. Styling — `cn`, caller's `className` wins
 `cn` = `clsx` + `twMerge` from `@workspace/ui/lib/utils`. The caller's `className` must resolve
@@ -211,7 +209,7 @@ swaps the element.
 - [ ] Flat-named exports; single element on leaves; `...props` spread; caller's `className` resolves last via `cn`
 - [ ] Visual variants via `cva`/bare `data-*` enum; structural = explicit components; **no public mode flags** (async/responsive/vendor/optional-subpart exempt)
 - [ ] Element swap via `render` (our components use `useRender`+`mergeProps`; vendors expose `render`); no generic `as`
-- [ ] Base UI part wrapped? `nativeButton` set if non-button; correct `data-*` selectors for *that* lib
+- [ ] Base UI part wrapped? `nativeButton` set if non-button; Base UI `data-*` selectors (no `data-state`)
 - [ ] Parts share state via a flat context grouped by concern; derivations as pure fns; `{state,actions,meta}` only for multi-source
 - [ ] Simplest state mode (URL/React Query in the action owner first); no needless dual-mode
 - [ ] `data-slot` = full kebab export name; identity/UI state via `data-*`, behavior/controlled state via props
