@@ -1,6 +1,6 @@
 ---
 name: components-composition
-description: sfab house style for authoring UI components across the sfab repos (React 19 + Tailwind v4 + shadcn/cva, unified radix-ui Slot, Base UI incoming). Load before building or refactoring any component in packages/ui or apps/web. Covers flat naming, cn/cva variants, asChild over polymorphic `as`, data-slot, compound + Provider state, Radix/Base-UI interop, and the packages/ui-imports-no-core boundary. The repo-specific rulebook that applies the generic composition patterns (compound components, avoid-boolean-props, lift-state) to this stack.
+description: sfab house style for authoring UI components across the sfab repos (React 19 + Tailwind v4 + shadcn/cva, Base UI primitives, `render`/`useRender` composition). Load before building or refactoring any component in packages/ui or apps/web. Covers flat naming, cn/cva variants, `render` over polymorphic `as`, data-slot, compound + Provider state, Base UI composition/interop, and the packages/ui-imports-no-core boundary. The repo-specific rulebook that applies the generic composition patterns (compound components, avoid-boolean-props, lift-state) to this stack.
 ---
 
 # sfab Components Composition
@@ -13,14 +13,13 @@ filtered through this repo's reality. The reference component is
 > **Scope frame.** components.build is written for *publishing* reusable component libraries
 > (Registry / Marketplace / NPM). We are building **an app + a forkable base**, not a
 > distributed library — take its build-quality rules, drop the publish posture and the
-> library-grade "maximal flexibility everywhere" ceremony. (A full Radix→Base UI migration is
-> also out of scope here — a separate decision.)
+> library-grade "maximal flexibility everywhere" ceremony.
 
 > Stack: React **19.2**, Tailwind **v4**, `class-variance-authority` + `clsx` + `tailwind-merge`
-> (`cn` at `@workspace/ui/lib/utils`), the unified **`radix-ui`** package, and shadcn primitives
-> under `packages/ui/src/components/shadcn`. **Base UI** (`@base-ui/react`) is being adopted in the
-> starter first (e.g. `combobox.tsx`, already mixed with radix in one tree); the main platform repo
-> is radix-only today — the Base UI interop rules (4, 7) apply where/when it lands.
+> (`cn` at `@workspace/ui/lib/utils`), **Base UI** (`@base-ui/react`) as the primitive layer, and
+> shadcn-style wrappers under `packages/ui/src/components/shadcn`. Parts that forward composition
+> use **`useRender` + `mergeProps`** (`@base-ui/react/use-render`, `@base-ui/react/merge-props`);
+> wrappers consume Base UI parts through their `render` prop.
 
 ## The rules
 
@@ -32,7 +31,7 @@ applies to **internal feature compounds too** (`DocumentEditorHeader`, `Document
 just primitives. The part-of relationship is expressed by the **name prefix + `data-slot`**, and
 shared state by a **Provider** (rule 5/6) — not by a dot object.
 - **This governs *our own* exports.** Third-party primitives keep their vendor namespace —
-  `Slot.Root`, `ComboboxPrimitive.Trigger`, `Dialog.Root`. Do not rewrap them to flatten.
+  `ComboboxPrimitive.Trigger`, `MenuPrimitive.Item`, `Dialog.Root`. Do not rewrap them to flatten.
 
 ### 2. One element per *leaf* component; props spread; className last
 Each **leaf/part** component wraps a single element and spreads through. Type as
@@ -67,11 +66,11 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
   1. **Responsive branching** — a separate mobile shell component / `useIsMobile` split.
   2. **Async/data state** — `loading` / `error` / `empty` early-returns (and spinner + `disabled`
      on a button). Orthogonal state, not a variant.
-  3. **Vendor composition flags** — `viewport`, `collapsible`, etc. on a Radix/Base UI primitive.
+  3. **Vendor composition flags** — `viewport`, `collapsible`, etc. on a Base UI primitive.
   4. **Optional subpart visibility** — a boolean that mounts/hides *one optional part*
      (`showTrigger`/`showClear` on combobox, `showHeader`) — not a flow selector.
-- **Standard orthogonal booleans are fine and expected:** `disabled`, `asChild`, `open`,
-  `checked`, `defaultOpen`, `loading`. The ban is *only* on booleans that select parts/flow.
+- **Standard orthogonal booleans are fine and expected:** `disabled`, `open`, `checked`,
+  `defaultOpen`, `loading`. The ban is *only* on booleans that select parts/flow.
 ```tsx
 <Button variant="destructive" size="sm" />            // visual → cva
 function FastSaleEditor() {                            // structural → explicit
@@ -80,28 +79,39 @@ function FastSaleEditor() {                            // structural → explici
 // NEVER: <DocumentEditor isFast isEditing isQuote />
 ```
 
-### 4. Element swapping — `asChild` for our components; the primitive's API for vendors
-**Drop** the generic polymorphic `as` prop and its `ElementType` generics — `asChild` covers it.
-- **Our own components** → `asChild` via the unified `radix-ui` `Slot` (mirrors `button.tsx`):
+### 4. Element swapping — `render` for our components and for vendors
+**Drop** the generic polymorphic `as` prop and its `ElementType` generics — Base UI's `render` covers it.
+- **Our own components** → accept a `render` prop and compose with **`useRender` + `mergeProps`**
+  (Base UI's composition primitives). Canonical: `marker.tsx`:
   ```tsx
-  import { Slot } from "radix-ui"
-  const Comp = asChild ? Slot.Root : "button"
+  import { mergeProps } from "@base-ui/react/merge-props"
+  import { useRender } from "@base-ui/react/use-render"
+  function Marker({ className, render, ...props }: useRender.ComponentProps<"div"> & VariantProps<typeof markerVariants>) {
+    return useRender({
+      defaultTagName: "div",
+      props: mergeProps<"div">({ className: cn(markerVariants({ className })) }, props),
+      render,
+      state: { slot: "marker" },
+    })
+  }
   ```
+  Type props as `useRender.ComponentProps<Tag>` (carries `render` + the native props), pass
+  `defaultTagName`, and merge caller props **last** inside `mergeProps` so they win.
 - **Wrapping a Base UI primitive** → use *its* `render` prop, which accepts an element **or** a
   `(props, state) => ReactElement` function. Base UI types come as `Primitive.Part.Props`
   (e.g. `Combobox.Trigger.Props`), and `className`/`style` may be **functions of state**, not just
   strings. Example: `<ComboboxPrimitive.Clear render={<InputGroupButton/>} />`.
-- **Base UI interop landmines** (both libs coexist today in the starter's `combobox.tsx`):
+- **Base UI interop landmines:**
   - **`nativeButton`** — on a button-like Base UI part, if you `render` a non-`<button>` element,
     set `nativeButton={false}`. Default is context-dependent (native-button parts → `true`;
-    non-native parts like `ComboboxItem` (a `<div>`) → `false`).
-  - **Different merge engines** — radix `Slot` and Base UI `render`/`useRender` are *not* the same:
-    Base UI's `mergeProps` does **not** merge `ref` (separate merged-refs path), merges handlers
-    **right-to-left** with an `event.preventBaseUIHandler()` escape hatch, and has **no
-    `Slottable`**. Nesting both on one node works but don't assume radix Slot prop/handler order.
-  - Base UI's own composition primitives are **`useRender` + `mergeProps`** (from
-    `@base-ui/react/use-render` and `@base-ui/react/merge-props` — hyphenated paths), the analog to
-    radix `Slot` for authoring your own composable Base UI-style parts.
+    non-native parts like `MenuPrimitive.Item` (a `<div>`) → `false`).
+  - **Refs & handlers** — `mergeProps` merges handlers **right-to-left** with an
+    `event.preventBaseUIHandler()` escape hatch; refs take a **separate** merge path (`useRender`
+    composes them), and there is **no `Slottable`**. Spread order is not interchangeable.
+  - **Vendor namespace stays vendor** — `render={<ComboboxTrigger />}` on our wrapper is fine; don't
+    flatten `ComboboxPrimitive.Trigger` unless you deliberately re-export it.
+  - **vaul `Drawer` is the one `asChild` holdout** — vaul parts expose `asChild`, not `render`; keep
+    `asChild` there and don't "fix" it to `render`.
 - **Exception to "drop `as`":** a constrained tag-from-a-fixed-set (e.g. a `Heading` rendering
   `h1`–`h6` via a `level` union) may take that constrained union — *not* an open `ElementType`
   generic. The ban is on library-grade open polymorphism.
@@ -146,13 +156,13 @@ function DocumentEditorHeader({ className, ...props }: React.ComponentProps<"div
 unique descendant selectors. Purpose-named (`submit-button`, not `blueButton`). Style children
 from a parent via `has-[…]`, `[&_[data-slot=…]]`, named `group/*` scopes. Props stay for
 variants/behavior/handlers.
-- **State attributes are primitive-specific — never copy a selector across libs:**
-  - **Radix** emits `data-state="open|closed"`.
+- **State attributes are primitive-specific — check the part's own DataAttributes:**
   - **Base UI** never emits `data-state`; it uses `data-open`/`data-closed` (popups),
     `data-popup-open`/`data-pressed` (triggers), `data-highlighted`/`data-selected`/`data-disabled`
     (items), `data-starting-style`/`data-ending-style` (transitions), and **logical** `data-side`
-    values (`inline-start`/`inline-end`) Radix never emits.
-  - Check the part's own DataAttributes before writing `data-[state=…]`.
+    values (`inline-start`/`inline-end`).
+  - Do **not** paste a `data-state=…` selector from a Radix example you find online — it silently
+    never matches here.
 
 ### 8. Styling — `cn`, caller's `className` wins
 `cn` = `clsx` + `twMerge` from `@workspace/ui/lib/utils`. The caller's `className` must resolve
@@ -163,10 +173,10 @@ variants/behavior/handlers.
 ### 9. React 19 idioms
 No `forwardRef` — `ref` is a normal prop (`React.ComponentProps<T>` already carries it; use
 `ComponentPropsWithRef` only when wrapping a primitive that needs the ref typed, see
-`combobox.tsx`). `Slot.Root` forwards `ref` to the `asChild` child, so ref + asChild compose for
-free. **`useContext(Context)` is the house default** (matches all current consumers); reach for
-`use(Context)` only when you need a conditional read (after an early return) or to unwrap a promise
-under Suspense — do **not** mass-migrate existing `useContext`.
+`combobox.tsx`). `useRender` forwards and merges `ref` for composed parts, so ref + `render`
+compose for free. **`useContext(Context)` is the house default** (matches all current consumers);
+reach for `use(Context)` only when you need a conditional read (after an early return) or to unwrap
+a promise under Suspense — do **not** mass-migrate existing `useContext`.
 
 ### 10. Types & a11y
 Export a `<Name>Props` type for **app/feature composites**; shadcn-style primitives may keep an
@@ -175,7 +185,7 @@ inline `React.ComponentProps<…>` intersection (the baseline does — don't for
 not `title`, since `title` is a native attribute) — this does **not** affect component names
 (`CardTitle` the component is correct). Children over render props, except when a child needs
 per-item data the parent owns (virtualized/data-driven lists). Semantic elements +
-keyboard/focus by default; ARIA only to supplement; preserve role/keyboard behavior when `asChild`
+keyboard/focus by default; ARIA only to supplement; preserve role/keyboard behavior when `render`
 swaps the element.
 
 ## sfab layering & placement (non-negotiable)
@@ -197,7 +207,7 @@ swaps the element.
 - [ ] Right tier/folder (`shadcn`/`brand`/`ai-elements` or `apps/web/components/<cap>/`); kebab filename; `"use client"` if stateful
 - [ ] Flat-named exports; single element on leaves; `...props` spread; caller's `className` resolves last via `cn`
 - [ ] Visual variants via `cva`/bare `data-*` enum; structural = explicit components; **no public mode flags** (async/responsive/vendor/optional-subpart exempt)
-- [ ] `asChild` via `radix-ui` `Slot.Root` (our components) or the primitive's `render` (Base UI); no generic `as`
+- [ ] Element swap via `render` (our components use `useRender`+`mergeProps`; vendors expose `render`); no generic `as`
 - [ ] Base UI part wrapped? `nativeButton` set if non-button; correct `data-*` selectors for *that* lib
 - [ ] Parts share state via a flat context grouped by concern; derivations as pure fns; `{state,actions,meta}` only for multi-source
 - [ ] Simplest state mode (URL/React Query in the action owner first); no needless dual-mode

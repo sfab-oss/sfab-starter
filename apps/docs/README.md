@@ -19,4 +19,4 @@ MDX pages live in `content/docs/`. The `fumadocs-mdx` postinstall step generates
 
 ## Live UI demos
 
-Register shared components in `src/components/mdx.tsx` (`getMDXComponents`) to render `@workspace/ui` pieces inside MDX. See `content/docs/components/button.mdx` for an example.
+Register shared components in `src/components/mdx.tsx` (`getMDXComponents`) to render `@workspace/ui` pieces inside MDX. See `content/docs/components/shell.mdx` for an example.

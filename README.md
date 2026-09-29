@@ -105,10 +105,10 @@ have a clear reason not to. A worked feature walkthrough is in
 
 ## Project layout
 
-A layer-sliced monorepo: one app in `apps/web`, with capabilities split into
-packages such as `core`, `db`, `auth`, `agent`, and `ui`. Find one slice and
-you know where the rest live. The full map, the feature-key model, and a worked
-example are in [`docs/architecture.md`](docs/architecture.md).
+A layer-sliced monorepo: two apps (`apps/web`, `apps/docs`), with capabilities
+split into packages such as `core`, `db`, `auth`, `agent`, and `ui`. Find one
+slice and you know where the rest live. The full map, the feature-key model, and
+a worked example are in [`docs/architecture.md`](docs/architecture.md).
 
 ## Where to go next
 
