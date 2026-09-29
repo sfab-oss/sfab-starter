@@ -95,12 +95,15 @@ function FastSaleEditor() {                            // structural → explici
     })
   }
   ```
-  Type props as `useRender.ComponentProps<Tag>` (carries `render` + the native props), pass
-  `defaultTagName`, and merge caller props **last** inside `mergeProps` so they win.
+  Type props as `useRender.ComponentProps<Tag>` (public props, carries `render` + the native props);
+  type the internal default-props object as `useRender.ElementProps<Tag>`. Pass `defaultTagName`, and
+  merge caller props **last** inside `mergeProps` so they win.
 - **Wrapping a Base UI primitive** → use *its* `render` prop, which accepts an element **or** a
   `(props, state) => ReactElement` function. Base UI types come as `Primitive.Part.Props`
   (e.g. `Combobox.Trigger.Props`), and `className`/`style` may be **functions of state**, not just
-  strings. Example: `<ComboboxPrimitive.Clear render={<InputGroupButton/>} />`.
+  strings. Example: `<ComboboxPrimitive.Clear render={<InputGroupButton/>} />`. With the **function**
+  form of `render`, Base UI does **not** merge props for you: combine them with `mergeProps` and call
+  `event.preventBaseUIHandler()` to suppress Base UI's own handler.
 - **Base UI interop landmines:**
   - **`nativeButton`** — on a button-like Base UI part, if you `render` a non-`<button>` element,
     set `nativeButton={false}`. Default is context-dependent (native-button parts → `true`;
